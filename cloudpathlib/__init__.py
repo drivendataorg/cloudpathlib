@@ -1,0 +1,1 @@
+from .backends.s3.s3path import S3Path
