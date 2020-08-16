@@ -1,23 +1,80 @@
-from ...cloudpath import CloudPath
-from .s3backend import S3Backend
+import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
-# FEATUREDS
-#   - div left and div right
-#   - local cache
+from ...cloudpath import CloudPath
+import cloudpathlib
 
 
 class S3Path(CloudPath):
-    backend_class = S3Backend
-    path_prefix = "s3://"
+    cloud_prefix = "s3://"
+
+    def __init__(self, *args, **kwargs):
+        self.backend_class = cloudpathlib.S3Backend
+        super().__init__(*args, **kwargs)
+
+    @property
+    def drive(self):
+        return self.bucket
+
+    def exists(self):
+        return self.backend.exists(self)
+
+    def is_dir(self):
+        return self.backend.is_file_or_dir(self) == "dir"
+
+    def is_file(self):
+        return self.backend.is_file_or_dir(self) == "file"
+
+    def mkdir(self, parents=False, exist_ok=False):
+        # not possible to make empty directory on s3
+        pass
+
+    def touch(self):
+        if self.exists():
+            self.backend.move_file(self, self)
+        else:
+            tf = TemporaryDirectory()
+            p = Path(tf.name) / "empty"
+            p.touch()
+
+            self.backend.upload_file(p, self)
+
+            tf.cleanup()
+
+    def stat(self):
+        meta = self.backend.get_metadata(self)
+
+        return os.stat_result(
+            (
+                None,  # mode
+                None,  # ino
+                self.cloud_prefix,  # dev,
+                None,  # nlink,
+                None,  # uid,
+                None,  # gid,
+                meta.get("size", 0),  # size,
+                None,  # atime,
+                meta.get("last_modified", 0).timestamp(),  # mtime,
+                None,  # ctime,
+            )
+        )
 
     @property
     def bucket(self):
-        return ""
+        return self._no_prefix.split("/", 1)[0]
 
     @property
     def key(self):
-        return ""
+        key = self._no_prefix_no_drive
+
+        # key should never have starting slash for
+        # use with boto, etc.
+        if key.startswith("/"):
+            key = key[1:]
+
+        return key
 
     @property
     def etag(self):
-        return ""
+        return self.backend.get_metadata(self).get("etag")

@@ -1,4 +1,5 @@
 import abc
+import fnmatch
 import os
 from pathlib import Path, PosixPath
 from tempfile import TemporaryDirectory
@@ -46,7 +47,7 @@ class CloudPath(abc.ABC):
             # instantiate with defaults
             backend = self.backend_class()
 
-        if not isinstance(backend, self.backend_class):
+        if type(backend) != self.backend_class:
             raise BackendMismatch(
                 f"Backend of type ({backend.__class__}) is not valid for cloud path of type "
                 f"({self.__class__}); must be instantiation of ({self.backend_class}) or None "
@@ -71,7 +72,8 @@ class CloudPath(abc.ABC):
 
     def __del__(self):
         # make sure that file handle to local path is closed
-        self._handle.close()
+        if self._handle is not None:
+            self._handle.close()
 
         # make sure temp is cleaned up if we created it
         if self._cache_tmp_dir is not None:
@@ -80,6 +82,10 @@ class CloudPath(abc.ABC):
     @property
     def _no_prefix(self):
         return self._str[len(self.cloud_prefix) :]
+
+    @property
+    def _no_prefix_no_drive(self):
+        return self._str[len(self.cloud_prefix) + len(self.drive) :]
 
     @classmethod
     def is_valid_cloudpath(cls, path, raise_on_error=False):
@@ -134,18 +140,6 @@ class CloudPath(abc.ABC):
         """
         pass
 
-    @abc.abstractproperty
-    def exists(self):
-        """ Should be implemented without requiring that the file is downloaded
-        """
-        pass
-
-    @abc.abstractmethod
-    def glob(self, pattern):
-        """ Should be implemented using the backend API without requiring a dir is downloaded
-        """
-        pass
-
     @abc.abstractmethod
     def is_dir(self):
         """ Should be implemented without requiring a dir is downloaded
@@ -159,32 +153,8 @@ class CloudPath(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def iterdir(self, pattern):
-        """ Should be implemented using the backend API without requiring a dir is downloaded
-        """
-        pass
-
-    @abc.abstractmethod
     def mkdir(self, parents=False, exist_ok=False):
         """ Should be implemented using the backend API without requiring a dir is downloaded
-        """
-        pass
-
-    @abc.abstractmethod
-    def rename(self, target):
-        """ Should be implemented using the backend API
-        """
-        pass
-
-    @abc.abstractmethod
-    def replace(self, target):
-        """ Should be implemented using the backend API
-        """
-        pass
-
-    @abc.abstractmethod
-    def rmdir(self, target):
-        """ Should be implemented using the backend API
         """
         pass
 
@@ -207,6 +177,34 @@ class CloudPath(abc.ABC):
 
     def as_uri(self):
         return str(self)
+
+    def exists(self):
+        return self.backend.exists(self)
+
+    def glob(self, pattern):
+        """ Should be implemented using the backend API without requiring a dir is downloaded
+        """
+        # strip cloud prefix from pattern if it is included
+        if pattern.startswith(self.cloud_prefix):
+            pattern = pattern[len(self.cloud_prefix) :]
+
+        # strip "drive" from pattern if it is included
+        if pattern.startswith(self.drive):
+            pattern = pattern[len(self.drive) :]
+
+        # identify if pattern is recursive or not
+        recursive = False
+        if pattern.startswith("**/"):
+            pattern = pattern.split("/", 1)[-1]
+            recursive = True
+
+        for f in self.backend.list_dir(self, recursive=recursive):
+            if fnmatch.fnmatch(f._no_prefix_no_drive, pattern):
+                yield f
+
+    def iterdir(self):
+        for f in self.backend.list_dir(self):
+            yield f
 
     def open(
         self,
@@ -261,12 +259,53 @@ class CloudPath(abc.ABC):
 
         return buffer
 
+    def replace(self, target):
+        if type(self) != type(target):
+            raise ValueError(
+                f"The target based to rename must be an instantiated class of type: {type(self)}"
+            )
+
+        if target.exists():
+            target.unlink()
+
+        self.backend.move_file(self, target)
+        return target
+
+    def rename(self, target):
+        # for cloud services replace == rename since we don't just rename,
+        # we actually move files
+        return self.replace(target)
+
     def rglob(self, pattern):
         return self.glob("**/" + pattern)
+
+    def rmdir(self):
+        self.backend.remove(self)
 
     def samepath(self, other_path):
         # all cloud paths are absolute and the paths are used for hash
         return self == other_path
+
+    def unlink(self):
+        self.backend.remove(self)
+
+    def write_bytes(self, data):
+        """ Open the file in bytes mode, write to it, and close the file.
+            NOTE: vendored from pathlib since we override open
+        """
+        # type-check for the buffer interface before truncating the file
+        view = memoryview(data)
+        with self.open(mode="wb") as f:
+            return f.write(view)
+
+    def write_text(self, data, encoding=None, errors=None):
+        """ Open the file in text mode, write to it, and close the file.
+            NOTE: vendored from pathlib since we override open
+        """
+        if not isinstance(data, str):
+            raise TypeError("data must be str, not %s" % data.__class__.__name__)
+        with self.open(mode="w", encoding=encoding, errors=errors) as f:
+            return f.write(data)
 
     # ====================== DISPATCHED TO POSIXPATH FOR PURE PATHS ======================
     # Methods that are dispatched to exactly how pathlib.PosixPath would calculate it on
@@ -389,8 +428,8 @@ class CloudPath(abc.ABC):
         )
         return self._dispatch_to_local_cache_path("stat")
 
-    def read_binary(self):
-        return self._dispatch_to_local_cache_path("read_binary")
+    def read_bytes(self):
+        return self._dispatch_to_local_cache_path("read_bytes")
 
     def read_text(self):
         return self._dispatch_to_local_cache_path("read_text")
@@ -439,11 +478,15 @@ class CloudPath(abc.ABC):
         # if not exist or cloud newer
         if (
             not self._local.exists()
-            or self._local.stat.mtime < self.stat.mtime
+            or self._local.stat().st_mtime < self.stat().st_mtime
             or force_overwrite_from_cloud
         ):
+            # ensure there is a home for the file
+            self._local.parent.mkdir(parents=True, exist_ok=True)
             self.download_to(self._local)
-            os.utime(self._local, times=(self.stat.atime, self.stat.mtime,))
+
+            # force cache time to match cloud times
+            os.utime(self._local, times=(self.stat().st_mtime, self.stat().st_mtime,))
 
         if self._dirty:
             raise OverwriteDirtyFile(
@@ -455,12 +498,13 @@ class CloudPath(abc.ABC):
 
         # if local newer but not dirty, it was updated
         # by a separate process; do not overwrite unless forced to
-        raise OverwriteNewerLocal(
-            f"Local file ({self._local}) for cloud path ({self}) is newer on disk, but "
-            f"is being requested for download from cloud. Either (1) push your changes to the cloud, "
-            f"(2) remove the local file, or (3) pass `force_overwrite_from_cloud=True` to "
-            f"overwrite."
-        )
+        if self._local.stat().st_mtime > self.stat().st_mtime:
+            raise OverwriteNewerLocal(
+                f"Local file ({self._local}) for cloud path ({self}) is newer on disk, but "
+                f"is being requested for download from cloud. Either (1) push your changes to the cloud, "
+                f"(2) remove the local file, or (3) pass `force_overwrite_from_cloud=True` to "
+                f"overwrite."
+            )
 
     def _upload_local_to_cloud(self, force_overwrite_to_cloud=False):
         # We should never try to be syncing entire directories; we should only
@@ -471,7 +515,7 @@ class CloudPath(abc.ABC):
         # if cloud does not exist or local is newer or we are overwriting, do the upload
         if (
             not self.exists()  # cloud does not exist
-            or self._local.stat.mtime > self.stat.mtime
+            or self._local.stat().st_mtime > self.stat().st_mtime
             or force_overwrite_to_cloud
         ):
             self.backend.upload_file(
