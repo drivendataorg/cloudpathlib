@@ -7,4 +7,5 @@ exclude = '''
     \.git
   | \.venv
 )/
+| cloudpathlib/_vendored.py
 '''
