@@ -111,7 +111,10 @@ class CloudPath(abc.ABC):
 
     def __hash__(self):
         # use repr for type and resolved path to assess if paths are the same
-        return self.__repr__
+        return hash(self.__repr__)
+
+    def __eq__(self, other):
+        return repr(self) == repr(other)
 
     # ====================== NOT IMPLEMENTED ======================
     # absolute - no cloud equivalent; all cloud paths are absolute already
@@ -401,11 +404,9 @@ class CloudPath(abc.ABC):
     def suffixes(self):
         return self._dispatch_to_path("suffixes")
 
-    @property
     def with_name(self, name):
         return self._dispatch_to_path("with_name", name)
 
-    @property
     def with_suffix(self, suffix):
         return self._dispatch_to_path("with_suffix", suffix)
 

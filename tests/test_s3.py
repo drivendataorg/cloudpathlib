@@ -32,6 +32,8 @@ def test_joins():
     assert S3Path("S3://a/b/c/d.file").name == "d.file"
     assert S3Path("S3://a/b/c/d.file").stem == "d"
     assert S3Path("S3://a/b/c/d.file").suffix == ".file"
-    assert S3Path("S3://a/b/c/d.file").with_suffix(".png") == "S3://a/b/c/d.file"
+    assert str(S3Path("s3://a/b/c/d.file").with_suffix(".png")) == "s3://a/b/c/d.png"
 
     assert S3Path("s3://a") / "b" == S3Path("s3://a/b")
+    assert S3Path("s3://a/b/c/d") / "../../b" == S3Path("s3://a/b/b")
+
