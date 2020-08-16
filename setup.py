@@ -48,9 +48,9 @@ setup(
     name="cloudpathlib",
     packages=find_packages(),
     project_urls={
-        "Bug Tracker": "https://github.com/drivendataorg/nbautoexport/issues",
-        "Documentation": "https://nbautoexport.drivendata.org/",
-        "Source Code": "https://github.com/drivendataorg/nbautoexport",
+        "Bug Tracker": "https://github.com/drivendataorg/cloudpathlib/issues",
+        "Documentation": "https://cloudpathlib.drivendata.org/",
+        "Source Code": "https://github.com/drivendataorg/cloudpathlib",
     },
-    url="https://github.com/drivendataorg/nbautoexport",
+    url="https://github.com/drivendataorg/cloudpathlib",
 )

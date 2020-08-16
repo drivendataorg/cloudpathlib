@@ -118,7 +118,7 @@ class S3Backend(Backend):
             obj.get()
 
             resp = obj.delete()
-            assert resp.get("HTTPStatusCode") == 204
+            assert resp.get("ResponseMetadata").get("HTTPStatusCode") == 204
 
         except self.client.exceptions.NoSuchKey:
             # try to delete as a direcotry instead

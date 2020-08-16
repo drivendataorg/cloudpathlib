@@ -1,10 +1,15 @@
 import abc
 import fnmatch
 import os
-from pathlib import Path, PosixPath
+from pathlib import Path, PosixPath, PurePosixPath
 from tempfile import TemporaryDirectory
 from urllib.parse import urlparse
 from warnings import warn
+
+from ._vendored import resolve
+
+
+PurePosixPath.resolve = resolve
 
 
 # Custom Exceptions
@@ -40,7 +45,7 @@ class CloudPath(abc.ABC):
         # versions of the raw string that provide useful methods
         self._str = str(cloud_path)
         self._url = urlparse(self._str)
-        self._path = PosixPath(f"/{self._no_prefix}")
+        self._path = PurePosixPath(f"/{self._no_prefix}")
 
         # setup backend connection
         if backend is None:
@@ -216,16 +221,21 @@ class CloudPath(abc.ABC):
         force_overwrite_from_cloud=False,  # extra kwarg not in pathlib
         force_overwrite_to_cloud=False,  # extra kwarg not in pathlib
     ):
-        if not self.is_file():
+        # if trying to call open on a direcotry that exists
+        if self.exists() and not self.is_file():
             raise ValueError(
                 f"Cannot open directory, only files. Tried to open ({self})"
             )
 
-        # TODO: consider streaming from backend rather than DLing entire file to cache
         if mode == "x" and self.exists():
             raise ValueError(f"Cannot open existing file ({self}) for creation.")
 
+        # TODO: consider streaming from backend rather than DLing entire file to cache
         self._refresh_cache(force_overwrite_from_cloud=force_overwrite_from_cloud)
+
+        # create any directories that may be needed if the file is new
+        if not self._local.exists():
+            self._local.parent.mkdir(parents=True, exist_ok=True)
 
         buffer = self._local.open(
             mode=mode,
@@ -291,7 +301,9 @@ class CloudPath(abc.ABC):
 
     def write_bytes(self, data):
         """ Open the file in bytes mode, write to it, and close the file.
+            
             NOTE: vendored from pathlib since we override open
+            https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1235-L1242
         """
         # type-check for the buffer interface before truncating the file
         view = memoryview(data)
@@ -300,7 +312,9 @@ class CloudPath(abc.ABC):
 
     def write_text(self, data, encoding=None, errors=None):
         """ Open the file in text mode, write to it, and close the file.
+
             NOTE: vendored from pathlib since we override open
+            https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1244-L1252
         """
         if not isinstance(data, str):
             raise TypeError("data must be str, not %s" % data.__class__.__name__)
@@ -323,7 +337,7 @@ class CloudPath(abc.ABC):
             path_version = path_version(*args, **kwargs)
 
         # Paths should always be resolved and then converted to the same backend + class as this one
-        if isinstance(path_version, PosixPath):
+        if isinstance(path_version, PurePosixPath):
             # always resolve since cloud paths must be absolute
             path_version = path_version.resolve()
             return self._new_cloudpath(path_version)
@@ -395,7 +409,7 @@ class CloudPath(abc.ABC):
     def with_suffix(self, suffix):
         return self._dispatch_to_path("with_suffix", suffix)
 
-    # ====================== DISPATCHED TO LOCAL CACHE FOR INSTANTIATED PATHS ======================
+    # ====================== DISPATCHED TO LOCAL CACHE FOR CONCRETE PATHS ======================
     # Items that can be executed on the cached file on the local filesystem
     def _dispatch_to_local_cache_path(self, func, *args, **kwargs):
         self._refresh_cache()
@@ -472,13 +486,18 @@ class CloudPath(abc.ABC):
         )
 
     def _refresh_cache(self, force_overwrite_from_cloud=False):
+        # nothing to cache if the file does not exist; happens when creating
+        # new files that will be uploaded
+        if not self.exists():
+            return
+
         if self.is_dir():
             raise ValueError("Only individual files can be cached")
 
         # if not exist or cloud newer
         if (
             not self._local.exists()
-            or self._local.stat().st_mtime < self.stat().st_mtime
+            or (self._local.stat().st_mtime < self.stat().st_mtime)
             or force_overwrite_from_cloud
         ):
             # ensure there is a home for the file
@@ -515,12 +534,13 @@ class CloudPath(abc.ABC):
         # if cloud does not exist or local is newer or we are overwriting, do the upload
         if (
             not self.exists()  # cloud does not exist
-            or self._local.stat().st_mtime > self.stat().st_mtime
+            or (self._local.stat().st_mtime > self.stat().st_mtime)
             or force_overwrite_to_cloud
         ):
             self.backend.upload_file(
                 self._local, self,
             )
+            return self
 
         # cloud is newer and we are not overwriting
         raise OverwriteNewerCloud(
