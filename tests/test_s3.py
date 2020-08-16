@@ -36,4 +36,3 @@ def test_joins():
 
     assert S3Path("s3://a") / "b" == S3Path("s3://a/b")
     assert S3Path("s3://a/b/c/d") / "../../b" == S3Path("s3://a/b/b")
-
