@@ -45,7 +45,7 @@ docs: clean-docs
 	cd docs && mkdocs build
 
 format:
-	black nbautoexport tests
+	black cloudpathlib tests
 
 help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
@@ -54,9 +54,8 @@ install: clean ## install the package to the active Python's site-packages
 	python setup.py install
 
 lint: ## check style with flake8
-	black --check nbautoexport tests
-	flake8 nbautoexport tests
-	mypy nbautoexport tests
+	black --check cloudpathlib tests
+	flake8 cloudpathlib tests
 
 release: dist ## package and upload a release
 	twine upload dist/*

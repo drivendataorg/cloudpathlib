@@ -1,9 +1,10 @@
 from ...cloudpath import CloudPath
 from .s3backend import S3Backend
 
-# FEATUREDS 
+# FEATUREDS
 #   - div left and div right
 #   - local cache
+
 
 class S3Path(CloudPath):
     backend_class = S3Backend

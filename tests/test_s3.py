@@ -3,6 +3,7 @@ import pytest
 from cloudpathlib import S3Path
 from cloudpathlib.cloudpath import InvalidPrefix
 
+
 def test_initialize_s3():
     with pytest.raises(TypeError):
         p = S3Path()
@@ -12,7 +13,7 @@ def test_initialize_s3():
 
     # case insensitive
     cases = ["s3://b/k", "S3://b/k", "s3://b/k.file", "S3://b/k", "s3://b"]
-    
+
     for expected in cases:
         p = S3Path(expected)
         assert repr(p) == f"S3Path('{expected}')"
@@ -31,8 +32,6 @@ def test_joins():
     assert S3Path("S3://a/b/c/d.file").name == "d.file"
     assert S3Path("S3://a/b/c/d.file").stem == "d"
     assert S3Path("S3://a/b/c/d.file").suffix == ".file"
-    assert S3Path("S3://a/b/c/d.file").with_suffix('.png') == "S3://a/b/c/d.file"
-
+    assert S3Path("S3://a/b/c/d.file").with_suffix(".png") == "S3://a/b/c/d.file"
 
     assert S3Path("s3://a") / "b" == S3Path("s3://a/b")
-

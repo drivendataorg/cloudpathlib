@@ -1,13 +1,14 @@
 from ..base import Backend
 
-# FEATUREDS 
+# FEATUREDS
 #   - Singleton (optional?)
 #   - DL File
 #   - UL File
 #   - Iter dir
-#   - Download Dir (?) 
+#   - Download Dir (?)
 #   - File metadata (like size?)
 #   - DL notificaiton/warning
+
 
 class S3Backend(Backend):
     def __init__(self):
