@@ -44,4 +44,6 @@ jobs:
       with:
         file: ./coverage.xml
         fail_ci_if_error: true
+      env:
+        CODECOV_TOKEN: ${{ secrets.CLOUDPATHLIB_CODECOV_TOKEN }}
       if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == 3.8 }}
