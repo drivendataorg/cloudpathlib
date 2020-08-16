@@ -1,7 +1,7 @@
 import abc
 import fnmatch
 import os
-from pathlib import Path, PosixPath, PurePosixPath
+from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
 from tempfile import TemporaryDirectory
 from urllib.parse import urlparse
 from warnings import warn
@@ -304,7 +304,7 @@ class CloudPath(abc.ABC):
 
     def write_bytes(self, data):
         """ Open the file in bytes mode, write to it, and close the file.
-            
+
             NOTE: vendored from pathlib since we override open
             https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1235-L1242
         """
@@ -325,7 +325,7 @@ class CloudPath(abc.ABC):
             return f.write(data)
 
     # ====================== DISPATCHED TO POSIXPATH FOR PURE PATHS ======================
-    # Methods that are dispatched to exactly how pathlib.PosixPath would calculate it on
+    # Methods that are dispatched to exactly how pathlib.PurePosixPath would calculate it on
     # self._path for pure paths (does not matter if file exists);
     # see the next session for ones that require a real file to exist
     def _dispatch_to_path(self, func, *args, **kwargs):
@@ -422,7 +422,7 @@ class CloudPath(abc.ABC):
             path_version = path_version(*args, **kwargs)
 
         # Paths should always be resolved and then converted to the same backend + class as this one
-        if isinstance(path_version, PosixPath):
+        if isinstance(path_version, (PosixPath, WindowsPath)):
             # always resolve since cloud paths must be absolute
             path_version = path_version.resolve()
             return self._new_cloudpath(path_version)
