@@ -226,9 +226,7 @@ class CloudPath(abc.ABC):
     ):
         # if trying to call open on a direcotry that exists
         if self.exists() and not self.is_file():
-            raise ValueError(
-                f"Cannot open directory, only files. Tried to open ({self})"
-            )
+            raise ValueError(f"Cannot open directory, only files. Tried to open ({self})")
 
         if mode == "x" and self.exists():
             raise ValueError(f"Cannot open existing file ({self}) for creation.")
@@ -241,11 +239,7 @@ class CloudPath(abc.ABC):
             self._local.parent.mkdir(parents=True, exist_ok=True)
 
         buffer = self._local.open(
-            mode=mode,
-            buffering=buffering,
-            encoding=encoding,
-            errors=errors,
-            newline=newline,
+            mode=mode, buffering=buffering, encoding=encoding, errors=errors, newline=newline,
         )
 
         # write modes need special on closing the buffer
@@ -258,9 +252,7 @@ class CloudPath(abc.ABC):
             # when the buffer is closed
             def _patched_close(*args, **kwargs):
                 original_close(*args, **kwargs)
-                self._upload_local_to_cloud(
-                    force_overwrite_to_cloud=force_overwrite_to_cloud
-                )
+                self._upload_local_to_cloud(force_overwrite_to_cloud=force_overwrite_to_cloud)
 
             buffer.close = _patched_close
 
@@ -482,9 +474,7 @@ class CloudPath(abc.ABC):
         if not path.startswith(self.cloud_prefix):
             path = f"{self.cloud_prefix}{path}"
 
-        return self.__class__(
-            path, backend=self.backend, local_cache_dir=self._local_cache_dir
-        )
+        return self.__class__(path, backend=self.backend, local_cache_dir=self._local_cache_dir)
 
     def _refresh_cache(self, force_overwrite_from_cloud=False):
         # nothing to cache if the file does not exist; happens when creating

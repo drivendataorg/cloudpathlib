@@ -31,9 +31,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements-dev.txt --use-feature=2020-resolver
 
-    # - name: Lint package
-    #   run: |
-    #     make lint
+    - name: Lint package
+      run: |
+        make lint
 
     - name: Run tests
       run: |
