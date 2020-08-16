@@ -39,9 +39,9 @@ jobs:
       run: |
         make test
 
-    - name: Upload coverage to codecov
-      uses: codecov/codecov-action@v1
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: true
-      if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == 3.8 }}
+    # - name: Upload coverage to codecov
+    #   uses: codecov/codecov-action@v1
+    #   with:
+    #     file: ./coverage.xml
+    #     fail_ci_if_error: true
+    #   if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == 3.8 }}
