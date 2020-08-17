@@ -1,7 +1,13 @@
+from datetime import datetime
+from time import sleep
+from unittest import mock
+
 import pytest
 
 from cloudpathlib import S3Path
-from cloudpathlib.cloudpath import InvalidPrefix
+from cloudpathlib import InvalidPrefix
+
+from .mock_backends.mock_s3 import MockBoto3Session
 
 
 def test_initialize_s3():
@@ -32,7 +38,104 @@ def test_joins():
     assert S3Path("S3://a/b/c/d.file").name == "d.file"
     assert S3Path("S3://a/b/c/d.file").stem == "d"
     assert S3Path("S3://a/b/c/d.file").suffix == ".file"
+    assert S3Path("S3://a/b/c/d.tar.gz").suffixes == [".tar", ".gz"]
     assert str(S3Path("s3://a/b/c/d.file").with_suffix(".png")) == "s3://a/b/c/d.png"
 
     assert S3Path("s3://a") / "b" == S3Path("s3://a/b")
     assert S3Path("s3://a/b/c/d") / "../../b" == S3Path("s3://a/b/b")
+
+    assert S3Path("s3://a/b/c/d").match("**/c/*")
+    assert not S3Path("s3://a/b/c/d").match("**/c")
+    assert S3Path("s3://a/b/c/d").match("s3://a/*/c/d")
+
+    assert S3Path("s3://a/b/c/d").anchor == "s3://"
+    assert S3Path("s3://a/b/c/d").parent == S3Path("s3://a/b/c")
+
+    assert S3Path("s3://a/b/c/d").parents == [
+        S3Path("s3://a/b/c"),
+        S3Path("s3://a/b"),
+        S3Path("s3://a"),
+    ]
+
+    assert S3Path("s3://a").joinpath("b", "c") == S3Path("s3://a/b/c")
+
+    assert S3Path("s3://a/b/c").samepath(S3Path("s3://a/b/c"))
+
+    assert S3Path("s3://a/b/c").as_uri() == "s3://a/b/c"
+
+    assert S3Path("s3://a/b/c/d").parts == ("s3://", "a", "b", "c", "d")
+
+
+@mock.patch("cloudpathlib.backends.s3.s3backend.Session", return_value=MockBoto3Session())
+def test_with_mock_s3(mock_boto3, tmp_path):
+    p = S3Path("s3://bucket/dir_0/file0_0.txt")
+    assert p.exists()
+
+    p2 = S3Path("s3://bucket/dir_0/not_a_file")
+    assert not p2.exists()
+    p2.touch()
+    assert p2.exists()
+    p2.unlink()
+
+    p3 = S3Path("s3://bucket/dir_0/")
+    assert p3.exists()
+    assert len(list(p3.iterdir())) == 3
+    assert len(list(p3.glob("**/*"))) == 3
+
+    with pytest.raises(ValueError):
+        p3.unlink()
+
+    p3.rmdir()
+    assert len(list(p3.iterdir())) == 0
+
+    p4 = S3Path("S3://bucket")
+    assert p4.exists()
+    assert p4.key == ""
+    p4 = S3Path("S3://bucket/")
+
+    assert p4.exists()
+    assert p4.key == ""
+
+    assert len(list(p4.iterdir())) == 2
+    assert len(list(p4.glob("**/*"))) == 4
+    assert len(list(p4.glob("s3://bucket/**/*"))) == 4
+
+    assert list(p4.glob("**/*")) == list(p4.rglob("*"))
+
+    p.write_text("lalala")
+    assert p.read_text() == "lalala"
+    p2.write_text("lalala")
+    p.write_bytes(p2.read_bytes())
+    assert p.read_text() == p2.read_text()
+
+    before_touch = datetime.now()
+    sleep(0.1)
+    p.touch()
+    assert datetime.fromtimestamp(p.stat().st_mtime) > before_touch
+
+    # no-op
+    p.mkdir()
+
+    assert p.etag is not None
+
+    dest = S3Path("s3://bucket/dir2/new_file0_0.txt")
+    assert not dest.exists()
+    p.rename(dest)
+    assert dest.exists()
+
+    assert not p.exists()
+    p.touch()
+    dest.replace(p)
+    assert p.exists()
+
+    dl_file = tmp_path / "file"
+    p.download_to(dl_file)
+    assert dl_file.exists()
+    assert p.read_text() == dl_file.read_text()
+
+    dl_dir = tmp_path / "directory"
+    dl_dir.mkdir(parents=True, exist_ok=True)
+    p4.download_to(dl_dir)
+    cloud_rel_paths = sorted([p._no_prefix_no_drive for p in p4.glob("**/*")])
+    dled_rel_paths = sorted([str(p)[len(str(dl_dir)) :] for p in dl_dir.glob("**/*")])
+    assert cloud_rel_paths == dled_rel_paths

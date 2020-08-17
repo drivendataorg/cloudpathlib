@@ -1,4 +1,5 @@
 import abc
+from collections.abc import Iterable
 import fnmatch
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
@@ -136,7 +137,8 @@ class CloudPath(abc.ABC):
     # lchmod - no cloud equivalent
     # lstat - no cloud equivalent
     # owner - no cloud equivalent
-    # resolve - all cloud paths are absolute, no no resolving
+    # relative to - cloud paths are absolute
+    # resolve - all cloud paths are absolute, so no resolving
     # root - drive already has the bucket and anchor/prefix has the scheme, so nothing to store here
     # symlink_to - no cloud equivalent
 
@@ -190,15 +192,13 @@ class CloudPath(abc.ABC):
         return self.backend.exists(self)
 
     def glob(self, pattern):
-        """ Should be implemented using the backend API without requiring a dir is downloaded
-        """
         # strip cloud prefix from pattern if it is included
         if pattern.startswith(self.cloud_prefix):
             pattern = pattern[len(self.cloud_prefix) :]
 
         # strip "drive" from pattern if it is included
-        if pattern.startswith(self.drive):
-            pattern = pattern[len(self.drive) :]
+        if pattern.startswith(self.drive + "/"):
+            pattern = pattern[len(self.drive + "/") :]
 
         # identify if pattern is recursive or not
         recursive = False
@@ -211,7 +211,7 @@ class CloudPath(abc.ABC):
                 yield f
 
     def iterdir(self):
-        for f in self.backend.list_dir(self):
+        for f in self.backend.list_dir(self, recursive=False):
             yield f
 
     def open(
@@ -245,7 +245,6 @@ class CloudPath(abc.ABC):
         # write modes need special on closing the buffer
         if any(m in mode for m in ("w", "+", "x", "a")):
             # dirty, handle, patch close
-
             original_close = buffer.close
 
             # since we are pretending this is a cloud file, upload it to the cloud
@@ -285,6 +284,8 @@ class CloudPath(abc.ABC):
         return self.glob("**/" + pattern)
 
     def rmdir(self):
+        if self.is_file():
+            raise ValueError(f"Path {self} is a file; call unlink instead of rmdir.")
         self.backend.remove(self)
 
     def samepath(self, other_path):
@@ -292,6 +293,8 @@ class CloudPath(abc.ABC):
         return self == other_path
 
     def unlink(self):
+        if self.is_dir():
+            raise ValueError(f"Path {self} is a directory; call rmdir instead of unlink.")
         self.backend.remove(self)
 
     def write_bytes(self, data):
@@ -337,6 +340,11 @@ class CloudPath(abc.ABC):
             path_version = path_version.resolve()
             return self._new_cloudpath(path_version)
 
+        if isinstance(path_version, Iterable) and isinstance(path_version[0], PurePosixPath):
+            return [
+                self._new_cloudpath(p.resolve()) for p in path_version if p.resolve() != p.root
+            ]
+
         # when pathlib returns a string, etc. we probably just want that thing
         else:
             return path_version
@@ -356,12 +364,8 @@ class CloudPath(abc.ABC):
 
     def match(self, path_pattern):
         # strip scheme from start of pattern before testing
-        if path_pattern.startswith(self.anchor):
-            path_pattern = path_pattern[len(self.anchor) :]
-
-            # if we started with the anchor assume we want to
-            # match "rootness" of the patter in the posix version
-            path_pattern = "/" + path_pattern
+        if path_pattern.startswith(self.anchor + self.drive + "/"):
+            path_pattern = path_pattern[len(self.anchor + self.drive + "/") :]
 
         return self._dispatch_to_path("match", path_pattern)
 
@@ -380,9 +384,6 @@ class CloudPath(abc.ABC):
             parts = parts[1:]
 
         return (self.anchor, *parts)
-
-    def relative_to(self, *other):
-        self._dispatch_to_path("relative_to", *other)
 
     @property
     def stem(self):
@@ -448,8 +449,12 @@ class CloudPath(abc.ABC):
             self.backend.download_file(self, destination)
         else:
             for f in self.iterdir():
-                rel_dest = f.relative_to(self)
-                f.download_to(rel_dest)
+                rel = str(self)
+                if not rel.endswith("/"):
+                    rel = rel + "/"
+
+                rel_dest = str(f)[len(rel) :]
+                f.download_to(destination / rel_dest)
 
     # ===========  private cloud methods ===============
     @property
@@ -496,7 +501,7 @@ class CloudPath(abc.ABC):
             self.download_to(self._local)
 
             # force cache time to match cloud times
-            os.utime(self._local, times=(self.stat().st_mtime, self.stat().st_mtime,))
+            os.utime(self._local, times=(self.stat().st_mtime, self.stat().st_mtime))
 
         if self._dirty:
             raise OverwriteDirtyFile(
@@ -531,6 +536,11 @@ class CloudPath(abc.ABC):
             self.backend.upload_file(
                 self._local, self,
             )
+
+            # reset dirty and handle now that this is uploaded
+            self._dirty = False
+            self._handle = None
+
             return self
 
         # cloud is newer and we are not overwriting
