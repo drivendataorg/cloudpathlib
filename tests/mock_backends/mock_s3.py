@@ -15,8 +15,8 @@ class MockBoto3Session:
     def __init__(self):
         # copy test assets for reference in tests without affecting assets
         self.tmp = TemporaryDirectory()
-        self.tmp_path = Path(self.tmp.name)
-        shutil.copytree(TEST_ASSETS, self.tmp_path, dirs_exist_ok=True)
+        self.tmp_path = Path(self.tmp.name) / "test_case_copy"
+        shutil.copytree(TEST_ASSETS, self.tmp_path)
 
     def __del__(self):
         self.tmp.cleanup()
