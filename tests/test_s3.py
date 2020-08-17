@@ -1,4 +1,5 @@
 from datetime import datetime
+from time import sleep
 from unittest import mock
 
 import pytest
@@ -108,7 +109,9 @@ def test_with_mock_s3(mock_boto3, tmp_path):
     assert p.read_text() == p2.read_text()
 
     before_touch = datetime.now()
+    sleep(1)
     p.touch()
+    sleep(1)
     assert datetime.fromtimestamp(p.stat().st_mtime) > before_touch
 
     # no-op
