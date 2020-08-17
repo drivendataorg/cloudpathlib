@@ -3,15 +3,12 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from ...cloudpath import CloudPath
-import cloudpathlib
+from .s3backend import S3Backend
 
 
 class S3Path(CloudPath):
     cloud_prefix = "s3://"
-
-    def __init__(self, *args, **kwargs):
-        self.backend_class = cloudpathlib.S3Backend
-        super().__init__(*args, **kwargs)
+    backend_class = S3Backend
 
     @property
     def drive(self):

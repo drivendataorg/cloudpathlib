@@ -1,14 +1,15 @@
 import abc
-from collections.abc import Iterable
+import collections.abc
 import fnmatch
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
 from tempfile import TemporaryDirectory
+from typing import Iterable
 from urllib.parse import urlparse
 from warnings import warn
 
 from ._vendored import resolve
-
+from .backends.base import Backend
 
 PurePosixPath.resolve = resolve
 
@@ -36,9 +37,8 @@ class OverwriteNewerLocal(Exception):
 
 # Abstract base class
 class CloudPath(abc.ABC):
-    class Meta:
-        cloud_prefix = None
-        backend_class = None
+    cloud_prefix: str
+    backend_class: Backend
 
     def __init__(self, cloud_path, backend=None, local_cache_dir=None):
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
@@ -144,7 +144,8 @@ class CloudPath(abc.ABC):
 
     # ====================== REQUIRED, NOT GENERIC ======================
     # Methods that must be implemented, but have no generic application
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def drive(self):
         """ For example "bucket" on S3 or "container" on Azure; needs to be defined for each class
         """
@@ -191,7 +192,7 @@ class CloudPath(abc.ABC):
     def exists(self):
         return self.backend.exists(self)
 
-    def glob(self, pattern):
+    def glob(self, pattern) -> Iterable["CloudPath"]:
         # strip cloud prefix from pattern if it is included
         if pattern.startswith(self.cloud_prefix):
             pattern = pattern[len(self.cloud_prefix) :]
@@ -207,12 +208,13 @@ class CloudPath(abc.ABC):
             recursive = True
 
         for f in self.backend.list_dir(self, recursive=recursive):
-            if fnmatch.fnmatch(f._no_prefix_no_drive, pattern):
-                yield f
+            f_cp = self.__class__(f, backend=self.backend, local_cache_dir=self._local_cache_dir)
+            if fnmatch.fnmatch(f_cp._no_prefix_no_drive, pattern):
+                yield f_cp
 
-    def iterdir(self):
+    def iterdir(self) -> Iterable["CloudPath"]:
         for f in self.backend.list_dir(self, recursive=False):
-            yield f
+            yield self.__class__(f, backend=self.backend, local_cache_dir=self._local_cache_dir)
 
     def open(
         self,
@@ -340,7 +342,9 @@ class CloudPath(abc.ABC):
             path_version = path_version.resolve()
             return self._new_cloudpath(path_version)
 
-        if isinstance(path_version, Iterable) and isinstance(path_version[0], PurePosixPath):
+        if isinstance(path_version, collections.abc.Iterable) and isinstance(
+            path_version[0], PurePosixPath
+        ):
             return [
                 self._new_cloudpath(p.resolve()) for p in path_version if p.resolve() != p.root
             ]
