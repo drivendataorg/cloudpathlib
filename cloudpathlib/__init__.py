@@ -1,5 +1,10 @@
+# order matters to avoid circular imports; path object, then backend
+from .backends.azure.azblobpath import AzureBlobPath
+from .backends.azure.azblobbackend import AzureBlobBackend
+
 from .backends.s3.s3path import S3Path
 from .backends.s3.s3backend import S3Backend
+
 
 # exceptions
 from .cloudpath import (
@@ -10,6 +15,8 @@ from .cloudpath import (
 )
 
 __all__ = [
+    AzureBlobBackend,
+    AzureBlobPath,
     BackendMismatch,
     InvalidPrefix,
     OverwriteDirtyFile,
