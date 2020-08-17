@@ -13,7 +13,7 @@ TEST_ASSETS = Path(__file__).parent.parent / "assets"
 # and the test files are super small, we can end up with race conditions in
 # the tests where the updated file is modified before the source file,
 # which breaks our caching logic
-WRITE_SLEEP_BUFFER = 0.5
+WRITE_SLEEP_BUFFER = 0.75
 
 NoSuchKey = Session().client("s3").exceptions.NoSuchKey
 
