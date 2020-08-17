@@ -2,6 +2,7 @@ import collections
 from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from time import sleep
 import shutil
 
 from boto3.session import Session
@@ -58,14 +59,17 @@ class MockBoto3Object:
             # same file, touch
             self.path.touch()
         else:
+            sleep(1)
             self.path.write_bytes((self.root / Path(CopySource["Key"])).read_bytes)
 
     def download_file(self, to_path):
         to_path = Path(to_path)
         to_path.parent.mkdir(exist_ok=True, parents=True)
+        sleep(1)
         to_path.write_bytes(self.path.read_bytes())
 
     def upload_file(self, from_path):
+        sleep(1)
         self.path.write_bytes(Path(from_path).read_bytes())
 
     def delete(self):
