@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-from cloudpathlib import AzureBlobPath
-from cloudpathlib.cloudpath import InvalidPrefix
+from cloudpathlib import AzureBlobPath, S3Backend
+from cloudpathlib.cloudpath import InvalidPrefix, BackendMismatch
 
 
 @pytest.fixture
@@ -19,6 +19,9 @@ def test_initialize_az(fake_connection_string):
 
     with pytest.raises(InvalidPrefix):
         p = AzureBlobPath("NOT_S3_PATH")
+
+    with pytest.raises(BackendMismatch):
+        p = AzureBlobPath("az://test/t", backend=S3Backend())
 
     # case insensitive
     cases = ["az://b/k", "AZ://b/k", "Az://b/k.file", "aZ://b/k", "az://b"]

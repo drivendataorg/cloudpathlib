@@ -17,9 +17,6 @@ class S3Path(CloudPath):
     def drive(self):
         return self.bucket
 
-    def exists(self):
-        return self.backend.exists(self)
-
     def is_dir(self):
         return self.backend.is_file_or_dir(self) == "dir"
 

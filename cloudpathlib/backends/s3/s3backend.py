@@ -1,3 +1,5 @@
+from pathlib import PurePosixPath
+
 from boto3.session import Session
 
 from ..base import Backend
@@ -62,8 +64,23 @@ class S3Backend(Backend):
         if prefix and not prefix.endswith("/"):
             prefix += "/"
 
+        yielded_dirs = set()
+
         if recursive:
             for o in bucket.objects.filter(Prefix=prefix):
+                # get directory from this path
+                for parent in PurePosixPath(o.key[len(prefix) :]).parents:
+                    parent = str(parent)
+
+                    # if we haven't surfaced their directory already
+                    if parent not in yielded_dirs and parent != ".":
+                        yield self.path_class(
+                            f"s3://{cloud_path.bucket}/{prefix}{parent}",
+                            backend=self,
+                            local_cache_dir=cloud_path._local_cache_dir,
+                        )
+                        yielded_dirs.add(parent)
+
                 yield self.path_class(
                     f"s3://{o.bucket_name}/{o.key}",
                     backend=self,
