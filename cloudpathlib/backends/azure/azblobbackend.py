@@ -1,17 +1,15 @@
 from datetime import datetime
 import os
 from pathlib import PurePosixPath
+from typing import Iterable
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient
 
 from ..base import Backend
-import cloudpathlib
 
 
 class AzureBlobBackend(Backend):
-    path_class = cloudpathlib.AzureBlobPath
-
     def __init__(self, blob_service_client=None):
         """
 
@@ -69,7 +67,7 @@ class AzureBlobBackend(Backend):
     def exists(self, cloud_path):
         return self.is_file_or_dir(cloud_path) in ["file", "dir"]
 
-    def list_dir(self, cloud_path, recursive=False):
+    def list_dir(self, cloud_path, recursive=False) -> Iterable[str]:
         container_client = self.service_client.get_container_client(cloud_path.container)
 
         prefix = cloud_path.blob
@@ -92,22 +90,14 @@ class AzureBlobBackend(Backend):
                     if not recursive and "/" in parent[len(prefix) :]:
                         continue
 
-                    yield self.path_class(
-                        f"az://{cloud_path.container}/{prefix}{parent}",
-                        backend=self,
-                        local_cache_dir=cloud_path._local_cache_dir,
-                    )
+                    yield f"az://{cloud_path.container}/{prefix}{parent}"
                     yielded_dirs.add(parent)
 
             # skip file if not recursive and this is beyond our depth
             if not recursive and "/" in o.name[len(prefix) :]:
                 continue
 
-            yield self.path_class(
-                f"az://{cloud_path.container}/{o.name}",
-                backend=self,
-                local_cache_dir=cloud_path._local_cache_dir,
-            )
+            yield f"az://{cloud_path.container}/{o.name}"
 
     def move_file(self, src, dst):
         # just a touch, so "REPLACE" metadata

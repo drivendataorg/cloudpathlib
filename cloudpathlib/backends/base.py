@@ -1,10 +1,8 @@
 import abc
+from typing import Iterable
 
 
 class Backend(abc.ABC):
-    class Meta:
-        path_class = None
-
     @abc.abstractmethod
     def download_file(self, cloud_path, local_path):
         pass
@@ -14,7 +12,7 @@ class Backend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def list_dir(self, cloud_path, recursive):
+    def list_dir(self, cloud_path, recursive: bool) -> Iterable[str]:
         """ List all the files and folders in a directory.
 
         Parameters

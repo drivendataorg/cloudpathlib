@@ -3,12 +3,9 @@ from pathlib import PurePosixPath
 from boto3.session import Session
 
 from ..base import Backend
-import cloudpathlib
 
 
 class S3Backend(Backend):
-    path_class = cloudpathlib.S3Path
-
     def __init__(self, aws_secret_access_key=None, aws_region=None, aws_profile=None):
         self.sess = Session()
         self.s3 = self.sess.resource("s3")
@@ -74,18 +71,10 @@ class S3Backend(Backend):
 
                     # if we haven't surfaced their directory already
                     if parent not in yielded_dirs and parent != ".":
-                        yield self.path_class(
-                            f"s3://{cloud_path.bucket}/{prefix}{parent}",
-                            backend=self,
-                            local_cache_dir=cloud_path._local_cache_dir,
-                        )
+                        yield f"s3://{cloud_path.bucket}/{prefix}{parent}"
                         yielded_dirs.add(parent)
 
-                yield self.path_class(
-                    f"s3://{o.bucket_name}/{o.key}",
-                    backend=self,
-                    local_cache_dir=cloud_path._local_cache_dir,
-                )
+                yield f"s3://{o.bucket_name}/{o.key}"
         else:
             # non recursive is best done with old client API rather than resource
             paginator = self.client.get_paginator("list_objects")
@@ -96,19 +85,11 @@ class S3Backend(Backend):
 
                 # sub directory names
                 for prefix in result.get("CommonPrefixes", []):
-                    yield self.path_class(
-                        f"s3://{cloud_path.bucket}/{prefix.get('Prefix')}",
-                        backend=self,
-                        local_cache_dir=cloud_path._local_cache_dir,
-                    )
+                    yield f"s3://{cloud_path.bucket}/{prefix.get('Prefix')}"
 
                 # files in the directory
                 for key in result.get("Contents", []):
-                    yield self.path_class(
-                        f"s3://{cloud_path.bucket}/{key.get('Key')}",
-                        backend=self,
-                        local_cache_dir=cloud_path._local_cache_dir,
-                    )
+                    yield f"s3://{cloud_path.bucket}/{key.get('Key')}"
 
     def move_file(self, src, dst):
         # just a touch, so "REPLACE" metadata
