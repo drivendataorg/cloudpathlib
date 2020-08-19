@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 from cloudpathlib import AzureBlobPath, S3Backend
@@ -7,10 +5,8 @@ from cloudpathlib.cloudpath import InvalidPrefix, BackendMismatch
 
 
 @pytest.fixture
-def fake_connection_string():
-    os.environ["AZURE_STORAGE_CONNECTION_STRING"] = "AccountName=fake;AccountKey=fake2;"
-    yield
-    os.environ.pop("AZURE_STORAGE_CONNECTION_STRING")
+def fake_connection_string(monkeypatch):
+    monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "AccountName=fake;AccountKey=fake2;")
 
 
 def test_initialize_az(fake_connection_string):

@@ -2,10 +2,11 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from ...cloudpath import CloudPath
+from ...cloudpath import CloudPath, register_path_class
 from .azblobbackend import AzureBlobBackend
 
 
+@register_path_class
 class AzureBlobPath(CloudPath):
     cloud_prefix = "az://"
     backend_class = AzureBlobBackend
