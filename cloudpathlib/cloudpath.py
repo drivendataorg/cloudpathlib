@@ -35,8 +35,44 @@ class OverwriteNewerLocal(Exception):
     pass
 
 
+available_path_classes = {}
+
+
+def register_path_class(cls: type):
+    if not issubclass(cls, CloudPath):
+        raise TypeError("Only subclasses of CloudPath can be registered.")
+    global available_path_classes
+    available_path_classes[cls.cloud_prefix] = cls
+    return cls
+
+
+class CloudPathMeta(abc.ABCMeta):
+    def __call__(self, cloud_path, *args, **kwargs):
+        # self is a class that is the instance of this metaclass, e.g., CloudPath
+
+        # Dispatch to subclass if  base CloudPath
+        if self == CloudPath:
+            for cloud_prefix, path_class in available_path_classes.items():
+                if path_class.is_valid_cloudpath(cloud_path, raise_on_error=False):
+                    # Instantiate path_class instance
+                    new_obj = path_class.__new__(path_class, cloud_path, *args, **kwargs)
+                    if isinstance(new_obj, path_class):
+                        path_class.__init__(new_obj, cloud_path, *args, **kwargs)
+                    return new_obj
+            raise InvalidPrefix(
+                f"Path {cloud_path} does not begin with a known prefix "
+                f"{list(available_path_classes.keys())}."
+            )
+
+        # Otherwise instantiate as normal
+        new_obj = self.__new__(self, cloud_path, *args, **kwargs)
+        if isinstance(new_obj, self):
+            self.__init__(new_obj, cloud_path, *args, **kwargs)
+        return new_obj
+
+
 # Abstract base class
-class CloudPath(abc.ABC):
+class CloudPath(metaclass=CloudPathMeta):
     cloud_prefix: str
     backend_class: Backend
 

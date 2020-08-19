@@ -2,10 +2,11 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from ...cloudpath import CloudPath
+from ...cloudpath import CloudPath, register_path_class
 from .s3backend import S3Backend
 
 
+@register_path_class
 class S3Path(CloudPath):
     cloud_prefix = "s3://"
     backend_class = S3Backend
