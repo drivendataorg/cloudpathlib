@@ -4,7 +4,7 @@ from unittest import mock
 
 import pytest
 
-from cloudpathlib import S3Path
+from cloudpathlib import S3Backend, S3Path
 from cloudpathlib import InvalidPrefix
 
 from .mock_backends.mock_s3 import MockBoto3Session
@@ -66,8 +66,11 @@ def test_joins():
     assert S3Path("s3://a/b/c/d").parts == ("s3://", "a", "b", "c", "d")
 
 
-@mock.patch("cloudpathlib.backends.s3.s3backend.Session", return_value=MockBoto3Session())
+@mock.patch("cloudpathlib.clouds.s3.Session", return_value=MockBoto3Session())
 def test_with_mock_s3(mock_boto3, tmp_path):
+    # Reset default backend
+    S3Backend.default_backend = None
+
     p = S3Path("s3://bucket/dir_0/file0_0.txt")
     assert p.exists()
 

@@ -4,12 +4,11 @@ import fnmatch
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
 from tempfile import TemporaryDirectory
-from typing import Iterable
+from typing import Iterable, Optional
 from urllib.parse import urlparse
 from warnings import warn
 
 from ._vendored import resolve
-from .backends.base import Backend
 
 PurePosixPath.resolve = resolve
 
@@ -33,6 +32,60 @@ class OverwriteNewerCloud(Exception):
 
 class OverwriteNewerLocal(Exception):
     pass
+
+
+class Backend(abc.ABC):
+    default_backend = None
+
+    @classmethod
+    def get_default_backend(cls):
+        if cls.default_backend is None:
+            cls.default_backend = cls()
+        return cls.default_backend
+
+    def CloudPath(self, cloud_path, local_cache_dir=None):
+        return CloudPath(cloud_path=cloud_path, local_cache_dir=local_cache_dir, backend=self)
+
+    @classmethod
+    @abc.abstractmethod
+    def download_file(self, cloud_path, local_path):
+        pass
+
+    @abc.abstractmethod
+    def exists(self, cloud_path):
+        pass
+
+    @abc.abstractmethod
+    def list_dir(self, cloud_path, recursive: bool) -> Iterable[str]:
+        """ List all the files and folders in a directory.
+
+        Parameters
+        ----------
+        cloud_path : CloudPath
+            The folder to start from.
+        recursive : bool
+            Whether or not to list recursively.
+        """
+        pass
+
+    @abc.abstractmethod
+    def move_file(self, src, dst):
+        pass
+
+    @abc.abstractmethod
+    def remove(self, path):
+        """Remove a file or folder from the server.
+
+        Parameters
+        ----------
+        path : CloudPath
+            The file or folder to remove.
+        """
+        pass
+
+    @abc.abstractmethod
+    def upload_file(self, local_path, cloud_path):
+        pass
 
 
 available_path_classes = {}
@@ -76,7 +129,7 @@ class CloudPath(metaclass=CloudPathMeta):
     cloud_prefix: str
     backend_class: Backend
 
-    def __init__(self, cloud_path, backend=None, local_cache_dir=None):
+    def __init__(self, cloud_path, local_cache_dir=None, backend: Optional[Backend] = None):
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
 
         # versions of the raw string that provide useful methods
@@ -84,18 +137,15 @@ class CloudPath(metaclass=CloudPathMeta):
         self._url = urlparse(self._str)
         self._path = PurePosixPath(f"/{self._no_prefix}")
 
-        # setup backend connection
+        # setup backend
         if backend is None:
-            # instantiate with defaults
-            backend = self.backend_class()
-
+            backend = self.backend_class.get_default_backend()
         if type(backend) != self.backend_class:
             raise BackendMismatch(
-                f"Backend of type ({backend.__class__}) is not valid for cloud path of type "
-                f"({self.__class__}); must be instantiation of ({self.backend_class}) or None "
-                f"to be instantiated with defaults for that backend."
+                f"Backend of type [{backend.__class__}] is not valid for cloud path of type "
+                f"[{self.__class__}]; must be instance of [{self.backend_class}], or None to use "
+                f"default backend for that cloud provider."
             )
-
         self.backend = backend
 
         # setup caching and local versions of file and track if it is a tmp dir
