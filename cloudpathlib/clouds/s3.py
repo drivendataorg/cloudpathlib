@@ -6,9 +6,10 @@ from typing import Optional
 from boto3.session import Session
 import botocore.session
 
-from ..cloudpath import Backend, CloudPath, register_path_class
+from ..cloudpath import Backend, CloudPath, register_backend_class, register_path_class
 
 
+@register_backend_class("s3")
 class S3Backend(Backend):
     """Backend for AWS S3.
     """
@@ -185,10 +186,12 @@ class S3Backend(Backend):
         return cloud_path
 
 
-@register_path_class
+S3Backend.S3Path = S3Backend.CloudPath
+
+
+@register_path_class("s3")
 class S3Path(CloudPath):
     cloud_prefix = "s3://"
-    backend_class = S3Backend
 
     @property
     def drive(self):

@@ -1,4 +1,5 @@
 import abc
+from collections import defaultdict
 import collections.abc
 import fnmatch
 import os
@@ -14,6 +15,10 @@ PurePosixPath.resolve = resolve
 
 
 # Custom Exceptions
+class IncompleteImplementation(NotImplementedError):
+    pass
+
+
 class BackendMismatch(ValueError):
     pass
 
@@ -34,7 +39,56 @@ class OverwriteNewerLocal(Exception):
     pass
 
 
+class CloudImplemenation:
+    _backend_class: Optional["Backend"] = None
+    _path_class: Optional["CloudPath"] = None
+
+    @property
+    def backend_class(self):
+        if self._path_class is None:
+            raise IncompleteImplementation(
+                f"Implementation for {self.cloud_name} is missing registered path class."
+            )
+        return self._backend_class
+
+    @property
+    def path_class(self):
+        if self._backend_class is None:
+            raise IncompleteImplementation(
+                f"Implementation for {self.cloud_name} is missing registered backend class."
+            )
+        return self._path_class
+
+
+implementation_registry = defaultdict(CloudImplemenation)
+
+
+def register_backend_class(key: str):
+    def decorator(cls: type):
+        if not issubclass(cls, Backend):
+            raise TypeError("Only subclasses of Backend can be registered.")
+        global implementation_registry
+        implementation_registry[key]._backend_class = cls
+        cls.cloud_meta = implementation_registry[key]
+        return cls
+
+    return decorator
+
+
+def register_path_class(key: str):
+    def decorator(cls: type):
+        if not issubclass(cls, CloudPath):
+            raise TypeError("Only subclasses of CloudPath can be registered.")
+        global implementation_registry
+        implementation_registry[key]._path_class = cls
+        cls.cloud_meta = implementation_registry[key]
+        return cls
+
+    return decorator
+
+
 class Backend(abc.ABC):
+    cloud_meta: CloudImplemenation
     default_backend = None
 
     @classmethod
@@ -44,7 +98,9 @@ class Backend(abc.ABC):
         return cls.default_backend
 
     def CloudPath(self, cloud_path, local_cache_dir=None):
-        return CloudPath(cloud_path=cloud_path, local_cache_dir=local_cache_dir, backend=self)
+        return self.cloud_meta.path_class(
+            cloud_path=cloud_path, local_cache_dir=local_cache_dir, backend=self
+        )
 
     @classmethod
     @abc.abstractmethod
@@ -88,33 +144,29 @@ class Backend(abc.ABC):
         pass
 
 
-available_path_classes = {}
-
-
-def register_path_class(cls: type):
-    if not issubclass(cls, CloudPath):
-        raise TypeError("Only subclasses of CloudPath can be registered.")
-    global available_path_classes
-    available_path_classes[cls.cloud_prefix] = cls
-    return cls
-
-
 class CloudPathMeta(abc.ABCMeta):
     def __call__(self, cloud_path, *args, **kwargs):
         # self is a class that is the instance of this metaclass, e.g., CloudPath
 
         # Dispatch to subclass if  base CloudPath
         if self == CloudPath:
-            for cloud_prefix, path_class in available_path_classes.items():
-                if path_class.is_valid_cloudpath(cloud_path, raise_on_error=False):
+            for implementation in implementation_registry.values():
+                path_class = implementation._path_class
+                if path_class is not None and path_class.is_valid_cloudpath(
+                    cloud_path, raise_on_error=False
+                ):
                     # Instantiate path_class instance
                     new_obj = path_class.__new__(path_class, cloud_path, *args, **kwargs)
                     if isinstance(new_obj, path_class):
                         path_class.__init__(new_obj, cloud_path, *args, **kwargs)
                     return new_obj
+            valid = [
+                impl._path_class.cloud_prefix
+                for impl in implementation_registry.values()
+                if impl._path_class is not None
+            ]
             raise InvalidPrefix(
-                f"Path {cloud_path} does not begin with a known prefix "
-                f"{list(available_path_classes.keys())}."
+                f"Path {cloud_path} does not begin with a known prefix " f"{valid}."
             )
 
         # Otherwise instantiate as normal
@@ -126,8 +178,8 @@ class CloudPathMeta(abc.ABCMeta):
 
 # Abstract base class
 class CloudPath(metaclass=CloudPathMeta):
+    cloud_meta: CloudImplemenation
     cloud_prefix: str
-    backend_class: Backend
 
     def __init__(self, cloud_path, local_cache_dir=None, backend: Optional[Backend] = None):
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
@@ -139,12 +191,12 @@ class CloudPath(metaclass=CloudPathMeta):
 
         # setup backend
         if backend is None:
-            backend = self.backend_class.get_default_backend()
-        if type(backend) != self.backend_class:
+            backend = self.cloud_meta.backend_class.get_default_backend()
+        if type(backend) != self.cloud_meta.backend_class:
             raise BackendMismatch(
                 f"Backend of type [{backend.__class__}] is not valid for cloud path of type "
-                f"[{self.__class__}]; must be instance of [{self.backend_class}], or None to use "
-                f"default backend for that cloud provider."
+                f"[{self.__class__}]; must be instance of [{self.cloud_meta.backend_class}], or "
+                f"None to use default backend for this cloud path class."
             )
         self.backend = backend
 

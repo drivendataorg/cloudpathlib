@@ -7,9 +7,10 @@ from typing import Iterable, Optional
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient
 
-from ..cloudpath import Backend, CloudPath, register_path_class
+from ..cloudpath import Backend, CloudPath, register_backend_class, register_path_class
 
 
+@register_backend_class("azure")
 class AzureBlobBackend(Backend):
     """Backend for Azure Blob Storage."""
 
@@ -191,10 +192,12 @@ class AzureBlobBackend(Backend):
         return cloud_path
 
 
-@register_path_class
+AzureBlobBackend.AzureBlobPath = AzureBlobBackend.CloudPath
+
+
+@register_path_class("azure")
 class AzureBlobPath(CloudPath):
     cloud_prefix = "az://"
-    backend_class = AzureBlobBackend
 
     @property
     def drive(self):
