@@ -74,6 +74,9 @@ def test_with_mock_s3(mock_boto3, tmp_path):
     p = S3Path("s3://bucket/dir_0/file0_0.txt")
     assert p.exists()
 
+    # Backend constructor works
+    assert p == S3Backend.default_backend.CloudPath("s3://bucket/dir_0/file0_0.txt")
+
     p2 = S3Path("s3://bucket/dir_0/not_a_file")
     assert not p2.exists()
     p2.touch()
