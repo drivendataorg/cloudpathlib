@@ -1,8 +1,11 @@
 import abc
 from typing import Iterable
 
+from ..cloudpath import CloudImplementation
+
 
 class Backend(abc.ABC):
+    cloud_meta: CloudImplementation
     default_backend = None
 
     @classmethod
@@ -16,7 +19,6 @@ class Backend(abc.ABC):
             cloud_path=cloud_path, local_cache_dir=local_cache_dir, backend=self
         )
 
-    @classmethod
     @abc.abstractmethod
     def download_file(self, cloud_path, local_path):
         pass

@@ -39,7 +39,7 @@ class OverwriteNewerLocal(Exception):
     pass
 
 
-class CloudImplemenation:
+class CloudImplementation:
     _backend_class = None
     _path_class = None
 
@@ -60,7 +60,7 @@ class CloudImplemenation:
         return self._path_class
 
 
-implementation_registry = defaultdict(CloudImplemenation)
+implementation_registry = defaultdict(CloudImplementation)
 
 
 def register_backend_class(key: str):
@@ -121,7 +121,7 @@ class CloudPathMeta(abc.ABCMeta):
 
 # Abstract base class
 class CloudPath(metaclass=CloudPathMeta):
-    cloud_meta: CloudImplemenation
+    cloud_meta: CloudImplementation
     cloud_prefix: str
 
     def __init__(self, cloud_path, local_cache_dir=None, backend=None):
