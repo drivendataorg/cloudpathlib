@@ -5,7 +5,7 @@ import fnmatch
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
 from tempfile import TemporaryDirectory
-from typing import Iterable, Optional
+from typing import Iterable
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -40,8 +40,8 @@ class OverwriteNewerLocal(Exception):
 
 
 class CloudImplemenation:
-    _backend_class: Optional["Backend"] = None
-    _path_class: Optional["CloudPath"] = None
+    _backend_class = None
+    _path_class = None
 
     @property
     def backend_class(self):
@@ -65,8 +65,8 @@ implementation_registry = defaultdict(CloudImplemenation)
 
 def register_backend_class(key: str):
     def decorator(cls: type):
-        if not issubclass(cls, Backend):
-            raise TypeError("Only subclasses of Backend can be registered.")
+        # if not issubclass(cls, Backend):
+        #     raise TypeError("Only subclasses of Backend can be registered.")
         global implementation_registry
         implementation_registry[key]._backend_class = cls
         cls.cloud_meta = implementation_registry[key]
@@ -85,63 +85,6 @@ def register_path_class(key: str):
         return cls
 
     return decorator
-
-
-class Backend(abc.ABC):
-    cloud_meta: CloudImplemenation
-    default_backend = None
-
-    @classmethod
-    def get_default_backend(cls):
-        if cls.default_backend is None:
-            cls.default_backend = cls()
-        return cls.default_backend
-
-    def CloudPath(self, cloud_path, local_cache_dir=None):
-        return self.cloud_meta.path_class(
-            cloud_path=cloud_path, local_cache_dir=local_cache_dir, backend=self
-        )
-
-    @classmethod
-    @abc.abstractmethod
-    def download_file(self, cloud_path, local_path):
-        pass
-
-    @abc.abstractmethod
-    def exists(self, cloud_path):
-        pass
-
-    @abc.abstractmethod
-    def list_dir(self, cloud_path, recursive: bool) -> Iterable[str]:
-        """ List all the files and folders in a directory.
-
-        Parameters
-        ----------
-        cloud_path : CloudPath
-            The folder to start from.
-        recursive : bool
-            Whether or not to list recursively.
-        """
-        pass
-
-    @abc.abstractmethod
-    def move_file(self, src, dst):
-        pass
-
-    @abc.abstractmethod
-    def remove(self, path):
-        """Remove a file or folder from the server.
-
-        Parameters
-        ----------
-        path : CloudPath
-            The file or folder to remove.
-        """
-        pass
-
-    @abc.abstractmethod
-    def upload_file(self, local_path, cloud_path):
-        pass
 
 
 class CloudPathMeta(abc.ABCMeta):
@@ -181,7 +124,7 @@ class CloudPath(metaclass=CloudPathMeta):
     cloud_meta: CloudImplemenation
     cloud_prefix: str
 
-    def __init__(self, cloud_path, local_cache_dir=None, backend: Optional[Backend] = None):
+    def __init__(self, cloud_path, local_cache_dir=None, backend=None):
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
 
         # versions of the raw string that provide useful methods
