@@ -66,7 +66,7 @@ def test_joins():
     assert S3Path("s3://a/b/c/d").parts == ("s3://", "a", "b", "c", "d")
 
 
-@mock.patch("cloudpathlib.clouds.s3.Session", return_value=MockBoto3Session())
+@mock.patch("cloudpathlib.backends.s3.s3backend.Session", return_value=MockBoto3Session())
 def test_with_mock_s3(mock_boto3, tmp_path):
     # Reset default backend
     S3Backend.default_backend = None

@@ -7,7 +7,7 @@ from typing import Iterable, Optional
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient
 
-from ..cloudpath import Backend, CloudPath, register_backend_class, register_path_class
+from ...cloudpath import Backend, CloudPath, register_backend_class, register_path_class
 
 
 @register_backend_class("azure")

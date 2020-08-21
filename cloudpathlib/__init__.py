@@ -1,6 +1,6 @@
+from .backends.azure.azblobbackend import AzureBlobBackend, AzureBlobPath
+from .backends.s3.s3backend import S3Backend, S3Path
 from .cloudpath import CloudPath
-from .clouds.azure import AzureBlobBackend, AzureBlobPath
-from .clouds.s3 import S3Backend, S3Path
 
 # exceptions
 from .cloudpath import (

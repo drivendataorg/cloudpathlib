@@ -6,7 +6,7 @@ from typing import Optional
 from boto3.session import Session
 import botocore.session
 
-from ..cloudpath import Backend, CloudPath, register_backend_class, register_path_class
+from ...cloudpath import Backend, CloudPath, register_backend_class, register_path_class
 
 
 @register_backend_class("s3")
