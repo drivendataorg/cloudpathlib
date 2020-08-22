@@ -19,6 +19,12 @@ class Backend(abc.ABC):
             cloud_path=cloud_path, local_cache_dir=local_cache_dir, backend=self
         )
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        pass
+
     @abc.abstractmethod
     def download_file(self, cloud_path, local_path):
         pass
