@@ -43,20 +43,22 @@ class CloudImplementation:
     _backend_class = None
     _path_class = None
 
+    def validate_completeness(self):
+        expected = ["backend_class", "path_class"]
+        missing = [cls for cls in expected if getattr(self, f"_{cls}") is None]
+        if missing:
+            raise IncompleteImplementation(
+                f"Implementation is missing registered components: {missing}"
+            )
+
     @property
     def backend_class(self):
-        if self._path_class is None:
-            raise IncompleteImplementation(
-                f"Implementation for {self.cloud_name} is missing registered path class."
-            )
+        self.validate_completeness()
         return self._backend_class
 
     @property
     def path_class(self):
-        if self._backend_class is None:
-            raise IncompleteImplementation(
-                f"Implementation for {self.cloud_name} is missing registered backend class."
-            )
+        self.validate_completeness()
         return self._path_class
 
 
