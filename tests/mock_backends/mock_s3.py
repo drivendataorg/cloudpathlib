@@ -48,6 +48,10 @@ class MockBoto3Resource:
     def Object(self, bucket, key):
         return MockBoto3Object(self.root, key)
 
+    @property
+    def buckets(self):
+        return MockCollection([d for d in self.root.iterdir() if d.is_dir()], self.root)
+
 
 class MockBoto3Object:
     def __init__(self, root, path):
@@ -160,6 +164,9 @@ class MockBoto3Client:
     def exceptions(self):
         Ex = collections.namedtuple("Ex", "NoSuchKey")
         return Ex(NoSuchKey=NoSuchKey)
+
+    def list_buckets(self):
+        return [d for d in self.root.iterdir() if d.is_dir()]
 
 
 class MockBoto3Paginator:

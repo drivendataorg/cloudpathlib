@@ -145,3 +145,14 @@ def test_with_mock_s3(mock_boto3, tmp_path):
     cloud_rel_paths = sorted([p._no_prefix_no_drive for p in p4.glob("**/*")])
     dled_rel_paths = sorted([str(p)[len(str(dl_dir)) :] for p in dl_dir.glob("**/*")])
     assert cloud_rel_paths == dled_rel_paths
+
+
+@mock.patch("cloudpathlib.backends.s3.s3backend.Session", return_value=MockBoto3Session())
+def test_backend_instantiation(mock_boto3, tmp_path):
+    p = S3Path("s3://bucket/dir_0/file0_0.txt")
+    p2 = S3Path("s3://bucket/dir_0/file0_0.txt")
+
+    assert p.read_bytes() == p2.read_bytes()
+
+    # should be using same isntance of backend, so cache should be the same
+    assert p._local == p2._local
