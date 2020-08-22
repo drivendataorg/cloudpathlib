@@ -3,6 +3,9 @@ from typing import Optional
 
 from boto3.session import Session
 import botocore.session
+from botocore import UNSIGNED
+from botocore.client import Config
+from botocore.exceptions import NoCredentialsError
 
 from ..base import Backend
 from ...cloudpath import register_backend_class
@@ -53,8 +56,21 @@ class S3Backend(Backend):
                 botocore_session=botocore_session,
                 profile_name=profile_name,
             )
+
         self.s3 = self.sess.resource("s3")
         self.client = self.sess.client("s3")
+
+        # fallback to trying anonymous "UNSIGNED" requests, which can be used
+        # if assets are public
+        try:
+            self.client.list_buckets()
+        except NoCredentialsError:
+            self.client = self.sess.client('s3', config=Config(signature_version=UNSIGNED))
+
+        try:
+            list(self.s3.buckets.limit(1))
+        except NoCredentialsError:
+            self.s3 = self.sess.resource("s3", config=Config(signature_version=UNSIGNED))
 
     def get_metadata(self, cloud_path):
         data = self.s3.ObjectSummary(cloud_path.bucket, cloud_path.key,).get()
