@@ -1,13 +1,58 @@
 from pathlib import PurePosixPath
+from typing import Optional
 
 from boto3.session import Session
+import botocore.session
 
 from ..base import Backend
+from ...cloudpath import register_backend_class
 
 
+@register_backend_class("s3")
 class S3Backend(Backend):
-    def __init__(self, aws_secret_access_key=None, aws_region=None, aws_profile=None):
-        self.sess = Session()
+    """Backend for AWS S3.
+    """
+
+    def __init__(
+        self,
+        aws_access_key_id: Optional[str] = None,
+        aws_secret_access_key: Optional[str] = None,
+        aws_session_token: Optional[str] = None,
+        botocore_session: Optional[botocore.session.Session] = None,
+        profile_name: Optional[str] = None,
+        boto3_session: Optional[Session] = None,
+    ):
+        """Class constructor. Sets up a boto3 [`Session`][boto3.session.Session]. Directly supports
+        the same authentication interface, as well as the same environment variables supported by
+        boto3. See [boto3 Session documentation](
+        https://boto3.amazonaws.com/v1/documentation/api/latest/guide/session.html).
+
+        Parameters
+        ----------
+        aws_access_key_id : Optional[str], optional
+            AWS access key ID, by default None.
+        aws_secret_access_key : Optional[str], optional
+            AWS secret access key, by default None.
+        aws_session_token : Optional[str], optional
+            Session key for your AWS account. This is only needed when you are using temporary
+            credentials. By default None.
+        botocore_session : Optional[botocore.session.Session], optional
+            An already instantiated botocore Session, by default None.
+        profile_name : Optional[str], optional
+            Profile name of a profile in a shared credentials file, by default None.
+        boto3_session : Optional[boto3.session.Session], optional
+            An already instantiated boto3 Session, by default None.
+        """
+        if boto3_session is not None:
+            self.sess = boto3_session
+        else:
+            self.sess = Session(
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key,
+                aws_session_token=aws_session_token,
+                botocore_session=botocore_session,
+                profile_name=profile_name,
+            )
         self.s3 = self.sess.resource("s3")
         self.client = self.sess.client("s3")
 
@@ -138,3 +183,6 @@ class S3Backend(Backend):
 
         obj.upload_file(str(local_path))
         return cloud_path
+
+
+S3Backend.S3Path = S3Backend.CloudPath

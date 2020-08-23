@@ -1,25 +1,72 @@
 from datetime import datetime
 import os
 from pathlib import PurePosixPath
-from typing import Iterable
+from typing import Iterable, Optional
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient
 
 from ..base import Backend
+from ...cloudpath import register_backend_class
 
 
+@register_backend_class("azure")
 class AzureBlobBackend(Backend):
-    def __init__(self, blob_service_client=None):
+    """Backend for Azure Blob Storage."""
+
+    def __init__(
+        self,
+        account_url: Optional[str] = None,
+        credential: Optional[any] = None,
+        connection_string: Optional[str] = None,
+        blob_service_client: Optional[BlobServiceClient] = None,
+    ):
         """
+        Class constructor. Sets up a [`BlobServiceClient`][azure.storage.blob.BlobServiceClient].
+        Supports the following authentication methods of `BlobServiceClient`.
+
+        - Environment variable `""AZURE_STORAGE_CONNECTION_STRING"` containing connecting string
+        with account credentials. See [Azure Storage SDK documentation](
+        https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).
+        - Account URL via `account_url`, authenticated either with an embedded SAS token, or with
+        credentials passed to `credentials`.
+        - Connection string via `connection_string`, authenticated either with an embedded SAS
+        token or with credentials passed to `credentials`.
+        - Instantiated and already authenticated
+        [`BlobServiceClient`][azure.storage.blob.BlobServiceClient].
+
+        If multiple methods are used, priority order is reverse of list above (later in list takes
+        priority).
 
         Parameters
         ----------
-        blob_service_client : BlobServiceClient, optional
-            If you need to instantiate the BlobServiceClient in any way
-            that
+        account_url : Optional[str], optional
+            The URL to the blob storage account, optionally authenticated with a SAS token. See
+            [`BlobServiceClient`][azure.storage.blob.BlobServiceClient]. By default None.
+        credential : Optional[any], optional
+            Credentials with which to authenticate. Can be used with `account_url` or
+            `connection_string`, but is unnecessary if the other already has an SAS token. See
+            [`BlobServiceClient`][azure.storage.blob.BlobServiceClient] or
+            [`BlobServiceClient.from_connection_string`][
+            azure.storage.blob.BlobServiceClient.from_connection_string]. By default None.
+        connection_string : Optional[str], optional
+            A connection string to an Azure Storage account. See [Azure Storage SDK documentation](
+            https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).
+            By default None.
+        blob_service_client : Optional[BlobServiceClient], optional
+            Instantiated [`BlobServiceClient`][azure.storage.blob.BlobServiceClient].
+            By default None.
         """
-        if blob_service_client is None:
+
+        if blob_service_client is not None:
+            self.service_client = blob_service_client
+        elif connection_string is not None:
+            self.service_client = BlobServiceClient.from_connection_string(
+                conn_str=connection_string, credential=credential
+            )
+        elif account_url is not None:
+            self.service_client = BlobServiceClient(account_url=account_url, credential=credential)
+        else:
             self.service_client = BlobServiceClient.from_connection_string(
                 os.getenv("AZURE_STORAGE_CONNECTION_STRING")
             )
@@ -143,3 +190,6 @@ class AzureBlobBackend(Backend):
         blob.upload_blob(local_path.read_bytes(), overwrite=True)
 
         return cloud_path
+
+
+AzureBlobBackend.AzureBlobPath = AzureBlobBackend.CloudPath

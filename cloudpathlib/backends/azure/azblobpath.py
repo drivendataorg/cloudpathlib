@@ -3,13 +3,11 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from ...cloudpath import CloudPath, register_path_class
-from .azblobbackend import AzureBlobBackend
 
 
-@register_path_class
+@register_path_class("azure")
 class AzureBlobPath(CloudPath):
     cloud_prefix = "az://"
-    backend_class = AzureBlobBackend
 
     @property
     def drive(self):
