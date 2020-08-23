@@ -41,20 +41,20 @@ class AzureBlobBackend(Backend):
 
         Parameters
         ----------
-        account_url : Optional[str], optional
+        account_url : Optional[str]
             The URL to the blob storage account, optionally authenticated with a SAS token. See
             [`BlobServiceClient`][azure.storage.blob.BlobServiceClient]. By default None.
-        credential : Optional[any], optional
+        credential : Optional[any]
             Credentials with which to authenticate. Can be used with `account_url` or
             `connection_string`, but is unnecessary if the other already has an SAS token. See
             [`BlobServiceClient`][azure.storage.blob.BlobServiceClient] or
             [`BlobServiceClient.from_connection_string`][
             azure.storage.blob.BlobServiceClient.from_connection_string]. By default None.
-        connection_string : Optional[str], optional
+        connection_string : Optional[str]
             A connection string to an Azure Storage account. See [Azure Storage SDK documentation](
             https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).
             By default None.
-        blob_service_client : Optional[BlobServiceClient], optional
+        blob_service_client : Optional[BlobServiceClient]
             Instantiated [`BlobServiceClient`][azure.storage.blob.BlobServiceClient].
             By default None.
         local_cache_dir : Optional[Union[str, os.PathLike]]
