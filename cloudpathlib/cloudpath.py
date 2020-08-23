@@ -4,7 +4,6 @@ import collections.abc
 import fnmatch
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
-from tempfile import TemporaryDirectory
 from typing import Iterable
 from urllib.parse import urlparse
 from warnings import warn
@@ -126,7 +125,7 @@ class CloudPath(metaclass=CloudPathMeta):
     cloud_meta: CloudImplementation
     cloud_prefix: str
 
-    def __init__(self, cloud_path, local_cache_dir=None, backend=None):
+    def __init__(self, cloud_path, backend=None):
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
 
         # versions of the raw string that provide useful methods
@@ -145,14 +144,6 @@ class CloudPath(metaclass=CloudPathMeta):
             )
         self.backend = backend
 
-        # setup caching and local versions of file and track if it is a tmp dir
-        self._cache_tmp_dir = None
-        if local_cache_dir is None:
-            self._cache_tmp_dir = TemporaryDirectory()
-            local_cache_dir = self._cache_tmp_dir.name
-
-        self._local_cache_dir = Path(local_cache_dir)
-
         # track if local has been written to, if so it may need to be uploaded
         self._dirty = False
 
@@ -163,10 +154,6 @@ class CloudPath(metaclass=CloudPathMeta):
         # make sure that file handle to local path is closed
         if self._handle is not None:
             self._handle.close()
-
-        # make sure temp is cleaned up if we created it
-        if self._cache_tmp_dir is not None:
-            self._cache_tmp_dir.cleanup()
 
     @property
     def _no_prefix(self):
@@ -291,13 +278,12 @@ class CloudPath(metaclass=CloudPathMeta):
             recursive = True
 
         for f in self.backend.list_dir(self, recursive=recursive):
-            f_cp = self.__class__(f, backend=self.backend, local_cache_dir=self._local_cache_dir)
-            if fnmatch.fnmatch(f_cp._no_prefix_no_drive, pattern):
-                yield f_cp
+            if fnmatch.fnmatch(f._no_prefix_no_drive, pattern):
+                yield f
 
     def iterdir(self) -> Iterable["CloudPath"]:
         for f in self.backend.list_dir(self, recursive=False):
-            yield self.__class__(f, backend=self.backend, local_cache_dir=self._local_cache_dir)
+            yield f
 
     def open(
         self,
@@ -548,7 +534,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def _local(self):
         """ Cached local version of the file.
         """
-        return self._local_cache_dir / self._no_prefix
+        return self.backend._local_cache_dir / self._no_prefix
 
     def _new_cloudpath(self, path):
         """ Use the scheme, backend, cache dir of this cloudpath to instantiate
@@ -566,7 +552,7 @@ class CloudPath(metaclass=CloudPathMeta):
         if not path.startswith(self.cloud_prefix):
             path = f"{self.cloud_prefix}{path}"
 
-        return self.__class__(path, backend=self.backend, local_cache_dir=self._local_cache_dir)
+        return self.backend.CloudPath(path)
 
     def _refresh_cache(self, force_overwrite_from_cloud=False):
         # nothing to cache if the file does not exist; happens when creating

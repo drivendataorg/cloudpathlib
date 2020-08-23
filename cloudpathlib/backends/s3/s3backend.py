@@ -1,5 +1,6 @@
+import os
 from pathlib import PurePosixPath
-from typing import Optional
+from typing import Optional, Union
 
 from boto3.session import Session
 import botocore.session
@@ -21,6 +22,7 @@ class S3Backend(Backend):
         botocore_session: Optional[botocore.session.Session] = None,
         profile_name: Optional[str] = None,
         boto3_session: Optional[Session] = None,
+        local_cache_dir: Optional[Union[str, os.PathLike]] = None,
     ):
         """Class constructor. Sets up a boto3 [`Session`][boto3.session.Session]. Directly supports
         the same authentication interface, as well as the same environment variables supported by
@@ -29,19 +31,22 @@ class S3Backend(Backend):
 
         Parameters
         ----------
-        aws_access_key_id : Optional[str], optional
+        aws_access_key_id : Optional[str]
             AWS access key ID, by default None.
-        aws_secret_access_key : Optional[str], optional
+        aws_secret_access_key : Optional[str]
             AWS secret access key, by default None.
-        aws_session_token : Optional[str], optional
+        aws_session_token : Optional[str]
             Session key for your AWS account. This is only needed when you are using temporary
             credentials. By default None.
-        botocore_session : Optional[botocore.session.Session], optional
+        botocore_session : Optional[botocore.session.Session]
             An already instantiated botocore Session, by default None.
-        profile_name : Optional[str], optional
+        profile_name : Optional[str]
             Profile name of a profile in a shared credentials file, by default None.
-        boto3_session : Optional[boto3.session.Session], optional
+        boto3_session : Optional[boto3.session.Session]
             An already instantiated boto3 Session, by default None.
+        local_cache_dir : Optional[Union[str, os.PathLike]]
+            Path to directory to use as cache for downloaded files. If None, will use a temporary
+            directory. By default None.
         """
         if boto3_session is not None:
             self.sess = boto3_session
@@ -55,6 +60,8 @@ class S3Backend(Backend):
             )
         self.s3 = self.sess.resource("s3")
         self.client = self.sess.client("s3")
+
+        super().__init__(local_cache_dir=local_cache_dir)
 
     def get_metadata(self, cloud_path):
         data = self.s3.ObjectSummary(cloud_path.bucket, cloud_path.key,).get()
@@ -116,10 +123,10 @@ class S3Backend(Backend):
 
                     # if we haven't surfaced their directory already
                     if parent not in yielded_dirs and parent != ".":
-                        yield f"s3://{cloud_path.bucket}/{prefix}{parent}"
+                        yield self.CloudPath(f"s3://{cloud_path.bucket}/{prefix}{parent}")
                         yielded_dirs.add(parent)
 
-                yield f"s3://{o.bucket_name}/{o.key}"
+                yield self.CloudPath(f"s3://{o.bucket_name}/{o.key}")
         else:
             # non recursive is best done with old client API rather than resource
             paginator = self.client.get_paginator("list_objects")
@@ -130,11 +137,11 @@ class S3Backend(Backend):
 
                 # sub directory names
                 for prefix in result.get("CommonPrefixes", []):
-                    yield f"s3://{cloud_path.bucket}/{prefix.get('Prefix')}"
+                    yield self.CloudPath(f"s3://{cloud_path.bucket}/{prefix.get('Prefix')}")
 
                 # files in the directory
                 for key in result.get("Contents", []):
-                    yield f"s3://{cloud_path.bucket}/{key.get('Key')}"
+                    yield self.CloudPath(f"s3://{cloud_path.bucket}/{key.get('Key')}")
 
     def move_file(self, src, dst):
         # just a touch, so "REPLACE" metadata

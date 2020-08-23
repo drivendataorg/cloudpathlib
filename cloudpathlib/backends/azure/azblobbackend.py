@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
 from pathlib import PurePosixPath
-from typing import Iterable, Optional
+from typing import Optional, Union
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient
@@ -20,6 +20,7 @@ class AzureBlobBackend(Backend):
         credential: Optional[any] = None,
         connection_string: Optional[str] = None,
         blob_service_client: Optional[BlobServiceClient] = None,
+        local_cache_dir: Optional[Union[str, os.PathLike]] = None,
     ):
         """
         Class constructor. Sets up a [`BlobServiceClient`][azure.storage.blob.BlobServiceClient].
@@ -56,6 +57,9 @@ class AzureBlobBackend(Backend):
         blob_service_client : Optional[BlobServiceClient], optional
             Instantiated [`BlobServiceClient`][azure.storage.blob.BlobServiceClient].
             By default None.
+        local_cache_dir : Optional[Union[str, os.PathLike]]
+            Path to directory to use as cache for downloaded files. If None, will use a temporary
+            directory. By default None.
         """
 
         if blob_service_client is not None:
@@ -70,6 +74,8 @@ class AzureBlobBackend(Backend):
             self.service_client = BlobServiceClient.from_connection_string(
                 os.getenv("AZURE_STORAGE_CONNECTION_STRING")
             )
+
+        super().__init__(local_cache_dir=local_cache_dir)
 
     def get_metadata(self, cloud_path):
         blob = self.service_client.get_blob_client(
@@ -114,7 +120,7 @@ class AzureBlobBackend(Backend):
     def exists(self, cloud_path):
         return self.is_file_or_dir(cloud_path) in ["file", "dir"]
 
-    def list_dir(self, cloud_path, recursive=False) -> Iterable[str]:
+    def list_dir(self, cloud_path, recursive=False):
         container_client = self.service_client.get_container_client(cloud_path.container)
 
         prefix = cloud_path.blob
@@ -137,14 +143,14 @@ class AzureBlobBackend(Backend):
                     if not recursive and "/" in parent[len(prefix) :]:
                         continue
 
-                    yield f"az://{cloud_path.container}/{prefix}{parent}"
+                    yield self.CloudPath(f"az://{cloud_path.container}/{prefix}{parent}")
                     yielded_dirs.add(parent)
 
             # skip file if not recursive and this is beyond our depth
             if not recursive and "/" in o.name[len(prefix) :]:
                 continue
 
-            yield f"az://{cloud_path.container}/{o.name}"
+            yield self.CloudPath(f"az://{cloud_path.container}/{o.name}")
 
     def move_file(self, src, dst):
         # just a touch, so "REPLACE" metadata
