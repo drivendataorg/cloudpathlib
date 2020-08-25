@@ -2,8 +2,10 @@
 
 black
 flake8
+pandas
 pytest
 pytest-cov
 python-dotenv
+tabulate
 
 -e .
