@@ -7,20 +7,17 @@ from ...cloudpath import CloudPath, register_path_class
 
 @register_path_class("azure")
 class AzureBlobPath(CloudPath):
-    cloud_prefix = "az://"
+    cloud_prefix: str = "az://"
 
     @property
-    def drive(self):
+    def drive(self) -> str:
         return self.container
 
-    def exists(self):
-        return self.backend.exists(self)
+    def is_dir(self) -> bool:
+        return self.backend._is_file_or_dir(self) == "dir"
 
-    def is_dir(self):
-        return self.backend.is_file_or_dir(self) == "dir"
-
-    def is_file(self):
-        return self.backend.is_file_or_dir(self) == "file"
+    def is_file(self) -> bool:
+        return self.backend._is_file_or_dir(self) == "file"
 
     def mkdir(self, parents=False, exist_ok=False):
         # not possible to make empty directory on blob storage
@@ -34,12 +31,12 @@ class AzureBlobPath(CloudPath):
             p = Path(tf.name) / "empty"
             p.touch()
 
-            self.backend.upload_file(p, self)
+            self.backend._upload_file(p, self)
 
             tf.cleanup()
 
     def stat(self):
-        meta = self.backend.get_metadata(self)
+        meta = self.backend._get_metadata(self)
 
         print(meta)
 
@@ -59,11 +56,11 @@ class AzureBlobPath(CloudPath):
         )
 
     @property
-    def container(self):
+    def container(self) -> str:
         return self._no_prefix.split("/", 1)[0]
 
     @property
-    def blob(self):
+    def blob(self) -> str:
         key = self._no_prefix_no_drive
 
         # key should never have starting slash for
@@ -74,8 +71,10 @@ class AzureBlobPath(CloudPath):
 
     @property
     def etag(self):
-        return self.backend.get_metadata(self).get("etag", None)
+        return self.backend._get_metadata(self).get("etag", None)
 
     @property
-    def md5(self):
-        return self.backend.get_metadata(self).get("content_settings", {}).get("content_md5", None)
+    def md5(self) -> str:
+        return (
+            self.backend._get_metadata(self).get("content_settings", {}).get("content_md5", None)
+        )

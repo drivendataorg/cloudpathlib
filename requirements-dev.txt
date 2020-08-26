@@ -2,6 +2,7 @@
 
 black
 flake8
+mypy
 pandas
 pytest
 pytest-cov

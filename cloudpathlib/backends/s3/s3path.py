@@ -7,17 +7,17 @@ from ...cloudpath import CloudPath, register_path_class
 
 @register_path_class("s3")
 class S3Path(CloudPath):
-    cloud_prefix = "s3://"
+    cloud_prefix: str = "s3://"
 
     @property
-    def drive(self):
+    def drive(self) -> str:
         return self.bucket
 
-    def is_dir(self):
-        return self.backend.is_file_or_dir(self) == "dir"
+    def is_dir(self) -> bool:
+        return self.backend._is_file_or_dir(self) == "dir"
 
-    def is_file(self):
-        return self.backend.is_file_or_dir(self) == "file"
+    def is_file(self) -> bool:
+        return self.backend._is_file_or_dir(self) == "file"
 
     def mkdir(self, parents=False, exist_ok=False):
         # not possible to make empty directory on s3
@@ -25,18 +25,18 @@ class S3Path(CloudPath):
 
     def touch(self):
         if self.exists():
-            self.backend.move_file(self, self)
+            self.backend._move_file(self, self)
         else:
             tf = TemporaryDirectory()
             p = Path(tf.name) / "empty"
             p.touch()
 
-            self.backend.upload_file(p, self)
+            self.backend._upload_file(p, self)
 
             tf.cleanup()
 
     def stat(self):
-        meta = self.backend.get_metadata(self)
+        meta = self.backend._get_metadata(self)
 
         return os.stat_result(
             (
@@ -54,11 +54,11 @@ class S3Path(CloudPath):
         )
 
     @property
-    def bucket(self):
+    def bucket(self) -> str:
         return self._no_prefix.split("/", 1)[0]
 
     @property
-    def key(self):
+    def key(self) -> str:
         key = self._no_prefix_no_drive
 
         # key should never have starting slash for
@@ -70,4 +70,4 @@ class S3Path(CloudPath):
 
     @property
     def etag(self):
-        return self.backend.get_metadata(self).get("etag")
+        return self.backend._get_metadata(self).get("etag")

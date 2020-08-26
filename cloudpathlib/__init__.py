@@ -13,13 +13,13 @@ from .cloudpath import (
 )
 
 __all__ = [
-    AzureBlobBackend,
-    AzureBlobPath,
-    BackendMismatch,
-    CloudPath,
-    InvalidPrefix,
-    OverwriteDirtyFile,
-    OverwriteNewerLocal,
-    S3Backend,
-    S3Path,
+    "AzureBlobBackend",
+    "AzureBlobPath",
+    "BackendMismatch",
+    "CloudPath",
+    "InvalidPrefix",
+    "OverwriteDirtyFile",
+    "OverwriteNewerLocal",
+    "S3Backend",
+    "S3Path",
 ]
