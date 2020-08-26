@@ -45,7 +45,7 @@ docs: clean-docs
 	cd docs && mkdocs build
 
 format:
-	black cloudpathlib tests
+	black cloudpathlib tests docs
 
 help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
@@ -54,8 +54,8 @@ install: clean ## install the package to the active Python's site-packages
 	python setup.py install
 
 lint: ## check style with flake8
-	black --check cloudpathlib tests
-	flake8 cloudpathlib tests
+	black --check cloudpathlib tests docs
+	flake8 cloudpathlib tests docs
 
 release: dist ## package and upload a release
 	twine upload dist/*

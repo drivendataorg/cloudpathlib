@@ -70,7 +70,7 @@ def register_backend_class(key: str):
         #     raise TypeError("Only subclasses of Backend can be registered.")
         global implementation_registry
         implementation_registry[key]._backend_class = cls
-        cls.cloud_meta = implementation_registry[key]
+        cls._cloud_meta = implementation_registry[key]
         return cls
 
     return decorator
@@ -82,7 +82,7 @@ def register_path_class(key: str):
             raise TypeError("Only subclasses of CloudPath can be registered.")
         global implementation_registry
         implementation_registry[key]._path_class = cls
-        cls.cloud_meta = implementation_registry[key]
+        cls._cloud_meta = implementation_registry[key]
         return cls
 
     return decorator
@@ -122,7 +122,7 @@ class CloudPathMeta(abc.ABCMeta):
 
 # Abstract base class
 class CloudPath(metaclass=CloudPathMeta):
-    cloud_meta: CloudImplementation
+    _cloud_meta: CloudImplementation
     cloud_prefix: str
 
     def __init__(self, cloud_path, backend=None):
@@ -135,11 +135,11 @@ class CloudPath(metaclass=CloudPathMeta):
 
         # setup backend
         if backend is None:
-            backend = self.cloud_meta.backend_class.get_default_backend()
-        if type(backend) != self.cloud_meta.backend_class:
+            backend = self._cloud_meta.backend_class.get_default_backend()
+        if type(backend) != self._cloud_meta.backend_class:
             raise BackendMismatch(
                 f"Backend of type [{backend.__class__}] is not valid for cloud path of type "
-                f"[{self.__class__}]; must be instance of [{self.cloud_meta.backend_class}], or "
+                f"[{self.__class__}]; must be instance of [{self._cloud_meta.backend_class}], or "
                 f"None to use default backend for this cloud path class."
             )
         self.backend = backend
@@ -359,7 +359,7 @@ class CloudPath(metaclass=CloudPathMeta):
             raise ValueError(f"Path {self} is a file; call unlink instead of rmdir.")
         self.backend.remove(self)
 
-    def samepath(self, other_path):
+    def samefile(self, other_path):
         # all cloud paths are absolute and the paths are used for hash
         return self == other_path
 

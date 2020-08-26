@@ -59,7 +59,7 @@ def test_joins():
 
     assert S3Path("s3://a").joinpath("b", "c") == S3Path("s3://a/b/c")
 
-    assert S3Path("s3://a/b/c").samepath(S3Path("s3://a/b/c"))
+    assert S3Path("s3://a/b/c").samefile(S3Path("s3://a/b/c"))
 
     assert S3Path("s3://a/b/c").as_uri() == "s3://a/b/c"
 

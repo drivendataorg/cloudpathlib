@@ -1,10 +1,83 @@
-CloudPathlib
+# CloudPath
 
 -------------------
 
 > Our goal is to be the meringue of file management libraries: the subtle sweetness of `pathlib` working in harmony with the ethereal lightness of the cloud.
 
 A library that implements (nearly all) of the pathlib.Path methods for URIs for different cloud providers.
+
+## Supported methods and properties
+
+Most methods and properties from `pathlib.Path` are supported except for the ones that don't make sense in a cloud context. There are a few additional methods or properties that relate to specific cloud services or specifically for cloud paths.
+
+| Methods + properties   | `AzureBlobPath`   | `S3Path`   |
+|:-----------------------|:------------------|:-----------|
+| `anchor`               | ✅                | ✅         |
+| `as_uri`               | ✅                | ✅         |
+| `drive`                | ✅                | ✅         |
+| `exists`               | ✅                | ✅         |
+| `glob`                 | ✅                | ✅         |
+| `is_dir`               | ✅                | ✅         |
+| `is_file`              | ✅                | ✅         |
+| `iterdir`              | ✅                | ✅         |
+| `joinpath`             | ✅                | ✅         |
+| `match`                | ✅                | ✅         |
+| `mkdir`                | ✅                | ✅         |
+| `name`                 | ✅                | ✅         |
+| `open`                 | ✅                | ✅         |
+| `parent`               | ✅                | ✅         |
+| `parents`              | ✅                | ✅         |
+| `parts`                | ✅                | ✅         |
+| `read_bytes`           | ✅                | ✅         |
+| `read_text`            | ✅                | ✅         |
+| `rename`               | ✅                | ✅         |
+| `replace`              | ✅                | ✅         |
+| `rglob`                | ✅                | ✅         |
+| `rmdir`                | ✅                | ✅         |
+| `samefile`             | ✅                | ✅         |
+| `stat`                 | ✅                | ✅         |
+| `stem`                 | ✅                | ✅         |
+| `suffix`               | ✅                | ✅         |
+| `suffixes`             | ✅                | ✅         |
+| `touch`                | ✅                | ✅         |
+| `unlink`               | ✅                | ✅         |
+| `with_name`            | ✅                | ✅         |
+| `with_suffix`          | ✅                | ✅         |
+| `write_bytes`          | ✅                | ✅         |
+| `write_text`           | ✅                | ✅         |
+| `absolute`             | ❌                | ❌         |
+| `as_posix`             | ❌                | ❌         |
+| `chmod`                | ❌                | ❌         |
+| `cwd`                  | ❌                | ❌         |
+| `expanduser`           | ❌                | ❌         |
+| `group`                | ❌                | ❌         |
+| `home`                 | ❌                | ❌         |
+| `is_absolute`          | ❌                | ❌         |
+| `is_block_device`      | ❌                | ❌         |
+| `is_char_device`       | ❌                | ❌         |
+| `is_fifo`              | ❌                | ❌         |
+| `is_mount`             | ❌                | ❌         |
+| `is_reserved`          | ❌                | ❌         |
+| `is_socket`            | ❌                | ❌         |
+| `is_symlink`           | ❌                | ❌         |
+| `lchmod`               | ❌                | ❌         |
+| `link_to`              | ❌                | ❌         |
+| `lstat`                | ❌                | ❌         |
+| `owner`                | ❌                | ❌         |
+| `relative_to`          | ❌                | ❌         |
+| `resolve`              | ❌                | ❌         |
+| `root`                 | ❌                | ❌         |
+| `symlink_to`           | ❌                | ❌         |
+| `cloud_prefix`         | ✅                | ✅         |
+| `download_to`          | ✅                | ✅         |
+| `etag`                 | ✅                | ✅         |
+| `is_valid_cloudpath`   | ✅                | ✅         |
+| `blob`                 | ✅                | ❌         |
+| `bucket`               | ❌                | ✅         |
+| `container`            | ✅                | ❌         |
+| `key`                  | ❌                | ✅         |
+| `md5`                  | ✅                | ❌         |
+
 
 Here's an example to get the gist:
 
