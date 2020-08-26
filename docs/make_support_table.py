@@ -21,7 +21,7 @@ def print_table():
     df = pd.DataFrame(
         index=all_methods
     )
-    df.index.name = 'Method'
+    df.index.name = 'Methods + properties'
 
     for _cls, methods in lib_methods.items():
         df[f"`{_cls}`"] = [
@@ -37,9 +37,9 @@ def print_table():
 
     md = (df.reset_index()
         .sort_values(
-            ["sort_order", "Method"],
+            ["sort_order", "Methods + properties"],
         )
-        .set_index("Method")
+        .set_index("Methods + properties")
         .drop(["sort_order", "base"], axis=1)
         .replace({True: "✅", False: "❌"})
         .to_markdown()

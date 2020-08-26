@@ -8,7 +8,7 @@ from ..cloudpath import CloudImplementation
 
 
 class Backend(abc.ABC):
-    cloud_meta: CloudImplementation
+    _cloud_meta: CloudImplementation
     default_backend = None
 
     def __init__(self, local_cache_dir: Optional[Union[str, os.PathLike]] = None):
@@ -32,7 +32,7 @@ class Backend(abc.ABC):
         return cls.default_backend
 
     def CloudPath(self, cloud_path):
-        return self.cloud_meta.path_class(cloud_path=cloud_path, backend=self)
+        return self._cloud_meta.path_class(cloud_path=cloud_path, backend=self)
 
     @abc.abstractmethod
     def download_file(self, cloud_path, local_path):
