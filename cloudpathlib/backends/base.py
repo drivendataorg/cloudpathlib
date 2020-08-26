@@ -57,7 +57,7 @@ class Backend(abc.ABC, Generic[BoundedCloudPath]):
 
     @abc.abstractmethod
     def _list_dir(self, cloud_path: BoundedCloudPath, recursive: bool) -> Iterable[str]:
-        """ List all the files and folders in a directory.
+        """List all the files and folders in a directory.
 
         Parameters
         ----------

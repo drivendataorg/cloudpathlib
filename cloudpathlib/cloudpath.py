@@ -205,32 +205,27 @@ class CloudPath(metaclass=CloudPathMeta):
     @property
     @abc.abstractmethod
     def drive(self) -> str:
-        """ For example "bucket" on S3 or "container" on Azure; needs to be defined for each class
-        """
+        """For example "bucket" on S3 or "container" on Azure; needs to be defined for each class"""
         pass
 
     @abc.abstractmethod
     def is_dir(self) -> bool:
-        """ Should be implemented without requiring a dir is downloaded
-        """
+        """Should be implemented without requiring a dir is downloaded"""
         pass
 
     @abc.abstractmethod
     def is_file(self) -> bool:
-        """ Should be implemented without requiring that the file is downloaded
-        """
+        """Should be implemented without requiring that the file is downloaded"""
         pass
 
     @abc.abstractmethod
     def mkdir(self, parents: bool = False, exist_ok: bool = False):
-        """ Should be implemented using the backend API without requiring a dir is downloaded
-        """
+        """Should be implemented using the backend API without requiring a dir is downloaded"""
         pass
 
     @abc.abstractmethod
     def touch(self):
-        """ Should be implemented using the backend API to create and update modified time
-        """
+        """Should be implemented using the backend API to create and update modified time"""
         pass
 
     # ====================== IMPLEMENTED FROM SCRATCH ======================
@@ -298,7 +293,11 @@ class CloudPath(metaclass=CloudPathMeta):
             self._local.parent.mkdir(parents=True, exist_ok=True)
 
         buffer = self._local.open(
-            mode=mode, buffering=buffering, encoding=encoding, errors=errors, newline=newline,
+            mode=mode,
+            buffering=buffering,
+            encoding=encoding,
+            errors=errors,
+            newline=newline,
         )
 
         # write modes need special on closing the buffer
@@ -357,10 +356,10 @@ class CloudPath(metaclass=CloudPathMeta):
         self.backend._remove(self)
 
     def write_bytes(self, data: bytes):
-        """ Open the file in bytes mode, write to it, and close the file.
+        """Open the file in bytes mode, write to it, and close the file.
 
-            NOTE: vendored from pathlib since we override open
-            https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1235-L1242
+        NOTE: vendored from pathlib since we override open
+        https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1235-L1242
         """
         # type-check for the buffer interface before truncating the file
         view = memoryview(data)
@@ -368,10 +367,10 @@ class CloudPath(metaclass=CloudPathMeta):
             return f.write(view)
 
     def write_text(self, data: str, encoding=None, errors=None):
-        """ Open the file in text mode, write to it, and close the file.
+        """Open the file in text mode, write to it, and close the file.
 
-            NOTE: vendored from pathlib since we override open
-            https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1244-L1252
+        NOTE: vendored from pathlib since we override open
+        https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1244-L1252
         """
         if not isinstance(data, str):
             raise TypeError("data must be str, not %s" % data.__class__.__name__)
@@ -383,9 +382,9 @@ class CloudPath(metaclass=CloudPathMeta):
     # self._path for pure paths (does not matter if file exists);
     # see the next session for ones that require a real file to exist
     def _dispatch_to_path(self, func, *args, **kwargs):
-        """ Some functions we can just dispatch to the pathlib version
-            We want to do this explicitly so we don't have to support all
-            of pathlib and subclasses can override individually if necessary.
+        """Some functions we can just dispatch to the pathlib version
+        We want to do this explicitly so we don't have to support all
+        of pathlib and subclasses can override individually if necessary.
         """
         path_version = self._path.__getattribute__(func)
 
@@ -487,9 +486,9 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @property
     def stat(self):
-        """ Note: for many backends, we may want to override so we don't incur
-            network costs since many of these properties are available as
-            API calls.
+        """Note: for many backends, we may want to override so we don't incur
+        network costs since many of these properties are available as
+        API calls.
         """
         warn(
             f"stat not implemented as API call for {self.__class__} so file must be downloaded to "
@@ -520,15 +519,14 @@ class CloudPath(metaclass=CloudPathMeta):
     # ===========  private cloud methods ===============
     @property
     def _local(self):
-        """ Cached local version of the file.
-        """
+        """Cached local version of the file."""
         return self.backend._local_cache_dir / self._no_prefix
 
     def _new_cloudpath(self, path):
-        """ Use the scheme, backend, cache dir of this cloudpath to instantiate
-            a new cloudpath of the same type with the path passed.
+        """Use the scheme, backend, cache dir of this cloudpath to instantiate
+        a new cloudpath of the same type with the path passed.
 
-            Used to make results of iterdir and joins have a unified backend + cache.
+        Used to make results of iterdir and joins have a unified backend + cache.
         """
         path = str(path)
 
@@ -595,7 +593,8 @@ class CloudPath(metaclass=CloudPathMeta):
             or force_overwrite_to_cloud
         ):
             self.backend._upload_file(
-                self._local, self,
+                self._local,
+                self,
             )
 
             # reset dirty and handle now that this is uploaded
