@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Optional, Union
+from typing import Any, Dict, Iterable, Optional, Union
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient
@@ -77,7 +77,7 @@ class AzureBlobBackend(Backend):
 
         super().__init__(local_cache_dir=local_cache_dir)
 
-    def _get_metadata(self, cloud_path: AzureBlobPath):
+    def _get_metadata(self, cloud_path: AzureBlobPath) -> Dict[str, Any]:
         blob = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
@@ -85,7 +85,9 @@ class AzureBlobBackend(Backend):
 
         return properties
 
-    def _download_file(self, cloud_path: AzureBlobPath, local_path: Union[str, os.PathLike]):
+    def _download_file(
+        self, cloud_path: AzureBlobPath, local_path: Union[str, os.PathLike]
+    ) -> Union[str, os.PathLike]:
         blob = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
@@ -95,7 +97,7 @@ class AzureBlobBackend(Backend):
 
         return local_path
 
-    def _is_file_or_dir(self, cloud_path: AzureBlobPath):
+    def _is_file_or_dir(self, cloud_path: AzureBlobPath) -> Optional[str]:
         # short-circuit the root-level container
         if not cloud_path.blob:
             return "dir"
@@ -117,10 +119,12 @@ class AzureBlobBackend(Backend):
             except StopIteration:
                 return None
 
-    def _exists(self, cloud_path: AzureBlobPath):
+    def _exists(self, cloud_path: AzureBlobPath) -> bool:
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
-    def _list_dir(self, cloud_path: AzureBlobPath, recursive: bool = False):
+    def _list_dir(
+        self, cloud_path: AzureBlobPath, recursive: bool = False
+    ) -> Iterable[AzureBlobPath]:
         container_client = self.service_client.get_container_client(cloud_path.container)
 
         prefix = cloud_path.blob
@@ -151,7 +155,7 @@ class AzureBlobBackend(Backend):
 
             yield self.CloudPath(f"az://{cloud_path.container}/{o.name}")
 
-    def _move_file(self, src: AzureBlobPath, dst: AzureBlobPath):
+    def _move_file(self, src: AzureBlobPath, dst: AzureBlobPath) -> AzureBlobPath:
         # just a touch, so "REPLACE" metadata
         if src == dst:
             blob_client = self.service_client.get_blob_client(
@@ -173,7 +177,7 @@ class AzureBlobBackend(Backend):
 
         return dst
 
-    def _remove(self, cloud_path: AzureBlobPath):
+    def _remove(self, cloud_path: AzureBlobPath) -> None:
         if self._is_file_or_dir(cloud_path) == "dir":
             blobs = [b.blob for b in self._list_dir(cloud_path, recursive=True)]
             container_client = self.service_client.get_container_client(cloud_path.container)
@@ -185,9 +189,9 @@ class AzureBlobBackend(Backend):
 
             blob.delete_blob()
 
-        return cloud_path
-
-    def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: AzureBlobPath):
+    def _upload_file(
+        self, local_path: Union[str, os.PathLike], cloud_path: AzureBlobPath
+    ) -> AzureBlobPath:
         blob = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )

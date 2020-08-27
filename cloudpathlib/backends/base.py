@@ -33,7 +33,7 @@ class Backend(abc.ABC, Generic[BoundedCloudPath]):
 
         self._local_cache_dir = Path(local_cache_dir)
 
-    def __del__(self):
+    def __del__(self) -> None:
         # make sure temp is cleaned up if we created it
         if self._cache_tmp_dir is not None:
             self._cache_tmp_dir.cleanup()
@@ -44,19 +44,23 @@ class Backend(abc.ABC, Generic[BoundedCloudPath]):
             cls.default_backend = cls()
         return cls.default_backend
 
-    def CloudPath(self, cloud_path: Union[str, BoundedCloudPath]):
+    def CloudPath(self, cloud_path: Union[str, BoundedCloudPath]) -> BoundedCloudPath:
         return self._cloud_meta.path_class(cloud_path=cloud_path, backend=self)
 
     @abc.abstractmethod
-    def _download_file(self, cloud_path: BoundedCloudPath, local_path: Union[str, os.PathLike]):
+    def _download_file(
+        self, cloud_path: BoundedCloudPath, local_path: Union[str, os.PathLike]
+    ) -> Union[str, os.PathLike]:
         pass
 
     @abc.abstractmethod
-    def _exists(self, cloud_path: BoundedCloudPath):
+    def _exists(self, cloud_path: BoundedCloudPath) -> bool:
         pass
 
     @abc.abstractmethod
-    def _list_dir(self, cloud_path: BoundedCloudPath, recursive: bool) -> Iterable[str]:
+    def _list_dir(
+        self, cloud_path: BoundedCloudPath, recursive: bool
+    ) -> Iterable[BoundedCloudPath]:
         """List all the files and folders in a directory.
 
         Parameters
@@ -69,11 +73,11 @@ class Backend(abc.ABC, Generic[BoundedCloudPath]):
         pass
 
     @abc.abstractmethod
-    def _move_file(self, src: BoundedCloudPath, dst: BoundedCloudPath):
+    def _move_file(self, src: BoundedCloudPath, dst: BoundedCloudPath) -> BoundedCloudPath:
         pass
 
     @abc.abstractmethod
-    def _remove(self, path: BoundedCloudPath):
+    def _remove(self, path: BoundedCloudPath) -> None:
         """Remove a file or folder from the server.
 
         Parameters
@@ -84,5 +88,7 @@ class Backend(abc.ABC, Generic[BoundedCloudPath]):
         pass
 
     @abc.abstractmethod
-    def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: BoundedCloudPath):
+    def _upload_file(
+        self, local_path: Union[str, os.PathLike], cloud_path: BoundedCloudPath
+    ) -> BoundedCloudPath:
         pass
