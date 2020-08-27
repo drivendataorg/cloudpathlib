@@ -1,6 +1,6 @@
 import os
 from pathlib import PurePosixPath
-from typing import Optional, Union
+from typing import Any, Dict, Iterable, Optional, Union
 
 from boto3.session import Session
 import botocore.session
@@ -62,11 +62,8 @@ class S3Backend(Backend):
 
         super().__init__(local_cache_dir=local_cache_dir)
 
-    def _get_metadata(self, cloud_path: S3Path):
-        data = self.s3.ObjectSummary(
-            cloud_path.bucket,
-            cloud_path.key,
-        ).get()
+    def _get_metadata(self, cloud_path: S3Path) -> Dict[str, Any]:
+        data = self.s3.ObjectSummary(cloud_path.bucket, cloud_path.key).get()
 
         return {
             "last_modified": data["LastModified"],
@@ -76,25 +73,21 @@ class S3Backend(Backend):
             "extra": data["Metadata"],
         }
 
-    def _download_file(self, cloud_path: S3Path, local_path: Union[str, os.PathLike]):
-        obj = self.s3.Object(
-            cloud_path.bucket,
-            cloud_path.key,
-        )
+    def _download_file(
+        self, cloud_path: S3Path, local_path: Union[str, os.PathLike]
+    ) -> Union[str, os.PathLike]:
+        obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
         obj.download_file(str(local_path))
         return local_path
 
-    def _is_file_or_dir(self, cloud_path: S3Path):
+    def _is_file_or_dir(self, cloud_path: S3Path) -> Optional[str]:
         # short-circuit the root-level bucket
         if not cloud_path.key:
             return "dir"
 
         try:
-            obj = self.s3.ObjectSummary(
-                cloud_path.bucket,
-                cloud_path.key,
-            )
+            obj = self.s3.ObjectSummary(cloud_path.bucket, cloud_path.key)
             obj.get()
             return "file"
         except self.client.exceptions.NoSuchKey:
@@ -103,9 +96,7 @@ class S3Backend(Backend):
                 prefix += "/"
 
             # not a file, see if it is a directory
-            f = self.s3.Bucket(
-                cloud_path.bucket,
-            ).objects.filter(Prefix=prefix)
+            f = self.s3.Bucket(cloud_path.bucket).objects.filter(Prefix=prefix)
 
             # at least one key with the prefix of the directory
             if bool([_ for _ in f.limit(1)]):
@@ -113,10 +104,10 @@ class S3Backend(Backend):
             else:
                 return None
 
-    def _exists(self, cloud_path: S3Path):
+    def _exists(self, cloud_path: S3Path) -> bool:
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
-    def _list_dir(self, cloud_path: S3Path, recursive=False):
+    def _list_dir(self, cloud_path: S3Path, recursive=False) -> Iterable[S3Path]:
         bucket = self.s3.Bucket(cloud_path.bucket)
 
         prefix = cloud_path.key
@@ -151,7 +142,7 @@ class S3Backend(Backend):
                 for result_key in result.get("Contents", []):
                     yield self.CloudPath(f"s3://{cloud_path.bucket}/{result_key.get('Key')}")
 
-    def _move_file(self, src: S3Path, dst: S3Path):
+    def _move_file(self, src: S3Path, dst: S3Path) -> S3Path:
         # just a touch, so "REPLACE" metadata
         if src == dst:
             o = self.s3.Object(src.bucket, src.key)
@@ -162,21 +153,15 @@ class S3Backend(Backend):
             )
 
         else:
-            target = self.s3.Object(
-                dst.bucket,
-                dst.key,
-            )
+            target = self.s3.Object(dst.bucket, dst.key)
             target.copy({"Bucket": src.bucket, "Key": src.key})
 
             self._remove(src)
         return dst
 
-    def _remove(self, cloud_path: S3Path):
+    def _remove(self, cloud_path: S3Path) -> None:
         try:
-            obj = self.s3.Object(
-                cloud_path.bucket,
-                cloud_path.key,
-            )
+            obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
             # will throw if not a file
             obj.get()
@@ -199,11 +184,8 @@ class S3Backend(Backend):
             if resp:
                 assert resp[0].get("ResponseMetadata").get("HTTPStatusCode") == 200
 
-    def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: S3Path):
-        obj = self.s3.Object(
-            cloud_path.bucket,
-            cloud_path.key,
-        )
+    def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: S3Path) -> S3Path:
+        obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
         obj.upload_file(str(local_path))
         return cloud_path
