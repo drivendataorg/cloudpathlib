@@ -4,7 +4,7 @@ import collections.abc
 import fnmatch
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
-from typing import Iterable
+from typing import Any, IO, Iterable, Union
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -61,19 +61,7 @@ class CloudImplementation:
         return self._path_class
 
 
-implementation_registry = defaultdict(CloudImplementation)
-
-
-def register_backend_class(key: str):
-    def decorator(cls: type):
-        # if not issubclass(cls, Backend):
-        #     raise TypeError("Only subclasses of Backend can be registered.")
-        global implementation_registry
-        implementation_registry[key]._backend_class = cls
-        cls._cloud_meta = implementation_registry[key]
-        return cls
-
-    return decorator
+implementation_registry: defaultdict = defaultdict(CloudImplementation)
 
 
 def register_path_class(key: str):
@@ -125,7 +113,7 @@ class CloudPath(metaclass=CloudPathMeta):
     _cloud_meta: CloudImplementation
     cloud_prefix: str
 
-    def __init__(self, cloud_path, backend=None):
+    def __init__(self, cloud_path: Union[str, "CloudPath"], backend=None):
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
 
         # versions of the raw string that provide useful methods
@@ -156,15 +144,15 @@ class CloudPath(metaclass=CloudPathMeta):
             self._handle.close()
 
     @property
-    def _no_prefix(self):
+    def _no_prefix(self) -> str:
         return self._str[len(self.cloud_prefix) :]
 
     @property
-    def _no_prefix_no_drive(self):
+    def _no_prefix_no_drive(self) -> str:
         return self._str[len(self.cloud_prefix) + len(self.drive) :]
 
     @classmethod
-    def is_valid_cloudpath(cls, path, raise_on_error=False):
+    def is_valid_cloudpath(cls, path: Union[str, "CloudPath"], raise_on_error=False) -> bool:
         valid = str(path).lower().startswith(cls.cloud_prefix.lower())
 
         if raise_on_error and not valid:
@@ -184,7 +172,7 @@ class CloudPath(metaclass=CloudPathMeta):
         # use repr for type and resolved path to assess if paths are the same
         return hash(self.__repr__)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any):
         return repr(self) == repr(other)
 
     # ====================== NOT IMPLEMENTED ======================
@@ -216,33 +204,28 @@ class CloudPath(metaclass=CloudPathMeta):
     # Methods that must be implemented, but have no generic application
     @property
     @abc.abstractmethod
-    def drive(self):
-        """ For example "bucket" on S3 or "container" on Azure; needs to be defined for each class
-        """
+    def drive(self) -> str:
+        """For example "bucket" on S3 or "container" on Azure; needs to be defined for each class"""
         pass
 
     @abc.abstractmethod
-    def is_dir(self):
-        """ Should be implemented without requiring a dir is downloaded
-        """
+    def is_dir(self) -> bool:
+        """Should be implemented without requiring a dir is downloaded"""
         pass
 
     @abc.abstractmethod
-    def is_file(self):
-        """ Should be implemented without requiring that the file is downloaded
-        """
+    def is_file(self) -> bool:
+        """Should be implemented without requiring that the file is downloaded"""
         pass
 
     @abc.abstractmethod
-    def mkdir(self, parents=False, exist_ok=False):
-        """ Should be implemented using the backend API without requiring a dir is downloaded
-        """
+    def mkdir(self, parents: bool = False, exist_ok: bool = False):
+        """Should be implemented using the backend API without requiring a dir is downloaded"""
         pass
 
     @abc.abstractmethod
     def touch(self):
-        """ Should be implemented using the backend API to create and update modified time
-        """
+        """Should be implemented using the backend API to create and update modified time"""
         pass
 
     # ====================== IMPLEMENTED FROM SCRATCH ======================
@@ -253,16 +236,16 @@ class CloudPath(metaclass=CloudPathMeta):
         )
 
     @property
-    def anchor(self):
+    def anchor(self) -> str:
         return self.cloud_prefix
 
-    def as_uri(self):
+    def as_uri(self) -> str:
         return str(self)
 
-    def exists(self):
-        return self.backend.exists(self)
+    def exists(self) -> bool:
+        return self.backend._exists(self)
 
-    def glob(self, pattern) -> Iterable["CloudPath"]:
+    def glob(self, pattern: str) -> Iterable["CloudPath"]:
         # strip cloud prefix from pattern if it is included
         if pattern.startswith(self.cloud_prefix):
             pattern = pattern[len(self.cloud_prefix) :]
@@ -277,12 +260,12 @@ class CloudPath(metaclass=CloudPathMeta):
             pattern = pattern.split("/", 1)[-1]
             recursive = True
 
-        for f in self.backend.list_dir(self, recursive=recursive):
+        for f in self.backend._list_dir(self, recursive=recursive):
             if fnmatch.fnmatch(f._no_prefix_no_drive, pattern):
                 yield f
 
     def iterdir(self) -> Iterable["CloudPath"]:
-        for f in self.backend.list_dir(self, recursive=False):
+        for f in self.backend._list_dir(self, recursive=False):
             yield f
 
     def open(
@@ -294,7 +277,7 @@ class CloudPath(metaclass=CloudPathMeta):
         newline=None,
         force_overwrite_from_cloud=False,  # extra kwarg not in pathlib
         force_overwrite_to_cloud=False,  # extra kwarg not in pathlib
-    ):
+    ) -> IO:
         # if trying to call open on a direcotry that exists
         if self.exists() and not self.is_file():
             raise ValueError(f"Cannot open directory, only files. Tried to open ({self})")
@@ -310,7 +293,11 @@ class CloudPath(metaclass=CloudPathMeta):
             self._local.parent.mkdir(parents=True, exist_ok=True)
 
         buffer = self._local.open(
-            mode=mode, buffering=buffering, encoding=encoding, errors=errors, newline=newline,
+            mode=mode,
+            buffering=buffering,
+            encoding=encoding,
+            errors=errors,
+            newline=newline,
         )
 
         # write modes need special on closing the buffer
@@ -334,7 +321,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
         return buffer
 
-    def replace(self, target):
+    def replace(self, target: "CloudPath") -> "CloudPath":
         if type(self) != type(target):
             raise ValueError(
                 f"The target based to rename must be an instantiated class of type: {type(self)}"
@@ -343,47 +330,47 @@ class CloudPath(metaclass=CloudPathMeta):
         if target.exists():
             target.unlink()
 
-        self.backend.move_file(self, target)
+        self.backend._move_file(self, target)
         return target
 
-    def rename(self, target):
+    def rename(self, target: "CloudPath") -> "CloudPath":
         # for cloud services replace == rename since we don't just rename,
         # we actually move files
         return self.replace(target)
 
-    def rglob(self, pattern):
+    def rglob(self, pattern: str) -> Iterable["CloudPath"]:
         return self.glob("**/" + pattern)
 
     def rmdir(self):
         if self.is_file():
             raise ValueError(f"Path {self} is a file; call unlink instead of rmdir.")
-        self.backend.remove(self)
+        self.backend._remove(self)
 
-    def samefile(self, other_path):
+    def samefile(self, other_path: "CloudPath") -> bool:
         # all cloud paths are absolute and the paths are used for hash
         return self == other_path
 
     def unlink(self):
         if self.is_dir():
             raise ValueError(f"Path {self} is a directory; call rmdir instead of unlink.")
-        self.backend.remove(self)
+        self.backend._remove(self)
 
-    def write_bytes(self, data):
-        """ Open the file in bytes mode, write to it, and close the file.
+    def write_bytes(self, data: bytes):
+        """Open the file in bytes mode, write to it, and close the file.
 
-            NOTE: vendored from pathlib since we override open
-            https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1235-L1242
+        NOTE: vendored from pathlib since we override open
+        https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1235-L1242
         """
         # type-check for the buffer interface before truncating the file
         view = memoryview(data)
         with self.open(mode="wb") as f:
             return f.write(view)
 
-    def write_text(self, data, encoding=None, errors=None):
-        """ Open the file in text mode, write to it, and close the file.
+    def write_text(self, data: str, encoding=None, errors=None):
+        """Open the file in text mode, write to it, and close the file.
 
-            NOTE: vendored from pathlib since we override open
-            https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1244-L1252
+        NOTE: vendored from pathlib since we override open
+        https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1244-L1252
         """
         if not isinstance(data, str):
             raise TypeError("data must be str, not %s" % data.__class__.__name__)
@@ -395,9 +382,9 @@ class CloudPath(metaclass=CloudPathMeta):
     # self._path for pure paths (does not matter if file exists);
     # see the next session for ones that require a real file to exist
     def _dispatch_to_path(self, func, *args, **kwargs):
-        """ Some functions we can just dispatch to the pathlib version
-            We want to do this explicitly so we don't have to support all
-            of pathlib and subclasses can override individually if necessary.
+        """Some functions we can just dispatch to the pathlib version
+        We want to do this explicitly so we don't have to support all
+        of pathlib and subclasses can override individually if necessary.
         """
         path_version = self._path.__getattribute__(func)
 
@@ -499,9 +486,9 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @property
     def stat(self):
-        """ Note: for many backends, we may want to override so we don't incur
-            network costs since many of these properties are available as
-            API calls.
+        """Note: for many backends, we may want to override so we don't incur
+        network costs since many of these properties are available as
+        API calls.
         """
         warn(
             f"stat not implemented as API call for {self.__class__} so file must be downloaded to "
@@ -516,10 +503,10 @@ class CloudPath(metaclass=CloudPathMeta):
         return self._dispatch_to_local_cache_path("read_text")
 
     # ===========  public cloud methods, not in pathlib ===============
-    def download_to(self, destination):
+    def download_to(self, destination: Union[str, os.PathLike]):
         destination = Path(destination)
         if self.is_file():
-            self.backend.download_file(self, destination)
+            self.backend._download_file(self, destination)
         else:
             for f in self.iterdir():
                 rel = str(self)
@@ -532,15 +519,14 @@ class CloudPath(metaclass=CloudPathMeta):
     # ===========  private cloud methods ===============
     @property
     def _local(self):
-        """ Cached local version of the file.
-        """
+        """Cached local version of the file."""
         return self.backend._local_cache_dir / self._no_prefix
 
     def _new_cloudpath(self, path):
-        """ Use the scheme, backend, cache dir of this cloudpath to instantiate
-            a new cloudpath of the same type with the path passed.
+        """Use the scheme, backend, cache dir of this cloudpath to instantiate
+        a new cloudpath of the same type with the path passed.
 
-            Used to make results of iterdir and joins have a unified backend + cache.
+        Used to make results of iterdir and joins have a unified backend + cache.
         """
         path = str(path)
 
@@ -594,7 +580,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"overwrite."
             )
 
-    def _upload_local_to_cloud(self, force_overwrite_to_cloud=False):
+    def _upload_local_to_cloud(self, force_overwrite_to_cloud: bool = False):
         # We should never try to be syncing entire directories; we should only
         # cache and upload individual files.
         if self._local.is_dir():
@@ -606,8 +592,9 @@ class CloudPath(metaclass=CloudPathMeta):
             or (self._local.stat().st_mtime > self.stat().st_mtime)
             or force_overwrite_to_cloud
         ):
-            self.backend.upload_file(
-                self._local, self,
+            self.backend._upload_file(
+                self._local,
+                self,
             )
 
             # reset dirty and handle now that this is uploaded

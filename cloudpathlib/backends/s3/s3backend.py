@@ -5,14 +5,13 @@ from typing import Optional, Union
 from boto3.session import Session
 import botocore.session
 
-from ..base import Backend
-from ...cloudpath import register_backend_class
+from ..base import Backend, register_backend_class
+from .s3path import S3Path
 
 
 @register_backend_class("s3")
 class S3Backend(Backend):
-    """Backend for AWS S3.
-    """
+    """Backend for AWS S3."""
 
     def __init__(
         self,
@@ -63,8 +62,11 @@ class S3Backend(Backend):
 
         super().__init__(local_cache_dir=local_cache_dir)
 
-    def get_metadata(self, cloud_path):
-        data = self.s3.ObjectSummary(cloud_path.bucket, cloud_path.key,).get()
+    def _get_metadata(self, cloud_path: S3Path):
+        data = self.s3.ObjectSummary(
+            cloud_path.bucket,
+            cloud_path.key,
+        ).get()
 
         return {
             "last_modified": data["LastModified"],
@@ -74,19 +76,25 @@ class S3Backend(Backend):
             "extra": data["Metadata"],
         }
 
-    def download_file(self, cloud_path, local_path):
-        obj = self.s3.Object(cloud_path.bucket, cloud_path.key,)
+    def _download_file(self, cloud_path: S3Path, local_path: Union[str, os.PathLike]):
+        obj = self.s3.Object(
+            cloud_path.bucket,
+            cloud_path.key,
+        )
 
         obj.download_file(str(local_path))
         return local_path
 
-    def is_file_or_dir(self, cloud_path):
+    def _is_file_or_dir(self, cloud_path: S3Path):
         # short-circuit the root-level bucket
         if not cloud_path.key:
             return "dir"
 
         try:
-            obj = self.s3.ObjectSummary(cloud_path.bucket, cloud_path.key,)
+            obj = self.s3.ObjectSummary(
+                cloud_path.bucket,
+                cloud_path.key,
+            )
             obj.get()
             return "file"
         except self.client.exceptions.NoSuchKey:
@@ -95,7 +103,9 @@ class S3Backend(Backend):
                 prefix += "/"
 
             # not a file, see if it is a directory
-            f = self.s3.Bucket(cloud_path.bucket,).objects.filter(Prefix=prefix)
+            f = self.s3.Bucket(
+                cloud_path.bucket,
+            ).objects.filter(Prefix=prefix)
 
             # at least one key with the prefix of the directory
             if bool([_ for _ in f.limit(1)]):
@@ -103,10 +113,10 @@ class S3Backend(Backend):
             else:
                 return None
 
-    def exists(self, cloud_path):
-        return self.is_file_or_dir(cloud_path) in ["file", "dir"]
+    def _exists(self, cloud_path: S3Path):
+        return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
-    def list_dir(self, cloud_path, recursive=False):
+    def _list_dir(self, cloud_path: S3Path, recursive=False):
         bucket = self.s3.Bucket(cloud_path.bucket)
 
         prefix = cloud_path.key
@@ -119,10 +129,8 @@ class S3Backend(Backend):
             for o in bucket.objects.filter(Prefix=prefix):
                 # get directory from this path
                 for parent in PurePosixPath(o.key[len(prefix) :]).parents:
-                    parent = str(parent)
-
                     # if we haven't surfaced their directory already
-                    if parent not in yielded_dirs and parent != ".":
+                    if parent not in yielded_dirs and str(parent) != ".":
                         yield self.CloudPath(f"s3://{cloud_path.bucket}/{prefix}{parent}")
                         yielded_dirs.add(parent)
 
@@ -136,33 +144,39 @@ class S3Backend(Backend):
             ):
 
                 # sub directory names
-                for prefix in result.get("CommonPrefixes", []):
-                    yield self.CloudPath(f"s3://{cloud_path.bucket}/{prefix.get('Prefix')}")
+                for result_prefix in result.get("CommonPrefixes", []):
+                    yield self.CloudPath(f"s3://{cloud_path.bucket}/{result_prefix.get('Prefix')}")
 
                 # files in the directory
-                for key in result.get("Contents", []):
-                    yield self.CloudPath(f"s3://{cloud_path.bucket}/{key.get('Key')}")
+                for result_key in result.get("Contents", []):
+                    yield self.CloudPath(f"s3://{cloud_path.bucket}/{result_key.get('Key')}")
 
-    def move_file(self, src, dst):
+    def _move_file(self, src: S3Path, dst: S3Path):
         # just a touch, so "REPLACE" metadata
         if src == dst:
             o = self.s3.Object(src.bucket, src.key)
             o.copy_from(
                 CopySource={"Bucket": src.bucket, "Key": src.key},
-                Metadata=self.get_metadata(src).get("extra", {}),
+                Metadata=self._get_metadata(src).get("extra", {}),
                 MetadataDirective="REPLACE",
             )
 
         else:
-            target = self.s3.Object(dst.bucket, dst.key,)
+            target = self.s3.Object(
+                dst.bucket,
+                dst.key,
+            )
             target.copy({"Bucket": src.bucket, "Key": src.key})
 
-            self.remove(src)
+            self._remove(src)
         return dst
 
-    def remove(self, cloud_path):
+    def _remove(self, cloud_path: S3Path):
         try:
-            obj = self.s3.Object(cloud_path.bucket, cloud_path.key,)
+            obj = self.s3.Object(
+                cloud_path.bucket,
+                cloud_path.key,
+            )
 
             # will throw if not a file
             obj.get()
@@ -185,8 +199,11 @@ class S3Backend(Backend):
             if resp:
                 assert resp[0].get("ResponseMetadata").get("HTTPStatusCode") == 200
 
-    def upload_file(self, local_path, cloud_path):
-        obj = self.s3.Object(cloud_path.bucket, cloud_path.key,)
+    def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: S3Path):
+        obj = self.s3.Object(
+            cloud_path.bucket,
+            cloud_path.key,
+        )
 
         obj.upload_file(str(local_path))
         return cloud_path
