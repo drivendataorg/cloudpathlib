@@ -7,6 +7,7 @@ from .cloudpath import CloudPath
 # exceptions
 from .cloudpath import (
     BackendMismatch,
+    DirectoryNotEmpty,
     InvalidPrefix,
     OverwriteDirtyFile,
     OverwriteNewerLocal,
@@ -17,6 +18,7 @@ __all__ = [
     "AzureBlobPath",
     "BackendMismatch",
     "CloudPath",
+    "DirectoryNotEmpty",
     "InvalidPrefix",
     "OverwriteDirtyFile",
     "OverwriteNewerLocal",

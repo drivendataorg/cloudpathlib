@@ -5,7 +5,7 @@ from unittest import mock
 import pytest
 
 from cloudpathlib import S3Backend, S3Path
-from cloudpathlib import InvalidPrefix
+from cloudpathlib import DirectoryNotEmpty, InvalidPrefix
 
 from .mock_backends.mock_s3 import MockBoto3Session
 
@@ -91,7 +91,9 @@ def test_with_mock_s3(mock_boto3, tmp_path):
     with pytest.raises(ValueError):
         p3.unlink()
 
-    p3.rmdir()
+    with pytest.raises(DirectoryNotEmpty):
+        p3.rmdir()
+    p3.rmtree()
     assert len(list(p3.iterdir())) == 0
 
     p4 = S3Path("S3://bucket")
