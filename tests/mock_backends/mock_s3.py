@@ -76,10 +76,12 @@ class MockBoto3Object:
 
     def upload_file(self, from_path):
         sleep(WRITE_SLEEP_BUFFER)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_bytes(Path(from_path).read_bytes())
 
     def delete(self):
         self.path.unlink()
+        delete_empty_parents_up_to_root(self.path, self.root)
         return {"ResponseMetadata": {"HTTPStatusCode": 204}}
 
     def copy(self, source):
@@ -145,6 +147,7 @@ class MockCollection:
     def delete(self):
         for p in self.full_paths:
             p.unlink()
+            delete_empty_parents_up_to_root(p, self.root)
 
         return [{"ResponseMetadata": {"HTTPStatusCode": 200}}]
 
@@ -179,3 +182,14 @@ class MockBoto3Paginator:
             dirs = [{"Prefix": str(_.relative_to(self.root))} for _ in page if _.is_dir()]
             files = [{"Key": str(_.relative_to(self.root))} for _ in page if _.is_file()]
             yield {"CommonPrefixes": dirs, "Contents": files}
+
+
+def delete_empty_parents_up_to_root(path, root):
+    for parent in path.parents:
+        if parent == root:
+            return
+        try:
+            next(parent.iterdir())
+            return
+        except StopIteration:
+            parent.rmdir()
