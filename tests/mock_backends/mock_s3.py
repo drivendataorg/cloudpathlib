@@ -70,7 +70,6 @@ class MockBoto3Object:
 
     def download_file(self, to_path):
         to_path = Path(to_path)
-        to_path.parent.mkdir(exist_ok=True, parents=True)
         sleep(WRITE_SLEEP_BUFFER)
         to_path.write_bytes(self.path.read_bytes())
 
@@ -89,7 +88,7 @@ class MockBoto3Object:
         source = self.root / source["Key"]
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
-        return source.rename(self.path)
+        return shutil.copy(str(source), str(self.path))
 
 
 class MockBoto3ObjectSummary:
@@ -185,6 +184,7 @@ class MockBoto3Paginator:
 
 
 def delete_empty_parents_up_to_root(path, root):
+
     for parent in path.parents:
         if parent == root:
             return

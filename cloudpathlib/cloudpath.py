@@ -519,6 +519,7 @@ class CloudPath(metaclass=CloudPathMeta):
         if self.is_file():
             self.backend._download_file(self, destination)
         else:
+            destination.mkdir(exist_ok=True)
             for f in self.iterdir():
                 rel = str(self)
                 if not rel.endswith("/"):
