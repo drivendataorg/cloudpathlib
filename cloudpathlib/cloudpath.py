@@ -81,11 +81,11 @@ def register_path_class(key: str):
 
 
 class CloudPathMeta(abc.ABCMeta):
-    def __call__(self, cloud_path, *args, **kwargs):
-        # self is a class that is the instance of this metaclass, e.g., CloudPath
+    def __call__(cls, cloud_path, *args, **kwargs):
+        # cls is a class that is the instance of this metaclass, e.g., CloudPath
 
         # Dispatch to subclass if  base CloudPath
-        if self == CloudPath:
+        if cls == CloudPath:
             for implementation in implementation_registry.values():
                 path_class = implementation._path_class
                 if path_class is not None and path_class.is_valid_cloudpath(
@@ -106,10 +106,24 @@ class CloudPathMeta(abc.ABCMeta):
             )
 
         # Otherwise instantiate as normal
-        new_obj = self.__new__(self, cloud_path, *args, **kwargs)
-        if isinstance(new_obj, self):
-            self.__init__(new_obj, cloud_path, *args, **kwargs)
+        new_obj = cls.__new__(cls, cloud_path, *args, **kwargs)
+        if isinstance(new_obj, cls):
+            cls.__init__(new_obj, cloud_path, *args, **kwargs)
         return new_obj
+
+    def __init__(cls, name, bases, dic):
+        # Copy docstring from pathlib.Path
+        for attr in dir(cls):
+            if (
+                not attr.startswith("_")
+                and hasattr(Path, attr)
+                and hasattr(getattr(Path, attr), "__doc__")
+            ):
+                getattr(cls, attr).__doc__ = getattr(Path, attr).__doc__
+                if isinstance(getattr(cls, attr), property):
+                    # Properties have __doc__ duplicated under fget, and at least some parsers
+                    # read it from there.
+                    getattr(cls, attr).fget.__doc__ = getattr(Path, attr).__doc__
 
 
 # Abstract base class
@@ -282,7 +296,7 @@ class CloudPath(metaclass=CloudPathMeta):
         force_overwrite_from_cloud=False,  # extra kwarg not in pathlib
         force_overwrite_to_cloud=False,  # extra kwarg not in pathlib
     ) -> IO:
-        # if trying to call open on a direcotry that exists
+        # if trying to call open on a directory that exists
         if self.exists() and not self.is_file():
             raise ValueError(f"Cannot open directory, only files. Tried to open ({self})")
 
