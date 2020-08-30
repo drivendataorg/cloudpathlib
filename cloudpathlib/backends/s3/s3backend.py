@@ -57,14 +57,6 @@ class S3Backend(Backend):
         super().__init__(local_cache_dir=local_cache_dir)
 
     def _get_metadata(self, cloud_path: S3Path) -> Dict[str, Any]:
-        """
-
-        Args:
-          cloud_path: S3Path:
-
-        Returns:
-
-        """
         data = self.s3.ObjectSummary(cloud_path.bucket, cloud_path.key).get()
 
         return {
@@ -78,30 +70,12 @@ class S3Backend(Backend):
     def _download_file(
         self, cloud_path: S3Path, local_path: Union[str, os.PathLike]
     ) -> Union[str, os.PathLike]:
-        """
-
-        Args:
-          cloud_path: S3Path:
-          local_path: Union[str:
-          os.PathLike]:
-
-        Returns:
-
-        """
         obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
         obj.download_file(str(local_path))
         return local_path
 
     def _is_file_or_dir(self, cloud_path: S3Path) -> Optional[str]:
-        """
-
-        Args:
-          cloud_path: S3Path:
-
-        Returns:
-
-        """
         # short-circuit the root-level bucket
         if not cloud_path.key:
             return "dir"
@@ -125,26 +99,9 @@ class S3Backend(Backend):
                 return None
 
     def _exists(self, cloud_path: S3Path) -> bool:
-        """
-
-        Args:
-          cloud_path: S3Path:
-
-        Returns:
-
-        """
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
     def _list_dir(self, cloud_path: S3Path, recursive=False) -> Iterable[S3Path]:
-        """
-
-        Args:
-          cloud_path: S3Path:
-          recursive:  (Default value = False)
-
-        Returns:
-
-        """
         bucket = self.s3.Bucket(cloud_path.bucket)
 
         prefix = cloud_path.key
@@ -180,15 +137,6 @@ class S3Backend(Backend):
                     yield self.CloudPath(f"s3://{cloud_path.bucket}/{result_key.get('Key')}")
 
     def _move_file(self, src: S3Path, dst: S3Path) -> S3Path:
-        """
-
-        Args:
-          src: S3Path:
-          dst: S3Path:
-
-        Returns:
-
-        """
         # just a touch, so "REPLACE" metadata
         if src == dst:
             o = self.s3.Object(src.bucket, src.key)
@@ -206,14 +154,6 @@ class S3Backend(Backend):
         return dst
 
     def _remove(self, cloud_path: S3Path) -> None:
-        """
-
-        Args:
-          cloud_path: S3Path:
-
-        Returns:
-
-        """
         try:
             obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
@@ -239,16 +179,6 @@ class S3Backend(Backend):
                 assert resp[0].get("ResponseMetadata").get("HTTPStatusCode") == 200
 
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: S3Path) -> S3Path:
-        """
-
-        Args:
-          local_path: Union[str:
-          os.PathLike]:
-          cloud_path: S3Path:
-
-        Returns:
-
-        """
         obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
         obj.upload_file(str(local_path))
