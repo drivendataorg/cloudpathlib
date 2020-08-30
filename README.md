@@ -1,6 +1,4 @@
-# CloudPath
-
--------------------
+# cloudpathlib
 
 > Our goal is to be the meringue of file management libraries: the subtle sweetness of `pathlib` working in harmony with the ethereal lightness of the cloud.
 
@@ -91,7 +89,7 @@ for f in root_dir.glob('**/*.txt'):
     text_data = f.read_text()
     print(f)
     print(text_data)
-    
+
 # use / to join paths (and, in this case, create a new file)
 new_file_copy = root_dir / "nested_dir/copy_file.txt"
 
@@ -104,10 +102,10 @@ new_file_copy.write_text(text_data)
 
 # file now listed
 print(list(root_dir.glob('**/*.txt')))
-      
+
 # but, we can remove it
 new_file_copy.unlink()
-      
+
 # no longer there
 print(list(root_dir.glob('**/*.txt')))
 

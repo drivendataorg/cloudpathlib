@@ -1,0 +1,40 @@
+site_name: cloudpathlib
+site_url: https://cloudpathlib.drivendata.org
+site_description: A library that implements pathlib.Path methods for URIs for different cloud providers.
+repo_url: https://github.com/drivendataorg/cloudpathlib
+theme:
+  name: material
+
+nav:
+  - Home: "index.md"
+  - API Reference:
+      - CloudPath: "api-reference/cloudpath.md"
+      - S3:
+          - S3Backend: "api-reference/s3backend.md"
+          - S3Path: "api-reference/s3path.md"
+      - Azure:
+          - AzureBlobBackend: "api-reference/azblobbackend.md"
+          - AzureBlobPath: "api-reference/azblobpath.md"
+
+markdown_extensions:
+  - toc:
+      permalink: True
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          selection:
+            filters: ["!^_(?!_init__)"]
+            inherited_members: true
+          rendering:
+            show_root_heading: false
+            show_root_toc_entry: false
+            show_root_full_path: false
+            show_if_no_docstring: true
+            show_source: true
+            heading_level: 3
+      watch:
+        - cloudpathlib

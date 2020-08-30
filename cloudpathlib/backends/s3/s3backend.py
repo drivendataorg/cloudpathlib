@@ -23,29 +23,23 @@ class S3Backend(Backend):
         boto3_session: Optional[Session] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
     ):
-        """Class constructor. Sets up a boto3 [`Session`][boto3.session.Session]. Directly supports
-        the same authentication interface, as well as the same environment variables supported by
-        boto3. See [boto3 Session documentation](
+        """Class constructor. Sets up a boto3 [`Session`](
+        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html).
+        Directly supports the same authentication interface, as well as the same environment
+        variables supported by boto3. See [boto3 Session documentation](
         https://boto3.amazonaws.com/v1/documentation/api/latest/guide/session.html).
 
-        Parameters
-        ----------
-        aws_access_key_id : Optional[str]
-            AWS access key ID, by default None.
-        aws_secret_access_key : Optional[str]
-            AWS secret access key, by default None.
-        aws_session_token : Optional[str]
-            Session key for your AWS account. This is only needed when you are using temporary
-            credentials. By default None.
-        botocore_session : Optional[botocore.session.Session]
-            An already instantiated botocore Session, by default None.
-        profile_name : Optional[str]
-            Profile name of a profile in a shared credentials file, by default None.
-        boto3_session : Optional[boto3.session.Session]
-            An already instantiated boto3 Session, by default None.
-        local_cache_dir : Optional[Union[str, os.PathLike]]
-            Path to directory to use as cache for downloaded files. If None, will use a temporary
-            directory. By default None.
+        Args:
+            aws_access_key_id (Optional[str]): AWS access key ID.
+            aws_secret_access_key (Optional[str]): AWS secret access key.
+            aws_session_token (Optional[str]): Session key for your AWS account. This is only
+                needed when you are using temporarycredentials.
+            botocore_session (Optional[botocore.session.Session]): An already instantiated botocore
+                Session.
+            profile_name (Optional[str]): Profile name of a profile in a shared credentials file.
+            boto3_session (Optional[Session]): An already instantiated boto3 Session.
+            local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
+                for downloaded files. If None, will use a temporary directory.
         """
         if boto3_session is not None:
             self.sess = boto3_session
