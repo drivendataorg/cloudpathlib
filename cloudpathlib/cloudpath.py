@@ -119,11 +119,12 @@ class CloudPathMeta(abc.ABCMeta):
                 and hasattr(Path, attr)
                 and hasattr(getattr(Path, attr), "__doc__")
             ):
-                getattr(cls, attr).__doc__ = getattr(Path, attr).__doc__
+                docstring = getattr(Path, attr).__doc__ + " _(Docstring copied from pathlib.Path)_"
+                getattr(cls, attr).__doc__ = docstring
                 if isinstance(getattr(cls, attr), property):
                     # Properties have __doc__ duplicated under fget, and at least some parsers
                     # read it from there.
-                    getattr(cls, attr).fget.__doc__ = getattr(Path, attr).__doc__
+                    getattr(cls, attr).fget.__doc__ = docstring
 
 
 # Abstract base class
