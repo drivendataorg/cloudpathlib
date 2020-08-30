@@ -1,0 +1,19 @@
+codecov:
+  require_ci_to_pass: yes
+
+coverage:
+  precision: 1
+  round: down
+  range: "70...100"
+  status:
+    project: # Coverage of whole project
+      default:
+        target: auto # Coverage target to pass; auto is base commit
+        threshold: 2% # Allow coverage to drop by this much vs. base and still pass
+    patch: # Coverage of lines in this change
+      default:
+        target: 80% # Coverage target to pass
+        threshold: 20% # Allow coverage to drop by this much vs. base and still pass
+
+comment:
+  layout: "diff,flags,tree"
