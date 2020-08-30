@@ -27,7 +27,7 @@ plugins:
       handlers:
         python:
           selection:
-            filters: ["!^_"]
+            filters: ["!^_(?!_init__)"]
             inherited_members: true
           rendering:
             show_root_heading: false

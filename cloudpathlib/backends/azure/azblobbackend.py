@@ -22,8 +22,8 @@ class AzureBlobBackend(Backend):
         blob_service_client: Optional[BlobServiceClient] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
     ):
-        """
-        Class constructor. Sets up a [`BlobServiceClient`][azure.storage.blob.BlobServiceClient].
+        """Class constructor. Sets up a [`BlobServiceClient`](
+        https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
         Supports the following authentication methods of `BlobServiceClient`.
 
         - Environment variable `""AZURE_STORAGE_CONNECTION_STRING"` containing connecting string
@@ -33,33 +33,29 @@ class AzureBlobBackend(Backend):
         credentials passed to `credentials`.
         - Connection string via `connection_string`, authenticated either with an embedded SAS
         token or with credentials passed to `credentials`.
-        - Instantiated and already authenticated
-        [`BlobServiceClient`][azure.storage.blob.BlobServiceClient].
+        - Instantiated and already authenticated [`BlobServiceClient`](
+        https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
 
         If multiple methods are used, priority order is reverse of list above (later in list takes
         priority).
 
-        Parameters
-        ----------
-        account_url : Optional[str]
-            The URL to the blob storage account, optionally authenticated with a SAS token. See
-            [`BlobServiceClient`][azure.storage.blob.BlobServiceClient]. By default None.
-        credential : Optional[any]
-            Credentials with which to authenticate. Can be used with `account_url` or
-            `connection_string`, but is unnecessary if the other already has an SAS token. See
-            [`BlobServiceClient`][azure.storage.blob.BlobServiceClient] or
-            [`BlobServiceClient.from_connection_string`][
-            azure.storage.blob.BlobServiceClient.from_connection_string]. By default None.
-        connection_string : Optional[str]
-            A connection string to an Azure Storage account. See [Azure Storage SDK documentation](
-            https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).
-            By default None.
-        blob_service_client : Optional[BlobServiceClient]
-            Instantiated [`BlobServiceClient`][azure.storage.blob.BlobServiceClient].
-            By default None.
-        local_cache_dir : Optional[Union[str, os.PathLike]]
-            Path to directory to use as cache for downloaded files. If None, will use a temporary
-            directory. By default None.
+        Args:
+            account_url (Optional[str]): The URL to the blob storage account, optionally
+                authenticated with a SAS token. See documentation for [`BlobServiceClient`](
+                https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
+            credential (Optional[Any]): Credentials with which to authenticate. Can be used with
+                `account_url` or `connection_string`, but is unnecessary if the other already has
+                an SAS token. See documentation for [`BlobServiceClient`](
+                https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python)
+                or [`BlobServiceClient.from_connection_string`](
+                https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python#from-connection-string-conn-str--credential-none----kwargs-).
+            connection_string (Optional[str]): A connection string to an Azure Storage account. See
+                [Azure Storage SDK documentation](
+                https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).
+            blob_service_client (Optional[BlobServiceClient]): Instantiated [`BlobServiceClient`](
+                https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
+            local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
+                for downloaded files. If None, will use a temporary directory.
         """
 
         if blob_service_client is not None:
