@@ -25,7 +25,7 @@ class AzureBlobPath(CloudPath):
 
     def touch(self):
         if self.exists():
-            self.backend.move_file(self, self)
+            self.backend._move_file(self, self)
         else:
             tf = TemporaryDirectory()
             p = Path(tf.name) / "empty"
@@ -37,8 +37,6 @@ class AzureBlobPath(CloudPath):
 
     def stat(self):
         meta = self.backend._get_metadata(self)
-
-        print(meta)
 
         return os.stat_result(
             (
