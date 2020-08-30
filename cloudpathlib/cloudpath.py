@@ -38,6 +38,10 @@ class OverwriteNewerLocal(Exception):
     pass
 
 
+class DirectoryNotEmpty(Exception):
+    pass
+
+
 class CloudImplementation:
     _backend_class = None
     _path_class = None
@@ -344,6 +348,13 @@ class CloudPath(metaclass=CloudPathMeta):
     def rmdir(self):
         if self.is_file():
             raise ValueError(f"Path {self} is a file; call unlink instead of rmdir.")
+        try:
+            next(self.iterdir())
+            raise DirectoryNotEmpty(
+                f"Directory not empty: '{self}'. Use rmtree to delete recursively."
+            )
+        except StopIteration:
+            pass
         self.backend._remove(self)
 
     def samefile(self, other_path: "CloudPath") -> bool:
@@ -508,6 +519,7 @@ class CloudPath(metaclass=CloudPathMeta):
         if self.is_file():
             self.backend._download_file(self, destination)
         else:
+            destination.mkdir(exist_ok=True)
             for f in self.iterdir():
                 rel = str(self)
                 if not rel.endswith("/"):
@@ -515,6 +527,12 @@ class CloudPath(metaclass=CloudPathMeta):
 
                 rel_dest = str(f)[len(rel) :]
                 f.download_to(destination / rel_dest)
+
+    def rmtree(self):
+        """Delete an entire directory tree."""
+        if self.is_file():
+            raise ValueError(f"Path {self} is a file; call unlink instead of rmtree.")
+        self.backend._remove(self)
 
     # ===========  private cloud methods ===============
     @property

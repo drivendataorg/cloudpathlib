@@ -5,7 +5,7 @@ from unittest import mock
 import pytest
 
 from cloudpathlib import S3Backend, S3Path
-from cloudpathlib import InvalidPrefix
+from cloudpathlib import DirectoryNotEmpty, InvalidPrefix
 
 from .mock_backends.mock_s3 import MockBoto3Session
 
@@ -91,8 +91,10 @@ def test_with_mock_s3(mock_boto3, tmp_path):
     with pytest.raises(ValueError):
         p3.unlink()
 
-    p3.rmdir()
-    assert len(list(p3.iterdir())) == 0
+    with pytest.raises(DirectoryNotEmpty):
+        p3.rmdir()
+    p3.rmtree()
+    assert not p3.exists()
 
     p4 = S3Path("S3://bucket")
     assert p4.exists()
@@ -102,7 +104,7 @@ def test_with_mock_s3(mock_boto3, tmp_path):
     assert p4.exists()
     assert p4.key == ""
 
-    assert len(list(p4.iterdir())) == 2
+    assert len(list(p4.iterdir())) == 1  # only s3://bucket/dir_1/ should still exist
     assert len(list(p4.glob("**/*"))) == 4
     assert len(list(p4.glob("s3://bucket/**/*"))) == 4
 
