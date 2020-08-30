@@ -1,7 +1,9 @@
 from datetime import datetime
 from pathlib import Path
-from tempfile import TemporaryDirectory
 import shutil
+from tempfile import TemporaryDirectory
+from time import sleep
+
 
 from azure.storage.blob import BlobProperties
 from azure.core.exceptions import ResourceNotFoundError
@@ -9,6 +11,12 @@ from azure.core.exceptions import ResourceNotFoundError
 from .utils import delete_empty_parents_up_to_root
 
 TEST_ASSETS = Path(__file__).parent.parent / "assets"
+
+# Since we don't contol exactly when the filesystem finishes writing a file
+# and the test files are super small, we can end up with race conditions in
+# the tests where the updated file is modified before the source file,
+# which breaks our caching logic
+WRITE_SLEEP_BUFFER = 0.1
 
 
 class MockBlobServiceClient:
@@ -51,6 +59,7 @@ class MockBlobClient:
             raise ResourceNotFoundError
 
     def download_blob(self):
+        sleep(WRITE_SLEEP_BUFFER)
         return MockStorageStreamDownloader(self.root, self.key)
 
     def set_blob_metadata(self, metadata):
@@ -59,6 +68,7 @@ class MockBlobClient:
 
     def start_copy_from_url(self, source_url):
         dst = self.root / self.key
+        sleep(WRITE_SLEEP_BUFFER)
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(src=str(source_url), dst=str(dst))
 
@@ -69,6 +79,7 @@ class MockBlobClient:
 
     def upload_blob(self, data, overwrite):
         path = self.root / self.key
+        sleep(WRITE_SLEEP_BUFFER)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
 
@@ -91,8 +102,8 @@ class MockContainerClient:
 
     def delete_blobs(self, *blobs):
         for blob in blobs:
+            sleep(WRITE_SLEEP_BUFFER)
             (self.root / blob).unlink()
-
             delete_empty_parents_up_to_root(path=self.root / blob, root=self.root)
 
 

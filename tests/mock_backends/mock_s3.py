@@ -1,9 +1,9 @@
 import collections
 from datetime import datetime
 from pathlib import Path
+import shutil
 from tempfile import TemporaryDirectory
 from time import sleep
-import shutil
 
 from boto3.session import Session
 
