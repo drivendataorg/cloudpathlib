@@ -39,9 +39,6 @@ dist: clean ## builds source and wheel package
 	ls -l dist
 
 docs: clean-docs
-	for cmd in clean configure export install ; do \
-		bash docs/_scripts/generate_command_reference.sh $$cmd; \
-	done
 	cd docs && mkdocs build
 
 format:
