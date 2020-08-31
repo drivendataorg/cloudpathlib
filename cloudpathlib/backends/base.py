@@ -22,7 +22,7 @@ def register_backend_class(key: str) -> Callable:
 
 class Backend(abc.ABC, Generic[BoundedCloudPath]):
     _cloud_meta: CloudImplementation
-    default_backend = None
+    _default_backend = None
 
     def __init__(self, local_cache_dir: Optional[Union[str, os.PathLike]] = None):
         # setup caching and local versions of file and track if it is a tmp dir
@@ -40,9 +40,17 @@ class Backend(abc.ABC, Generic[BoundedCloudPath]):
 
     @classmethod
     def get_default_backend(cls) -> "Backend":
-        if cls.default_backend is None:
-            cls.default_backend = cls()
-        return cls.default_backend
+        """Get the default backend, which the one that is used when instantiating a cloud path
+        instance for this cloud without a backend specified.
+        """
+        if cls._default_backend is None:
+            cls._default_backend = cls()
+        return cls._default_backend
+
+    def set_as_default_backend(self) -> None:
+        """Set this backend instance as the default one used when instantiating cloud path
+        instances for this cloud without a backend specified."""
+        self.__class__._default_backend = self
 
     def CloudPath(self, cloud_path: Union[str, BoundedCloudPath]) -> BoundedCloudPath:
         return self._cloud_meta.path_class(cloud_path=cloud_path, backend=self)
