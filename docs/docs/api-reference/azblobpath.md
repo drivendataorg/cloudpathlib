@@ -1,3 +1,3 @@
 # AzureBlobPath
 
-::: cloudpathlib.clients.azure.azblobpath.AzureBlobPath
+::: cloudpathlib.azure.azblobpath.AzureBlobPath

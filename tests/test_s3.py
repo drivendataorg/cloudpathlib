@@ -66,7 +66,7 @@ def test_joins():
     assert S3Path("s3://a/b/c/d").parts == ("s3://", "a", "b", "c", "d")
 
 
-@mock.patch("cloudpathlib.clients.s3.s3client.Session", return_value=MockBoto3Session())
+@mock.patch("cloudpathlib.s3.s3client.Session", return_value=MockBoto3Session())
 def test_with_mock_s3(mock_boto3, tmp_path):
     # Reset default client
     S3Client().set_as_default_client()
@@ -149,7 +149,7 @@ def test_with_mock_s3(mock_boto3, tmp_path):
     assert cloud_rel_paths == dled_rel_paths
 
 
-@mock.patch("cloudpathlib.clients.s3.s3client.Session", return_value=MockBoto3Session())
+@mock.patch("cloudpathlib.s3.s3client.Session", return_value=MockBoto3Session())
 def test_client_instantiation(mock_boto3, tmp_path):
     # Reset default client
     S3Client().set_as_default_client()

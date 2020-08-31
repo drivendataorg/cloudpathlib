@@ -53,7 +53,7 @@ def test_az_joins(fake_connection_string):
 
 
 @mock.patch(
-    "cloudpathlib.clients.azure.azblobclient.BlobServiceClient.from_connection_string",
+    "cloudpathlib.azure.azblobclient.BlobServiceClient.from_connection_string",
     return_value=MockBlobServiceClient(),
 )
 def test_with_mock_az(mock_azure, tmp_path):
@@ -140,7 +140,7 @@ def test_with_mock_az(mock_azure, tmp_path):
 
 
 @mock.patch(
-    "cloudpathlib.clients.azure.azblobclient.BlobServiceClient.from_connection_string",
+    "cloudpathlib.azure.azblobclient.BlobServiceClient.from_connection_string",
     return_value=MockBlobServiceClient(),
 )
 def test_client_instantiation(mock_azure, tmp_path):
