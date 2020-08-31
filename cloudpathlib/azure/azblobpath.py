@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from ...cloudpath import CloudPath, register_path_class
+from ..cloudpath import CloudPath, register_path_class
 
 
 @register_path_class("azure")
@@ -14,10 +14,10 @@ class AzureBlobPath(CloudPath):
         return self.container
 
     def is_dir(self) -> bool:
-        return self.backend._is_file_or_dir(self) == "dir"
+        return self.client._is_file_or_dir(self) == "dir"
 
     def is_file(self) -> bool:
-        return self.backend._is_file_or_dir(self) == "file"
+        return self.client._is_file_or_dir(self) == "file"
 
     def mkdir(self, parents=False, exist_ok=False):
         # not possible to make empty directory on blob storage
@@ -25,18 +25,18 @@ class AzureBlobPath(CloudPath):
 
     def touch(self):
         if self.exists():
-            self.backend._move_file(self, self)
+            self.client._move_file(self, self)
         else:
             tf = TemporaryDirectory()
             p = Path(tf.name) / "empty"
             p.touch()
 
-            self.backend._upload_file(p, self)
+            self.client._upload_file(p, self)
 
             tf.cleanup()
 
     def stat(self):
-        meta = self.backend._get_metadata(self)
+        meta = self.client._get_metadata(self)
 
         return os.stat_result(
             (
@@ -69,10 +69,8 @@ class AzureBlobPath(CloudPath):
 
     @property
     def etag(self):
-        return self.backend._get_metadata(self).get("etag", None)
+        return self.client._get_metadata(self).get("etag", None)
 
     @property
     def md5(self) -> str:
-        return (
-            self.backend._get_metadata(self).get("content_settings", {}).get("content_md5", None)
-        )
+        return self.client._get_metadata(self).get("content_settings", {}).get("content_md5", None)

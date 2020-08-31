@@ -4,10 +4,10 @@ from unittest import mock
 
 import pytest
 
-from cloudpathlib import AzureBlobPath, AzureBlobBackend, S3Backend
-from cloudpathlib.cloudpath import BackendMismatch, DirectoryNotEmpty, InvalidPrefix
+from cloudpathlib import AzureBlobPath, AzureBlobClient, S3Client
+from cloudpathlib.cloudpath import ClientMismatch, DirectoryNotEmpty, InvalidPrefix
 
-from .mock_backends.mock_azureblob import MockBlobServiceClient
+from .mock_clients.mock_azureblob import MockBlobServiceClient
 
 
 @pytest.fixture
@@ -22,8 +22,8 @@ def test_initialize_az(fake_connection_string):
     with pytest.raises(InvalidPrefix):
         p = AzureBlobPath("NOT_S3_PATH")
 
-    with pytest.raises(BackendMismatch):
-        p = AzureBlobPath("az://test/t", backend=S3Backend())
+    with pytest.raises(ClientMismatch):
+        p = AzureBlobPath("az://test/t", client=S3Client())
 
     # case insensitive
     cases = ["az://b/k", "AZ://b/k", "Az://b/k.file", "aZ://b/k", "az://b"]
@@ -53,18 +53,16 @@ def test_az_joins(fake_connection_string):
 
 
 @mock.patch(
-    "cloudpathlib.backends.azure.azblobbackend.BlobServiceClient.from_connection_string",
+    "cloudpathlib.azure.azblobclient.BlobServiceClient.from_connection_string",
     return_value=MockBlobServiceClient(),
 )
 def test_with_mock_az(mock_azure, tmp_path):
-    # Reset default backend
-    AzureBlobBackend().set_as_default_backend()
+    # Reset default client
+    AzureBlobClient().set_as_default_client()
 
     p = AzureBlobPath("az://bucket/dir_0/file0_0.txt")
-    assert p == AzureBlobBackend.get_default_backend().CloudPath("az://bucket/dir_0/file0_0.txt")
-    assert p == AzureBlobBackend.get_default_backend().AzureBlobPath(
-        "az://bucket/dir_0/file0_0.txt"
-    )
+    assert p == AzureBlobClient.get_default_client().CloudPath("az://bucket/dir_0/file0_0.txt")
+    assert p == AzureBlobClient.get_default_client().AzureBlobPath("az://bucket/dir_0/file0_0.txt")
 
     assert p.exists()
 
@@ -142,21 +140,21 @@ def test_with_mock_az(mock_azure, tmp_path):
 
 
 @mock.patch(
-    "cloudpathlib.backends.azure.azblobbackend.BlobServiceClient.from_connection_string",
+    "cloudpathlib.azure.azblobclient.BlobServiceClient.from_connection_string",
     return_value=MockBlobServiceClient(),
 )
-def test_backend_instantiation(mock_azure, tmp_path):
-    # Reset default backend
-    AzureBlobBackend().set_as_default_backend()
+def test_client_instantiation(mock_azure, tmp_path):
+    # Reset default client
+    AzureBlobClient().set_as_default_client()
 
     p = AzureBlobPath("az://bucket/dir_0/file0_0.txt")
     p2 = AzureBlobPath("az://bucket/dir_0/file0_0.txt")
 
-    # Check that backend is the same instance
-    assert p.backend is p2.backend
+    # Check that client is the same instance
+    assert p.client is p2.client
 
     # Check the file content is the same
     assert p.read_bytes() == p2.read_bytes()
 
-    # should be using same instance of backend, so cache should be the same
+    # should be using same instance of client, so cache should be the same
     assert p._local == p2._local

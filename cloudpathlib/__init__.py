@@ -1,12 +1,12 @@
-from .backends.azure.azblobbackend import AzureBlobBackend
-from .backends.azure.azblobpath import AzureBlobPath
-from .backends.s3.s3backend import S3Backend
-from .backends.s3.s3path import S3Path
+from .azure.azblobclient import AzureBlobClient
+from .azure.azblobpath import AzureBlobPath
+from .s3.s3client import S3Client
+from .s3.s3path import S3Path
 from .cloudpath import CloudPath
 
 # exceptions
 from .cloudpath import (
-    BackendMismatch,
+    ClientMismatch,
     DirectoryNotEmpty,
     InvalidPrefix,
     OverwriteDirtyFile,
@@ -14,14 +14,14 @@ from .cloudpath import (
 )
 
 __all__ = [
-    "AzureBlobBackend",
+    "AzureBlobClient",
     "AzureBlobPath",
-    "BackendMismatch",
+    "ClientMismatch",
     "CloudPath",
     "DirectoryNotEmpty",
     "InvalidPrefix",
     "OverwriteDirtyFile",
     "OverwriteNewerLocal",
-    "S3Backend",
+    "S3Client",
     "S3Path",
 ]

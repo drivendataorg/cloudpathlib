@@ -10,10 +10,10 @@ nav:
   - API Reference:
       - CloudPath: "api-reference/cloudpath.md"
       - S3:
-          - S3Backend: "api-reference/s3backend.md"
+          - S3Client: "api-reference/s3client.md"
           - S3Path: "api-reference/s3path.md"
       - Azure:
-          - AzureBlobBackend: "api-reference/azblobbackend.md"
+          - AzureBlobClient: "api-reference/azblobclient.md"
           - AzureBlobPath: "api-reference/azblobpath.md"
 
 markdown_extensions:

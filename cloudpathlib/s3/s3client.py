@@ -5,13 +5,13 @@ from typing import Any, Dict, Iterable, Optional, Union
 from boto3.session import Session
 import botocore.session
 
-from ..base import Backend, register_backend_class
+from ..client import Client, register_client_class
 from .s3path import S3Path
 
 
-@register_backend_class("s3")
-class S3Backend(Backend):
-    """Backend for AWS S3."""
+@register_client_class("s3")
+class S3Client(Client):
+    """Client for AWS S3."""
 
     def __init__(
         self,
@@ -185,4 +185,4 @@ class S3Backend(Backend):
         return cloud_path
 
 
-S3Backend.S3Path = S3Backend.CloudPath
+S3Client.S3Path = S3Client.CloudPath

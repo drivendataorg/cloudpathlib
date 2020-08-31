@@ -18,7 +18,7 @@ class IncompleteImplementation(NotImplementedError):
     pass
 
 
-class BackendMismatch(ValueError):
+class ClientMismatch(ValueError):
     pass
 
 
@@ -43,11 +43,11 @@ class DirectoryNotEmpty(Exception):
 
 
 class CloudImplementation:
-    _backend_class = None
+    _client_class = None
     _path_class = None
 
     def validate_completeness(self):
-        expected = ["backend_class", "path_class"]
+        expected = ["client_class", "path_class"]
         missing = [cls for cls in expected if getattr(self, f"_{cls}") is None]
         if missing:
             raise IncompleteImplementation(
@@ -55,9 +55,9 @@ class CloudImplementation:
             )
 
     @property
-    def backend_class(self):
+    def client_class(self):
         self.validate_completeness()
-        return self._backend_class
+        return self._client_class
 
     @property
     def path_class(self):
@@ -132,7 +132,7 @@ class CloudPath(metaclass=CloudPathMeta):
     _cloud_meta: CloudImplementation
     cloud_prefix: str
 
-    def __init__(self, cloud_path: Union[str, "CloudPath"], backend=None):
+    def __init__(self, cloud_path: Union[str, "CloudPath"], client=None):
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
 
         # versions of the raw string that provide useful methods
@@ -140,16 +140,16 @@ class CloudPath(metaclass=CloudPathMeta):
         self._url = urlparse(self._str)
         self._path = PurePosixPath(f"/{self._no_prefix}")
 
-        # setup backend
-        if backend is None:
-            backend = self._cloud_meta.backend_class.get_default_backend()
-        if type(backend) != self._cloud_meta.backend_class:
-            raise BackendMismatch(
-                f"Backend of type [{backend.__class__}] is not valid for cloud path of type "
-                f"[{self.__class__}]; must be instance of [{self._cloud_meta.backend_class}], or "
-                f"None to use default backend for this cloud path class."
+        # setup client
+        if client is None:
+            client = self._cloud_meta.client_class.get_default_client()
+        if type(client) != self._cloud_meta.client_class:
+            raise ClientMismatch(
+                f"Client of type [{client.__class__}] is not valid for cloud path of type "
+                f"[{self.__class__}]; must be instance of [{self._cloud_meta.client_class}], or "
+                f"None to use default client for this cloud path class."
             )
-        self.backend = backend
+        self.client = client
 
         # track if local has been written to, if so it may need to be uploaded
         self._dirty = False
@@ -197,11 +197,11 @@ class CloudPath(metaclass=CloudPathMeta):
     # ====================== NOT IMPLEMENTED ======================
     # absolute - no cloud equivalent; all cloud paths are absolute already
     # as_posix - no cloud equivalent; not needed since we assume url separator
-    # chmod - permission changing should be explicitly done per backend with methods
-    #           that make sense for the backend permission options
+    # chmod - permission changing should be explicitly done per client with methods
+    #           that make sense for the client permission options
     # cwd - no cloud equivalent
     # expanduser - no cloud equivalent
-    # group - should be implemented with backend-specific permissions
+    # group - should be implemented with client-specific permissions
     # home - no cloud equivalent
     # is_absolute - no cloud equivalent; all cloud paths are absolute already
     # is_block_device - no cloud equivalent
@@ -239,12 +239,12 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @abc.abstractmethod
     def mkdir(self, parents: bool = False, exist_ok: bool = False):
-        """Should be implemented using the backend API without requiring a dir is downloaded"""
+        """Should be implemented using the client API without requiring a dir is downloaded"""
         pass
 
     @abc.abstractmethod
     def touch(self):
-        """Should be implemented using the backend API to create and update modified time"""
+        """Should be implemented using the client API to create and update modified time"""
         pass
 
     # ====================== IMPLEMENTED FROM SCRATCH ======================
@@ -262,7 +262,7 @@ class CloudPath(metaclass=CloudPathMeta):
         return str(self)
 
     def exists(self) -> bool:
-        return self.backend._exists(self)
+        return self.client._exists(self)
 
     def glob(self, pattern: str) -> Iterable["CloudPath"]:
         # strip cloud prefix from pattern if it is included
@@ -279,12 +279,12 @@ class CloudPath(metaclass=CloudPathMeta):
             pattern = pattern.split("/", 1)[-1]
             recursive = True
 
-        for f in self.backend._list_dir(self, recursive=recursive):
+        for f in self.client._list_dir(self, recursive=recursive):
             if fnmatch.fnmatch(f._no_prefix_no_drive, pattern):
                 yield f
 
     def iterdir(self) -> Iterable["CloudPath"]:
-        for f in self.backend._list_dir(self, recursive=False):
+        for f in self.client._list_dir(self, recursive=False):
             yield f
 
     def open(
@@ -304,7 +304,7 @@ class CloudPath(metaclass=CloudPathMeta):
         if mode == "x" and self.exists():
             raise ValueError(f"Cannot open existing file ({self}) for creation.")
 
-        # TODO: consider streaming from backend rather than DLing entire file to cache
+        # TODO: consider streaming from client rather than DLing entire file to cache
         self._refresh_cache(force_overwrite_from_cloud=force_overwrite_from_cloud)
 
         # create any directories that may be needed if the file is new
@@ -349,7 +349,7 @@ class CloudPath(metaclass=CloudPathMeta):
         if target.exists():
             target.unlink()
 
-        self.backend._move_file(self, target)
+        self.client._move_file(self, target)
         return target
 
     def rename(self, target: "CloudPath") -> "CloudPath":
@@ -370,7 +370,7 @@ class CloudPath(metaclass=CloudPathMeta):
             )
         except StopIteration:
             pass
-        self.backend._remove(self)
+        self.client._remove(self)
 
     def samefile(self, other_path: "CloudPath") -> bool:
         # all cloud paths are absolute and the paths are used for hash
@@ -379,7 +379,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def unlink(self):
         if self.is_dir():
             raise ValueError(f"Path {self} is a directory; call rmdir instead of unlink.")
-        self.backend._remove(self)
+        self.client._remove(self)
 
     def write_bytes(self, data: bytes):
         """Open the file in bytes mode, write to it, and close the file.
@@ -418,7 +418,7 @@ class CloudPath(metaclass=CloudPathMeta):
         if callable(path_version):
             path_version = path_version(*args, **kwargs)
 
-        # Paths should always be resolved and then converted to the same backend + class as this one
+        # Paths should always be resolved and then converted to the same client + class as this one
         if isinstance(path_version, PurePosixPath):
             # always resolve since cloud paths must be absolute
             path_version = path_version.resolve()
@@ -500,7 +500,7 @@ class CloudPath(metaclass=CloudPathMeta):
         if callable(path_version):
             path_version = path_version(*args, **kwargs)
 
-        # Paths should always be resolved and then converted to the same backend + class as this one
+        # Paths should always be resolved and then converted to the same client + class as this one
         if isinstance(path_version, (PosixPath, WindowsPath)):
             # always resolve since cloud paths must be absolute
             path_version = path_version.resolve()
@@ -512,7 +512,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @property
     def stat(self):
-        """Note: for many backends, we may want to override so we don't incur
+        """Note: for many clients, we may want to override so we don't incur
         network costs since many of these properties are available as
         API calls.
         """
@@ -532,7 +532,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def download_to(self, destination: Union[str, os.PathLike]):
         destination = Path(destination)
         if self.is_file():
-            self.backend._download_file(self, destination)
+            self.client._download_file(self, destination)
         else:
             destination.mkdir(exist_ok=True)
             for f in self.iterdir():
@@ -547,19 +547,19 @@ class CloudPath(metaclass=CloudPathMeta):
         """Delete an entire directory tree."""
         if self.is_file():
             raise ValueError(f"Path {self} is a file; call unlink instead of rmtree.")
-        self.backend._remove(self)
+        self.client._remove(self)
 
     # ===========  private cloud methods ===============
     @property
     def _local(self):
         """Cached local version of the file."""
-        return self.backend._local_cache_dir / self._no_prefix
+        return self.client._local_cache_dir / self._no_prefix
 
     def _new_cloudpath(self, path):
-        """Use the scheme, backend, cache dir of this cloudpath to instantiate
+        """Use the scheme, client, cache dir of this cloudpath to instantiate
         a new cloudpath of the same type with the path passed.
 
-        Used to make results of iterdir and joins have a unified backend + cache.
+        Used to make results of iterdir and joins have a unified client + cache.
         """
         path = str(path)
 
@@ -571,7 +571,7 @@ class CloudPath(metaclass=CloudPathMeta):
         if not path.startswith(self.cloud_prefix):
             path = f"{self.cloud_prefix}{path}"
 
-        return self.backend.CloudPath(path)
+        return self.client.CloudPath(path)
 
     def _refresh_cache(self, force_overwrite_from_cloud=False):
         # nothing to cache if the file does not exist; happens when creating
@@ -625,7 +625,7 @@ class CloudPath(metaclass=CloudPathMeta):
             or (self._local.stat().st_mtime > self.stat().st_mtime)
             or force_overwrite_to_cloud
         ):
-            self.backend._upload_file(
+            self.client._upload_file(
                 self._local,
                 self,
             )
