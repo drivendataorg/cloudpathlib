@@ -1,3 +1,3 @@
-# AzureBlobBackend
+# AzureBlobClient
 
-::: cloudpathlib.backends.azure.azblobbackend.AzureBlobBackend
+::: cloudpathlib.clients.azure.azblobclient.AzureBlobClient

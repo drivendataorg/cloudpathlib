@@ -1,7 +1,7 @@
-from .azblobbackend import AzureBlobBackend
+from .azblobclient import AzureBlobClient
 from .azblobpath import AzureBlobPath
 
 __all__ = [
-    "AzureBlobBackend",
+    "AzureBlobClient",
     "AzureBlobPath",
 ]

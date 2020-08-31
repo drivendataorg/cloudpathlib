@@ -9,20 +9,20 @@ from ..cloudpath import CloudImplementation, CloudPath, implementation_registry
 BoundedCloudPath = TypeVar("BoundedCloudPath", bound=CloudPath)
 
 
-def register_backend_class(key: str) -> Callable:
+def register_client_class(key: str) -> Callable:
     def decorator(cls: type) -> type:
-        if not issubclass(cls, Backend):
-            raise TypeError("Only subclasses of Backend can be registered.")
-        implementation_registry[key]._backend_class = cls
+        if not issubclass(cls, Client):
+            raise TypeError("Only subclasses of Client can be registered.")
+        implementation_registry[key]._client_class = cls
         cls._cloud_meta = implementation_registry[key]
         return cls
 
     return decorator
 
 
-class Backend(abc.ABC, Generic[BoundedCloudPath]):
+class Client(abc.ABC, Generic[BoundedCloudPath]):
     _cloud_meta: CloudImplementation
-    _default_backend = None
+    _default_client = None
 
     def __init__(self, local_cache_dir: Optional[Union[str, os.PathLike]] = None):
         # setup caching and local versions of file and track if it is a tmp dir
@@ -39,21 +39,21 @@ class Backend(abc.ABC, Generic[BoundedCloudPath]):
             self._cache_tmp_dir.cleanup()
 
     @classmethod
-    def get_default_backend(cls) -> "Backend":
-        """Get the default backend, which the one that is used when instantiating a cloud path
-        instance for this cloud without a backend specified.
+    def get_default_client(cls) -> "Client":
+        """Get the default client, which the one that is used when instantiating a cloud path
+        instance for this cloud without a client specified.
         """
-        if cls._default_backend is None:
-            cls._default_backend = cls()
-        return cls._default_backend
+        if cls._default_client is None:
+            cls._default_client = cls()
+        return cls._default_client
 
-    def set_as_default_backend(self) -> None:
-        """Set this backend instance as the default one used when instantiating cloud path
-        instances for this cloud without a backend specified."""
-        self.__class__._default_backend = self
+    def set_as_default_client(self) -> None:
+        """Set this client instance as the default one used when instantiating cloud path
+        instances for this cloud without a client specified."""
+        self.__class__._default_client = self
 
     def CloudPath(self, cloud_path: Union[str, BoundedCloudPath]) -> BoundedCloudPath:
-        return self._cloud_meta.path_class(cloud_path=cloud_path, backend=self)
+        return self._cloud_meta.path_class(cloud_path=cloud_path, client=self)
 
     @abc.abstractmethod
     def _download_file(

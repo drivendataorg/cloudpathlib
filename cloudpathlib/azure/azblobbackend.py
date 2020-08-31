@@ -6,13 +6,13 @@ from typing import Any, Dict, Iterable, Optional, Union
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient
 
-from ..base import Backend, register_backend_class
+from ..base import Client, register_client_class
 from .azblobpath import AzureBlobPath
 
 
-@register_backend_class("azure")
-class AzureBlobBackend(Backend):
-    """Backend for Azure Blob Storage."""
+@register_client_class("azure")
+class AzureBlobClient(Client):
+    """Client for Azure Blob Storage."""
 
     def __init__(
         self,
@@ -197,4 +197,4 @@ class AzureBlobBackend(Backend):
         return cloud_path
 
 
-AzureBlobBackend.AzureBlobPath = AzureBlobBackend.CloudPath
+AzureBlobClient.AzureBlobPath = AzureBlobClient.CloudPath

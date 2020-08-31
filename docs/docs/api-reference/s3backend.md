@@ -1,3 +1,3 @@
-# S3Backend
+# S3Client
 
-::: cloudpathlib.backends.s3.s3backend.S3Backend
+::: cloudpathlib.clients.s3.s3client.S3Client
