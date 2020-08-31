@@ -1,11 +1,13 @@
 import collections
 from datetime import datetime
 from pathlib import Path
+import shutil
 from tempfile import TemporaryDirectory
 from time import sleep
-import shutil
 
 from boto3.session import Session
+
+from .utils import delete_empty_parents_up_to_root
 
 TEST_ASSETS = Path(__file__).parent.parent / "assets"
 
@@ -181,15 +183,3 @@ class MockBoto3Paginator:
             dirs = [{"Prefix": str(_.relative_to(self.root))} for _ in page if _.is_dir()]
             files = [{"Key": str(_.relative_to(self.root))} for _ in page if _.is_file()]
             yield {"CommonPrefixes": dirs, "Contents": files}
-
-
-def delete_empty_parents_up_to_root(path, root):
-
-    for parent in path.parents:
-        if parent == root:
-            return
-        try:
-            next(parent.iterdir())
-            return
-        except StopIteration:
-            parent.rmdir()
