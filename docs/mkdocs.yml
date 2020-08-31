@@ -5,6 +5,9 @@ repo_url: https://github.com/drivendataorg/cloudpathlib
 theme:
   name: material
 
+extra_css:
+  - stylesheets/extra.css
+
 nav:
   - Home: "index.md"
   - API Reference:

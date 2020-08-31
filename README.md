@@ -1,4 +1,4 @@
-# cloudpathlib
+![](docs/docs/logo.svg)
 
 > Our goal is to be the meringue of file management libraries: the subtle sweetness of `pathlib` working in harmony with the ethereal lightness of the cloud.
 
