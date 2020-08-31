@@ -58,11 +58,13 @@ def test_az_joins(fake_connection_string):
 )
 def test_with_mock_az(mock_azure, tmp_path):
     # Reset default backend
-    AzureBlobBackend.default_backend = None
+    AzureBlobBackend().set_as_default_backend()
 
     p = AzureBlobPath("az://bucket/dir_0/file0_0.txt")
-    assert p == AzureBlobBackend.default_backend.CloudPath("az://bucket/dir_0/file0_0.txt")
-    assert p == AzureBlobBackend.default_backend.AzureBlobPath("az://bucket/dir_0/file0_0.txt")
+    assert p == AzureBlobBackend.get_default_backend().CloudPath("az://bucket/dir_0/file0_0.txt")
+    assert p == AzureBlobBackend.get_default_backend().AzureBlobPath(
+        "az://bucket/dir_0/file0_0.txt"
+    )
 
     assert p.exists()
 
@@ -145,7 +147,7 @@ def test_with_mock_az(mock_azure, tmp_path):
 )
 def test_backend_instantiation(mock_azure, tmp_path):
     # Reset default backend
-    AzureBlobBackend.default_backend = None
+    AzureBlobBackend().set_as_default_backend()
 
     p = AzureBlobPath("az://bucket/dir_0/file0_0.txt")
     p2 = AzureBlobPath("az://bucket/dir_0/file0_0.txt")

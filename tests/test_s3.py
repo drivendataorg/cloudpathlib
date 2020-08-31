@@ -69,11 +69,11 @@ def test_joins():
 @mock.patch("cloudpathlib.backends.s3.s3backend.Session", return_value=MockBoto3Session())
 def test_with_mock_s3(mock_boto3, tmp_path):
     # Reset default backend
-    S3Backend.default_backend = None
+    S3Backend().set_as_default_backend()
 
     p = S3Path("s3://bucket/dir_0/file0_0.txt")
-    assert p == S3Backend.default_backend.CloudPath("s3://bucket/dir_0/file0_0.txt")
-    assert p == S3Backend.default_backend.S3Path("s3://bucket/dir_0/file0_0.txt")
+    assert p == S3Backend.get_default_backend().CloudPath("s3://bucket/dir_0/file0_0.txt")
+    assert p == S3Backend.get_default_backend().S3Path("s3://bucket/dir_0/file0_0.txt")
 
     assert p.exists()
 
@@ -152,7 +152,7 @@ def test_with_mock_s3(mock_boto3, tmp_path):
 @mock.patch("cloudpathlib.backends.s3.s3backend.Session", return_value=MockBoto3Session())
 def test_backend_instantiation(mock_boto3, tmp_path):
     # Reset default backend
-    S3Backend.default_backend = None
+    S3Backend().set_as_default_backend()
 
     p = S3Path("s3://bucket/dir_0/file0_0.txt")
     p2 = S3Path("s3://bucket/dir_0/file0_0.txt")
