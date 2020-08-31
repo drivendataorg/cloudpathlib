@@ -4,7 +4,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Generic, Callable, Iterable, Optional, TypeVar, Union
 
-from ..cloudpath import CloudImplementation, CloudPath, implementation_registry
+from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 
 BoundedCloudPath = TypeVar("BoundedCloudPath", bound=CloudPath)
 

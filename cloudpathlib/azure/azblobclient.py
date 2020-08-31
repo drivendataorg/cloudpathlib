@@ -6,7 +6,7 @@ from typing import Any, Dict, Iterable, Optional, Union
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient
 
-from ..base import Client, register_client_class
+from ..client import Client, register_client_class
 from .azblobpath import AzureBlobPath
 
 

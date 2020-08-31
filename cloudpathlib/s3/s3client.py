@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterable, Optional, Union
 from boto3.session import Session
 import botocore.session
 
-from ..base import Client, register_client_class
+from ..client import Client, register_client_class
 from .s3path import S3Path
 
 

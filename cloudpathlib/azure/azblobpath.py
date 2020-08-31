@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from ...cloudpath import CloudPath, register_path_class
+from ..cloudpath import CloudPath, register_path_class
 
 
 @register_path_class("azure")
