@@ -12,6 +12,7 @@ extra_css:
 
 nav:
   - Home: "index.md"
+  - Example: "example.ipynb"
   - API Reference:
       - CloudPath: "api-reference/cloudpath.md"
       - S3:
@@ -29,6 +30,7 @@ markdown_extensions:
 
 plugins:
   - search
+  - mkdocs-jupyter
   - mkdocstrings:
       default_handler: python
       handlers:
