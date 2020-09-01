@@ -4,6 +4,28 @@
 
 A library that implements (nearly all) of the pathlib.Path methods for URIs for different cloud providers.
 
+## Installation
+
+You need to specify which cloud providers you would like to install dependencies for using pip's ["extras"](https://packaging.python.org/tutorials/installing-packages/#installing-setuptools-extras) specification. For example:
+
+```bash
+pip install cloudpathlib[s3,azure]
+```
+
+Currently supported providers are: `azure`, `s3`. You can also use `all` to install all available.
+
+If you do not specify any extras, you will only get the base classes that would allow you to roll your own cloud path class.
+
+### Development version
+
+You can get latest development version from GitHub:
+
+```bash
+pip install https://github.com/drivendataorg/cloudpathlib.git#egg=cloudpathlib[all]
+```
+
+Note that you will similarly need to specify extras, such as `all` in the example.
+
 ## Supported methods and properties
 
 Most methods and properties from `pathlib.Path` are supported except for the ones that don't make sense in a cloud context. There are a few additional methods or properties that relate to specific cloud services or specifically for cloud paths.

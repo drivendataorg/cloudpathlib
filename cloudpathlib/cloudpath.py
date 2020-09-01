@@ -14,6 +14,10 @@ PurePosixPath.resolve = resolve
 
 
 # Custom Exceptions
+class NoImplementations(Exception):
+    pass
+
+
 class IncompleteImplementation(NotImplementedError):
     pass
 
@@ -84,8 +88,16 @@ class CloudPathMeta(abc.ABCMeta):
     def __call__(cls, cloud_path, *args, **kwargs):
         # cls is a class that is the instance of this metaclass, e.g., CloudPath
 
-        # Dispatch to subclass if  base CloudPath
+        # Dispatch to subclass if base CloudPath
         if cls == CloudPath:
+            # If implementation registry is empty, user probably needs to install extras
+            if len(implementation_registry) == 0:
+                raise NoImplementations(
+                    "No cloud provider implementations are registered. Did you mean to install "
+                    "with extras? e.g., 'pip install cloudpathlib[s3,azure]' or 'pip install "
+                    "cloudpathlib[all]'."
+                )
+
             for implementation in implementation_registry.values():
                 path_class = implementation._path_class
                 if path_class is not None and path_class.is_valid_cloudpath(

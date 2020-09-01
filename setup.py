@@ -3,6 +3,7 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
+from itertools import chain
 from pathlib import Path
 
 
@@ -21,7 +22,10 @@ def load_requirements(path: Path):
 
 readme = Path("README.md").read_text()
 
-requirements = load_requirements(Path(__file__).parent / "requirements.txt")
+extra_reqs = {}
+for req_path in (Path(__file__).parent / "requirements").glob("*.txt"):
+    extra_reqs[req_path.stem] = load_requirements(req_path)
+extra_reqs["all"] = list(chain(*extra_reqs.values()))
 
 setup(
     author="DrivenData",
@@ -38,10 +42,9 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    description=(
-        ""
-    ),
-    install_requires=requirements,
+    description=(""),
+    extras_require=extra_reqs,
+    install_requires=[],
     long_description=readme,
     long_description_content_type="text/markdown",
     include_package_data=True,
