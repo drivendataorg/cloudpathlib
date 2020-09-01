@@ -24,6 +24,8 @@ readme = Path("README.md").read_text()
 
 extra_reqs = {}
 for req_path in (Path(__file__).parent / "requirements").glob("*.txt"):
+    if req_path.stem == "all":
+        raise ValueError("'all' is a reserved keyword and can't be used for a cloud provider key")
     extra_reqs[req_path.stem] = load_requirements(req_path)
 extra_reqs["all"] = list(chain(*extra_reqs.values()))
 
