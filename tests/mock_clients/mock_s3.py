@@ -21,7 +21,7 @@ NoSuchKey = Session().client("s3").exceptions.NoSuchKey
 
 
 class MockBoto3Session:
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         # copy test assets for reference in tests without affecting assets
         self.tmp = TemporaryDirectory()
         self.tmp_path = Path(self.tmp.name) / "test_case_copy"

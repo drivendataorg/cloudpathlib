@@ -20,11 +20,15 @@ WRITE_SLEEP_BUFFER = 0.1
 
 
 class MockBlobServiceClient:
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         # copy test assets for reference in tests without affecting assets
         self.tmp = TemporaryDirectory()
         self.tmp_path = Path(self.tmp.name) / "test_case_copy"
         shutil.copytree(TEST_ASSETS, self.tmp_path)
+
+    @classmethod
+    def from_connection_string(cls, *args, **kwargs):
+        return cls()
 
     def __del__(self):
         self.tmp.cleanup()
