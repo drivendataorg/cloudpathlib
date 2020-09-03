@@ -1,7 +1,10 @@
+from cloudpathlib import CloudPath
+
+
 def test_default_client_instantiation(rig):
     rig.client_class._default_client = None
 
-    p = rig.create_cloud_path("bucket/dir_0/file0_0.txt")
+    p = CloudPath(rig.cloud_prefix + "bucket/dir_0/file0_0.txt")
     p2 = rig.create_cloud_path("bucket/dir_0/file0_0.txt")
     p3 = rig.client_class.get_default_client().CloudPath(
         rig.cloud_prefix + "bucket/dir_0/file0_0.txt"
