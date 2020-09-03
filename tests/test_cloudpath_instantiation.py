@@ -8,6 +8,8 @@ from cloudpathlib import AzureBlobPath, CloudPath, InvalidPrefix, S3Path
     [
         (AzureBlobPath, "az://b/k"),
         (AzureBlobPath, "AZ://b/k"),
+        (AzureBlobPath, "Az://b/k"),
+        (AzureBlobPath, "aZ://b/k"),
         (S3Path, "s3://b/k"),
         (S3Path, "S3://b/k"),
     ],
