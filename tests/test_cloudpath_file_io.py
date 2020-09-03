@@ -29,7 +29,7 @@ def test_file_discovery(rig):
     p3.rmtree()
     assert not p3.exists()
 
-    p4 = rig.create_cloud_path("bucket")
+    p4 = rig.create_cloud_path("bucket/")
     assert p4.exists()
 
     assert len(list(p4.iterdir())) == 1  # only bucket/dir_1/ should still exist

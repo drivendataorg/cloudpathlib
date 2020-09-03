@@ -27,3 +27,28 @@ def test_dispatch(path_class, cloud_path, monkeypatch):
 def test_dispatch_error():
     with pytest.raises(InvalidPrefix):
         CloudPath("pp://b/k")
+
+
+@pytest.mark.parametrize("path", ["b/k", "b/k", "b/k.file", "b/k", "b"])
+def test_instantiation(rig, path):
+    # check two cases of prefix
+    for prefix in [rig.cloud_prefix.lower(), rig.cloud_prefix.upper()]:
+        expected = prefix + path
+        p = rig.path_class(expected)
+        assert repr(p) == f"{rig.path_class.__name__}('{expected}')"
+        assert str(p) == expected
+
+        assert p._no_prefix == expected.split("://", 1)[-1]
+
+        assert p._url.scheme == expected.split("://", 1)[0].lower()
+        assert p._url.netloc == expected.split("://", 1)[-1].split("/")[0]
+
+        assert str(p._path) == expected.split(":/", 1)[-1]
+
+
+def test_instantiation_errors(rig):
+    with pytest.raises(TypeError):
+        rig.path_class()
+
+    with pytest.raises(InvalidPrefix):
+        rig.path_class("NOT_S3_PATH")
