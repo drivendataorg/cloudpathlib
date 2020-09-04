@@ -194,6 +194,8 @@ class CloudPath(metaclass=CloudPathMeta):
     def __eq__(self, other: Any):
         return repr(self) == repr(other)
 
+    def __fspath__(self):
+        return str(self)
     # ====================== NOT IMPLEMENTED ======================
     # absolute - no cloud equivalent; all cloud paths are absolute already
     # as_posix - no cloud equivalent; not needed since we assume url separator
