@@ -1,3 +1,5 @@
+import os
+
 from cloudpathlib import S3Path
 
 
@@ -9,3 +11,8 @@ def test_s3path_properties(s3_rig):
     p2 = S3Path("s3://bucket/")
     assert p2.key == ""
     assert p2.bucket == "bucket"
+
+
+def test_s3path_is_path(s3_rig):
+    p = S3Path("s3://bucket")
+    assert isinstance(p, os.PathLike)
