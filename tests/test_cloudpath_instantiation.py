@@ -1,6 +1,7 @@
 import pytest
 
-from cloudpathlib import AzureBlobPath, CloudPath, InvalidPrefix, S3Path
+from cloudpathlib import AzureBlobPath, CloudPath, InvalidPrefix, NoImplementations, S3Path
+import cloudpathlib.cloudpath
 
 
 @pytest.mark.parametrize(
@@ -52,3 +53,9 @@ def test_instantiation_errors(rig):
 
     with pytest.raises(InvalidPrefix):
         rig.path_class("NOT_S3_PATH")
+
+
+def test_no_implementations(rig, monkeypatch):
+    monkeypatch.setattr(cloudpathlib.cloudpath, "implementation_registry", {})
+    with pytest.raises(NoImplementations):
+        CloudPath(f"{rig.cloud_prefix}/bucket/dir_0/file0_0.txt")
