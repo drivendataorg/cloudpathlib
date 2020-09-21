@@ -6,15 +6,17 @@ A library that implements (nearly all) of the pathlib.Path methods for URIs for 
 
 ## Installation
 
-You need to specify which cloud providers you would like to install dependencies for using pip's ["extras"](https://packaging.python.org/tutorials/installing-packages/#installing-setuptools-extras) specification. For example:
+`cloudpathlib` depends on cloud providers' SDKs (e.g., `boto3`, `azure-storage-blob`) to communicate with their respective file stores. It will automatically detect those dependencies in your environment and make the respective cloud path implementations available.
+
+If you want to install a cloud provider's SDK dependency when installing `cloudpathlib`, you need to specify them for using pip's ["extras"](https://packaging.python.org/tutorials/installing-packages/#installing-setuptools-extras) specification. For example:
 
 ```bash
 pip install cloudpathlib[s3,azure]
 ```
 
-Currently supported providers are: `azure`, `s3`. You can also use `all` to install all available.
+Currently supported providers are: `azure`, `s3`. You can also use `all` to install all available clouds' dependencies.
 
-If you do not specify any extras, you will only get the base classes that would allow you to roll your own cloud path class.
+If you do not specify any extras or separately install any cloud SDKs, you will only get the base classes that would allow you to roll your own cloud path class.
 
 ### Development version
 
@@ -24,7 +26,7 @@ You can get latest development version from GitHub:
 pip install https://github.com/drivendataorg/cloudpathlib.git#egg=cloudpathlib[all]
 ```
 
-Note that you will similarly need to specify extras, such as `all` in the example.
+Note that you can similarly need to specify cloud dependencies, such as `all` in the above example command.
 
 ## Supported methods and properties
 
