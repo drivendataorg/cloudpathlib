@@ -38,6 +38,28 @@ jobs:
         run: |
           make test
 
+      - name: Test building documentation
+        run: |
+          make docs
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == 3.8
+
+      - name: Deploy site preview to Netlify
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == 3.8
+        uses: nwtgck/actions-netlify@v1.1
+        with:
+          publish-dir: "./docs/site"
+          production-deploy: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions"
+          enable-pull-request-comment: true
+          enable-commit-comment: false
+          overwrites-pull-request-comment: true
+          alias: deploy-preview-${{ github.event.number }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 1
+
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v1
         with:
