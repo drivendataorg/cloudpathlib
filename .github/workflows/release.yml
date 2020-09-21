@@ -1,0 +1,70 @@
+name: release
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  build:
+    name: Build and publish new release
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt --use-feature=2020-resolver
+          pip install -e .
+
+      - name: Check that versions match
+        run: |
+          echo "${{ github.event.release.tag_name }}"
+          PACKAGE_VERSION=$(cloudpathlib --version)
+          echo $PACKAGE_VERSION
+          [ ${{ github.event.release.tag_name }} == "v$PACKAGE_VERSION" ] || { exit 1; }
+
+      - name: Build package
+        run: |
+          make dist
+
+      - name: Build docs
+        run: |
+          make docs
+
+      - name: Deploy docs to Netlify
+        uses: nwtgck/actions-netlify@v1.1
+        with:
+          publish-dir: "./docs/site"
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions"
+          enable-pull-request-comment: false
+          enable-commit-comment: false
+          overwrites-pull-request-comment: false
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 1
+
+      - name: Publish to Test PyPI
+        uses: pypa/gh-action-pypi-publish@v1.3.0
+        with:
+          user: ${{ secrets.PYPI_TEST_USERNAME }}
+          password: ${{ secrets.PYPI_TEST_PASSWORD }}
+          repository_url: https://test.pypi.org/legacy/
+          skip_existing: true
+
+      - name: Publish to Production PyPI
+        uses: pypa/gh-action-pypi-publish@v1.3.0
+        with:
+          user: ${{ secrets.PYPI_PROD_USERNAME }}
+          password: ${{ secrets.PYPI_PROD_PASSWORD }}
+          skip_existing: false
