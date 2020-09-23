@@ -3,11 +3,20 @@ import os
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, Optional, Union
 
-from azure.core.exceptions import ResourceNotFoundError
-from azure.storage.blob import BlobServiceClient
 
 from ..client import Client, register_client_class
+from ..cloudpath import MissingDependencies
 from .azblobpath import AzureBlobPath
+
+
+try:
+    from azure.core.exceptions import ResourceNotFoundError
+    from azure.storage.blob import BlobServiceClient
+except ModuleNotFoundError:
+    raise MissingDependencies(
+        "Missing dependencies for Azure Blob Storage. You can install them with "
+        "'pip install cloudpathlib[azure]'."
+    )
 
 
 @register_client_class("azure")

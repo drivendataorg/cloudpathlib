@@ -2,11 +2,17 @@ import os
 from pathlib import PurePosixPath
 from typing import Any, Dict, Iterable, Optional, Union
 
-from boto3.session import Session
-import botocore.session
-
 from ..client import Client, register_client_class
+from ..cloudpath import MissingDependencies
 from .s3path import S3Path
+
+try:
+    from boto3.session import Session
+    import botocore.session
+except ModuleNotFoundError:
+    raise MissingDependencies(
+        "Missing dependencies for S3. You can install them with 'pip install cloudpathlib[s3]'."
+    )
 
 
 @register_client_class("s3")

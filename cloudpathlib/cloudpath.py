@@ -18,6 +18,10 @@ class NoImplementations(Exception):
     pass
 
 
+class MissingDependencies(Exception):
+    pass
+
+
 class IncompleteImplementation(NotImplementedError):
     pass
 
@@ -50,13 +54,14 @@ class CloudImplementation:
     _client_class = None
     _path_class = None
 
-    def validate_completeness(self):
+    def validate_completeness(self, raise_error=True):
         expected = ["client_class", "path_class"]
         missing = [cls for cls in expected if getattr(self, f"_{cls}") is None]
-        if missing:
+        if missing and raise_error:
             raise IncompleteImplementation(
                 f"Implementation is missing registered components: {missing}"
             )
+        return not bool(missing)
 
     @property
     def client_class(self):
@@ -91,11 +96,17 @@ class CloudPathMeta(abc.ABCMeta):
         # Dispatch to subclass if base CloudPath
         if cls == CloudPath:
             # If implementation registry is empty, user probably needs to install extras
-            if len(implementation_registry) == 0:
+            if (
+                sum(
+                    implementation.validate_completeness(raise_error=False)
+                    for implementation in implementation_registry.values()
+                )
+                == 0
+            ):
                 raise NoImplementations(
-                    "No cloud provider implementations are registered. Did you mean to install "
-                    "with extras? e.g., 'pip install cloudpathlib[s3,azure]' or 'pip install "
-                    "cloudpathlib[all]'."
+                    "No valid cloud provider implementations are registered. Did you mean to "
+                    "install with extras? e.g., 'pip install cloudpathlib[s3,azure]' or 'pip "
+                    "install cloudpathlib[all]'."
                 )
 
             for implementation in implementation_registry.values():
