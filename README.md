@@ -2,7 +2,22 @@
 
 > Our goal is to be the meringue of file management libraries: the subtle sweetness of `pathlib` working in harmony with the ethereal lightness of the cloud.
 
-A library that implements (nearly all) of the pathlib.Path methods for URIs for different cloud providers.
+A library that implements (nearly all) of the `pathlib.Path` methods for URIs for different cloud providers.
+
+```python
+with CloudPath("s3://bucket/filename.txt").open("w+") as f:
+    f.write("Send my changes to the cloud!")
+```
+
+## Why use cloudpathlib?
+
+ - **Familiar**: If you know how to interact with `Path`, you know how to interact with `CloudPath`. All of the cloud-relevant `Path` methods are implemented.
+ - **Supported clouds**: AWS S3, Azure Blob Storate, are implemented and Google Cloud Storage, and FTP are on the way.
+ - **Extensible**: The base classes do most of the work generically, so implementing a two small classes `MyPath` and `MyClient` is all you need to add a cloud provider.
+ - **Read/write support**: Reading just works. Using the `write_text`, `write_bytes` or `.open('w')` methods will all upload your changes to the cloud provider without any additional file management as a developer.
+ - **Seamless caching**: Files are downloaded locally only when necessary, and you can easily pass a persistent cache folder so that across processes and sessions you only re-download what is necessary.
+ - **Tested**: Comprehensive test suite and code coverage.
+
 
 ## Supported methods and properties
 
@@ -129,3 +144,9 @@ False
 [S3Path('s3://drivendata-public-assets/odsc-west-2019/DATA_DICTIONARY.txt')]
 
 ```
+
+
+
+----
+
+<small>Icons made by <a href="https://www.flaticon.com/authors/srip" title="srip">srip</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></small>
