@@ -6,7 +6,7 @@ A library that implements (nearly all) of the pathlib.Path methods for URIs for 
 
 ## Installation
 
-`cloudpathlib` depends on cloud providers' SDKs (e.g., `boto3`, `azure-storage-blob`) to communicate with their respective file stores. It will automatically detect those dependencies in your environment and make the respective cloud path implementations available.
+`cloudpathlib` depends on cloud providers' SDKs (e.g., `boto3`, `azure-storage-blob`) to communicate with their respective file stores. If you try to use cloud paths for a provider for which you don't have dependencies installed, `cloudpathlib` will error and let you know what you need to install.
 
 If you want to install a cloud provider's SDK dependency when installing `cloudpathlib`, you need to specify them for using pip's ["extras"](https://packaging.python.org/tutorials/installing-packages/#installing-setuptools-extras) specification. For example:
 
@@ -16,7 +16,7 @@ pip install cloudpathlib[s3,azure]
 
 Currently supported providers are: `azure`, `s3`. You can also use `all` to install all available clouds' dependencies.
 
-If you do not specify any extras or separately install any cloud SDKs, you will only get the base classes that would allow you to roll your own cloud path class.
+If you do not specify any extras or separately install any cloud SDKs, you will only be able to develop with the base classes for rolling your own cloud path class.
 
 ### Development version
 
