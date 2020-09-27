@@ -22,6 +22,8 @@ nav:
           - AzureBlobPath: "api-reference/azblobpath.md"
 
 markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
   - toc:
       permalink: True
 
