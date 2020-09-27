@@ -4,6 +4,11 @@ site_description: A library that implements pathlib.Path methods for URIs for di
 repo_url: https://github.com/drivendataorg/cloudpathlib
 theme:
   name: material
+  logo: logo-no-text.svg
+  favicon: favicon.svg
+
+extra_css:
+  - stylesheets/extra.css
 
 nav:
   - Home: "index.md"
