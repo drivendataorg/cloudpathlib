@@ -2,11 +2,15 @@ import os
 from pathlib import PurePosixPath
 from typing import Any, Dict, Iterable, Optional, Union
 
-from boto3.session import Session
-import botocore.session
-
 from ..client import Client, register_client_class
+from ..cloudpath import implementation_registry
 from .s3path import S3Path
+
+try:
+    from boto3.session import Session
+    import botocore.session
+except ModuleNotFoundError:
+    implementation_registry["s3"].dependencies_loaded = False
 
 
 @register_client_class("s3")
@@ -18,9 +22,9 @@ class S3Client(Client):
         aws_access_key_id: Optional[str] = None,
         aws_secret_access_key: Optional[str] = None,
         aws_session_token: Optional[str] = None,
-        botocore_session: Optional[botocore.session.Session] = None,
+        botocore_session: Optional["botocore.session.Session"] = None,
         profile_name: Optional[str] = None,
-        boto3_session: Optional[Session] = None,
+        boto3_session: Optional["Session"] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
     ):
         """Class constructor. Sets up a boto3 [`Session`](
