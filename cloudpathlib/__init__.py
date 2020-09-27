@@ -1,4 +1,8 @@
+from .azure.azblobclient import AzureBlobClient
+from .azure.azblobpath import AzureBlobPath
 from .cloudpath import CloudPath
+from .s3.s3client import S3Client
+from .s3.s3path import S3Path
 
 # exceptions
 from .cloudpath import (
@@ -6,34 +10,20 @@ from .cloudpath import (
     DirectoryNotEmpty,
     InvalidPrefix,
     MissingDependencies,
-    NoImplementations,
     OverwriteDirtyFile,
     OverwriteNewerLocal,
 )
 
 __all__ = [
+    "AzureBlobClient",
+    "AzureBlobPath",
     "ClientMismatch",
     "CloudPath",
     "DirectoryNotEmpty",
     "InvalidPrefix",
     "MissingDependencies",
-    "NoImplementations",
     "OverwriteDirtyFile",
     "OverwriteNewerLocal",
+    "S3Client",
+    "S3Path",
 ]
-
-try:
-    from .azure.azblobclient import AzureBlobClient
-    from .azure.azblobpath import AzureBlobPath
-
-    __all__.extend(obj.__name__ for obj in [AzureBlobClient, AzureBlobPath])
-except MissingDependencies:
-    pass
-
-try:
-    from .s3.s3client import S3Client
-    from .s3.s3path import S3Path
-
-    __all__.extend(obj.__name__ for obj in [S3Client, S3Path])
-except MissingDependencies:
-    pass

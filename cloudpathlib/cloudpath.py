@@ -14,10 +14,6 @@ PurePosixPath.resolve = resolve
 
 
 # Custom Exceptions
-class NoImplementations(Exception):
-    pass
-
-
 class MissingDependencies(Exception):
     pass
 
@@ -54,14 +50,22 @@ class CloudImplementation:
     _client_class = None
     _path_class = None
 
-    def validate_completeness(self, raise_error=True):
+    def __init__(self):
+        self.name = None
+        self.dependencies_loaded = True
+
+    def validate_completeness(self):
         expected = ["client_class", "path_class"]
         missing = [cls for cls in expected if getattr(self, f"_{cls}") is None]
-        if missing and raise_error:
+        if missing:
             raise IncompleteImplementation(
                 f"Implementation is missing registered components: {missing}"
             )
-        return not bool(missing)
+        if not self.dependencies_loaded:
+            raise MissingDependencies(
+                f"Missing dependencies for {self._client_class.__name__}. You can install them "
+                f"with 'pip install cloudpathlib[{self.name}]'."
+            )
 
     @property
     def client_class(self):
@@ -95,20 +99,6 @@ class CloudPathMeta(abc.ABCMeta):
 
         # Dispatch to subclass if base CloudPath
         if cls == CloudPath:
-            # If implementation registry is empty, user probably needs to install extras
-            if (
-                sum(
-                    implementation.validate_completeness(raise_error=False)
-                    for implementation in implementation_registry.values()
-                )
-                == 0
-            ):
-                raise NoImplementations(
-                    "No valid cloud provider implementations are registered. Did you mean to "
-                    "install with extras? e.g., 'pip install cloudpathlib[s3,azure]' or 'pip "
-                    "install cloudpathlib[all]'."
-                )
-
             for implementation in implementation_registry.values():
                 path_class = implementation._path_class
                 if path_class is not None and path_class.is_valid_cloudpath(

@@ -14,6 +14,7 @@ def register_client_class(key: str) -> Callable:
         if not issubclass(cls, Client):
             raise TypeError("Only subclasses of Client can be registered.")
         implementation_registry[key]._client_class = cls
+        implementation_registry[key].name = key
         cls._cloud_meta = implementation_registry[key]
         return cls
 
@@ -25,6 +26,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     _default_client = None
 
     def __init__(self, local_cache_dir: Optional[Union[str, os.PathLike]] = None):
+        self._cloud_meta.validate_completeness()
         # setup caching and local versions of file and track if it is a tmp dir
         self._cache_tmp_dir = None
         if local_cache_dir is None:
