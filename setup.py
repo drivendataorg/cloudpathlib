@@ -24,6 +24,9 @@ readme = Path("README.md").read_text()
 
 extra_reqs = {}
 for req_path in (Path(__file__).parent / "requirements").glob("*.txt"):
+    if req_path.stem == "base":
+        base_reqs = load_requirements(req_path)
+        next
     if req_path.stem == "all":
         raise ValueError("'all' is a reserved keyword and can't be used for a cloud provider key")
     extra_reqs[req_path.stem] = load_requirements(req_path)
@@ -46,7 +49,7 @@ setup(
     ],
     description=(""),
     extras_require=extra_reqs,
-    install_requires=[],
+    install_requires=base_reqs,
     long_description=readme,
     long_description_content_type="text/markdown",
     include_package_data=True,
