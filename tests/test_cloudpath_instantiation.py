@@ -77,4 +77,4 @@ def test_fspath(rig):
 def test_os_open(rig):
     p = rig.create_cloud_path("bucket/dir_0/file0_0.txt")
     with open(p, "r") as f:
-        pass
+        assert f.readable()
