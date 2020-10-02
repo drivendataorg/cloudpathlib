@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from cloudpathlib import AzureBlobPath, CloudPath, InvalidPrefix, MissingDependencies, S3Path
@@ -60,3 +62,19 @@ def test_dependencies_not_loaded(rig, monkeypatch):
         CloudPath(f"{rig.cloud_prefix}/bucket/dir_0/file0_0.txt")
     with pytest.raises(MissingDependencies):
         rig.create_cloud_path("bucket/dir_0/file0_0.txt")
+
+
+def test_is_pathlike(rig):
+    p = rig.create_cloud_path("bucket")
+    assert isinstance(p, os.PathLike)
+
+
+def test_fspath(rig):
+    p = rig.create_cloud_path("bucket")
+    os.fspath(p)
+
+
+def test_os_open(rig):
+    p = rig.create_cloud_path("bucket/dir_0/file0_0.txt")
+    with open(p, "r") as f:
+        assert f.readable()
