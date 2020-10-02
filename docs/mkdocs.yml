@@ -13,6 +13,8 @@ extra_css:
 nav:
   - Home: "index.md"
   - Example: "example.ipynb"
+  - Authentication: "authentication.ipynb"
+  - Caching: "caching.ipynb"
   - API Reference:
       - CloudPath: "api-reference/cloudpath.md"
       - S3:
