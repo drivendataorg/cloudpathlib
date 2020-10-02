@@ -27,6 +27,8 @@ markdown_extensions:
   - pymdownx.superfences
   - toc:
       permalink: True
+  - codehilite:
+      use_pygments: true
 
 plugins:
   - search
