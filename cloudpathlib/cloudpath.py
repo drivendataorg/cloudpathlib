@@ -208,7 +208,10 @@ class CloudPath(metaclass=CloudPathMeta):
         return repr(self) == repr(other)
 
     def __fspath__(self):
-        return str(self)
+        if self.is_file():
+            self._refresh_cache(force_overwrite_from_cloud=False)
+        return str(self._local)
+
     # ====================== NOT IMPLEMENTED ======================
     # absolute - no cloud equivalent; all cloud paths are absolute already
     # as_posix - no cloud equivalent; not needed since we assume url separator
@@ -278,6 +281,10 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def exists(self) -> bool:
         return self.client._exists(self)
+
+    @property
+    def fspath(self) -> str:
+        return self.__fspath__()
 
     def glob(self, pattern: str) -> Iterable["CloudPath"]:
         # strip cloud prefix from pattern if it is included
