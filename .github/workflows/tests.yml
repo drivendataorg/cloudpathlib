@@ -2,11 +2,11 @@ name: tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
   schedule:
     # Run every Sunday
-    - cron: '0 0 * * 0'
+    - cron: "0 0 * * 0"
 
 jobs:
   build:
@@ -14,36 +14,57 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ['ubuntu-latest'] # [ubuntu-latest, macos-latest, windows-latest]
+        os: ["ubuntu-latest"] # [ubuntu-latest, macos-latest, windows-latest]
         python-version: [3.6, 3.7, 3.8]
 
     steps:
+      - uses: actions/checkout@v2
 
-    - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt --use-feature=2020-resolver
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt --use-feature=2020-resolver
+      - name: Lint package
+        run: |
+          make lint
 
-    - name: Lint package
-      run: |
-        make lint
+      - name: Run tests
+        run: |
+          make test
 
-    - name: Run tests
-      run: |
-        make test
+      - name: Test building documentation
+        run: |
+          make docs
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == 3.8
 
-    - name: Upload coverage to codecov
-      uses: codecov/codecov-action@v1
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: true
-      env:
-        CODECOV_TOKEN: ${{ secrets.CLOUDPATHLIB_CODECOV_TOKEN }}
-      if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == 3.8 }}
+      - name: Deploy site preview to Netlify
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == 3.8
+        uses: nwtgck/actions-netlify@v1.1
+        with:
+          publish-dir: "./docs/site"
+          production-deploy: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions"
+          enable-pull-request-comment: true
+          enable-commit-comment: false
+          overwrites-pull-request-comment: true
+          alias: deploy-preview-${{ github.event.number }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 1
+
+      - name: Upload coverage to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CLOUDPATHLIB_CODECOV_TOKEN }}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == 3.8 }}

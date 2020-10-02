@@ -14,6 +14,10 @@ PurePosixPath.resolve = resolve
 
 
 # Custom Exceptions
+class MissingDependencies(Exception):
+    pass
+
+
 class IncompleteImplementation(NotImplementedError):
     pass
 
@@ -46,12 +50,21 @@ class CloudImplementation:
     _client_class = None
     _path_class = None
 
+    def __init__(self):
+        self.name = None
+        self.dependencies_loaded = True
+
     def validate_completeness(self):
         expected = ["client_class", "path_class"]
         missing = [cls for cls in expected if getattr(self, f"_{cls}") is None]
         if missing:
             raise IncompleteImplementation(
                 f"Implementation is missing registered components: {missing}"
+            )
+        if not self.dependencies_loaded:
+            raise MissingDependencies(
+                f"Missing dependencies for {self._client_class.__name__}. You can install them "
+                f"with 'pip install cloudpathlib[{self.name}]'."
             )
 
     @property
@@ -84,7 +97,7 @@ class CloudPathMeta(abc.ABCMeta):
     def __call__(cls, cloud_path, *args, **kwargs):
         # cls is a class that is the instance of this metaclass, e.g., CloudPath
 
-        # Dispatch to subclass if  base CloudPath
+        # Dispatch to subclass if base CloudPath
         if cls == CloudPath:
             for implementation in implementation_registry.values():
                 path_class = implementation._path_class

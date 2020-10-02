@@ -3,11 +3,17 @@ import os
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, Optional, Union
 
-from azure.core.exceptions import ResourceNotFoundError
-from azure.storage.blob import BlobServiceClient
 
 from ..client import Client, register_client_class
+from ..cloudpath import implementation_registry
 from .azblobpath import AzureBlobPath
+
+
+try:
+    from azure.core.exceptions import ResourceNotFoundError
+    from azure.storage.blob import BlobServiceClient
+except ModuleNotFoundError:
+    implementation_registry["azure"].dependencies_loaded = False
 
 
 @register_client_class("azure")
@@ -19,7 +25,7 @@ class AzureBlobClient(Client):
         account_url: Optional[str] = None,
         credential: Optional[Any] = None,
         connection_string: Optional[str] = None,
-        blob_service_client: Optional[BlobServiceClient] = None,
+        blob_service_client: Optional["BlobServiceClient"] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
     ):
         """Class constructor. Sets up a [`BlobServiceClient`](

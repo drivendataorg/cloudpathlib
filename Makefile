@@ -39,6 +39,7 @@ dist: clean ## builds source and wheel package
 	ls -l dist
 
 docs: clean-docs
+	sed 's|docs/docs/logo.svg|logo.svg|g' README.md > docs/docs/index.md
 	cd docs && mkdocs build
 
 format:

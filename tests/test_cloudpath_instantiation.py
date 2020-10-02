@@ -1,6 +1,6 @@
 import pytest
 
-from cloudpathlib import AzureBlobPath, CloudPath, InvalidPrefix, S3Path
+from cloudpathlib import AzureBlobPath, CloudPath, InvalidPrefix, MissingDependencies, S3Path
 
 
 @pytest.mark.parametrize(
@@ -52,3 +52,11 @@ def test_instantiation_errors(rig):
 
     with pytest.raises(InvalidPrefix):
         rig.path_class("NOT_S3_PATH")
+
+
+def test_dependencies_not_loaded(rig, monkeypatch):
+    monkeypatch.setattr(rig.path_class._cloud_meta, "dependencies_loaded", False)
+    with pytest.raises(MissingDependencies):
+        CloudPath(f"{rig.cloud_prefix}/bucket/dir_0/file0_0.txt")
+    with pytest.raises(MissingDependencies):
+        rig.create_cloud_path("bucket/dir_0/file0_0.txt")

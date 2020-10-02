@@ -1,4 +1,4 @@
--r requirements.txt
+-e .[all]
 
 black
 flake8
@@ -12,5 +12,3 @@ pytest-cases
 pytest-cov
 python-dotenv
 tabulate
-
--e .
