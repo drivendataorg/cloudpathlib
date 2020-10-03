@@ -1,16 +1,29 @@
+import os
+from pathlib import Path
+
+from azure.storage.blob import BlobServiceClient
+import boto3
 from pytest_cases import fixture, fixture_union
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, S3Client, S3Path
 import cloudpathlib.azure.azblobclient
 import cloudpathlib.s3.s3client
-from .mock_clients.mock_azureblob import MockBlobServiceClient
-from .mock_clients.mock_s3 import MockBoto3Session
+from .mock_clients.mock_azureblob import mocked_client_class_factory
+from .mock_clients.mock_s3 import mocked_session_class_factory
+
+
+@fixture()
+def assets_dir() -> Path:
+    """Path to test assets directory."""
+    return Path(__file__).parent / "assets"
 
 
 class CloudProviderTestRig:
     """Class that holds together the components needed to test a cloud implementation."""
 
-    def __init__(self, path_class: type, client_class: type):
+    def __init__(
+        self, path_class: type, client_class: type, drive: str = "drive", test_dir: str = ""
+    ):
         """
         Args:
             path_class (type): CloudPath subclass
@@ -18,6 +31,8 @@ class CloudProviderTestRig:
         """
         self.path_class = path_class
         self.client_class = client_class
+        self.drive = drive
+        self.test_dir = test_dir
 
     @property
     def cloud_prefix(self):
@@ -25,20 +40,49 @@ class CloudProviderTestRig:
 
     def create_cloud_path(self, path: str):
         """CloudPath constructor that appends cloud prefix. Use this to instantiate
-        cloud path instances with generic paths."""
-        return self.path_class(cloud_path=self.path_class.cloud_prefix + path)
+        cloud path instances with generic paths. Includes drive and root test_dir already."""
+        return self.path_class(
+            cloud_path=f"{self.path_class.cloud_prefix}{self.drive}/{self.test_dir}/{path}"
+        )
+
+
+def create_test_dir_name(request) -> str:
+    """Generates unique test directory name using test module and test function names."""
+    module_name = request.module.__name__.rpartition(".")[-1]
+    function_name = request.function.__name__
+    return f"{module_name}-{function_name}"
 
 
 @fixture()
-def azure_rig(request, monkeypatch):
-    # Mock cloud SDK
-    monkeypatch.setattr(
-        cloudpathlib.azure.azblobclient,
-        "BlobServiceClient",
-        MockBlobServiceClient,
-    )
+def azure_rig(request, monkeypatch, assets_dir):
+    drive = os.getenv("LIVE_AZURE_CONTAINER", "container")
+    test_dir = create_test_dir_name(request)
 
-    rig = CloudProviderTestRig(path_class=AzureBlobPath, client_class=AzureBlobClient)
+    if os.getenv("USE_LIVE_CLOUD") == "1":
+        # Set up test assets
+        blob_service_client = BlobServiceClient.from_connection_string(
+            os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+        )
+        test_files = [f for f in assets_dir.glob("**/*") if f.is_file()]
+        for test_file in test_files:
+            blob_client = blob_service_client.get_blob_client(
+                container=drive, blob=f"{test_dir}/{test_file.relative_to(assets_dir)}"
+            )
+            blob_client.upload_blob(test_file.read_bytes(), overwrite=True)
+    else:
+        # Mock cloud SDK
+        monkeypatch.setattr(
+            cloudpathlib.azure.azblobclient,
+            "BlobServiceClient",
+            mocked_client_class_factory(test_dir),
+        )
+
+    rig = CloudProviderTestRig(
+        path_class=AzureBlobPath,
+        client_class=AzureBlobClient,
+        drive=drive,
+        test_dir=test_dir,
+    )
 
     rig.client_class().set_as_default_client()  # set default client
 
@@ -46,23 +90,45 @@ def azure_rig(request, monkeypatch):
 
     rig.client_class._default_client = None  # reset default client
 
+    if os.getenv("USE_LIVE_CLOUD") == "1":
+        # Clean up test dir
+        container_client = blob_service_client.get_container_client(drive)
+        to_delete = container_client.list_blobs(name_starts_with=test_dir)
+        container_client.delete_blobs(*to_delete)
+
 
 @fixture()
-def s3_rig(request, monkeypatch):
-    # Mock cloud SDK
-    monkeypatch.setattr(
-        cloudpathlib.s3.s3client,
-        "Session",
-        MockBoto3Session,
-    )
+def s3_rig(request, monkeypatch, assets_dir):
+    drive = os.getenv("LIVE_S3_BUCKET", "bucket")
+    test_dir = create_test_dir_name(request)
 
-    rig = CloudProviderTestRig(path_class=S3Path, client_class=S3Client)
+    if os.getenv("USE_LIVE_CLOUD") == "1":
+        # Set up test assets
+        bucket = boto3.resource("s3").Bucket(drive)
+        test_files = [f for f in assets_dir.glob("**/*") if f.is_file()]
+        for test_file in test_files:
+            bucket.upload_file(str(test_file), f"{test_dir}/{test_file.relative_to(assets_dir)}")
+    else:
+        # Mock cloud SDK
+        monkeypatch.setattr(
+            cloudpathlib.s3.s3client,
+            "Session",
+            mocked_session_class_factory(test_dir),
+        )
+
+    rig = CloudProviderTestRig(
+        path_class=S3Path, client_class=S3Client, drive=drive, test_dir=test_dir
+    )
 
     rig.client_class().set_as_default_client()  # set default client
 
     yield rig
 
     rig.client_class._default_client = None  # reset default client
+
+    if os.getenv("USE_LIVE_CLOUD") == "1":
+        # Clean up test dir
+        bucket.objects.filter(Prefix=test_dir).delete()
 
 
 rig = fixture_union(

@@ -20,21 +20,24 @@ WRITE_SLEEP_BUFFER = 0.1
 NoSuchKey = Session().client("s3").exceptions.NoSuchKey
 
 
-class MockBoto3Session:
-    def __init__(self, *args, **kwargs):
-        # copy test assets for reference in tests without affecting assets
-        self.tmp = TemporaryDirectory()
-        self.tmp_path = Path(self.tmp.name) / "test_case_copy"
-        shutil.copytree(TEST_ASSETS, self.tmp_path)
+def mocked_session_class_factory(test_dir: str):
+    class MockBoto3Session:
+        def __init__(self, *args, **kwargs):
+            # copy test assets for reference in tests without affecting assets
+            self.tmp = TemporaryDirectory()
+            self.tmp_path = Path(self.tmp.name) / "test_case_copy"
+            shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
 
-    def __del__(self):
-        self.tmp.cleanup()
+        def __del__(self):
+            self.tmp.cleanup()
 
-    def resource(self, item):
-        return MockBoto3Resource(self.tmp_path)
+        def resource(self, item):
+            return MockBoto3Resource(self.tmp_path)
 
-    def client(self, item):
-        return MockBoto3Client(self.tmp_path)
+        def client(self, item):
+            return MockBoto3Client(self.tmp_path)
+
+    return MockBoto3Session
 
 
 class MockBoto3Resource:

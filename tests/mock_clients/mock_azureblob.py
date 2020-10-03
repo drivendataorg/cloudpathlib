@@ -19,25 +19,28 @@ TEST_ASSETS = Path(__file__).parent.parent / "assets"
 WRITE_SLEEP_BUFFER = 0.1
 
 
-class MockBlobServiceClient:
-    def __init__(self, *args, **kwargs):
-        # copy test assets for reference in tests without affecting assets
-        self.tmp = TemporaryDirectory()
-        self.tmp_path = Path(self.tmp.name) / "test_case_copy"
-        shutil.copytree(TEST_ASSETS, self.tmp_path)
+def mocked_client_class_factory(test_dir: str):
+    class MockBlobServiceClient:
+        def __init__(self, *args, **kwargs):
+            # copy test assets for reference in tests without affecting assets
+            self.tmp = TemporaryDirectory()
+            self.tmp_path = Path(self.tmp.name) / "test_case_copy"
+            shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
 
-    @classmethod
-    def from_connection_string(cls, *args, **kwargs):
-        return cls()
+        @classmethod
+        def from_connection_string(cls, *args, **kwargs):
+            return cls()
 
-    def __del__(self):
-        self.tmp.cleanup()
+        def __del__(self):
+            self.tmp.cleanup()
 
-    def get_blob_client(self, container, blob):
-        return MockBlobClient(self.tmp_path, blob)
+        def get_blob_client(self, container, blob):
+            return MockBlobClient(self.tmp_path, blob)
 
-    def get_container_client(self, container):
-        return MockContainerClient(self.tmp_path)
+        def get_container_client(self, container):
+            return MockContainerClient(self.tmp_path)
+
+    return MockBlobServiceClient
 
 
 class MockBlobClient:

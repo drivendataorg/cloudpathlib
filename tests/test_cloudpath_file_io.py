@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 from time import sleep
 
 import pytest
@@ -7,16 +8,16 @@ from cloudpathlib import DirectoryNotEmpty
 
 
 def test_file_discovery(rig):
-    p = rig.create_cloud_path("bucket/dir_0/file0_0.txt")
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
     assert p.exists()
 
-    p2 = rig.create_cloud_path("bucket/dir_0/not_a_file")
+    p2 = rig.create_cloud_path("dir_0/not_a_file")
     assert not p2.exists()
     p2.touch()
     assert p2.exists()
     p2.unlink()
 
-    p3 = rig.create_cloud_path("bucket/dir_0/")
+    p3 = rig.create_cloud_path("dir_0/")
     assert p3.exists()
     assert len(list(p3.iterdir())) == 3
     assert len(list(p3.glob("**/*"))) == 3
@@ -29,25 +30,26 @@ def test_file_discovery(rig):
     p3.rmtree()
     assert not p3.exists()
 
-    p4 = rig.create_cloud_path("bucket/")
+    p4 = rig.create_cloud_path("")
     assert p4.exists()
 
     assert len(list(p4.iterdir())) == 1  # only bucket/dir_1/ should still exist
     assert len(list(p4.glob("**/*"))) == 4
-    assert len(list(p4.glob("bucket/**/*"))) == 4
 
     assert list(p4.glob("**/*")) == list(p4.rglob("*"))
 
 
 def test_file_read_writes(rig, tmp_path):
-    p = rig.create_cloud_path("bucket/dir_0/file0_0.txt")
-    p2 = rig.create_cloud_path("bucket/dir_0/not_a_file")
-    p3 = rig.create_cloud_path("bucket/")
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
+    p2 = rig.create_cloud_path("dir_0/not_a_file")
+    p3 = rig.create_cloud_path("")
 
     p.write_text("lalala")
+    sleep(0.1)
     assert p.read_text() == "lalala"
     p2.write_text("lalala")
     p.write_bytes(p2.read_bytes())
+    sleep(0.1)
     assert p.read_text() == p2.read_text()
 
     before_touch = datetime.now()
@@ -60,7 +62,7 @@ def test_file_read_writes(rig, tmp_path):
 
     assert p.etag is not None
 
-    dest = rig.create_cloud_path("bucket/dir2/new_file0_0.txt")
+    dest = rig.create_cloud_path("dir2/new_file0_0.txt")
     assert not dest.exists()
     p.rename(dest)
     assert dest.exists()
@@ -78,6 +80,19 @@ def test_file_read_writes(rig, tmp_path):
     dl_dir = tmp_path / "directory"
     dl_dir.mkdir(parents=True, exist_ok=True)
     p3.download_to(dl_dir)
-    cloud_rel_paths = sorted([p._no_prefix_no_drive for p in p3.glob("**/*")])
+    cloud_rel_paths = sorted(
+        [p._no_prefix_no_drive[len(rig.test_dir) + 1 :] for p in p3.glob("**/*")]
+    )
     dled_rel_paths = sorted([str(p)[len(str(dl_dir)) :] for p in dl_dir.glob("**/*")])
     assert cloud_rel_paths == dled_rel_paths
+
+
+def test_fspath(rig):
+    p = rig.create_cloud_path("dir_0")
+    assert os.fspath(p) == p.fspath
+
+
+def test_os_open(rig):
+    p = rig.create_cloud_path("bucket/dir_0/file0_0.txt")
+    with open(p, "r") as f:
+        assert f.readable()

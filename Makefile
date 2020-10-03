@@ -64,5 +64,8 @@ release-test: dist
 reqs:
 	pip install -r requirements-dev.txt
 
-test: ## run tests quickly with the default Python
+test: ## run tests with mocked cloud SDKs
 	python -m pytest -vv
+
+test-live-cloud:  ## run tests on live cloud backends
+	USE_LIVE_CLOUD=1 python -m pytest -vv
