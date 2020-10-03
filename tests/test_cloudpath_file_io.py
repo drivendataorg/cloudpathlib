@@ -45,11 +45,10 @@ def test_file_read_writes(rig, tmp_path):
     p3 = rig.create_cloud_path("")
 
     p.write_text("lalala")
-    sleep(0.1)
     assert p.read_text() == "lalala"
     p2.write_text("lalala")
+
     p.write_bytes(p2.read_bytes())
-    sleep(0.1)
     assert p.read_text() == p2.read_text()
 
     before_touch = datetime.now()
