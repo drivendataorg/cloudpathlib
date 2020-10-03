@@ -3,6 +3,7 @@ from collections import defaultdict
 import collections.abc
 import fnmatch
 import os
+from math import ceil, floor
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
 from typing import Any, IO, Iterable, Union
 from urllib.parse import urlparse
@@ -607,7 +608,7 @@ class CloudPath(metaclass=CloudPathMeta):
         # if not exist or cloud newer
         if (
             not self._local.exists()
-            or (self._local.stat().st_mtime < self.stat().st_mtime)
+            or (floor(self._local.stat().st_mtime) < ceil(self.stat().st_mtime))
             or force_overwrite_from_cloud
         ):
             # ensure there is a home for the file
@@ -627,7 +628,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
         # if local newer but not dirty, it was updated
         # by a separate process; do not overwrite unless forced to
-        if self._local.stat().st_mtime > self.stat().st_mtime:
+        if floor(self._local.stat().st_mtime) > ceil(self.stat().st_mtime):
             raise OverwriteNewerLocal(
                 f"Local file ({self._local}) for cloud path ({self}) is newer on disk, but "
                 f"is being requested for download from cloud. Either (1) push your changes to the cloud, "
@@ -644,7 +645,7 @@ class CloudPath(metaclass=CloudPathMeta):
         # if cloud does not exist or local is newer or we are overwriting, do the upload
         if (
             not self.exists()  # cloud does not exist
-            or (self._local.stat().st_mtime > self.stat().st_mtime)
+            or (ceil(self._local.stat().st_mtime) > floor(self.stat().st_mtime))
             or force_overwrite_to_cloud
         ):
             self.client._upload_file(
