@@ -34,9 +34,17 @@ jobs:
         run: |
           make lint
 
-      - name: Run tests
+      - name: Run mocked tests
         run: |
           make test
+
+      - name: Run live tests
+        run: |
+          make test-live-cloud
+        env:
+          LIVE_S3_BUCKET: ${{ secrets.LIVE_S3_BUCKET }}
+          LIVE_AZURE_CONTAINER: ${{ secrets.LIVE_AZURE_CONTAINER }}
+        if: matrix.python-version == 3.8
 
       - name: Test building documentation
         run: |
