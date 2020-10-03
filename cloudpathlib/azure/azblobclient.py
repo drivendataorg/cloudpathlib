@@ -145,7 +145,7 @@ class AzureBlobClient(Client):
                 if parent not in yielded_dirs and str(parent) != ".":
 
                     # skip if not recursive and this is beyond our depth
-                    if not recursive and "/" in str(parent)[len(prefix) :]:
+                    if not recursive and "/" in str(parent):
                         continue
 
                     yield self.CloudPath(f"az://{cloud_path.container}/{prefix}{parent}")
