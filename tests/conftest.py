@@ -13,6 +13,9 @@ from .mock_clients.mock_azureblob import mocked_client_class_factory
 from .mock_clients.mock_s3 import mocked_session_class_factory
 
 
+SESSION_UUID = uuid()
+
+
 @fixture()
 def assets_dir() -> Path:
     """Path to test assets directory."""
@@ -51,7 +54,7 @@ def create_test_dir_name(request) -> str:
     """Generates unique test directory name using test module and test function names."""
     module_name = request.module.__name__.rpartition(".")[-1]
     function_name = request.function.__name__
-    test_dir = f"{uuid()}-{module_name}-{function_name}"
+    test_dir = f"{SESSION_UUID}-{module_name}-{function_name}"
     print("Test directory name is:", test_dir)
     return test_dir
 
