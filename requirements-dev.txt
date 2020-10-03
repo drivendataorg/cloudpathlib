@@ -11,4 +11,5 @@ pytest
 pytest-cases
 pytest-cov
 python-dotenv
+shortuuid
 tabulate

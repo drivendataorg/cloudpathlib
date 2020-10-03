@@ -4,6 +4,7 @@ from pathlib import Path
 from azure.storage.blob import BlobServiceClient
 import boto3
 from pytest_cases import fixture, fixture_union
+from shortuuid import uuid
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, S3Client, S3Path
 import cloudpathlib.azure.azblobclient
@@ -50,7 +51,9 @@ def create_test_dir_name(request) -> str:
     """Generates unique test directory name using test module and test function names."""
     module_name = request.module.__name__.rpartition(".")[-1]
     function_name = request.function.__name__
-    return f"{module_name}-{function_name}"
+    test_dir = f"{uuid()}-{module_name}-{function_name}"
+    print("Test directory name is:", test_dir)
+    return test_dir
 
 
 @fixture()

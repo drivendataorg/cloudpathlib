@@ -52,7 +52,7 @@ def test_file_read_writes(rig, tmp_path):
     assert p.read_text() == p2.read_text()
 
     before_touch = datetime.now()
-    sleep(0.1)
+    sleep(1)
     p.touch()
     assert datetime.fromtimestamp(p.stat().st_mtime) > before_touch
 
