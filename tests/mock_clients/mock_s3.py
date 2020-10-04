@@ -3,7 +3,6 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 from tempfile import TemporaryDirectory
-from time import sleep
 
 from boto3.session import Session
 
@@ -15,26 +14,28 @@ TEST_ASSETS = Path(__file__).parent.parent / "assets"
 # and the test files are super small, we can end up with race conditions in
 # the tests where the updated file is modified before the source file,
 # which breaks our caching logic
-WRITE_SLEEP_BUFFER = 0.1
 
 NoSuchKey = Session().client("s3").exceptions.NoSuchKey
 
 
-class MockBoto3Session:
-    def __init__(self, *args, **kwargs):
-        # copy test assets for reference in tests without affecting assets
-        self.tmp = TemporaryDirectory()
-        self.tmp_path = Path(self.tmp.name) / "test_case_copy"
-        shutil.copytree(TEST_ASSETS, self.tmp_path)
+def mocked_session_class_factory(test_dir: str):
+    class MockBoto3Session:
+        def __init__(self, *args, **kwargs):
+            # copy test assets for reference in tests without affecting assets
+            self.tmp = TemporaryDirectory()
+            self.tmp_path = Path(self.tmp.name) / "test_case_copy"
+            shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
 
-    def __del__(self):
-        self.tmp.cleanup()
+        def __del__(self):
+            self.tmp.cleanup()
 
-    def resource(self, item):
-        return MockBoto3Resource(self.tmp_path)
+        def resource(self, item):
+            return MockBoto3Resource(self.tmp_path)
 
-    def client(self, item):
-        return MockBoto3Client(self.tmp_path)
+        def client(self, item):
+            return MockBoto3Client(self.tmp_path)
+
+    return MockBoto3Session
 
 
 class MockBoto3Resource:
@@ -67,16 +68,13 @@ class MockBoto3Object:
             # same file, touch
             self.path.touch()
         else:
-            sleep(WRITE_SLEEP_BUFFER)
             self.path.write_bytes((self.root / Path(CopySource["Key"])).read_bytes)
 
     def download_file(self, to_path):
         to_path = Path(to_path)
-        sleep(WRITE_SLEEP_BUFFER)
         to_path.write_bytes(self.path.read_bytes())
 
     def upload_file(self, from_path):
-        sleep(WRITE_SLEEP_BUFFER)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_bytes(Path(from_path).read_bytes())
 

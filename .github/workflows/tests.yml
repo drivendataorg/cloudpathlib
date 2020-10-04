@@ -34,9 +34,20 @@ jobs:
         run: |
           make lint
 
-      - name: Run tests
+      - name: Run mocked tests
         run: |
           make test
+
+      - name: Run live tests
+        run: |
+          make test-live-cloud
+        env:
+          LIVE_AZURE_CONTAINER: ${{ secrets.LIVE_AZURE_CONTAINER }}
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          LIVE_S3_BUCKET: ${{ secrets.LIVE_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        if: matrix.python-version == 3.8
 
       - name: Test building documentation
         run: |

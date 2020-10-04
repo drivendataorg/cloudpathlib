@@ -2,7 +2,6 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 from tempfile import TemporaryDirectory
-from time import sleep
 
 
 from azure.storage.blob import BlobProperties
@@ -12,32 +11,29 @@ from .utils import delete_empty_parents_up_to_root
 
 TEST_ASSETS = Path(__file__).parent.parent / "assets"
 
-# Since we don't contol exactly when the filesystem finishes writing a file
-# and the test files are super small, we can end up with race conditions in
-# the tests where the updated file is modified before the source file,
-# which breaks our caching logic
-WRITE_SLEEP_BUFFER = 0.1
 
+def mocked_client_class_factory(test_dir: str):
+    class MockBlobServiceClient:
+        def __init__(self, *args, **kwargs):
+            # copy test assets for reference in tests without affecting assets
+            self.tmp = TemporaryDirectory()
+            self.tmp_path = Path(self.tmp.name) / "test_case_copy"
+            shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
 
-class MockBlobServiceClient:
-    def __init__(self, *args, **kwargs):
-        # copy test assets for reference in tests without affecting assets
-        self.tmp = TemporaryDirectory()
-        self.tmp_path = Path(self.tmp.name) / "test_case_copy"
-        shutil.copytree(TEST_ASSETS, self.tmp_path)
+        @classmethod
+        def from_connection_string(cls, *args, **kwargs):
+            return cls()
 
-    @classmethod
-    def from_connection_string(cls, *args, **kwargs):
-        return cls()
+        def __del__(self):
+            self.tmp.cleanup()
 
-    def __del__(self):
-        self.tmp.cleanup()
+        def get_blob_client(self, container, blob):
+            return MockBlobClient(self.tmp_path, blob)
 
-    def get_blob_client(self, container, blob):
-        return MockBlobClient(self.tmp_path, blob)
+        def get_container_client(self, container):
+            return MockContainerClient(self.tmp_path)
 
-    def get_container_client(self, container):
-        return MockContainerClient(self.tmp_path)
+    return MockBlobServiceClient
 
 
 class MockBlobClient:
@@ -63,7 +59,6 @@ class MockBlobClient:
             raise ResourceNotFoundError
 
     def download_blob(self):
-        sleep(WRITE_SLEEP_BUFFER)
         return MockStorageStreamDownloader(self.root, self.key)
 
     def set_blob_metadata(self, metadata):
@@ -72,7 +67,6 @@ class MockBlobClient:
 
     def start_copy_from_url(self, source_url):
         dst = self.root / self.key
-        sleep(WRITE_SLEEP_BUFFER)
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(src=str(source_url), dst=str(dst))
 
@@ -83,7 +77,6 @@ class MockBlobClient:
 
     def upload_blob(self, data, overwrite):
         path = self.root / self.key
-        sleep(WRITE_SLEEP_BUFFER)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
 
@@ -106,7 +99,6 @@ class MockContainerClient:
 
     def delete_blobs(self, *blobs):
         for blob in blobs:
-            sleep(WRITE_SLEEP_BUFFER)
             (self.root / blob).unlink()
             delete_empty_parents_up_to_root(path=self.root / blob, root=self.root)
 

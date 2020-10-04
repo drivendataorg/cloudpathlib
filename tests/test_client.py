@@ -4,13 +4,17 @@ from cloudpathlib import CloudPath
 def test_default_client_instantiation(rig):
     rig.client_class._default_client = None
 
-    p = CloudPath(rig.cloud_prefix + "bucket/dir_0/file0_0.txt")
-    p2 = rig.create_cloud_path("bucket/dir_0/file0_0.txt")
+    # CloudPath dispatch
+    p = CloudPath(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/dir_0/file0_0.txt")
+    # Explicit class
+    p2 = rig.create_cloud_path("dir_0/file0_0.txt")
+    # Default client CloudPath constructor
     p3 = rig.client_class.get_default_client().CloudPath(
-        rig.cloud_prefix + "bucket/dir_0/file0_0.txt"
+        f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/dir_0/file0_0.txt"
     )
+    # Default client path-class-name constructor
     p4 = getattr(rig.client_class.get_default_client(), rig.path_class.__name__)(
-        rig.cloud_prefix + "bucket/dir_0/file0_0.txt"
+        f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/dir_0/file0_0.txt"
     )
 
     # Check that paths are the same
@@ -27,10 +31,10 @@ def test_default_client_instantiation(rig):
 
 
 def test_different_clients(rig):
-    p = rig.create_cloud_path("bucket/dir_0/file0_0.txt")
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
 
     new_client = rig.client_class()
-    p2 = new_client.CloudPath(rig.cloud_prefix + "bucket/dir_0/file0_0.txt")
+    p2 = new_client.CloudPath(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/dir_0/file0_0.txt")
 
     assert p.client is not p2.client
     assert p._local is not p2._local

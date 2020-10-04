@@ -652,6 +652,9 @@ class CloudPath(metaclass=CloudPathMeta):
                 self,
             )
 
+            # force cache time to match cloud times
+            os.utime(self._local, times=(self.stat().st_mtime, self.stat().st_mtime))
+
             # reset dirty and handle now that this is uploaded
             self._dirty = False
             self._handle = None

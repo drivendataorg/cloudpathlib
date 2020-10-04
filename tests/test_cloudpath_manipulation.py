@@ -6,7 +6,7 @@ def test_joins(rig):
     assert rig.create_cloud_path("a/b/c/d.tar.gz").suffixes == [".tar", ".gz"]
     assert (
         str(rig.create_cloud_path("a/b/c/d.file").with_suffix(".png"))
-        == rig.cloud_prefix + "a/b/c/d.png"
+        == f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/a/b/c/d.png"
     )
 
     assert rig.create_cloud_path("a") / "b" == rig.create_cloud_path("a/b")
@@ -23,12 +23,25 @@ def test_joins(rig):
         rig.create_cloud_path("a/b/c"),
         rig.create_cloud_path("a/b"),
         rig.create_cloud_path("a"),
+        rig.path_class(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}"),
+        rig.path_class(f"{rig.cloud_prefix}{rig.drive}"),
     ]
 
     assert rig.create_cloud_path("a").joinpath("b", "c") == rig.create_cloud_path("a/b/c")
 
     assert rig.create_cloud_path("a/b/c").samefile(rig.create_cloud_path("a/b/c"))
 
-    assert rig.create_cloud_path("a/b/c").as_uri() == rig.cloud_prefix + "a/b/c"
+    assert (
+        rig.create_cloud_path("a/b/c").as_uri()
+        == f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/a/b/c"
+    )
 
-    assert rig.create_cloud_path("a/b/c/d").parts == (rig.cloud_prefix, "a", "b", "c", "d")
+    assert rig.create_cloud_path("a/b/c/d").parts == (
+        rig.cloud_prefix,
+        rig.drive,
+        rig.test_dir,
+        "a",
+        "b",
+        "c",
+        "d",
+    )
