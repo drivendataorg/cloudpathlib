@@ -3,7 +3,6 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 from tempfile import TemporaryDirectory
-from time import sleep
 
 from boto3.session import Session
 
@@ -15,7 +14,6 @@ TEST_ASSETS = Path(__file__).parent.parent / "assets"
 # and the test files are super small, we can end up with race conditions in
 # the tests where the updated file is modified before the source file,
 # which breaks our caching logic
-WRITE_SLEEP_BUFFER = 0.1
 
 NoSuchKey = Session().client("s3").exceptions.NoSuchKey
 
@@ -70,16 +68,13 @@ class MockBoto3Object:
             # same file, touch
             self.path.touch()
         else:
-            sleep(WRITE_SLEEP_BUFFER)
             self.path.write_bytes((self.root / Path(CopySource["Key"])).read_bytes)
 
     def download_file(self, to_path):
         to_path = Path(to_path)
-        sleep(WRITE_SLEEP_BUFFER)
         to_path.write_bytes(self.path.read_bytes())
 
     def upload_file(self, from_path):
-        sleep(WRITE_SLEEP_BUFFER)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_bytes(Path(from_path).read_bytes())
 
