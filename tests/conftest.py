@@ -21,7 +21,7 @@ SESSION_UUID = uuid()
 
 # ignore these files when uploading test assets
 UPLOAD_IGNORE_LIST = [
-    '.DS_Store',  # macOs cruft
+    '.DS_Store',  # macOS cruft
 ]
 
 
