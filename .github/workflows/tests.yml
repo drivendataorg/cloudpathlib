@@ -49,6 +49,12 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         if: matrix.python-version == 3.8
 
+      - name: Build distribution and test installation
+        run: |
+          make dist
+          python -m pip install dist/cloudpathlib-*.whl --no-deps --force-reinstall
+          python -m pip install dist/cloudpathlib-*.tar.gz --no-deps --force-reinstall
+
       - name: Test building documentation
         run: |
           make docs

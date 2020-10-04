@@ -13,3 +13,4 @@ pytest-cov
 python-dotenv
 shortuuid
 tabulate
+wheel
