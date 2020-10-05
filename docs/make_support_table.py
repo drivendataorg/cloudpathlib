@@ -34,9 +34,7 @@ def print_table():
 
     md = (
         df.reset_index()
-        .sort_values(
-            ["sort_order", "Methods + properties"],
-        )
+        .sort_values(["sort_order", "Methods + properties"],)
         .set_index("Methods + properties")
         .drop(["sort_order", "base"], axis=1)
         .replace({True: "✅", False: "❌"})
