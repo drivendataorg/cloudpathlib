@@ -23,7 +23,7 @@ A client object holds the authenticated connection with a cloud service, as well
 ```python
 from cloudpathlib import CloudPath
 
-cloud_path = CloudPath("s3://drivendata-public-assets/")   # same for S3Path(...)
+cloud_path = CloudPath("s3://cloudpathlib-test-bucket/")   # same for S3Path(...)
 cloud_path.client
 #> <cloudpathlib.s3.s3client.S3Client at 0x7feac3d1fb90>
 ```
@@ -38,8 +38,10 @@ from cloudpathlib import S3Client
 client = S3Client(aws_access_key_id="myaccesskey", aws_secret_access_key="mysecretkey")
 
 # these next two commands are equivalent
-cp1 = client.CloudPath("s3://drivendata-public-assets/")
-cp2 = CloudPath("s3://drivendata-public-assets/", client=client)
+# use client's factory method
+cp1 = client.CloudPath("s3://cloudpathlib-test-bucket/")
+# or pass client as keyword argument
+cp2 = CloudPath("s3://cloudpathlib-test-bucket/", client=client)
 ```
 
 If you have instantiated a client instance explicitly, you can also set it as the default client. Then, future cloud paths without a client specified will use that client instance.
