@@ -21,7 +21,7 @@ SESSION_UUID = uuid()
 
 # ignore these files when uploading test assets
 UPLOAD_IGNORE_LIST = [
-    '.DS_Store',  # macOS cruft
+    ".DS_Store",  # macOS cruft
 ]
 
 
@@ -79,8 +79,7 @@ def azure_rig(request, monkeypatch, assets_dir):
             os.getenv("AZURE_STORAGE_CONNECTION_STRING")
         )
         test_files = [
-            f for f in assets_dir.glob("**/*")
-            if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
+            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
         ]
         for test_file in test_files:
             blob_client = blob_service_client.get_blob_client(
@@ -96,10 +95,7 @@ def azure_rig(request, monkeypatch, assets_dir):
         )
 
     rig = CloudProviderTestRig(
-        path_class=AzureBlobPath,
-        client_class=AzureBlobClient,
-        drive=drive,
-        test_dir=test_dir,
+        path_class=AzureBlobPath, client_class=AzureBlobClient, drive=drive, test_dir=test_dir,
     )
 
     rig.client_class().set_as_default_client()  # set default client
@@ -124,17 +120,14 @@ def s3_rig(request, monkeypatch, assets_dir):
         # Set up test assets
         bucket = boto3.resource("s3").Bucket(drive)
         test_files = [
-            f for f in assets_dir.glob("**/*")
-            if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
+            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
         ]
         for test_file in test_files:
             bucket.upload_file(str(test_file), f"{test_dir}/{test_file.relative_to(assets_dir)}")
     else:
         # Mock cloud SDK
         monkeypatch.setattr(
-            cloudpathlib.s3.s3client,
-            "Session",
-            mocked_session_class_factory(test_dir),
+            cloudpathlib.s3.s3client, "Session", mocked_session_class_factory(test_dir),
         )
 
     rig = CloudProviderTestRig(
@@ -152,10 +145,4 @@ def s3_rig(request, monkeypatch, assets_dir):
         bucket.objects.filter(Prefix=test_dir).delete()
 
 
-rig = fixture_union(
-    "rig",
-    [
-        azure_rig,
-        s3_rig,
-    ],
-)
+rig = fixture_union("rig", [azure_rig, s3_rig,],)
