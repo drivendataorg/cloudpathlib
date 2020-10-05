@@ -337,7 +337,11 @@ class CloudPath(metaclass=CloudPathMeta):
             original_mtime = self._local.stat().st_mtime
 
         buffer = self._local.open(
-            mode=mode, buffering=buffering, encoding=encoding, errors=errors, newline=newline,
+            mode=mode,
+            buffering=buffering,
+            encoding=encoding,
+            errors=errors,
+            newline=newline,
         )
 
         # write modes need special on closing the buffer
@@ -655,7 +659,8 @@ class CloudPath(metaclass=CloudPathMeta):
             or force_overwrite_to_cloud
         ):
             self.client._upload_file(
-                self._local, self,
+                self._local,
+                self,
             )
 
             # force cache time to match cloud times

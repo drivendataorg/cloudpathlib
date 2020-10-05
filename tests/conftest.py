@@ -95,7 +95,10 @@ def azure_rig(request, monkeypatch, assets_dir):
         )
 
     rig = CloudProviderTestRig(
-        path_class=AzureBlobPath, client_class=AzureBlobClient, drive=drive, test_dir=test_dir,
+        path_class=AzureBlobPath,
+        client_class=AzureBlobClient,
+        drive=drive,
+        test_dir=test_dir,
     )
 
     rig.client_class().set_as_default_client()  # set default client
@@ -127,7 +130,9 @@ def s3_rig(request, monkeypatch, assets_dir):
     else:
         # Mock cloud SDK
         monkeypatch.setattr(
-            cloudpathlib.s3.s3client, "Session", mocked_session_class_factory(test_dir),
+            cloudpathlib.s3.s3client,
+            "Session",
+            mocked_session_class_factory(test_dir),
         )
 
     rig = CloudProviderTestRig(
