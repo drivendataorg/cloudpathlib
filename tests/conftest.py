@@ -3,6 +3,7 @@ from pathlib import Path
 
 from azure.storage.blob import BlobServiceClient
 import boto3
+from dotenv import find_dotenv, load_dotenv
 from pytest_cases import fixture, fixture_union
 from shortuuid import uuid
 
@@ -13,7 +14,15 @@ from .mock_clients.mock_azureblob import mocked_client_class_factory
 from .mock_clients.mock_s3 import mocked_session_class_factory
 
 
+load_dotenv(find_dotenv())
+
+
 SESSION_UUID = uuid()
+
+# ignore these files when uploading test assets
+UPLOAD_IGNORE_LIST = [
+    ".DS_Store",  # macOS cruft
+]
 
 
 @fixture()
@@ -69,7 +78,9 @@ def azure_rig(request, monkeypatch, assets_dir):
         blob_service_client = BlobServiceClient.from_connection_string(
             os.getenv("AZURE_STORAGE_CONNECTION_STRING")
         )
-        test_files = [f for f in assets_dir.glob("**/*") if f.is_file()]
+        test_files = [
+            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
+        ]
         for test_file in test_files:
             blob_client = blob_service_client.get_blob_client(
                 container=drive, blob=f"{test_dir}/{test_file.relative_to(assets_dir)}"
@@ -111,7 +122,9 @@ def s3_rig(request, monkeypatch, assets_dir):
     if os.getenv("USE_LIVE_CLOUD") == "1":
         # Set up test assets
         bucket = boto3.resource("s3").Bucket(drive)
-        test_files = [f for f in assets_dir.glob("**/*") if f.is_file()]
+        test_files = [
+            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
+        ]
         for test_file in test_files:
             bucket.upload_file(str(test_file), f"{test_dir}/{test_file.relative_to(assets_dir)}")
     else:
@@ -137,10 +150,4 @@ def s3_rig(request, monkeypatch, assets_dir):
         bucket.objects.filter(Prefix=test_dir).delete()
 
 
-rig = fixture_union(
-    "rig",
-    [
-        azure_rig,
-        s3_rig,
-    ],
-)
+rig = fixture_union("rig", [azure_rig, s3_rig])

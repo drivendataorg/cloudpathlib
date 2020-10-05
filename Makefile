@@ -62,7 +62,7 @@ release-test: dist
 	twine upload --repository pypitest dist/*
 
 reqs:
-	pip install -r requirements-dev.txt
+	pip install -U -r requirements-dev.txt
 
 test: ## run tests with mocked cloud SDKs
 	python -m pytest -vv
