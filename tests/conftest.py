@@ -145,4 +145,4 @@ def s3_rig(request, monkeypatch, assets_dir):
         bucket.objects.filter(Prefix=test_dir).delete()
 
 
-rig = fixture_union("rig", [azure_rig, s3_rig,],)
+rig = fixture_union("rig", [azure_rig, s3_rig])
