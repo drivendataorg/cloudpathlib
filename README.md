@@ -20,7 +20,7 @@ with CloudPath("s3://bucket/filename.txt").open("w+") as f:
  - **Familiar**: If you know how to interact with `Path`, you know how to interact with `CloudPath`. All of the cloud-relevant `Path` methods are implemented.
  - **Supported clouds**: AWS S3 and Azure Blob Storage are implemented. Google Cloud Storage and FTP are on the way.
  - **Extensible**: The base classes do most of the work generically, so implementing two small classes `MyPath` and `MyClient` is all you need to add support for a new cloud storage service.
- - **Read/write support**: Reading just works. Using the `write_text`, `write_bytes` or `.open('w')` methods will all upload your changes to  cloud storage without any additional file management as a developer.
+ - **Read/write support**: Reading just works. Using the `write_text`, `write_bytes` or `.open('w')` methods will all upload your changes to cloud storage without any additional file management as a developer.
  - **Seamless caching**: Files are downloaded locally only when necessary. You can also easily pass a persistent cache folder so that across processes and sessions you only re-download what is necessary.
  - **Tested**: Comprehensive test suite and code coverage.
 
