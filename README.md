@@ -8,7 +8,7 @@
 
 > Our goal is to be the meringue of file management libraries: the subtle sweetness of `pathlib` working in harmony with the ethereal lightness of the cloud.
 
-A library that implements (nearly all) of the `pathlib.Path` methods for URIs for different cloud providers.
+A library that implements (nearly all) of the `pathlib.Path` methods for URIs for different cloud storage services.
 
 ```python
 with CloudPath("s3://bucket/filename.txt").open("w+") as f:
@@ -19,23 +19,23 @@ with CloudPath("s3://bucket/filename.txt").open("w+") as f:
 
  - **Familiar**: If you know how to interact with `Path`, you know how to interact with `CloudPath`. All of the cloud-relevant `Path` methods are implemented.
  - **Supported clouds**: AWS S3 and Azure Blob Storage are implemented. Google Cloud Storage and FTP are on the way.
- - **Extensible**: The base classes do most of the work generically, so implementing two small classes `MyPath` and `MyClient` is all you need to add support for a cloud provider.
- - **Read/write support**: Reading just works. Using the `write_text`, `write_bytes` or `.open('w')` methods will all upload your changes to the cloud provider without any additional file management as a developer.
+ - **Extensible**: The base classes do most of the work generically, so implementing two small classes `MyPath` and `MyClient` is all you need to add support for a new cloud storage service.
+ - **Read/write support**: Reading just works. Using the `write_text`, `write_bytes` or `.open('w')` methods will all upload your changes to  cloud storage without any additional file management as a developer.
  - **Seamless caching**: Files are downloaded locally only when necessary. You can also easily pass a persistent cache folder so that across processes and sessions you only re-download what is necessary.
  - **Tested**: Comprehensive test suite and code coverage.
 
 
 ## Installation
 
-`cloudpathlib` depends on cloud providers' SDKs (e.g., `boto3`, `azure-storage-blob`) to communicate with their respective file stores. If you try to use cloud paths for a provider for which you don't have dependencies installed, `cloudpathlib` will error and let you know what you need to install.
+`cloudpathlib` depends on the cloud services' SDKs (e.g., `boto3`, `azure-storage-blob`) to communicate with their respective storage service. If you try to use cloud paths for a cloud service for which you don't have dependencies installed, `cloudpathlib` will error and let you know what you need to install.
 
-To install a cloud provider's SDK dependency when installing `cloudpathlib`, you need to specify it using pip's ["extras"](https://packaging.python.org/tutorials/installing-packages/#installing-setuptools-extras) specification. For example:
+To install a cloud service's SDK dependency when installing `cloudpathlib`, you need to specify it using pip's ["extras"](https://packaging.python.org/tutorials/installing-packages/#installing-setuptools-extras) specification. For example:
 
 ```bash
 pip install cloudpathlib[s3,azure]
 ```
 
-Currently supported providers are: `azure`, `s3`. You can also use `all` to install all available clouds' dependencies.
+Currently supported cloud storage services are: `azure`, `s3`. You can also use `all` to install all available services' dependencies.
 
 If you do not specify any extras or separately install any cloud SDKs, you will only be able to develop with the base classes for rolling your own cloud path class.
 
@@ -47,11 +47,11 @@ You can get latest development version from GitHub:
 pip install https://github.com/drivendataorg/cloudpathlib.git#egg=cloudpathlib[all]
 ```
 
-Note that you similarly need to specify cloud dependencies, such as `all` in the above example command.
+Note that you similarly need to specify cloud service dependencies, such as `all` in the above example command.
 
 ## Quick usage
 
-Here's an example to get the gist of using the package:
+Here's an example to get the gist of using the package. By default, `cloudpathlib` authenticates with the environment variables supported by each respective cloud service SDK. For more details and advanced authentication options, see the ["Authentication"](https://cloudpathlib.drivendata.org/authentication/) documentation.
 
 ```python
 from cloudpathlib import CloudPath

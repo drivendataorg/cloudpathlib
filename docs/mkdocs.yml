@@ -13,7 +13,7 @@ extra_css:
 nav:
   - Home: "index.md"
   - Why cloudpathlib?: "why_cloudpathlib.ipynb"
-  - Authentication: "authentication.ipynb"
+  - Authentication: "authentication.md"
   - Caching: "caching.ipynb"
   - API Reference:
       - CloudPath: "api-reference/cloudpath.md"
