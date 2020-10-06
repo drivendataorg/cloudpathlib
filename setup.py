@@ -61,4 +61,5 @@ setup(
         "Source Code": "https://github.com/drivendataorg/cloudpathlib",
     },
     url="https://github.com/drivendataorg/cloudpathlib",
+    version="0.1.0",
 )
