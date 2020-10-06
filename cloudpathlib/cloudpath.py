@@ -332,6 +332,9 @@ class CloudPath(metaclass=CloudPathMeta):
         # create any directories that may be needed if the file is new
         if not self._local.exists():
             self._local.parent.mkdir(parents=True, exist_ok=True)
+            original_mtime = 0
+        else:
+            original_mtime = self._local.stat().st_mtime
 
         buffer = self._local.open(
             mode=mode,
@@ -350,6 +353,14 @@ class CloudPath(metaclass=CloudPathMeta):
             # when the buffer is closed
             def _patched_close(*args, **kwargs):
                 original_close(*args, **kwargs)
+
+                # original mtime should match what was in the cloud; because of system clocks or rounding
+                # by the cloud provider, the new version in our cache is "older" than the original version;
+                # explicitly set the new modified time to be after the original modified time.
+                if self._local.stat().st_mtime < original_mtime:
+                    new_mtime = original_mtime + 1
+                    os.utime(self._local, times=(new_mtime, new_mtime))
+
                 self._upload_local_to_cloud(force_overwrite_to_cloud=force_overwrite_to_cloud)
 
             buffer.close = _patched_close

@@ -12,6 +12,9 @@ extra_css:
 
 nav:
   - Home: "index.md"
+  - Why cloudpathlib?: "why_cloudpathlib.ipynb"
+  - Authentication: "authentication.md"
+  - Caching: "caching.ipynb"
   - API Reference:
       - CloudPath: "api-reference/cloudpath.md"
       - S3:
@@ -26,9 +29,12 @@ markdown_extensions:
   - pymdownx.superfences
   - toc:
       permalink: True
+  - codehilite:
+      use_pygments: true
 
 plugins:
   - search
+  - mkdocs-jupyter
   - mkdocstrings:
       default_handler: python
       handlers:

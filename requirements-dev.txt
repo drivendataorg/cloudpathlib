@@ -2,11 +2,14 @@
 
 black
 flake8
+matplotlib
 mkdocs>=1.1
+mkdocs-jupyter
 mkdocs-material
 mkdocstrings
 mypy
 pandas
+pillow
 pytest
 pytest-cases
 pytest-cov
