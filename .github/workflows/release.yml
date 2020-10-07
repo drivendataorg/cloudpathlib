@@ -27,7 +27,7 @@ jobs:
       - name: Check that versions match
         run: |
           echo "${{ github.event.release.tag_name }}"
-          PACKAGE_VERSION=$(cloudpathlib --version)
+          PACKAGE_VERSION=$(python -c "import cloudpathlib; print(cloudpathlib.__version__)")
           echo $PACKAGE_VERSION
           [ ${{ github.event.release.tag_name }} == "v$PACKAGE_VERSION" ] || { exit 1; }
 
