@@ -68,7 +68,7 @@ class MockBoto3Object:
             # same file, touch
             self.path.touch()
         else:
-            self.path.write_bytes((self.root / Path(CopySource["Key"])).read_bytes)
+            self.path.write_bytes((self.root / Path(CopySource["Key"])).read_bytes())
 
     def download_file(self, to_path):
         to_path = Path(to_path)
