@@ -1,5 +1,5 @@
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from azure.storage.blob import BlobServiceClient
 import boto3
@@ -83,7 +83,8 @@ def azure_rig(request, monkeypatch, assets_dir):
         ]
         for test_file in test_files:
             blob_client = blob_service_client.get_blob_client(
-                container=drive, blob=f"{test_dir}/{test_file.relative_to(assets_dir)}"
+                container=drive,
+                blob=str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
             )
             blob_client.upload_blob(test_file.read_bytes(), overwrite=True)
     else:
@@ -126,7 +127,10 @@ def s3_rig(request, monkeypatch, assets_dir):
             f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
         ]
         for test_file in test_files:
-            bucket.upload_file(str(test_file), f"{test_dir}/{test_file.relative_to(assets_dir)}")
+            bucket.upload_file(
+                str(test_file),
+                str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
+            )
     else:
         # Mock cloud SDK
         monkeypatch.setattr(
