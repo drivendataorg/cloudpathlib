@@ -51,11 +51,11 @@ jobs:
         if: matrix.python-version == 3.8
 
       - name: Build distribution and test installation
+        shell: bash
         run: |
           make dist
-          PACKAGE_VERSION=$(python -c "import cloudpathlib; print(cloudpathlib.__version__)")
-          python -m pip install dist/cloudpathlib-${PACKAGE_VERSION}-py3-none-any.whl --no-deps --force-reinstall
-          python -m pip install dist/cloudpathlib-${PACKAGE_VERSION}.tar.gz --no-deps --force-reinstall
+          python -m pip install dist/cloudpathlib-*.whl --no-deps --force-reinstall
+          python -m pip install dist/cloudpathlib-*.tar.gz --no-deps --force-reinstall
 
       - name: Test building documentation
         run: |
