@@ -74,6 +74,8 @@ def azure_rig(request, monkeypatch, assets_dir):
     test_dir = create_test_dir_name(request)
 
     if os.getenv("USE_LIVE_CLOUD") == "1":
+        assert "LIVE_AZURE_CONTAINER" in os.environ
+        assert "AZURE_STORAGE_CONNECTION_STRING" in os.environ
         # Set up test assets
         blob_service_client = BlobServiceClient.from_connection_string(
             os.getenv("AZURE_STORAGE_CONNECTION_STRING")
@@ -121,6 +123,10 @@ def s3_rig(request, monkeypatch, assets_dir):
     test_dir = create_test_dir_name(request)
 
     if os.getenv("USE_LIVE_CLOUD") == "1":
+        assert "LIVE_S3_BUCKET" in os.environ
+        assert (
+            "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ
+        ) or "AWS_PROFILE" in os.environ
         # Set up test assets
         bucket = boto3.resource("s3").Bucket(drive)
         test_files = [
