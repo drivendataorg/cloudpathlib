@@ -2,7 +2,7 @@ import os
 from pathlib import Path, PurePosixPath
 
 from azure.storage.blob import BlobServiceClient
-import boto3
+from boto3.session import Session
 from dotenv import find_dotenv, load_dotenv
 from pytest_cases import fixture, fixture_union
 from shortuuid import uuid
@@ -129,7 +129,8 @@ def s3_rig(request, monkeypatch, assets_dir):
             "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ
         ) or "AWS_PROFILE" in os.environ
         # Set up test assets
-        bucket = boto3.resource("s3").Bucket(drive)
+        session = Session()
+        bucket = session.resource("s3").Bucket(drive)
         test_files = [
             f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
         ]
