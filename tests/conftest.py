@@ -70,7 +70,7 @@ def create_test_dir_name(request) -> str:
 
 @fixture()
 def azure_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_AZURE_CONTAINER", "container")
+    drive = "cloudpathlib-test-container"
     test_dir = create_test_dir_name(request)
 
     if os.getenv("USE_LIVE_CLOUD") == "1":
@@ -119,7 +119,7 @@ def azure_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def s3_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_S3_BUCKET", "bucket")
+    drive = "cloudpathlib-test-bucket"
     test_dir = create_test_dir_name(request)
 
     if os.getenv("USE_LIVE_CLOUD") == "1":
