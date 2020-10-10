@@ -70,7 +70,7 @@ def create_test_dir_name(request) -> str:
 
 @fixture()
 def azure_rig(request, monkeypatch, assets_dir):
-    drive = "cloudpathlib-test-container"
+    drive = os.getenv("LIVE_AZURE_CONTAINER", "container")
     test_dir = create_test_dir_name(request)
 
     if os.getenv("USE_LIVE_CLOUD") == "1":
@@ -119,11 +119,12 @@ def azure_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def s3_rig(request, monkeypatch, assets_dir):
-    drive = "cloudpathlib-test-bucket"
+    drive = os.getenv("LIVE_S3_BUCKET", "bucket")
     test_dir = create_test_dir_name(request)
 
     if os.getenv("USE_LIVE_CLOUD") == "1":
         assert "LIVE_S3_BUCKET" in os.environ
+        assert drive == "cloudpathlib-test-bucket"
         assert (
             "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ
         ) or "AWS_PROFILE" in os.environ
