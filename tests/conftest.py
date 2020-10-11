@@ -135,7 +135,10 @@ def s3_rig(request, monkeypatch, assets_dir):
         secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         print("len(secret_access_key):", len(secret_access_key))
         # Set up test assets
-        session = Session()
+        session = Session(
+            aws_access_key_id=access_key_id,
+            aws_secret_access_key=secret_access_key,
+        )
         bucket = session.resource("s3").Bucket(drive)
         test_files = [
             f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
