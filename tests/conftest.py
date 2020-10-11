@@ -128,6 +128,12 @@ def s3_rig(request, monkeypatch, assets_dir):
         assert (
             "AWS_ACCESS_KEY_ID" in os.environ and "AWS_SECRET_ACCESS_KEY" in os.environ
         ) or "AWS_PROFILE" in os.environ
+        bucket_name = os.getenv("LIVE_S3_BUCKET")
+        print("len(bucket_name):", len(bucket_name))
+        access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+        print("len(access_key_id):", len(access_key_id))
+        secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        print("len(secret_access_key):", len(secret_access_key))
         # Set up test assets
         session = Session()
         bucket = session.resource("s3").Bucket(drive)
