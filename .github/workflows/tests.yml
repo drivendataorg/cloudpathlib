@@ -41,7 +41,7 @@ jobs:
 
       - name: Check permissions
         run: |
-          python acl.py
+          python permissions.py
         env:
           LIVE_AZURE_CONTAINER: ${{ secrets.LIVE_AZURE_CONTAINER }}
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
