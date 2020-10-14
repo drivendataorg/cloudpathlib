@@ -20,7 +20,7 @@ def load_requirements(path: Path):
     return requirements
 
 
-readme = Path("README.md").read_text()
+readme = Path("README.md").read_text(encoding="UTF-8")
 
 extra_reqs = {}
 for req_path in (Path(__file__).parent / "requirements").glob("*.txt"):
