@@ -1,6 +1,6 @@
 import collections
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
 
@@ -68,7 +68,7 @@ class MockBoto3Object:
             # same file, touch
             self.path.touch()
         else:
-            self.path.write_bytes((self.root / Path(CopySource["Key"])).read_bytes)
+            self.path.write_bytes((self.root / Path(CopySource["Key"])).read_bytes())
 
     def download_file(self, to_path):
         to_path = Path(to_path)
@@ -123,7 +123,11 @@ class MockObjects:
 
     def filter(self, Prefix=""):
         path = self.root / Prefix
-        items = [f for f in path.glob("**/*") if f.is_file() and not f.name.startswith(".")]
+        items = [
+            PurePosixPath(f)
+            for f in path.glob("**/*")
+            if f.is_file() and not f.name.startswith(".")
+        ]
         return MockCollection(items, self.root)
 
 
@@ -145,8 +149,8 @@ class MockCollection:
 
     def delete(self):
         for p in self.full_paths:
-            p.unlink()
-            delete_empty_parents_up_to_root(p, self.root)
+            Path(p).unlink()
+            delete_empty_parents_up_to_root(Path(p), self.root)
 
         return [{"ResponseMetadata": {"HTTPStatusCode": 200}}]
 

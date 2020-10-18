@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+from pathlib import PurePosixPath
 from time import sleep
 
 import pytest
@@ -80,9 +81,12 @@ def test_file_read_writes(rig, tmp_path):
     dl_dir.mkdir(parents=True, exist_ok=True)
     p3.download_to(dl_dir)
     cloud_rel_paths = sorted(
-        [p._no_prefix_no_drive[len(rig.test_dir) + 1 :] for p in p3.glob("**/*")]
+        # CloudPath("prefix://drive/dir/file.txt")._no_prefix_no_drive = "/dir/file.txt"
+        [p._no_prefix_no_drive[len(rig.test_dir) + 2 :] for p in p3.glob("**/*")]
     )
-    dled_rel_paths = sorted([str(p)[len(str(dl_dir)) :] for p in dl_dir.glob("**/*")])
+    dled_rel_paths = sorted(
+        [str(PurePosixPath(p.relative_to(dl_dir))) for p in dl_dir.glob("**/*")]
+    )
     assert cloud_rel_paths == dled_rel_paths
 
 

@@ -2,6 +2,8 @@
 
 black
 flake8
+ipython
+jupyter
 matplotlib
 mkdocs>=1.1
 mkdocs-jupyter
@@ -14,6 +16,7 @@ pytest
 pytest-cases
 pytest-cov
 python-dotenv
+pywin32; sys_platform == 'win32'
 shortuuid
 tabulate
 wheel

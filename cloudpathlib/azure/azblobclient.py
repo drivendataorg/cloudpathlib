@@ -95,7 +95,12 @@ class AzureBlobClient(Client):
         )
 
         download_stream = blob.download_blob()
-        Path(local_path).write_bytes(download_stream.readall())
+
+        local_path = Path(local_path)
+
+        local_path.parent.mkdir(exist_ok=True, parents=True)
+
+        local_path.write_bytes(download_stream.readall())
 
         return local_path
 

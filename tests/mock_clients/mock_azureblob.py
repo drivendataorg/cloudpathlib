@@ -1,5 +1,5 @@
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
 
@@ -114,15 +114,15 @@ def mock_item_paged(root, name_starts_with=None):
             and f.is_file()
             and (root / name_starts_with) in [f, *f.parents]
         ):
-            items.append(f)
+            items.append((PurePosixPath(f), f))
 
-    for ix in items:
+    for mocked, local in items:
         # BlobProperties
         # https://github.com/Azure/azure-sdk-for-python/blob/b83018de46d4ecb6554ab33ecc22d4c7e7b77129/sdk/storage/azure-storage-blob/azure/storage/blob/_models.py#L517
         yield BlobProperties(
             **{
-                "name": str(ix.relative_to(root)),
-                "Last-Modified": datetime.fromtimestamp(ix.stat().st_mtime),
+                "name": str(mocked.relative_to(PurePosixPath(root))),
+                "Last-Modified": datetime.fromtimestamp(local.stat().st_mtime),
                 "ETag": "etag",
             }
         )
