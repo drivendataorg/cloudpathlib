@@ -57,7 +57,7 @@ You can get latest development version from GitHub:
 pip install https://github.com/drivendataorg/cloudpathlib.git#egg=cloudpathlib[all]
 ```
 
-Note that you similarly need to specify cloud service dependencies, such as `all` in the above example command. 
+Note that you similarly need to specify cloud service dependencies, such as `all` in the above example command.
 
 ## Quick usage
 
