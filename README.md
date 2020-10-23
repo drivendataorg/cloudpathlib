@@ -39,6 +39,16 @@ Currently supported cloud storage services are: `azure`, `s3`. You can also use 
 
 If you do not specify any extras or separately install any cloud SDKs, you will only be able to develop with the base classes for rolling your own cloud path class.
 
+### conda
+
+`cloudpathlib` is also available using `conda` from conda-forge. Note that to install the necessary cloud service SDK dependency, you should include the appropriate suffix in the package name. For example:
+
+```bash
+conda install cloudpathlib-s3 -c conda-forge
+```
+
+If no suffix is used, only the base classes will be usable. The `-all` package will similarly install all dependencies. 
+
 ### Development version
 
 You can get latest development version from GitHub:
@@ -47,7 +57,7 @@ You can get latest development version from GitHub:
 pip install https://github.com/drivendataorg/cloudpathlib.git#egg=cloudpathlib[all]
 ```
 
-Note that you similarly need to specify cloud service dependencies, such as `all` in the above example command.
+Note that you similarly need to specify cloud service dependencies, such as `all` in the above example command. See the [conda-forge/cloudpathlib-feedstock](https://github.com/conda-forge/cloudpathlib-feedstock) for all options.
 
 ## Quick usage
 
