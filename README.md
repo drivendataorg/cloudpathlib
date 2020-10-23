@@ -47,7 +47,7 @@ If you do not specify any extras or separately install any cloud SDKs, you will 
 conda install cloudpathlib-s3 -c conda-forge
 ```
 
-If no suffix is used, only the base classes will be usable. The `-all` package will similarly install all dependencies. 
+If no suffix is used, only the base classes will be usable. See the [conda-forge/cloudpathlib-feedstock](https://github.com/conda-forge/cloudpathlib-feedstock) for all installation options.
 
 ### Development version
 
@@ -57,7 +57,7 @@ You can get latest development version from GitHub:
 pip install https://github.com/drivendataorg/cloudpathlib.git#egg=cloudpathlib[all]
 ```
 
-Note that you similarly need to specify cloud service dependencies, such as `all` in the above example command. See the [conda-forge/cloudpathlib-feedstock](https://github.com/conda-forge/cloudpathlib-feedstock) for all options.
+Note that you similarly need to specify cloud service dependencies, such as `all` in the above example command. 
 
 ## Quick usage
 
