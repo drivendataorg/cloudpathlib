@@ -684,7 +684,7 @@ class CloudPath(metaclass=CloudPathMeta):
 #
 # Based on resolve from pathlib:
 # https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L316-L359
-def _resolve(path: PurePosixPath):
+def _resolve(path: PurePosixPath) -> str:
     sep = "/"
 
     # rebuild path from parts
