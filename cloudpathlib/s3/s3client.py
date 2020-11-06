@@ -189,4 +189,4 @@ class S3Client(Client):
         return cloud_path
 
 
-S3Client.S3Path = S3Client.CloudPath
+S3Client.S3Path = S3Client.CloudPath  # type: ignore

@@ -8,10 +8,6 @@ from typing import Any, IO, Iterable, Union
 from urllib.parse import urlparse
 from warnings import warn
 
-from ._vendored import resolve
-
-PurePosixPath.resolve = resolve
-
 
 # Custom Exceptions
 class MissingDependencies(Exception):
@@ -454,14 +450,14 @@ class CloudPath(metaclass=CloudPathMeta):
         # Paths should always be resolved and then converted to the same client + class as this one
         if isinstance(path_version, PurePosixPath):
             # always resolve since cloud paths must be absolute
-            path_version = path_version.resolve()
+            path_version = _resolve(path_version)
             return self._new_cloudpath(path_version)
 
         if isinstance(path_version, collections.abc.Iterable) and isinstance(
             path_version[0], PurePosixPath
         ):
             return [
-                self._new_cloudpath(p.resolve()) for p in path_version if p.resolve() != p.root
+                self._new_cloudpath(_resolve(p)) for p in path_version if _resolve(p) != p.root
             ]
 
         # when pathlib returns a string, etc. we probably just want that thing
@@ -679,3 +675,28 @@ class CloudPath(metaclass=CloudPathMeta):
             f"(2) pass `force_overwrite_to_cloud=True` to "
             f"overwrite."
         )
+
+
+# The function resolve is not available on Pure paths because it removes relative
+# paths and symlinks. We _just_ want the relative path resolution for
+# cloud paths, so the other logic is removed.  Also, we can assume that
+# cloud paths are absolute.
+#
+# Based on resolve from pathlib:
+# https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L316-L359
+def _resolve(path: PurePosixPath) -> str:
+    sep = "/"
+
+    # rebuild path from parts
+    newpath = ""
+    for name in str(path).split(sep):
+        if not name or name == ".":
+            # current dir, nothing to add
+            continue
+        if name == "..":
+            # parent dir, drop right-most part
+            newpath, _, _ = newpath.rpartition(sep)
+            continue
+        newpath = newpath + sep + name
+
+    return newpath or sep
