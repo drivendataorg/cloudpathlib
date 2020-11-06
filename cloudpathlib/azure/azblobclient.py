@@ -208,4 +208,4 @@ class AzureBlobClient(Client):
         return cloud_path
 
 
-AzureBlobClient.AzureBlobPath = AzureBlobClient.CloudPath
+AzureBlobClient.AzureBlobPath = AzureBlobClient.CloudPath  # type: ignore
