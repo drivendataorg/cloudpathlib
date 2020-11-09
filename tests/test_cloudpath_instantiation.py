@@ -56,6 +56,17 @@ def test_instantiation_errors(rig):
         rig.path_class("NOT_S3_PATH")
 
 
+def test_idempotency(rig):
+    rig.client_class._default_client = None
+
+    client = rig.client_class()
+    p = client.CloudPath(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/dir_0/file0_0.txt")
+
+    p2 = CloudPath(p)
+    assert p == p2
+    assert p.client == p2.client
+
+
 def test_dependencies_not_loaded(rig, monkeypatch):
     monkeypatch.setattr(rig.path_class._cloud_meta, "dependencies_loaded", False)
     with pytest.raises(MissingDependencies):
