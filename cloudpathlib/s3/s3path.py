@@ -1,13 +1,19 @@
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import TYPE_CHECKING
 
 from ..cloudpath import CloudPath, register_path_class
+
+
+if TYPE_CHECKING:
+    from .s3client import S3Client
 
 
 @register_path_class("s3")
 class S3Path(CloudPath):
     cloud_prefix: str = "s3://"
+    client: "S3Client"
 
     @property
     def drive(self) -> str:

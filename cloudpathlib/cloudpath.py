@@ -4,9 +4,13 @@ import collections.abc
 import fnmatch
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
-from typing import Any, IO, Iterable, Union
+from typing import Any, IO, Iterable, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
+
+
+if TYPE_CHECKING:
+    from .client import Client
 
 
 # Custom Exceptions
@@ -141,7 +145,7 @@ class CloudPath(metaclass=CloudPathMeta):
     _cloud_meta: CloudImplementation
     cloud_prefix: str
 
-    def __init__(self, cloud_path: Union[str, "CloudPath"], client=None):
+    def __init__(self, cloud_path: Union[str, "CloudPath"], client: Optional["Client"] = None):
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
 
         # versions of the raw string that provide useful methods
@@ -155,13 +159,13 @@ class CloudPath(metaclass=CloudPathMeta):
                 client = cloud_path.client
             else:
                 client = self._cloud_meta.client_class.get_default_client()
-        if type(client) != self._cloud_meta.client_class:
+        if not isinstance(client, self._cloud_meta.client_class):
             raise ClientMismatch(
                 f"Client of type [{client.__class__}] is not valid for cloud path of type "
                 f"[{self.__class__}]; must be instance of [{self._cloud_meta.client_class}], or "
                 f"None to use default client for this cloud path class."
             )
-        self.client = client
+        self.client: Client = client
 
         # track if local has been written to, if so it may need to be uploaded
         self._dirty = False

@@ -1,13 +1,19 @@
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import TYPE_CHECKING
 
 from ..cloudpath import CloudPath, register_path_class
+
+
+if TYPE_CHECKING:
+    from .azblobclient import AzureBlobClient
 
 
 @register_path_class("azure")
 class AzureBlobPath(CloudPath):
     cloud_prefix: str = "az://"
+    client: "AzureBlobClient"
 
     @property
     def drive(self) -> str:
