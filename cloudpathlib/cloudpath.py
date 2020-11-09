@@ -151,7 +151,10 @@ class CloudPath(metaclass=CloudPathMeta):
 
         # setup client
         if client is None:
-            client = self._cloud_meta.client_class.get_default_client()
+            if isinstance(cloud_path, CloudPath):
+                client = cloud_path.client
+            else:
+                client = self._cloud_meta.client_class.get_default_client()
         if type(client) != self._cloud_meta.client_class:
             raise ClientMismatch(
                 f"Client of type [{client.__class__}] is not valid for cloud path of type "
