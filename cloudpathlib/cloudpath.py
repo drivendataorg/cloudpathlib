@@ -460,7 +460,7 @@ class CloudPath(metaclass=CloudPathMeta):
             path_version = _resolve(path_version)
             return self._new_cloudpath(path_version)
 
-        if isinstance(path_version, collections.abc.Iterable) and isinstance(
+        if isinstance(path_version, collections.abc.Sequence) and isinstance(
             path_version[0], PurePosixPath
         ):
             return [
