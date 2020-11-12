@@ -56,12 +56,11 @@ class NoStat(Exception):
 
 
 class CloudImplementation:
-    _client_class = None
-    _path_class = None
-
     def __init__(self):
         self.name = None
         self.dependencies_loaded = True
+        self._client_class = None
+        self._path_class = None
 
     def validate_completeness(self):
         expected = ["client_class", "path_class"]
