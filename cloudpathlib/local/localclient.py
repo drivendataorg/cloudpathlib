@@ -33,47 +33,59 @@ class LocalClient(Client):
         # make sure temporary local_storage_dir is cleaned up if we created it
         if self._storage_tmp_dir is not None:
             self._storage_tmp_dir.cleanup()
+        super().__del__()
 
-    def _get_local_storage_path(self, cloud_path: "LocalPath") -> Path:
-        return self._local_cache_dir / cloud_path._no_prefix
+    def _cloud_path_to_local(self, cloud_path: "LocalPath") -> Path:
+        return self._local_storage_dir / cloud_path._no_prefix
+
+    def _local_to_cloud_path(self, local_path: Union[str, os.PathLike]) -> "LocalPath":
+        local_path = Path(local_path)
+        cloud_prefix = self._cloud_meta.path_class.cloud_prefix
+        return self.CloudPath(
+            f"{cloud_prefix}{str(local_path.relative_to(self._local_storage_dir))}"
+        )
 
     def _download_file(
         self, cloud_path: "LocalPath", local_path: Union[str, os.PathLike]
     ) -> Union[str, os.PathLike]:
-        Path(local_path).parent.mkdir(exist_ok=True, parents=True)
-        shutil.copy2(self._get_local_storage_path(cloud_path), local_path)
+        local_path = Path(local_path)
+        local_path.parent.mkdir(exist_ok=True, parents=True)
+        shutil.copyfile(self._cloud_path_to_local(cloud_path), local_path)
         return local_path
 
     def _exists(self, cloud_path: "LocalPath") -> bool:
-        return self._get_local_storage_path(cloud_path).exists()
+        return self._cloud_path_to_local(cloud_path).exists()
 
     def _is_dir(self, cloud_path: "LocalPath") -> bool:
-        return self._get_local_storage_path(cloud_path).is_dir()
+        return self._cloud_path_to_local(cloud_path).is_dir()
 
     def _is_file(self, cloud_path: "LocalPath") -> bool:
-        return self._get_local_storage_path(cloud_path).is_file()
+        return self._cloud_path_to_local(cloud_path).is_file()
 
     def _list_dir(self, cloud_path: "LocalPath", recursive=False) -> Iterable["LocalPath"]:
         if recursive:
             return (
-                self.CloudPath(obj)
-                for obj in self._get_local_storage_path(cloud_path).glob("**/*")
+                self._local_to_cloud_path(obj)
+                for obj in self._cloud_path_to_local(cloud_path).glob("**/*")
             )
-        return (self.CloudPath(obj) for obj in self._get_local_storage_path(cloud_path).iterdir())
+        return (
+            self._local_to_cloud_path(obj)
+            for obj in self._cloud_path_to_local(cloud_path).iterdir()
+        )
 
     def _move_file(self, src: "LocalPath", dst: "LocalPath") -> "LocalPath":
-        self._get_local_storage_path(src).replace(self._get_local_storage_path(dst))
+        self._cloud_path_to_local(src).replace(self._cloud_path_to_local(dst))
         return dst
 
     def _remove(self, cloud_path: "LocalPath") -> None:
-        local_storage_path = self._get_local_storage_path(cloud_path)
+        local_storage_path = self._cloud_path_to_local(cloud_path)
         if local_storage_path.is_file():
             local_storage_path.unlink()
         elif local_storage_path.is_dir():
             shutil.rmtree(local_storage_path)
 
     def _stat(self, cloud_path: "LocalPath") -> os.stat_result:
-        stat_result = self._get_local_storage_path(cloud_path).stat()
+        stat_result = self._cloud_path_to_local(cloud_path).stat()
 
         return os.stat_result(
             (
@@ -91,12 +103,12 @@ class LocalClient(Client):
         )
 
     def _touch(self, cloud_path: "LocalPath") -> None:
-        local_storage_path = self._get_local_storage_path(cloud_path)
+        local_storage_path = self._cloud_path_to_local(cloud_path)
         local_storage_path.parent.mkdir(exist_ok=True, parents=True)
         local_storage_path.touch()
 
     def _upload_file(
         self, local_path: Union[str, os.PathLike], cloud_path: "LocalPath"
     ) -> "LocalPath":
-        shutil.copy(local_path, self._get_local_storage_path(cloud_path))
+        shutil.copy(local_path, self._cloud_path_to_local(cloud_path))
         return cloud_path
