@@ -1,5 +1,7 @@
 import os
 from pathlib import Path, PurePosixPath
+import shutil
+from tempfile import TemporaryDirectory
 
 from azure.storage.blob import BlobServiceClient
 import boto3
@@ -9,6 +11,8 @@ from pytest_cases import fixture, fixture_union
 from shortuuid import uuid
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
+from cloudpathlib.cloudpath import implementation_registry
+from cloudpathlib.local import LocalAzureBlobClient, LocalAzureBlobPath, LocalS3Client, LocalS3Path
 import cloudpathlib.azure.azblobclient
 import cloudpathlib.s3.s3client
 from .mock_clients.mock_azureblob import mocked_client_class_factory
@@ -197,4 +201,37 @@ def s3_rig(request, monkeypatch, assets_dir):
         bucket.objects.filter(Prefix=test_dir).delete()
 
 
-rig = fixture_union("rig", [azure_rig, gs_rig, s3_rig])
+@fixture()
+def local_s3_rig(request, monkeypatch, assets_dir):
+    drive = os.getenv("LIVE_S3_BUCKET", "bucket")
+    test_dir = create_test_dir_name(request)
+
+    local_storage_tmp_dir = TemporaryDirectory()
+    shutil.copytree(assets_dir, Path(local_storage_tmp_dir.name) / drive / test_dir)
+
+    monkeypatch.setattr(implementation_registry["s3"], "_client_class", LocalS3Client)
+    monkeypatch.setattr(implementation_registry["s3"], "_path_class", LocalS3Path)
+
+    rig = CloudProviderTestRig(
+        path_class=implementation_registry["s3"].path_class,
+        client_class=implementation_registry["s3"].client_class,
+        drive=drive,
+        test_dir=test_dir,
+    )
+
+    rig.client_class(
+        local_storage_dir=Path(local_storage_tmp_dir.name)
+    ).set_as_default_client()  # set default client
+
+    print("_local_storage_dir", rig.client_class.get_default_client()._local_storage_dir)
+    print(list(rig.client_class.get_default_client()._local_storage_dir.glob("**/*")))
+    print("_local_cache_dir", rig.client_class.get_default_client()._local_cache_dir)
+    print(list(rig.client_class.get_default_client()._local_cache_dir.glob("**/*")))
+
+    yield rig
+
+    rig.client_class._default_client = None  # reset default client
+    local_storage_tmp_dir.cleanup()
+
+
+rig = fixture_union("rig", [azure_rig, gs_rig, s3_rig, local_s3_rig])
