@@ -105,7 +105,7 @@ class LocalClient(Client):
 
         return os.stat_result(
             (  # type: ignore
-                None,  # mode
+                None,  # mode # type: ignore
                 None,  # ino
                 cloud_path.cloud_prefix,  # dev,
                 None,  # nlink,
