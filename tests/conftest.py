@@ -1,7 +1,6 @@
 import os
 from pathlib import Path, PurePosixPath
 import shutil
-from tempfile import TemporaryDirectory
 
 from azure.storage.blob import BlobServiceClient
 import boto3
@@ -202,12 +201,40 @@ def s3_rig(request, monkeypatch, assets_dir):
 
 
 @fixture()
+def local_azure_rig(request, monkeypatch, assets_dir):
+    drive = os.getenv("LIVE_AZURE_CONTAINER", "container")
+    test_dir = create_test_dir_name(request)
+
+    # copy test assets
+    shutil.copytree(
+        assets_dir, Path(LocalAzureBlobClient.default_storage_dir.name) / drive / test_dir
+    )
+
+    monkeypatch.setattr(implementation_registry["azure"], "_client_class", LocalAzureBlobClient)
+    monkeypatch.setattr(implementation_registry["azure"], "_path_class", LocalAzureBlobPath)
+
+    rig = CloudProviderTestRig(
+        path_class=implementation_registry["azure"].path_class,
+        client_class=implementation_registry["azure"].client_class,
+        drive=drive,
+        test_dir=test_dir,
+    )
+
+    rig.client_class().set_as_default_client()  # set default client
+
+    yield rig
+
+    rig.client_class._default_client = None  # reset default client
+    rig.client_class.reset_default_storage_dir()  # reset local storage directory
+
+
+@fixture()
 def local_s3_rig(request, monkeypatch, assets_dir):
     drive = os.getenv("LIVE_S3_BUCKET", "bucket")
     test_dir = create_test_dir_name(request)
 
-    local_storage_tmp_dir = TemporaryDirectory()
-    shutil.copytree(assets_dir, Path(local_storage_tmp_dir.name) / drive / test_dir)
+    # copy test assets
+    shutil.copytree(assets_dir, Path(LocalS3Client.default_storage_dir.name) / drive / test_dir)
 
     monkeypatch.setattr(implementation_registry["s3"], "_client_class", LocalS3Client)
     monkeypatch.setattr(implementation_registry["s3"], "_path_class", LocalS3Path)
@@ -219,19 +246,16 @@ def local_s3_rig(request, monkeypatch, assets_dir):
         test_dir=test_dir,
     )
 
-    rig.client_class(
-        local_storage_dir=Path(local_storage_tmp_dir.name)
-    ).set_as_default_client()  # set default client
-
-    print("_local_storage_dir", rig.client_class.get_default_client()._local_storage_dir)
-    print(list(rig.client_class.get_default_client()._local_storage_dir.glob("**/*")))
-    print("_local_cache_dir", rig.client_class.get_default_client()._local_cache_dir)
-    print(list(rig.client_class.get_default_client()._local_cache_dir.glob("**/*")))
+    rig.client_class().set_as_default_client()  # set default client
 
     yield rig
 
     rig.client_class._default_client = None  # reset default client
-    local_storage_tmp_dir.cleanup()
+    rig.client_class.reset_default_storage_dir()  # reset local storage directory
 
 
-rig = fixture_union("rig", [azure_rig, gs_rig, s3_rig, local_s3_rig])
+rig_matrix = [azure_rig, gs_rig, s3_rig]
+if os.getenv("USE_LIVE_CLOUD") != "1":
+    rig_matrix += [local_azure_rig, local_s3_rig]
+
+rig = fixture_union("rig", rig_matrix)

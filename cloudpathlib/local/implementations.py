@@ -49,11 +49,11 @@ class LocalAzureBlobPath(LocalPath):
 
     @property
     def etag(self):
-        return self.client._get_metadata(self).get("etag", None)
+        return self.client._md5(self)
 
     @property
     def md5(self) -> str:
-        return self.client._get_metadata(self).get("content_settings", {}).get("content_md5", None)
+        return self.client._md5(self)
 
 
 LocalAzureBlobPath.__name__ = "AzureBlobPath"
@@ -109,7 +109,7 @@ class LocalS3Path(LocalPath):
 
     @property
     def etag(self):
-        return self.client._get_metadata(self).get("etag")
+        return self.client._md5(self)
 
 
 LocalS3Path.__name__ = "S3Path"
