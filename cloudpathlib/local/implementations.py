@@ -3,7 +3,9 @@ from .localclient import LocalClient
 from .localpath import LocalPath
 
 
-_local_azure_blob_implementation = CloudImplementation()
+local_azure_blob_implementation = CloudImplementation()
+"""Replacement for "azure" CloudImplementation meta object in
+cloudpathlib.implementation_registry"""
 
 
 class LocalAzureBlobClient(LocalClient):
@@ -11,7 +13,7 @@ class LocalAzureBlobClient(LocalClient):
     substitute when writing tests.
     """
 
-    _cloud_meta = _local_azure_blob_implementation
+    _cloud_meta = local_azure_blob_implementation
 
 
 LocalAzureBlobClient.AzureBlobPath = LocalAzureBlobClient.CloudPath  # type: ignore
@@ -23,7 +25,7 @@ class LocalAzureBlobPath(LocalPath):
     """
 
     cloud_prefix: str = "az://"
-    _cloud_meta = _local_azure_blob_implementation
+    _cloud_meta = local_azure_blob_implementation
 
     @property
     def drive(self) -> str:
@@ -58,11 +60,12 @@ class LocalAzureBlobPath(LocalPath):
 
 LocalAzureBlobPath.__name__ = "AzureBlobPath"
 
-_local_azure_blob_implementation._client_class = LocalAzureBlobClient
-_local_azure_blob_implementation._path_class = LocalAzureBlobPath
+local_azure_blob_implementation._client_class = LocalAzureBlobClient
+local_azure_blob_implementation._path_class = LocalAzureBlobPath
 
 
-_local_s3_implementation = CloudImplementation()
+local_s3_implementation = CloudImplementation()
+"""Replacement for "s3" CloudImplementation meta object in cloudpathlib.implementation_registry"""
 
 
 class LocalS3Client(LocalClient):
@@ -70,7 +73,7 @@ class LocalS3Client(LocalClient):
     substitute when writing tests.
     """
 
-    _cloud_meta = _local_s3_implementation
+    _cloud_meta = local_s3_implementation
 
 
 LocalS3Client.S3Path = LocalS3Client.CloudPath  # type: ignore
@@ -82,7 +85,7 @@ class LocalS3Path(LocalPath):
     """
 
     cloud_prefix: str = "s3://"
-    _cloud_meta = _local_s3_implementation
+    _cloud_meta = local_s3_implementation
 
     @property
     def drive(self) -> str:
@@ -114,5 +117,5 @@ class LocalS3Path(LocalPath):
 
 LocalS3Path.__name__ = "S3Path"
 
-_local_s3_implementation._client_class = LocalS3Client
-_local_s3_implementation._path_class = LocalS3Path
+local_s3_implementation._client_class = LocalS3Client
+local_s3_implementation._path_class = LocalS3Path

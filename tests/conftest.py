@@ -206,9 +206,7 @@ def local_azure_rig(request, monkeypatch, assets_dir):
     test_dir = create_test_dir_name(request)
 
     # copy test assets
-    shutil.copytree(
-        assets_dir, Path(LocalAzureBlobClient.default_storage_dir.name) / drive / test_dir
-    )
+    shutil.copytree(assets_dir, LocalAzureBlobClient.get_default_storage_dir() / drive / test_dir)
 
     monkeypatch.setattr(implementation_registry["azure"], "_client_class", LocalAzureBlobClient)
     monkeypatch.setattr(implementation_registry["azure"], "_path_class", LocalAzureBlobPath)
@@ -234,7 +232,7 @@ def local_s3_rig(request, monkeypatch, assets_dir):
     test_dir = create_test_dir_name(request)
 
     # copy test assets
-    shutil.copytree(assets_dir, Path(LocalS3Client.default_storage_dir.name) / drive / test_dir)
+    shutil.copytree(assets_dir, LocalS3Client.get_default_storage_dir() / drive / test_dir)
 
     monkeypatch.setattr(implementation_registry["s3"], "_client_class", LocalS3Client)
     monkeypatch.setattr(implementation_registry["s3"], "_path_class", LocalS3Path)

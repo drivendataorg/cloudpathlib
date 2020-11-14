@@ -14,7 +14,7 @@ class LocalClient(Client):
     """Abstract client for accessing objects the local filesystem. Subclasses are as a monkeypatch
     substitutes for normal Client subclasses when writing tests."""
 
-    default_storage_dir = TemporaryDirectory()
+    _default_storage_temp_dir = None
 
     def __init__(
         self,
@@ -25,20 +25,27 @@ class LocalClient(Client):
     ):
         # setup caching and local versions of file. use default temp dir if not provided
         if local_storage_dir is None:
-            local_storage_dir = self.default_storage_dir.name
+            local_storage_dir = self.get_default_storage_dir()
         self._local_storage_dir = Path(local_storage_dir)
 
         super().__init__(local_cache_dir=local_cache_dir)
 
     @classmethod
-    def reset_default_storage_dir(cls) -> TemporaryDirectory:
+    def get_default_storage_dir(cls) -> Path:
+        if cls._default_storage_temp_dir is None:
+            cls._default_storage_temp_dir = TemporaryDirectory()
+        return Path(cls._default_storage_temp_dir.name)
+
+    @classmethod
+    def reset_default_storage_dir(cls) -> Path:
         cls._cleanup_default_storage_dir()
-        cls.default_storage_dir = TemporaryDirectory()
-        return cls.default_storage_dir
+        cls._default_storage_temp_dir = TemporaryDirectory()
+        return cls.get_default_storage_dir()
 
     @classmethod
     def _cleanup_default_storage_dir(cls) -> None:
-        cls.default_storage_dir.cleanup()
+        if cls._default_storage_temp_dir is not None:
+            cls._default_storage_temp_dir.cleanup()
 
     def _cloud_path_to_local(self, cloud_path: "LocalPath") -> Path:
         return self._local_storage_dir / cloud_path._no_prefix
@@ -119,7 +126,9 @@ class LocalClient(Client):
     def _upload_file(
         self, local_path: Union[str, os.PathLike], cloud_path: "LocalPath"
     ) -> "LocalPath":
-        shutil.copy(local_path, self._cloud_path_to_local(cloud_path))
+        dst = self._cloud_path_to_local(cloud_path)
+        dst.parent.mkdir(exist_ok=True, parents=True)
+        shutil.copy(local_path, dst)
         return cloud_path
 
 
