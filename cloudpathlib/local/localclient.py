@@ -97,7 +97,7 @@ class LocalClient(Client):
         stat_result = self._cloud_path_to_local(cloud_path).stat()
 
         return os.stat_result(
-            (
+            (  # type: ignore
                 None,  # mode
                 None,  # ino
                 cloud_path.cloud_prefix,  # dev,
