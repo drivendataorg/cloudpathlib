@@ -4,7 +4,7 @@ import os
 from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
-from typing import Iterable, Optional, Union
+from typing import Iterable, List, Optional, Union
 
 from ..client import Client
 from .localpath import LocalPath
@@ -34,12 +34,12 @@ class LocalClient(Client):
     def get_default_storage_dir(cls) -> Path:
         if cls._default_storage_temp_dir is None:
             cls._default_storage_temp_dir = TemporaryDirectory()
+            _temp_dirs_to_clean.append(cls._default_storage_temp_dir)
         return Path(cls._default_storage_temp_dir.name)
 
     @classmethod
     def reset_default_storage_dir(cls) -> Path:
-        cls._cleanup_default_storage_dir()
-        cls._default_storage_temp_dir = TemporaryDirectory()
+        cls._default_storage_temp_dir = None
         return cls.get_default_storage_dir()
 
     @classmethod
@@ -132,4 +132,10 @@ class LocalClient(Client):
         return cloud_path
 
 
-atexit.register(LocalClient._cleanup_default_storage_dir)
+_temp_dirs_to_clean: List[TemporaryDirectory] = []
+
+
+@atexit.register
+def clean_temp_dirs():
+    for temp_dir in _temp_dirs_to_clean:
+        temp_dir.cleanup()
