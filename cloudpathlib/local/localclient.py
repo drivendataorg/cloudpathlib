@@ -42,11 +42,6 @@ class LocalClient(Client):
         cls._default_storage_temp_dir = None
         return cls.get_default_storage_dir()
 
-    @classmethod
-    def _cleanup_default_storage_dir(cls) -> None:
-        if cls._default_storage_temp_dir is not None:
-            cls._default_storage_temp_dir.cleanup()
-
     def _cloud_path_to_local(self, cloud_path: "LocalPath") -> Path:
         return self._local_storage_dir / cloud_path._no_prefix
 

@@ -11,7 +11,14 @@ from shortuuid import uuid
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
 from cloudpathlib.cloudpath import implementation_registry
-from cloudpathlib.local import LocalAzureBlobClient, LocalAzureBlobPath, LocalS3Client, LocalS3Path
+from cloudpathlib.local import (
+    local_azure_blob_implementation,
+    LocalAzureBlobClient,
+    LocalAzureBlobPath,
+    local_s3_implementation,
+    LocalS3Client,
+    LocalS3Path,
+)
 import cloudpathlib.azure.azblobclient
 import cloudpathlib.s3.s3client
 from .mock_clients.mock_azureblob import mocked_client_class_factory
@@ -208,12 +215,11 @@ def local_azure_rig(request, monkeypatch, assets_dir):
     # copy test assets
     shutil.copytree(assets_dir, LocalAzureBlobClient.get_default_storage_dir() / drive / test_dir)
 
-    monkeypatch.setattr(implementation_registry["azure"], "_client_class", LocalAzureBlobClient)
-    monkeypatch.setattr(implementation_registry["azure"], "_path_class", LocalAzureBlobPath)
+    monkeypatch.setitem(implementation_registry, "azure", local_azure_blob_implementation)
 
     rig = CloudProviderTestRig(
-        path_class=implementation_registry["azure"].path_class,
-        client_class=implementation_registry["azure"].client_class,
+        path_class=LocalAzureBlobPath,
+        client_class=LocalAzureBlobClient,
         drive=drive,
         test_dir=test_dir,
     )
@@ -234,12 +240,11 @@ def local_s3_rig(request, monkeypatch, assets_dir):
     # copy test assets
     shutil.copytree(assets_dir, LocalS3Client.get_default_storage_dir() / drive / test_dir)
 
-    monkeypatch.setattr(implementation_registry["s3"], "_client_class", LocalS3Client)
-    monkeypatch.setattr(implementation_registry["s3"], "_path_class", LocalS3Path)
+    monkeypatch.setitem(implementation_registry, "s3", local_s3_implementation)
 
     rig = CloudProviderTestRig(
-        path_class=implementation_registry["s3"].path_class,
-        client_class=implementation_registry["s3"].client_class,
+        path_class=LocalS3Path,
+        client_class=LocalS3Client,
         drive=drive,
         test_dir=test_dir,
     )
