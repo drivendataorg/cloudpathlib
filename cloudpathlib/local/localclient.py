@@ -1,7 +1,7 @@
 import atexit
 from hashlib import md5
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
 from typing import Iterable, Optional, Union
@@ -54,7 +54,7 @@ class LocalClient(Client):
         local_path = Path(local_path)
         cloud_prefix = self._cloud_meta.path_class.cloud_prefix
         return self.CloudPath(
-            f"{cloud_prefix}{str(local_path.relative_to(self._local_storage_dir))}"
+            f"{cloud_prefix}{PurePosixPath(local_path.relative_to(self._local_storage_dir))}"
         )
 
     def _download_file(
