@@ -257,8 +257,13 @@ def local_s3_rig(request, monkeypatch, assets_dir):
     rig.client_class.reset_default_storage_dir()  # reset local storage directory
 
 
-rig_matrix = [azure_rig, gs_rig, s3_rig]
-if os.getenv("USE_LIVE_CLOUD") != "1":
-    rig_matrix += [local_azure_rig, local_s3_rig]
-
-rig = fixture_union("rig", rig_matrix)
+rig = fixture_union(
+    "rig",
+    [
+        azure_rig,
+        gs_rig,
+        s3_rig,
+        local_azure_rig,
+        local_s3_rig,
+    ],
+)
