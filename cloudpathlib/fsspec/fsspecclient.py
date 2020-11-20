@@ -59,7 +59,7 @@ class FsspecClient(Client):
 
         return os.stat_result(
             (  # type: ignore
-                info.get("mode"),  # mode
+                info.get("mode"),  # type: ignore # mode
                 None,  # ino
                 cloud_path.cloud_prefix,  # dev,
                 None,  # nlink,
