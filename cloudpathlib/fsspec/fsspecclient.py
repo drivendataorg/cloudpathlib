@@ -2,27 +2,30 @@ import os
 from typing import Iterable, Optional, Union
 
 from ..client import Client
-from .fsspecpath import fsspec_implementation, FsspecPath
+from .fsspecpath import FsspecPath
 
 from fsspec.spec import AbstractFileSystem
-from s3fs import S3FileSystem
 
 
 class FsspecClient(Client):
-    _cloud_meta = fsspec_implementation
+    _filesystem_class: type
 
     def __init__(
         self,
         filesystem: Optional[AbstractFileSystem] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
     ):
-        self.filesystem = S3FileSystem()
+        if filesystem is None:
+            filesystem = self._filesystem_class()
+        self.filesystem = filesystem
+
         super().__init__(local_cache_dir=local_cache_dir)
 
     def _download_file(
         self, cloud_path: FsspecPath, local_path: Union[str, os.PathLike]
     ) -> Union[str, os.PathLike]:
         self.filesystem.get_file(rpath=cloud_path._no_prefix, lpath=local_path)
+        return local_path
 
     def _exists(self, cloud_path: FsspecPath) -> bool:
         return self.filesystem.exists(cloud_path._no_prefix)
@@ -55,7 +58,7 @@ class FsspecClient(Client):
         info = self.filesystem.info(cloud_path._no_prefix)
 
         return os.stat_result(
-            (
+            (  # type: ignore
                 info.get("mode"),  # mode
                 None,  # ino
                 cloud_path.cloud_prefix,  # dev,
@@ -76,6 +79,4 @@ class FsspecClient(Client):
         self, local_path: Union[str, os.PathLike], cloud_path: FsspecPath
     ) -> FsspecPath:
         self.filesystem.put_file(lpath=local_path, rpath=cloud_path._no_prefix)
-
-
-fsspec_implementation._client_class = FsspecClient
+        return cloud_path

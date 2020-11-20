@@ -22,6 +22,7 @@ def load_requirements(path: Path):
 
 readme = Path("README.md").read_text(encoding="UTF-8")
 
+# Standard Extras
 extra_reqs = {}
 for req_path in (Path(__file__).parent / "requirements").glob("*.txt"):
     if req_path.stem == "base":
@@ -31,6 +32,28 @@ for req_path in (Path(__file__).parent / "requirements").glob("*.txt"):
         raise ValueError("'all' is a reserved keyword and can't be used for a cloud provider key")
     extra_reqs[req_path.stem] = load_requirements(req_path)
 extra_reqs["all"] = list(chain(*extra_reqs.values()))
+
+# fsspec Extras
+fsspec_extras = {
+    "abfs": ["adlfs"],
+    "adl": ["adlfs"],
+    "dask": ["dask", "distributed"],
+    "dropbox": ["dropboxdrivefs", "requests", "dropbox"],
+    "gcs": ["gcsfs"],
+    "git": ["pygit2"],
+    "github": ["requests"],
+    "gs": ["gcsfs"],
+    "hdfs": ["pyarrow"],
+    "http": ["requests", "aiohttp"],
+    "sftp": ["paramiko"],
+    "s3": ["s3fs"],
+    "smb": ["smbprotocol"],
+    "ssh": ["paramiko"],
+}
+extra_reqs["fsspec"] = ["fsspec"]
+for name, reqs in fsspec_extras.items():
+    extra_reqs[f"fsspec-{name}"] = ["fsspec"] + reqs
+extra_reqs["fsspec-all"] = list(set(chain(*fsspec_extras.values())))
 
 setup(
     author="DrivenData",

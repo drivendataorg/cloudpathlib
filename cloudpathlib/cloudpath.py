@@ -4,7 +4,7 @@ import collections.abc
 import fnmatch
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
-from typing import Any, IO, Iterable, Optional, TYPE_CHECKING, Union
+from typing import Any, Callable, IO, List, Iterable, Optional, Tuple, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -47,12 +47,11 @@ class DirectoryNotEmpty(Exception):
 
 
 class CloudImplementation:
-    _client_class = None
-    _path_class = None
-
-    def __init__(self):
-        self.name = None
+    def __init__(self, name=None):
+        self.name = name
         self.dependencies_loaded = True
+        self._client_class = None
+        self._path_class = None
 
     def validate_completeness(self):
         expected = ["client_class", "path_class"]
@@ -93,30 +92,35 @@ def register_path_class(key: str):
     return decorator
 
 
+def dispatch_cloud_path(cloud_path, *args, **kwargs):
+    for implementation in implementation_registry.values():
+        path_class = implementation._path_class
+        if path_class is not None and path_class.is_valid_cloudpath(
+            cloud_path, raise_on_error=False
+        ):
+            # Instantiate path_class instance
+            new_obj = path_class.__new__(path_class, cloud_path, *args, **kwargs)
+            if isinstance(new_obj, path_class):
+                path_class.__init__(new_obj, cloud_path, *args, **kwargs)
+            return new_obj
+    valid = [
+        impl._path_class.cloud_prefix
+        for impl in implementation_registry.values()
+        if impl._path_class is not None
+    ]
+    raise InvalidPrefix(f"Path {cloud_path} does not begin with a known prefix " f"{valid}.")
+
+
 class CloudPathMeta(abc.ABCMeta):
+    _dispatch_gates: List[Tuple[type, Callable]] = []
+
     def __call__(cls, cloud_path, *args, **kwargs):
         # cls is a class that is the instance of this metaclass, e.g., CloudPath
 
-        # Dispatch to subclass if base CloudPath
-        if cls == CloudPath:
-            for implementation in implementation_registry.values():
-                path_class = implementation._path_class
-                if path_class is not None and path_class.is_valid_cloudpath(
-                    cloud_path, raise_on_error=False
-                ):
-                    # Instantiate path_class instance
-                    new_obj = path_class.__new__(path_class, cloud_path, *args, **kwargs)
-                    if isinstance(new_obj, path_class):
-                        path_class.__init__(new_obj, cloud_path, *args, **kwargs)
-                    return new_obj
-            valid = [
-                impl._path_class.cloud_prefix
-                for impl in implementation_registry.values()
-                if impl._path_class is not None
-            ]
-            raise InvalidPrefix(
-                f"Path {cloud_path} does not begin with a known prefix " f"{valid}."
-            )
+        # Dispatch to subclass if cls matches a dispatch gate
+        for dispatch_class, dispatch_func in cls._dispatch_gates:
+            if cls is dispatch_class:
+                return dispatch_func(cloud_path, *args, **kwargs)
 
         # Otherwise instantiate as normal
         new_obj = cls.__new__(cls, cloud_path, *args, **kwargs)
@@ -707,3 +711,6 @@ def _resolve(path: PurePosixPath) -> str:
         newpath = newpath + sep + name
 
     return newpath or sep
+
+
+CloudPathMeta._dispatch_gates.append((CloudPath, dispatch_cloud_path))

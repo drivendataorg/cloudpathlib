@@ -1,3 +1,4 @@
+import os
 import sys
 
 from .azure.azblobclient import AzureBlobClient
@@ -39,3 +40,13 @@ __all__ = [
     "S3Client",
     "S3Path",
 ]
+
+try:
+    FSSPEC_MODE = int(os.getenv("FSSPEC_MODE", 0))
+except ValueError:
+    FSSPEC_MODE = 0
+
+if FSSPEC_MODE:
+    import cloudpathlib.fsspec
+
+    implementation_registry = cloudpathlib.fsspec.implementation_registry

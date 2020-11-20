@@ -1,18 +1,14 @@
 from typing import TYPE_CHECKING
 
-from ..cloudpath import CloudImplementation, CloudPath
+from ..cloudpath import CloudPath
 
 
 if TYPE_CHECKING:
     from .fsspecclient import FsspecClient
 
-fsspec_implementation = CloudImplementation()
-
 
 class FsspecPath(CloudPath):
     client: "FsspecClient"
-    cloud_prefix = "s3://"
-    _cloud_meta = fsspec_implementation
 
     @property
     def drive(self) -> str:
@@ -32,6 +28,3 @@ class FsspecPath(CloudPath):
 
     def touch(self):
         self.client._touch(self)
-
-
-fsspec_implementation._path_class = FsspecPath
