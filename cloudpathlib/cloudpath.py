@@ -48,8 +48,8 @@ class DirectoryNotEmpty(Exception):
 
 class NoStat(Exception):
     """Used if stats cannot be retrieved; e.g., file does not exist
-    or for some backends path is a directory (which doesn't have)
-    stats available.
+    or for some backends path is a directory (which doesn't have
+    stats available).
     """
 
     pass
@@ -663,10 +663,15 @@ class CloudPath(metaclass=CloudPathMeta):
         if self._local.is_dir():
             raise ValueError("Only individual files can be uploaded to the cloud")
 
+        try:
+            stats = self.stat()
+        except NoStat:
+            stats = None
+
         # if cloud does not exist or local is newer or we are overwriting, do the upload
         if (
-            not self.exists()  # cloud does not exist
-            or (self._local.stat().st_mtime > self.stat().st_mtime)
+            not stats  # cloud does not exist
+            or (self._local.stat().st_mtime > stats.st_mtime)
             or force_overwrite_to_cloud
         ):
             self.client._upload_file(
@@ -675,7 +680,8 @@ class CloudPath(metaclass=CloudPathMeta):
             )
 
             # force cache time to match cloud times
-            os.utime(self._local, times=(self.stat().st_mtime, self.stat().st_mtime))
+            stats = self.stat()
+            os.utime(self._local, times=(stats.st_mtime, stats.st_mtime))
 
             # reset dirty and handle now that this is uploaded
             self._dirty = False
