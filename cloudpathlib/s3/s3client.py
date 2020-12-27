@@ -84,26 +84,26 @@ class S3Client(Client):
         if not cloud_path.key:
             return "dir"
 
+        # short circuit files/dirs that are already in the cache
+        if cloud_path._local.exists():
+            return "file" if cloud_path._local.is_file() else "dir"
+
+        # get first item by listing at least one key
         try:
-            obj = self.s3.ObjectSummary(cloud_path.bucket, cloud_path.key)
-            obj.get()
-            return "file"
-        except self.client.exceptions.NoSuchKey:
-            prefix = cloud_path.key
-            if prefix and not prefix.endswith("/"):
-                prefix += "/"
+            res = next(_ for _ in self._s3_file_query(cloud_path))
+        except StopIteration:
+            return None
 
-            # not a file, see if it is a directory
-            f = self.s3.Bucket(cloud_path.bucket).objects.filter(Prefix=prefix)
-
-            # at least one key with the prefix of the directory
-            if bool([_ for _ in f.limit(1)]):
-                return "dir"
-            else:
-                return None
+        # since S3 only returns files when filtering objects:
+        # if the first item key is equal to the path key, this is a file; else it is a dir
+        return "file" if res.key == cloud_path.key else "dir"
 
     def _exists(self, cloud_path: S3Path) -> bool:
-        return self._is_file_or_dir(cloud_path) in ["file", "dir"]
+        return len([_ for _ in self._s3_file_query(cloud_path)]) > 0
+
+    def _s3_file_query(self, cloud_path: S3Path):
+        """Boto3 query used for quick checks of existence and if path is file/dir"""
+        return self.s3.Bucket(cloud_path.bucket).objects.filter(Prefix=cloud_path.key).limit(1)
 
     def _list_dir(self, cloud_path: S3Path, recursive=False) -> Iterable[S3Path]:
         bucket = self.s3.Bucket(cloud_path.bucket)
