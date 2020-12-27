@@ -123,6 +123,10 @@ class MockObjects:
 
     def filter(self, Prefix=""):
         path = self.root / Prefix
+
+        if path.is_file():
+            return MockCollection([path], self.root)
+
         items = [
             PurePosixPath(f)
             for f in path.glob("**/*")
@@ -175,10 +179,8 @@ class MockBoto3Paginator:
 
     def paginate(self, Bucket=None, Prefix="", Delimiter=None):
         new_dir = self.root / Prefix
-        items = []
-        for f in new_dir.iterdir():
-            if not f.name.startswith("."):
-                items.append(f)
+
+        items = [f for f in new_dir.iterdir() if not f.name.startswith(".")]
 
         for ix in range(0, len(items), self.per_page):
             page = items[ix : ix + self.per_page]
