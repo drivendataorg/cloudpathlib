@@ -125,7 +125,7 @@ class MockObjects:
         path = self.root / Prefix
 
         if path.is_file():
-            return MockCollection([path], self.root)
+            return MockCollection([PurePosixPath(path)], self.root)
 
         items = [
             PurePosixPath(f)
@@ -184,6 +184,10 @@ class MockBoto3Paginator:
 
         for ix in range(0, len(items), self.per_page):
             page = items[ix : ix + self.per_page]
-            dirs = [{"Prefix": str(_.relative_to(self.root))} for _ in page if _.is_dir()]
-            files = [{"Key": str(_.relative_to(self.root))} for _ in page if _.is_file()]
+            dirs = [
+                {"Prefix": str(_.relative_to(self.root).as_posix())} for _ in page if _.is_dir()
+            ]
+            files = [
+                {"Key": str(_.relative_to(self.root).as_posix())} for _ in page if _.is_file()
+            ]
             yield {"CommonPrefixes": dirs, "Contents": files}
