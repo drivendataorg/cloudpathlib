@@ -89,21 +89,31 @@ class S3Client(Client):
             return "file" if cloud_path._local.is_file() else "dir"
 
         # get first item by listing at least one key
-        try:
-            res = next(_ for _ in self._s3_file_query(cloud_path))
-        except StopIteration:
+        s3_obj = self._s3_file_query(cloud_path)
+
+        if s3_obj is None:
             return None
 
         # since S3 only returns files when filtering objects:
         # if the first item key is equal to the path key, this is a file; else it is a dir
-        return "file" if res.key == cloud_path.key else "dir"
+        return "file" if s3_obj.key == cloud_path.key else "dir"
 
     def _exists(self, cloud_path: S3Path) -> bool:
-        return len([_ for _ in self._s3_file_query(cloud_path)]) > 0
+        return self._s3_file_query(cloud_path) is not None
 
     def _s3_file_query(self, cloud_path: S3Path):
         """Boto3 query used for quick checks of existence and if path is file/dir"""
-        return self.s3.Bucket(cloud_path.bucket).objects.filter(Prefix=cloud_path.key).limit(1)
+        return next(
+            (
+                obj
+                for obj in (
+                    self.s3.Bucket(cloud_path.bucket)
+                    .objects.filter(Prefix=cloud_path.key)
+                    .limit(1)
+                )
+            ),
+            None,
+        )
 
     def _list_dir(self, cloud_path: S3Path, recursive=False) -> Iterable[S3Path]:
         bucket = self.s3.Bucket(cloud_path.bucket)
