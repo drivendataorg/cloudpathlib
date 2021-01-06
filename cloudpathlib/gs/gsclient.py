@@ -1,5 +1,5 @@
+from datetime import datetime
 import os
-from pathlib import PurePosixPath
 from typing import Any, Dict, Iterable, Optional, Union
 
 from ..client import Client, register_client_class
@@ -33,7 +33,7 @@ class GSClient(Client):
 
     def _get_metadata(self, cloud_path: GSPath) -> Dict[str, Any]:
         bucket = self.client.get_bucket(cloud_path.bucket)
-        blob = bucket.get_blob(cloud_path.key)
+        blob = bucket.get_blob(cloud_path.blob)
 
         return blob.metadata or {}
 
@@ -41,7 +41,7 @@ class GSClient(Client):
         self, cloud_path: GSPath, local_path: Union[str, os.PathLike]
     ) -> Union[str, os.PathLike]:
         bucket = self.client.get_bucket(cloud_path.bucket)
-        blob = bucket.get_blob(cloud_path.key)
+        blob = bucket.get_blob(cloud_path.blob)
 
         with open(local_path, "bw") as file_object:
             self.client.download_blob_to_file(blob, file_object)
@@ -49,16 +49,16 @@ class GSClient(Client):
 
     def _is_file_or_dir(self, cloud_path: GSPath) -> Optional[str]:
         # short-circuit the root-level bucket
-        if not cloud_path.key:
+        if not cloud_path.blob:
             return "dir"
 
         bucket = self.client.get_bucket(cloud_path.bucket)
-        blob = bucket.get_blob(cloud_path.key)
+        blob = bucket.get_blob(cloud_path.blob)
 
         if blob.exists():
             return "file"
         else:
-            prefix = cloud_path.key
+            prefix = cloud_path.blob
             if prefix and not prefix.endswith("/"):
                 prefix += "/"
 
@@ -78,14 +78,30 @@ class GSClient(Client):
         pass
 
     def _move_file(self, src: GSPath, dst: GSPath) -> GSPath:
-        pass
+        # just a touch, so "REPLACE" metadata
+        if src == dst:
+            bucket = self.client.bucket(src.bucket)
+            blob = bucket.get_blob(src.blob)
+            blob.updated = datetime.utcnow().timestamp()
+
+        else:
+            pass
+
+        return dst
 
     def _remove(self, cloud_path: GSPath) -> None:
-        pass
+        if self._is_file_or_dir(cloud_path) == "dir":
+            blobs = [b.blob for b in self._list_dir(cloud_path, recursive=True)]
+            bucket = self.client.bucket(cloud_path.bucket)
+            for blob in blobs:
+                blob.delete()
+        elif self._is_file_or_dir(cloud_path) == "file":
+            bucket = self.client.bucket(cloud_path.bucket)
+            bucket.delete_blob(cloud_path.blob)
 
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: GSPath) -> GSPath:
         bucket = self.client.bucket(cloud_path.bucket)
-        blob = bucket.blob(cloud_path.key)
+        blob = bucket.blob(cloud_path.blob)
 
         blob.upload_from_filename(str(local_path))
         return cloud_path

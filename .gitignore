@@ -108,5 +108,3 @@ ENV/
 
 # IDE settings
 .vscode/
-
-tmp/

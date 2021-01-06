@@ -69,7 +69,7 @@ class GSPath(CloudPath):
         return self._no_prefix.split("/", 1)[0]
 
     @property
-    def key(self) -> str:
+    def blob(self) -> str:
         key = self._no_prefix_no_drive
 
         # key should never have starting slash for
