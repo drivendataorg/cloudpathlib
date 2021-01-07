@@ -48,8 +48,7 @@ class GSClient(Client):
         bucket = self.client.get_bucket(cloud_path.bucket)
         blob = bucket.get_blob(cloud_path.blob)
 
-        with open(local_path, "bw") as file_object:
-            self.client.download_blob_to_file(blob, file_object)
+        blob.download_to_filename(local_path)
         return local_path
 
     def _is_file_or_dir(self, cloud_path: GSPath) -> Optional[str]:
@@ -113,7 +112,7 @@ class GSClient(Client):
     def _move_file(self, src: GSPath, dst: GSPath) -> GSPath:
         # just a touch, so "REPLACE" metadata
         if src == dst:
-            bucket = self.client.bucket(src.bucket)
+            bucket = self.client.get_bucket(src.bucket)
             blob = bucket.get_blob(src.blob)
 
             # See https://github.com/googleapis/google-cloud-python/issues/1185#issuecomment-431537214
@@ -124,8 +123,8 @@ class GSClient(Client):
             blob.patch()
 
         else:
-            src_bucket = self.client.bucket(src.bucket)
-            dst_bucket = self.client.bucket(dst.bucket)
+            src_bucket = self.client.get_bucket(src.bucket)
+            dst_bucket = self.client.get_bucket(dst.bucket)
 
             src_blob = src_bucket.get_blob(src.blob)
             src_bucket.copy_blob(src_blob, dst_bucket, dst.blob)
@@ -136,15 +135,15 @@ class GSClient(Client):
     def _remove(self, cloud_path: GSPath) -> None:
         if self._is_file_or_dir(cloud_path) == "dir":
             blobs = [b.blob for b in self._list_dir(cloud_path, recursive=True)]
-            bucket = self.client.bucket(cloud_path.bucket)
+            bucket = self.client.get_bucket(cloud_path.bucket)
             for blob in blobs:
-                bucket.delete_blob(blob)
+                bucket.get_blob(blob).delete()
         elif self._is_file_or_dir(cloud_path) == "file":
-            bucket = self.client.bucket(cloud_path.bucket)
-            bucket.delete_blob(cloud_path.blob)
+            bucket = self.client.get_bucket(cloud_path.bucket)
+            bucket.get_blob(cloud_path.blob).delete()
 
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: GSPath) -> GSPath:
-        bucket = self.client.bucket(cloud_path.bucket)
+        bucket = self.client.get_bucket(cloud_path.bucket)
         blob = bucket.blob(cloud_path.blob)
 
         blob.upload_from_filename(str(local_path))
