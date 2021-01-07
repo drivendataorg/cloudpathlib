@@ -4,10 +4,11 @@ from pathlib import Path, PurePosixPath
 from azure.storage.blob import BlobServiceClient
 import boto3
 from dotenv import find_dotenv, load_dotenv
+from google.cloud import storage as google_storage
 from pytest_cases import fixture, fixture_union
 from shortuuid import uuid
 
-from cloudpathlib import AzureBlobClient, AzureBlobPath, S3Client, S3Path
+from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
 import cloudpathlib.azure.azblobclient
 import cloudpathlib.s3.s3client
 from .mock_clients.mock_azureblob import mocked_client_class_factory
@@ -116,6 +117,47 @@ def azure_rig(request, monkeypatch, assets_dir):
 
 
 @fixture()
+def gs_rig(request, monkeypatch, assets_dir):
+    drive = os.getenv("LIVE_GS_BUCKET", "bucket")
+    test_dir = create_test_dir_name(request)
+
+    if os.getenv("USE_LIVE_GSCLOUD") == "1":
+        # Set up test assets
+        bucket = google_storage.Client().get_bucket(drive)
+        test_files = [
+            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
+        ]
+        for test_file in test_files:
+            blob = google_storage.Blob(
+                str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
+                bucket,
+            )
+            blob.upload_from_filename(str(test_file))
+    else:
+        # Mock cloud SDK
+        monkeypatch.setattr(
+            cloudpathlib.gs.gsclient,
+            "Client",
+            mocked_session_class_factory(test_dir),
+        )
+
+    rig = CloudProviderTestRig(
+        path_class=GSPath, client_class=GSClient, drive=drive, test_dir=test_dir
+    )
+
+    rig.client_class().set_as_default_client()  # set default client
+
+    yield rig
+
+    rig.client_class._default_client = None  # reset default client
+
+    if os.getenv("USE_LIVE_GSCLOUD") == "1":
+        # Clean up test dir
+        for blob in bucket.list_blobs(prefix=test_dir):
+            blob.delete()
+
+
+@fixture()
 def s3_rig(request, monkeypatch, assets_dir):
     drive = os.getenv("LIVE_S3_BUCKET", "bucket")
     test_dir = create_test_dir_name(request)
@@ -154,4 +196,4 @@ def s3_rig(request, monkeypatch, assets_dir):
         bucket.objects.filter(Prefix=test_dir).delete()
 
 
-rig = fixture_union("rig", [azure_rig, s3_rig])
+rig = fixture_union("rig", [azure_rig, gs_rig, s3_rig])
