@@ -12,6 +12,7 @@ from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Cli
 import cloudpathlib.azure.azblobclient
 import cloudpathlib.s3.s3client
 from .mock_clients.mock_azureblob import mocked_client_class_factory
+from .mock_clients.mock_gs import mocked_client_class_factory as mocked_gsclient_class_factory
 from .mock_clients.mock_s3 import mocked_session_class_factory
 
 
@@ -137,8 +138,8 @@ def gs_rig(request, monkeypatch, assets_dir):
         # Mock cloud SDK
         monkeypatch.setattr(
             cloudpathlib.gs.gsclient,
-            "Client",
-            mocked_session_class_factory(test_dir),
+            "Client_",
+            mocked_gsclient_class_factory(test_dir),
         )
 
     rig = CloudProviderTestRig(

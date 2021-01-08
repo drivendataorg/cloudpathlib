@@ -67,7 +67,7 @@ class GSClient(Client):
                 prefix += "/"
 
             # not a file, see if it is a directory
-            f = self.client.list_blobs(bucket, max_results=1, prefix=prefix)
+            f = bucket.list_blobs(max_results=1, prefix=prefix)
 
             # at least one key with the prefix of the directory
             if bool(list(f)):
