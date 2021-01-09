@@ -84,10 +84,6 @@ class S3Client(Client):
         if not cloud_path.key:
             return "dir"
 
-        # short circuit files/dirs that are already in the cache
-        if cloud_path._local.exists():
-            return "file" if cloud_path._local.is_file() else "dir"
-
         # get first item by listing at least one key
         s3_obj = self._s3_file_query(cloud_path)
 
