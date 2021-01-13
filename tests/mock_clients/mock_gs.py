@@ -75,7 +75,9 @@ class MockBucket:
 
     def copy_blob(self, blob, destination_bucket, new_name):
         data = (self.name / blob.name).read_bytes()
-        (destination_bucket.name / new_name).write_bytes(data)
+        dst = destination_bucket.name / new_name
+        dst.parent.mkdir(exist_ok=True, parents=True)
+        dst.write_bytes(data)
 
     def get_blob(self, blob):
         if (self.name / blob).is_file():
