@@ -124,7 +124,7 @@ def gs_rig(request, monkeypatch, assets_dir):
 
     if os.getenv("USE_LIVE_GSCLOUD") == "1":
         # Set up test assets
-        bucket = google_storage.Client().get_bucket(drive)
+        bucket = google_storage.Client().bucket(drive)
         test_files = [
             f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
         ]

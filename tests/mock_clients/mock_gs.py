@@ -1,5 +1,5 @@
 from datetime import datetime
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 import shutil
 from tempfile import TemporaryDirectory
 
@@ -19,7 +19,7 @@ def mocked_client_class_factory(test_dir: str):
         def __del__(self):
             self.tmp.cleanup()
 
-        def get_bucket(self, bucket):
+        def bucket(self, bucket):
             return MockBucket(self.tmp_path)
 
     return MockClient
