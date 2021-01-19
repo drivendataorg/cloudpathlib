@@ -45,9 +45,15 @@ def test_file_read_writes(rig, tmp_path):
     p2 = rig.create_cloud_path("dir_0/not_a_file")
     p3 = rig.create_cloud_path("")
 
-    p.write_text("lalala")
-    assert p.read_text() == "lalala"
-    p2.write_text("lalala")
+    text = "lalala" * 10_000
+
+    p.write_text(text)
+    assert p.read_text() == text
+    p2.write_text(text)
+
+    # sleep between writes to p to ensure different
+    # modified times
+    sleep(1)
 
     p.write_bytes(p2.read_bytes())
     assert p.read_text() == p2.read_text()
