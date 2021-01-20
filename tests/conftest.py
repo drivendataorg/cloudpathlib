@@ -138,7 +138,7 @@ def gs_rig(request, monkeypatch, assets_dir):
         # Mock cloud SDK
         monkeypatch.setattr(
             cloudpathlib.gs.gsclient,
-            "Client_",
+            "StorageClient",
             mocked_gsclient_class_factory(test_dir),
         )
 

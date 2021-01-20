@@ -22,7 +22,7 @@ class GSClient(Client):
 
     def __init__(
         self,
-        application_credentials: PathLike,
+        application_credentials: Optional[PathLike] = None,
         credentials: Optional[Credentials] = None,
         storage_client: Optional[StorageClient] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
