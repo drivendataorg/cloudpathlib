@@ -114,7 +114,7 @@ list(root_dir.glob('**/*.txt'))
 
 Most methods and properties from `pathlib.Path` are supported except for the ones that don't make sense in a cloud context. There are a few additional methods or properties that relate to specific cloud services or specifically for cloud paths.
 
-| Methods + properties   | `AzureBlobPath`   | `GSPath`   | `S3Path`   |
+| Methods + properties   | `AzureBlobPath`   | `S3Path`   | `GSPath`   |
 |:-----------------------|:------------------|:-----------|:-----------|
 | `anchor`               | ✅                | ✅         | ✅         |
 | `as_uri`               | ✅                | ✅         | ✅         |
@@ -161,6 +161,7 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `is_char_device`       | ❌                | ❌         | ❌         |
 | `is_fifo`              | ❌                | ❌         | ❌         |
 | `is_mount`             | ❌                | ❌         | ❌         |
+| `is_relative_to`       | ❌                | ❌         | ❌         |
 | `is_reserved`          | ❌                | ❌         | ❌         |
 | `is_socket`            | ❌                | ❌         | ❌         |
 | `is_symlink`           | ❌                | ❌         | ❌         |
@@ -168,18 +169,22 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `link_to`              | ❌                | ❌         | ❌         |
 | `lstat`                | ❌                | ❌         | ❌         |
 | `owner`                | ❌                | ❌         | ❌         |
+| `readlink`             | ❌                | ❌         | ❌         |
 | `relative_to`          | ❌                | ❌         | ❌         |
 | `resolve`              | ❌                | ❌         | ❌         |
 | `root`                 | ❌                | ❌         | ❌         |
 | `symlink_to`           | ❌                | ❌         | ❌         |
+| `with_stem`            | ❌                | ❌         | ❌         |
 | `cloud_prefix`         | ✅                | ✅         | ✅         |
 | `download_to`          | ✅                | ✅         | ✅         |
 | `etag`                 | ✅                | ✅         | ✅         |
+| `fspath`               | ✅                | ✅         | ✅         |
 | `is_valid_cloudpath`   | ✅                | ✅         | ✅         |
-| `blob`                 | ✅                | ✅         | ❌         |
+| `rmtree`               | ✅                | ✅         | ✅         |
+| `blob`                 | ✅                | ❌         | ✅         |
 | `bucket`               | ❌                | ✅         | ✅         |
 | `container`            | ✅                | ❌         | ❌         |
-| `key`                  | ❌                | ❌         | ✅         |
+| `key`                  | ❌                | ✅         | ❌         |
 | `md5`                  | ✅                | ❌         | ❌         |
 
 ----

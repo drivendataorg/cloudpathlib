@@ -4,19 +4,21 @@ For standard use, we recommend using environment variables to authenticate with 
 
 `cloudpathlib` supports the standard environment variables used by each respective cloud service SDK.
 
-Cloud              | Environment Variables | SDK Documentation |
------------------- | --------------------- | ------------------|
-Amazon S3          | `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` <br /> _or_ <br /> `AWS_PROFILE` with credentials file | [Link](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#environment-variables) |
-Azure Blob Storage | `AZURE_STORAGE_CONNECTION_STRING` | [Link](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal) |
-
+Cloud                | Environment Variables | SDK Documentation |
+-------------------- | --------------------- | ------------------|
+Amazon S3            | `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` <br /> _or_ <br /> `AWS_PROFILE` with credentials file | [Link](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#environment-variables) |
+Azure Blob Storage   | `AZURE_STORAGE_CONNECTION_STRING` | [Link](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal) |
+Google Cloud Storage | `GOOGLE_APPLICATION_CREDENTIALS` | [Link](https://cloud.google.com/docs/authentication/production#passing_variable) |
+ 
 ## Advanced Use
 
 The communication between `cloudpathlib` and cloud storage services are handled by `Client` objects. Each cloud storage service has its own `Client` class implementation. See the linked API documentation pages for additional authentication options.
 
-Cloud              | Client                | API Documentation |
------------------- | --------------------- | ----------------- |
-Amazon S3          | `S3Client`            | [Link](../api-reference/s3client/) |
-Azure Blob Storage | `AzureBlobClient`     | [Link](../api-reference/azblobclient/) |
+Cloud                | Client                | API Documentation |
+-------------------- | --------------------- | ----------------- |
+Amazon S3            | `S3Client`            | [Link](../api-reference/s3client/) |
+Azure Blob Storage   | `AzureBlobClient`     | [Link](../api-reference/azblobclient/) |
+Google Cloud Storage | `GSClient`            | [Link](../api-reference/gsclient/) |
 
 A client object holds the authenticated connection with a cloud service, as well as the configuration for the [local cache](../caching/). When you create instantiate a cloud path instance for the first time, a default client object is created for the respective cloud service.
 
