@@ -70,15 +70,18 @@ class GSClient(Client):
 
         super().__init__(local_cache_dir=local_cache_dir)
 
-    def _get_metadata(self, cloud_path: GSPath) -> Dict[str, Any]:
+    def _get_metadata(self, cloud_path: GSPath) -> Optional[Dict[str, Any]]:
         bucket = self.client.bucket(cloud_path.bucket)
         blob = bucket.get_blob(cloud_path.blob)
 
-        return {
-            "etag": blob.etag,
-            "size": blob.size,
-            "updated": blob.updated,
-        }
+        if blob is None:
+            return None
+        else:
+            return {
+                "etag": blob.etag,
+                "size": blob.size,
+                "updated": blob.updated,
+            }
 
     def _download_file(
         self, cloud_path: GSPath, local_path: Union[str, os.PathLike]

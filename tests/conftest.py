@@ -122,7 +122,7 @@ def gs_rig(request, monkeypatch, assets_dir):
     drive = os.getenv("LIVE_GS_BUCKET", "bucket")
     test_dir = create_test_dir_name(request)
 
-    if os.getenv("USE_LIVE_GSCLOUD") == "1":
+    if os.getenv("USE_LIVE_CLOUD") == "1":
         # Set up test assets
         bucket = google_storage.Client().bucket(drive)
         test_files = [
@@ -152,7 +152,7 @@ def gs_rig(request, monkeypatch, assets_dir):
 
     rig.client_class._default_client = None  # reset default client
 
-    if os.getenv("USE_LIVE_GSCLOUD") == "1":
+    if os.getenv("USE_LIVE_CLOUD") == "1":
         # Clean up test dir
         for blob in bucket.list_blobs(prefix=test_dir):
             blob.delete()
