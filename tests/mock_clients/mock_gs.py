@@ -16,6 +16,10 @@ def mocked_client_class_factory(test_dir: str):
             self.tmp_path = Path(self.tmp.name) / "test_case_copy"
             shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
 
+        @classmethod
+        def from_service_account_json(cls, *args, **kwargs):
+            return cls()
+
         def __del__(self):
             self.tmp.cleanup()
 

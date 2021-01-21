@@ -1,6 +1,5 @@
 from datetime import datetime
 import os
-from os import PathLike
 from pathlib import PurePosixPath
 from typing import Any, Dict, Iterable, Optional, Union
 
@@ -22,45 +21,52 @@ class GSClient(Client):
 
     def __init__(
         self,
-        application_credentials: Optional[PathLike] = None,
+        application_credentials: Optional[Union[str, os.PathLike]] = None,
         credentials: Optional[Credentials] = None,
+        project: Optional[str] = None,
         storage_client: Optional[StorageClient] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
     ):
-        """Class constructor. Sets up a [`Storage Client`](
-        https://googleapis.dev/python/storage/latest/client.html). Supports the following
-        authentication methods of `Storage Client`.
+        """Class constructor. Sets up a [`Storage
+        Client`](https://googleapis.dev/python/storage/latest/client.html).
+        Supports the following authentication methods of `Storage Client`.
 
-        - Environment variable `"GOOGLE_APPLICATION_CREDENTIALS"` containing a path to a JSON
-        credentials file for a Google service account. See [Authenticating as a Service Account](
-        https://cloud.google.com/docs/authentication/production).
-        - Account URL via `account_url`, authenticated either with an embedded SAS token, or with
-        credentials passed to `credentials`.
-        - Connection string via `connection_string`, authenticated either with an embedded SAS
-        token or with credentials passed to `credentials`.
+        - Environment variable `"GOOGLE_APPLICATION_CREDENTIALS"` containing a
+          path to a JSON credentials file for a Google service account. See
+          [Authenticating as a Service
+          Account](https://cloud.google.com/docs/authentication/production).
+        - File path to a JSON credentials file for a Google service account.
+        - OAuth2 Credentials object and a project name.
         - Instantiated and already authenticated `Storage Client`.
 
-        If multiple methods are used, priority order is reverse of list above (later in list takes
-        priority).
+        If multiple methods are used, priority order is reverse of list above
+        (later in list takes priority).
 
         Args:
-            project (Optional[str]): The project which the client acts on behalf of. Will be passed
-                when creating a topic. If not passed, falls back to the default inferred from the
-                environment.
-            credentials (Optional[Credentials]): The OAuth2 Credentials to use for this client. If not
-                passed (and if no _http object is passed), falls back to the default inferred from the
-                environment.
-            storage_client (Optional[StorageClient]):
+            application_credentials (Optional[Union[str, os.PathLike]]): Path to Google service
+                account credentials file.
+            credentials (Optional[Credentials]): The OAuth2 Credentials to use for this client.
+                See documentation for [`StorageClient`](
+                https://googleapis.dev/python/storage/latest/client.html).
+            project (Optional[str]): The project which the client acts on behalf of. See
+                documentation for [`StorageClient`](
+                https://googleapis.dev/python/storage/latest/client.html).
+            storage_client (Optional[StorageClient]): Instantiated [`StorageClient`](
+                https://googleapis.dev/python/storage/latest/client.html).
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory.
         """
 
         if storage_client is not None:
             self.client = storage_client
-        if application_credentials is not None:
+        elif credentials is not None:
+            self.client = StorageClient(credentials=credentials, project=project)
+        elif application_credentials is not None:
             self.client = StorageClient.from_service_account_json(application_credentials)
         else:
-            self.client = StorageClient(credentials=credentials)
+            self.client = StorageClient.from_service_account_json(
+                os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            )
 
         super().__init__(local_cache_dir=local_cache_dir)
 
