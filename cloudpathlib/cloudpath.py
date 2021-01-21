@@ -46,6 +46,15 @@ class DirectoryNotEmpty(Exception):
     pass
 
 
+class NoStat(Exception):
+    """Used if stats cannot be retrieved; e.g., file does not exist
+    or for some backends path is a directory (which doesn't have
+    stats available).
+    """
+
+    pass
+
+
 class CloudImplementation:
     _client_class = None
     _path_class = None
@@ -610,18 +619,17 @@ class CloudPath(metaclass=CloudPathMeta):
         return self.client.CloudPath(path)
 
     def _refresh_cache(self, force_overwrite_from_cloud=False):
-        # nothing to cache if the file does not exist; happens when creating
-        # new files that will be uploaded
-        if not self.exists():
+        try:
+            stats = self.stat()
+        except NoStat:
+            # nothing to cache if the file does not exist; happens when creating
+            # new files that will be uploaded
             return
-
-        if self.is_dir():
-            raise ValueError("Only individual files can be cached")
 
         # if not exist or cloud newer
         if (
             not self._local.exists()
-            or (self._local.stat().st_mtime < self.stat().st_mtime)
+            or (self._local.stat().st_mtime < stats.st_mtime)
             or force_overwrite_from_cloud
         ):
             # ensure there is a home for the file
@@ -629,7 +637,7 @@ class CloudPath(metaclass=CloudPathMeta):
             self.download_to(self._local)
 
             # force cache time to match cloud times
-            os.utime(self._local, times=(self.stat().st_mtime, self.stat().st_mtime))
+            os.utime(self._local, times=(stats.st_mtime, stats.st_mtime))
 
         if self._dirty:
             raise OverwriteDirtyFile(
@@ -641,7 +649,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
         # if local newer but not dirty, it was updated
         # by a separate process; do not overwrite unless forced to
-        if self._local.stat().st_mtime > self.stat().st_mtime:
+        if self._local.stat().st_mtime > stats.st_mtime:
             raise OverwriteNewerLocal(
                 f"Local file ({self._local}) for cloud path ({self}) is newer on disk, but "
                 f"is being requested for download from cloud. Either (1) push your changes to the cloud, "
@@ -655,10 +663,15 @@ class CloudPath(metaclass=CloudPathMeta):
         if self._local.is_dir():
             raise ValueError("Only individual files can be uploaded to the cloud")
 
+        try:
+            stats = self.stat()
+        except NoStat:
+            stats = None
+
         # if cloud does not exist or local is newer or we are overwriting, do the upload
         if (
-            not self.exists()  # cloud does not exist
-            or (self._local.stat().st_mtime > self.stat().st_mtime)
+            not stats  # cloud does not exist
+            or (self._local.stat().st_mtime > stats.st_mtime)
             or force_overwrite_to_cloud
         ):
             self.client._upload_file(
@@ -667,7 +680,8 @@ class CloudPath(metaclass=CloudPathMeta):
             )
 
             # force cache time to match cloud times
-            os.utime(self._local, times=(self.stat().st_mtime, self.stat().st_mtime))
+            stats = self.stat()
+            os.utime(self._local, times=(stats.st_mtime, stats.st_mtime))
 
             # reset dirty and handle now that this is uploaded
             self._dirty = False
