@@ -23,6 +23,9 @@ nav:
       - Azure:
           - AzureBlobClient: "api-reference/azblobclient.md"
           - AzureBlobPath: "api-reference/azblobpath.md"
+      - GS:
+          - GSClient: "api-reference/gsclient.md"
+          - GSPath: "api-reference/gspath.md"
 
 markdown_extensions:
   - pymdownx.highlight
