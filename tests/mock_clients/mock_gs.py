@@ -1,5 +1,5 @@
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
 
@@ -32,7 +32,7 @@ def mocked_client_class_factory(test_dir: str):
 class MockBlob:
     def __init__(self, root, name):
         self.bucket = root
-        self.name = str(name)
+        self.name = str(PurePosixPath(name))
         self.metadata = None
 
     def delete(self):
@@ -43,6 +43,9 @@ class MockBlob:
     def download_to_filename(self, filename):
         from_path = self.bucket / self.name
         to_path = Path(filename)
+
+        to_path.parent.mkdir(exist_ok=True, parents=True)
+
         to_path.write_bytes(from_path.read_bytes())
 
     def patch(self):
