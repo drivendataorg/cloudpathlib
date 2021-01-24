@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from ..cloudpath import CloudPath
+from ..cloudpath import CloudPath, NoStat
 
 
 if TYPE_CHECKING:
@@ -20,7 +20,11 @@ class LocalPath(CloudPath):
         return self.client._is_file(self)
 
     def stat(self):
-        return self.client._stat(self)
+        try:
+            meta = self.client._stat(self)
+        except FileNotFoundError:
+            raise NoStat(f"No stats available for {self}; it may be a directory or not exist.")
+        return meta
 
     def touch(self):
         self.client._touch(self)
