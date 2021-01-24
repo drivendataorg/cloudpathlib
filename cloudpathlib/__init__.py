@@ -4,6 +4,8 @@ from .azure.azblobclient import AzureBlobClient
 from .azure.azblobpath import AzureBlobPath
 from .cloudpath import CloudPath
 from .s3.s3client import S3Client
+from .gs.gspath import GSPath
+from .gs.gsclient import GSClient
 from .s3.s3path import S3Path
 
 
@@ -33,6 +35,8 @@ __all__ = [
     "CloudPath",
     "DirectoryNotEmpty",
     "InvalidPrefix",
+    "GSClient",
+    "GSPath",
     "MissingDependencies",
     "OverwriteDirtyFile",
     "OverwriteNewerLocal",
