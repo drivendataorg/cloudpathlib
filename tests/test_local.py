@@ -3,8 +3,15 @@ import pytest
 from inspect import signature
 
 
-from cloudpathlib import AzureBlobClient, AzureBlobPath, S3Client, S3Path
-from cloudpathlib.local import LocalAzureBlobClient, LocalAzureBlobPath, LocalS3Client, LocalS3Path
+from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
+from cloudpathlib.local import (
+    LocalAzureBlobClient,
+    LocalAzureBlobPath,
+    LocalGSClient,
+    LocalGSPath,
+    LocalS3Client,
+    LocalS3Path,
+)
 
 
 @pytest.mark.parametrize(
@@ -12,6 +19,8 @@ from cloudpathlib.local import LocalAzureBlobClient, LocalAzureBlobPath, LocalS3
     [
         (AzureBlobClient, LocalAzureBlobClient),
         (AzureBlobPath, LocalAzureBlobPath),
+        (GSClient, LocalGSClient),
+        (GSPath, LocalGSPath),
         (S3Client, LocalS3Client),
         (S3Path, LocalS3Path),
     ],
@@ -33,7 +42,7 @@ def test_interface(cloud_class, local_class):
             assert signature(cloud_attr).parameters == signature(local_attr).parameters
 
 
-@pytest.mark.parametrize("client_class", [LocalAzureBlobClient, LocalS3Client])
+@pytest.mark.parametrize("client_class", [LocalAzureBlobClient, LocalGSClient, LocalS3Client])
 def test_default_storage_dir(client_class):
     """Test that local file storage for a LocalClient persists across client instantiations."""
 
@@ -55,7 +64,7 @@ def test_default_storage_dir(client_class):
     client_class.reset_default_storage_dir()
 
 
-@pytest.mark.parametrize("client_class", [LocalAzureBlobClient, LocalS3Client])
+@pytest.mark.parametrize("client_class", [LocalAzureBlobClient, LocalGSClient, LocalS3Client])
 def test_reset_default_storage_dir(client_class):
     """Test that LocalClient default storage reset changes the default temp directory."""
 
