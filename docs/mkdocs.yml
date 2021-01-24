@@ -15,7 +15,7 @@ nav:
   - Why cloudpathlib?: "why_cloudpathlib.ipynb"
   - Authentication: "authentication.md"
   - Caching: "caching.ipynb"
-  - Testing with cloudpathlib: "testing_with_cloudpathlib.ipynb"
+  - Testing code that uses cloudpathlib: "testing_mocked_cloudpathlib.ipynb"
   - API Reference:
       - CloudPath: "api-reference/cloudpath.md"
       - S3:
