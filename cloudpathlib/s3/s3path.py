@@ -41,7 +41,7 @@ class S3Path(CloudPath):
 
             tf.cleanup()
 
-    def stat(self, cache_timeout=None):
+    def stat(self):
         try:
             meta = self.client._get_metadata(self)
         except self.client.client.exceptions.NoSuchKey:
