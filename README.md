@@ -23,6 +23,7 @@ with CloudPath("s3://bucket/filename.txt").open("w+") as f:
  - **Read/write support**: Reading just works. Using the `write_text`, `write_bytes` or `.open('w')` methods will all upload your changes to cloud storage without any additional file management as a developer.
  - **Seamless caching**: Files are downloaded locally only when necessary. You can also easily pass a persistent cache folder so that across processes and sessions you only re-download what is necessary.
  - **Tested**: Comprehensive test suite and code coverage.
+ - **Testability**: Local filesystem implementations that can be used to easily mock cloud storage in your unit tests.
 
 
 ## Installation
