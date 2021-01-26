@@ -8,8 +8,12 @@ from ..cloudpath import implementation_registry
 from .gspath import GSPath
 
 try:
-    from google.auth.credentials import Credentials
+    from google.auth.credentials import Credentials  # noqa: F401
     from google.cloud.storage import Client as StorageClient
+
+    # for flake8 + typechecking
+    import google.auth.credentials
+    import google.cloud.storage
 
 except ModuleNotFoundError:
     implementation_registry["gs"].dependencies_loaded = False
@@ -22,9 +26,9 @@ class GSClient(Client):
     def __init__(
         self,
         application_credentials: Optional[Union[str, os.PathLike]] = None,
-        credentials: Optional[Credentials] = None,
+        credentials: Optional["google.auth.credentials.Credentials"] = None,
         project: Optional[str] = None,
-        storage_client: Optional[StorageClient] = None,
+        storage_client: Optional["google.cloud.storage.Client"] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
     ):
         """Class constructor. Sets up a [`Storage
