@@ -1,19 +1,17 @@
 from datetime import datetime
 import os
 from pathlib import PurePosixPath
-from typing import Any, Dict, Iterable, Optional, Union
+from typing import Any, Dict, Iterable, Optional, TYPE_CHECKING, Union
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
 from .gspath import GSPath
 
 try:
-    from google.auth.credentials import Credentials  # noqa: F401
-    from google.cloud.storage import Client as StorageClient
+    if TYPE_CHECKING:
+        from google.auth.credentials import Credentials
 
-    # for flake8 + typechecking
-    import google.auth.credentials
-    import google.cloud.storage
+    from google.cloud.storage import Client as StorageClient
 
 except ModuleNotFoundError:
     implementation_registry["gs"].dependencies_loaded = False
@@ -26,9 +24,9 @@ class GSClient(Client):
     def __init__(
         self,
         application_credentials: Optional[Union[str, os.PathLike]] = None,
-        credentials: Optional["google.auth.credentials.Credentials"] = None,
+        credentials: Optional["Credentials"] = None,
         project: Optional[str] = None,
-        storage_client: Optional["google.cloud.storage.Client"] = None,
+        storage_client: Optional["StorageClient"] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
     ):
         """Class constructor. Sets up a [`Storage
