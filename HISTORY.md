@@ -1,5 +1,10 @@
 # History
 
+## v0.2.1 (2020-01-25)
+
+- Fixed bug where a NameError was raised if the Google Stroage dependencies were not installed (even if using a different storage provider).
+
+
 ## v0.2.0 (2020-01-23)
 
 - Added support for Google Cloud Storage. Instantiate with URIs prefixed by `gs://` or explicitly using the `GSPath` class. ([#113](https://github.com/drivendataorg/cloudpathlib/pull/113) thanks to [@wolfgangwazzlestrauss](https://github.com/wolfgangwazzlestrauss))
