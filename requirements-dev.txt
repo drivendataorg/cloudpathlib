@@ -2,6 +2,7 @@
 
 black
 flake8
+ipytest
 ipython
 jupyter
 matplotlib

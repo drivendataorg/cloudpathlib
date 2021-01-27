@@ -2,7 +2,7 @@ import sys
 
 from .azure.azblobclient import AzureBlobClient
 from .azure.azblobpath import AzureBlobPath
-from .cloudpath import CloudPath
+from .cloudpath import CloudPath, implementation_registry
 from .s3.s3client import S3Client
 from .gs.gspath import GSPath
 from .gs.gsclient import GSClient
@@ -34,6 +34,7 @@ __all__ = [
     "ClientMismatch",
     "CloudPath",
     "DirectoryNotEmpty",
+    "implementation_registry",
     "InvalidPrefix",
     "GSClient",
     "GSPath",

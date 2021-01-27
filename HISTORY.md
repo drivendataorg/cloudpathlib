@@ -1,9 +1,12 @@
 # History
 
+## v0.3.0 (Unreleased)
+
+- Added a new module `cloudpathlib.local` with utilities for mocking cloud paths in tests. The module has "Local" substitute classes that use the local filesystem in place of cloud storage. See the new documentation article ["Testing with cloudpathlib"](https://cloudpathlib.drivendata.org/testing_with_cloudpathlib/) to learn more about how to use them. ([#107](https://github.com/drivendataorg/cloudpathlib/pull/107))
+
 ## v0.2.1 (2020-01-25)
 
-- Fixed bug where a NameError was raised if the Google Stroage dependencies were not installed (even if using a different storage provider).
-
+- Fixed bug where a `NameError` was raised if the Google Cloud Storage dependencies were not installed (even if using a different storage provider).
 
 ## v0.2.0 (2020-01-23)
 

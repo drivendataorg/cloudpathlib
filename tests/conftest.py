@@ -1,5 +1,6 @@
 import os
 from pathlib import Path, PurePosixPath
+import shutil
 
 from azure.storage.blob import BlobServiceClient
 import boto3
@@ -9,6 +10,18 @@ from pytest_cases import fixture, fixture_union
 from shortuuid import uuid
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
+from cloudpathlib.cloudpath import implementation_registry
+from cloudpathlib.local import (
+    local_azure_blob_implementation,
+    LocalAzureBlobClient,
+    LocalAzureBlobPath,
+    local_gs_implementation,
+    LocalGSClient,
+    LocalGSPath,
+    local_s3_implementation,
+    LocalS3Client,
+    LocalS3Path,
+)
 import cloudpathlib.azure.azblobclient
 import cloudpathlib.s3.s3client
 from .mock_clients.mock_azureblob import mocked_client_class_factory
@@ -197,4 +210,89 @@ def s3_rig(request, monkeypatch, assets_dir):
         bucket.objects.filter(Prefix=test_dir).delete()
 
 
-rig = fixture_union("rig", [azure_rig, gs_rig, s3_rig])
+@fixture()
+def local_azure_rig(request, monkeypatch, assets_dir):
+    drive = os.getenv("LIVE_AZURE_CONTAINER", "container")
+    test_dir = create_test_dir_name(request)
+
+    # copy test assets
+    shutil.copytree(assets_dir, LocalAzureBlobClient.get_default_storage_dir() / drive / test_dir)
+
+    monkeypatch.setitem(implementation_registry, "azure", local_azure_blob_implementation)
+
+    rig = CloudProviderTestRig(
+        path_class=LocalAzureBlobPath,
+        client_class=LocalAzureBlobClient,
+        drive=drive,
+        test_dir=test_dir,
+    )
+
+    rig.client_class().set_as_default_client()  # set default client
+
+    yield rig
+
+    rig.client_class._default_client = None  # reset default client
+    rig.client_class.reset_default_storage_dir()  # reset local storage directory
+
+
+@fixture()
+def local_gs_rig(request, monkeypatch, assets_dir):
+    drive = os.getenv("LIVE_GS_BUCKET", "bucket")
+    test_dir = create_test_dir_name(request)
+
+    # copy test assets
+    shutil.copytree(assets_dir, LocalGSClient.get_default_storage_dir() / drive / test_dir)
+
+    monkeypatch.setitem(implementation_registry, "gs", local_gs_implementation)
+
+    rig = CloudProviderTestRig(
+        path_class=LocalGSPath,
+        client_class=LocalGSClient,
+        drive=drive,
+        test_dir=test_dir,
+    )
+
+    rig.client_class().set_as_default_client()  # set default client
+
+    yield rig
+
+    rig.client_class._default_client = None  # reset default client
+    rig.client_class.reset_default_storage_dir()  # reset local storage directory
+
+
+@fixture()
+def local_s3_rig(request, monkeypatch, assets_dir):
+    drive = os.getenv("LIVE_S3_BUCKET", "bucket")
+    test_dir = create_test_dir_name(request)
+
+    # copy test assets
+    shutil.copytree(assets_dir, LocalS3Client.get_default_storage_dir() / drive / test_dir)
+
+    monkeypatch.setitem(implementation_registry, "s3", local_s3_implementation)
+
+    rig = CloudProviderTestRig(
+        path_class=LocalS3Path,
+        client_class=LocalS3Client,
+        drive=drive,
+        test_dir=test_dir,
+    )
+
+    rig.client_class().set_as_default_client()  # set default client
+
+    yield rig
+
+    rig.client_class._default_client = None  # reset default client
+    rig.client_class.reset_default_storage_dir()  # reset local storage directory
+
+
+rig = fixture_union(
+    "rig",
+    [
+        azure_rig,
+        gs_rig,
+        s3_rig,
+        local_azure_rig,
+        local_s3_rig,
+        local_gs_rig,
+    ],
+)
