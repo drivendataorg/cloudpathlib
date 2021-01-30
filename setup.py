@@ -37,9 +37,7 @@ setup(
     author_email="info@drivendata.org",
     python_requires=">=3.6",
     classifiers=[
-        "Framework :: Jupyter",
         "Intended Audience :: Developers",
-        "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
@@ -47,7 +45,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    description=(""),
+    description=("pathlib-style classes for cloud storage services"),
     extras_require=extra_reqs,
     install_requires=base_reqs,
     long_description=readme,
@@ -61,5 +59,5 @@ setup(
         "Source Code": "https://github.com/drivendataorg/cloudpathlib",
     },
     url="https://github.com/drivendataorg/cloudpathlib",
-    version="0.2.1",
+    version="0.3.0",
 )
