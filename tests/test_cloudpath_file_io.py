@@ -85,6 +85,9 @@ def test_file_read_writes(rig, tmp_path):
 
     dl_dir = tmp_path / "directory"
     dl_dir.mkdir(parents=True, exist_ok=True)
+    assert not dl_dir.joinpath(p.name).exists()
+    p.download_to(dl_dir)
+    assert dl_dir.joinpath(p.name).exists() & dl_dir.joinpath(p.name).is_file()
     p3.download_to(dl_dir)
     cloud_rel_paths = sorted(
         # CloudPath("prefix://drive/dir/file.txt")._no_prefix_no_drive = "/dir/file.txt"
