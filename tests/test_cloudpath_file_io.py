@@ -98,7 +98,7 @@ def test_file_read_writes(rig, tmp_path):
 
 def test_cloud_path_download_to(rig, tmp_path):
     p = rig.create_cloud_path("dir_0/file0_0.txt")
-    dl_dir = tmp_path / "directory"
+    dl_dir = tmp_path
     assert not dl_dir.joinpath(p.name).exists()
     print(list(dl_dir.iterdir()))
     p.download_to(dl_dir)
