@@ -576,6 +576,8 @@ class CloudPath(metaclass=CloudPathMeta):
     def download_to(self, destination: Union[str, os.PathLike]):
         destination = Path(destination)
         if self.is_file():
+            if destination.is_dir():
+                destination = destination / self.name
             self.client._download_file(self, destination)
         else:
             destination.mkdir(exist_ok=True)
