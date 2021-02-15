@@ -577,7 +577,7 @@ class CloudPath(metaclass=CloudPathMeta):
         destination = Path(destination)
         if self.is_file():
             if destination.is_dir():
-                destination = destination.joinpath(self.name)
+                destination = destination / self.name
             self.client._download_file(self, destination)
         else:
             destination.mkdir(exist_ok=True)
