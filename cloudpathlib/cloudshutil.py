@@ -15,10 +15,7 @@ def _local_to_cloud_copy(src: Path, dst: CloudPath):
 def _cloud_to_cloud_copy(src: CloudPath, dst: CloudPath):
     temp_dir = src.client._local_cache_dir
     src.download_to(temp_dir)
-    if dst.is_dir():
-        dst.client._upload_file(local_path=temp_dir / src.name, cloud_path=dst / src.name)
-    else:
-        dst.client._upload_file(local_path=temp_dir / src.name, cloud_path=dst)
+    _local_to_cloud_copy(temp_dir / src.name, dst)
     (temp_dir / src.name).unlink()
 
 
