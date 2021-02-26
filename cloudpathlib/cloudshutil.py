@@ -1,6 +1,6 @@
 """ Cloud implementations of shutil functions. """
-import os
 import shutil
+from os import PathLike
 from pathlib import Path
 from cloudpathlib import CloudPath
 
@@ -22,15 +22,15 @@ def _cloud_to_cloud_copy(src: CloudPath, dst: CloudPath):
     (temp_dir / src.name).unlink()
 
 
-def copy(src: os.PathLike, dst: os.PathLike, *, follow_symlinks: bool = True):
+def copy(src: PathLike, dst: PathLike, *, follow_symlinks: bool = True):
     """
     Cloud implementation of shutil.copy.
 
     Parameters
     ----------
-    src : os.PathLike
+    src : PathLike
         Source file.
-    dst : os.PathLike
+    dst : PathLike
         Destination file or folder. If folder, the source file will be copied with its name.
     follow_symlinks: bool, default = True
         Passed only if both source and destination are local, in which case shutil.copy is used.
@@ -46,4 +46,4 @@ def copy(src: os.PathLike, dst: os.PathLike, *, follow_symlinks: bool = True):
     elif isinstance(src, Path) & isinstance(dst, Path):
         shutil.copy(src, dst, follow_symlinks=follow_symlinks)
     else:
-        raise TypeError(f'Types {type(src)} and {type(src)} not valid, they must be os.PathLike.')
+        raise TypeError(f'Types {type(src)} and {type(src)} not valid, they must be PathLike.')
