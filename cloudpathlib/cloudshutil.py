@@ -34,13 +34,13 @@ def copy(src: PathLike, dst: PathLike, *, follow_symlinks: bool = True):
     """
     if not src.is_file():
         raise ValueError('src must be a file.')
-    if isinstance(src, CloudPath) & isinstance(dst, CloudPath):
+    if isinstance(src, CloudPath) and isinstance(dst, CloudPath):
         _cloud_to_cloud_copy(src, dst)
-    elif isinstance(src, Path) & isinstance(dst, CloudPath):
+    elif isinstance(src, Path) and isinstance(dst, CloudPath):
         _local_to_cloud_copy(src, dst)
-    elif isinstance(src, CloudPath) & isinstance(dst, Path):
+    elif isinstance(src, CloudPath) and isinstance(dst, Path):
         src.download_to(dst)
-    elif isinstance(src, Path) & isinstance(dst, Path):
+    elif isinstance(src, Path) and isinstance(dst, Path):
         shutil.copy(src, dst, follow_symlinks=follow_symlinks)
     else:
         raise TypeError(f'Types {type(src)} and {type(src)} not valid, they must be PathLike.')
