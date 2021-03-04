@@ -609,8 +609,8 @@ class CloudPath(metaclass=CloudPathMeta):
         """ Copy self to destination folder of file, if self is a file. """
         if not self.is_file():
             raise ValueError(
-            f"Path {self} should be a file. To copy a directory tree use the method copytree."
-        )
+                f"Path {self} should be a file. To copy a directory tree use the method copytree."
+            )
         destination = Path(destination)
         temp_file = self._local
         temp_file.parent.mkdir(parents=True)
@@ -622,10 +622,10 @@ class CloudPath(metaclass=CloudPathMeta):
         destination = Path(destination)
         if not self.is_dir():
             raise ValueError(
-            f'Origin path {self} must be a directory. To copy a single file use the method copy.'
-        )
+                f"Origin path {self} must be a directory. To copy a single file use the method copy."
+            )
         if not destination.is_dir():
-            raise ValueError('Destination path {destination} of copytree must be a directory.')
+            raise ValueError("Destination path {destination} of copytree must be a directory.")
         for subpath in self.iterdir():
             if subpath.is_file():
                 subpath.copy(destination / subpath.name)
