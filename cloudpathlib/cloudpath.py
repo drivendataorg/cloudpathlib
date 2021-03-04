@@ -596,6 +596,7 @@ class CloudPath(metaclass=CloudPathMeta):
         self.client._remove(self)
 
     def upload_from(self, source: Union[str, os.PathLike]):
+        """ Upload a single file to the cloud path. """
         source = Path(source)
         if not source.is_file():
             raise ValueError("Method upload_from implemented only when the source is a file.")
@@ -605,6 +606,7 @@ class CloudPath(metaclass=CloudPathMeta):
             self.client._upload_file(local_path=self, cloud_path=self)
 
     def copy(self, destination: Union[str, os.PathLike]):
+        """ Copy self to destination folder of file, if self is a file. """
         if not self.is_file():
             raise ValueError(
             f"Path {self} should be a file. To copy a directory tree use the method copytree."
@@ -616,14 +618,7 @@ class CloudPath(metaclass=CloudPathMeta):
         destination.upload_from(temp_file)
 
     def copytree(self, destination: Union[str, os.PathLike]):
-        """
-        Cloud implementation of shutil.copy.
-
-        Parameters
-        ----------
-        destination : PathLike
-            Destination folder.
-        """
+        """ Copy self to a directory, if self is a directory. """
         destination = Path(destination)
         if not self.is_dir():
             raise ValueError(
