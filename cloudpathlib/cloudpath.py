@@ -614,7 +614,10 @@ class CloudPath(metaclass=CloudPathMeta):
         temp_file = self._local
         temp_file.parent.mkdir(parents=True)
         self.download_to(temp_file)
-        destination.upload_from(temp_file)
+        if destination.is_file():
+            destination.upload_from(temp_file)
+        else:
+            (destination / self.name).upload_from(temp_file)
 
     def copytree(self, destination: "CloudPath"):
         """ Copy self to a directory, if self is a directory. """
