@@ -595,6 +595,48 @@ class CloudPath(metaclass=CloudPathMeta):
             raise ValueError(f"Path {self} is a file; call unlink instead of rmtree.")
         self.client._remove(self)
 
+    def upload_from(self, source: Union[str, os.PathLike]):
+        source = Path(source)
+        if not source.is_file():
+            raise ValueError("Method upload_from implemented only when the source is a file.")
+        if self.is_dir():
+            self.client._upload_file(local_path=self, cloud_path=self / source.name)
+        else:
+            self.client._upload_file(local_path=self, cloud_path=self)
+
+    def copy(self, destination: Union[str, os.PathLike]):
+        if not self.is_file():
+            raise ValueError(
+            f"Path {self} should be a file. To copy a directory tree use the method copytree."
+        )
+        destination = Path(destination)
+        temp_file = self._local
+        temp_file.parent.mkdir(parents=True)
+        self.download_to(temp_file)
+        destination.upload_from(temp_file)
+
+    def copytree(self, destination: Union[str, os.PathLike]):
+        """
+        Cloud implementation of shutil.copy.
+
+        Parameters
+        ----------
+        destination : PathLike
+            Destination folder.
+        """
+        destination = Path(destination)
+        if not self.is_dir():
+            raise ValueError(
+            f'Origin path {self} must be a directory. To copy a single file use the method copy.'
+        )
+        if not destination.is_dir():
+            raise ValueError('Destination path {destination} of copytree must be a directory.')
+        for subpath in self.iterdir():
+            if subpath.is_file():
+                subpath.copy(destination / subpath.name)
+            elif subpath.is_dir():
+                subpath.copytree(destination / subpath.name)
+
     # ===========  private cloud methods ===============
     @property
     def _local(self):
