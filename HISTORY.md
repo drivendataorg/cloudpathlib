@@ -1,5 +1,9 @@
 # History
 
+## v0.3.1 (Unreleased)
+
+- Added rich comparison operator support to cloud paths, which means you can now use them with `sorted`.
+
 ## v0.3.0 (2021-01-29)
 
 - Added a new module `cloudpathlib.local` with utilities for mocking cloud paths in tests. The module has "Local" substitute classes that use the local filesystem in place of cloud storage. See the new documentation article ["Testing code that uses cloudpathlib"](https://cloudpathlib.drivendata.org/testing_mocked_cloudpathlib/) to learn more about how to use them. ([#107](https://github.com/drivendataorg/cloudpathlib/pull/107))

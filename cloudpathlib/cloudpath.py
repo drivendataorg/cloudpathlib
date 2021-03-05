@@ -223,6 +223,26 @@ class CloudPath(metaclass=CloudPathMeta):
             self._refresh_cache(force_overwrite_from_cloud=False)
         return str(self._local)
 
+    def __lt__(self, other: Any) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.parts < other.parts
+
+    def __le__(self, other: Any) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.parts <= other.parts
+
+    def __gt__(self, other: Any) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.parts > other.parts
+
+    def __ge__(self, other: Any) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.parts >= other.parts
+
     # ====================== NOT IMPLEMENTED ======================
     # absolute - no cloud equivalent; all cloud paths are absolute already
     # as_posix - no cloud equivalent; not needed since we assume url separator

@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_joins(rig):
     assert rig.create_cloud_path("a/b/c/d").name == "d"
     assert rig.create_cloud_path("a/b/c/d.file").name == "d.file"
@@ -45,3 +48,39 @@ def test_joins(rig):
         "c",
         "d",
     )
+
+
+def test_sorting(rig):
+    assert rig.create_cloud_path("a/b/c") < rig.create_cloud_path("a/c/b")
+    assert rig.create_cloud_path("a/b/c") <= rig.create_cloud_path("a/c/b")
+    assert not rig.create_cloud_path("a/b/c") > rig.create_cloud_path("a/c/b")
+    assert not rig.create_cloud_path("a/b/c") >= rig.create_cloud_path("a/c/b")
+
+    assert rig.create_cloud_path("a/c/b") > rig.create_cloud_path("a/b/c")
+    assert rig.create_cloud_path("a/c/b") >= rig.create_cloud_path("a/b/c")
+    assert not rig.create_cloud_path("a/c/b") < rig.create_cloud_path("a/b/c")
+    assert not rig.create_cloud_path("a/c/b") <= rig.create_cloud_path("a/b/c")
+
+    assert rig.create_cloud_path("a/b/c") <= rig.create_cloud_path("a/b/c")
+    assert rig.create_cloud_path("a/c/b") >= rig.create_cloud_path("a/c/b")
+
+    assert sorted(
+        [
+            rig.create_cloud_path("a/c/b"),
+            rig.create_cloud_path("a/b/c"),
+            rig.create_cloud_path("d/e/f"),
+        ]
+    ) == [
+        rig.create_cloud_path("a/b/c"),
+        rig.create_cloud_path("a/c/b"),
+        rig.create_cloud_path("d/e/f"),
+    ]
+
+    with pytest.raises(TypeError):
+        assert rig.create_cloud_path("a/b/c") < str(rig.create_cloud_path("a/b/c"))
+    with pytest.raises(TypeError):
+        assert rig.create_cloud_path("a/b/c") <= str(rig.create_cloud_path("a/b/c"))
+    with pytest.raises(TypeError):
+        assert rig.create_cloud_path("a/b/c") > str(rig.create_cloud_path("a/b/c"))
+    with pytest.raises(TypeError):
+        assert rig.create_cloud_path("a/b/c") >= str(rig.create_cloud_path("a/b/c"))
