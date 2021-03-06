@@ -3,6 +3,7 @@
 ## v0.3.1 (Unreleased)
 
 - Added rich comparison operator support to cloud paths, which means you can now use them with `sorted`.
+- Fixed bug where `hash(...)` of a cloud path was not consistent with the equality operator.
 
 ## v0.3.0 (2021-01-29)
 
