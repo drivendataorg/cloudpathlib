@@ -205,23 +205,42 @@ class CloudPath(metaclass=CloudPathMeta):
 
         return valid
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}('{self}')"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._str
 
-    def __hash__(self):
-        # use repr for type and resolved path to assess if paths are the same
-        return hash(self.__repr__)
+    def __hash__(self) -> int:
+        return hash((type(self).__name__, str(self)))
 
-    def __eq__(self, other: Any):
-        return repr(self) == repr(other)
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, type(self)) and str(self) == str(other)
 
     def __fspath__(self):
         if self.is_file():
             self._refresh_cache(force_overwrite_from_cloud=False)
         return str(self._local)
+
+    def __lt__(self, other: Any) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.parts < other.parts
+
+    def __le__(self, other: Any) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.parts <= other.parts
+
+    def __gt__(self, other: Any) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.parts > other.parts
+
+    def __ge__(self, other: Any) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return self.parts >= other.parts
 
     # ====================== NOT IMPLEMENTED ======================
     # absolute - no cloud equivalent; all cloud paths are absolute already
