@@ -717,6 +717,15 @@ class CloudPath(metaclass=CloudPathMeta):
             f"overwrite."
         )
 
+    # ===========  public cloud methods, not in pathlib ===============
+    @classmethod
+    def __get_validators__(cls):
+        yield cls._validate
+
+    @classmethod
+    def _validate(cls, value: Any):
+        return cls(value)
+
 
 # The function resolve is not available on Pure paths because it removes relative
 # paths and symlinks. We _just_ want the relative path resolution for
