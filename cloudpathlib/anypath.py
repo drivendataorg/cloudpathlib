@@ -10,7 +10,8 @@ class AnyPathTypeError(TypeError):
 
 class AnyPathMeta(type):
     """Metaclass for AnyPath that implements special methods so that AnyPath works as a virtual
-    superclass when using isinstance or issubclass checks on CloudPath or Path inputs."""
+    superclass when using isinstance or issubclass checks on CloudPath or Path inputs. See
+    [PEP 3119](https://www.python.org/dev/peps/pep-3119/#overloading-isinstance-and-issubclass)."""
 
     def __instancecheck__(cls, inst):
         return isinstance(inst, CloudPath) or isinstance(inst, Path)

@@ -28,6 +28,7 @@ class FancyModel(BaseModel):
 fancy1 = FancyModel(path="s3://mybucket/myfile.txt")
 fancy1.path
 #> S3Path('s3://mybucket/myfile.txt')
+
 fancy2 = FancyModel(path="mydir/myfile.txt")
 fancy2.path
 #> PosixPath('mydir/myfile.txt')
