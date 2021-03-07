@@ -717,13 +717,17 @@ class CloudPath(metaclass=CloudPathMeta):
             f"overwrite."
         )
 
-    # ===========  public cloud methods, not in pathlib ===============
+    # ===========  pydantic integration special methods ===============
     @classmethod
     def __get_validators__(cls):
+        """Pydantic special method. See
+        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
         yield cls._validate
 
     @classmethod
     def _validate(cls, value: Any):
+        """Used as a Pydantic validator. See
+        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
         return cls(value)
 
 

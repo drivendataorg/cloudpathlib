@@ -29,9 +29,9 @@ class AnyPath(metaclass=AnyPathMeta):
     constructor and dispatch to CloudPath or Path.
     """
 
-    def __new__(cls, *args, **kwargs) -> Union[CloudPath, Path]:
+    def __new__(cls, *args, **kwargs) -> Union[CloudPath, Path]:  # type: ignore
         try:
-            return CloudPath(*args, **kwargs)
+            return CloudPath(*args, **kwargs)  # type: ignore
         except InvalidPrefix as cloudpath_exception:
             try:
                 return Path(*args, **kwargs)
@@ -50,10 +50,10 @@ class AnyPath(metaclass=AnyPathMeta):
     def __get_validators__(cls):
         """Pydantic special method. See
         https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
-        yield cls.validate
+        yield cls._validate
 
     @classmethod
-    def validate(cls, value) -> Union[CloudPath, Path]:
+    def _validate(cls, value) -> Union[CloudPath, Path]:
         """Used as a Pydantic validator. See
         https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
         # Note __new__ is static method and not a class method
