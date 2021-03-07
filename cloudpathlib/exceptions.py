@@ -2,6 +2,10 @@ class CloudPathException(Exception):
     """Base exception for all cloudpathlib custom exceptions."""
 
 
+class AnyPathTypeError(CloudPathException, TypeError):
+    pass
+
+
 class ClientMismatchError(CloudPathException, ValueError):
     pass
 

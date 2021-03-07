@@ -4,10 +4,6 @@ from typing import Union
 from .cloudpath import InvalidPrefix, CloudPath
 
 
-class AnyPathTypeError(TypeError):
-    pass
-
-
 class AnyPathMeta(type):
     """Metaclass for AnyPath that implements special methods so that AnyPath works as a virtual
     superclass when using isinstance or issubclass checks on CloudPath or Path inputs. See
