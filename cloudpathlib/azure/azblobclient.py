@@ -6,6 +6,7 @@ from typing import Any, Dict, Iterable, Optional, Union
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
+from ..exceptions import MissingCredentialsError
 from .azblobpath import AzureBlobPath
 
 
@@ -63,6 +64,8 @@ class AzureBlobClient(Client):
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory.
         """
+        if connection_string is None:
+            connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING", None)
 
         if blob_service_client is not None:
             self.service_client = blob_service_client
@@ -73,8 +76,9 @@ class AzureBlobClient(Client):
         elif account_url is not None:
             self.service_client = BlobServiceClient(account_url=account_url, credential=credential)
         else:
-            self.service_client = BlobServiceClient.from_connection_string(
-                os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+            raise MissingCredentialsError(
+                "AzureBlobClient does not support anonymous instantiation. "
+                "Credentials are required; see docs for options."
             )
 
         super().__init__(local_cache_dir=local_cache_dir)

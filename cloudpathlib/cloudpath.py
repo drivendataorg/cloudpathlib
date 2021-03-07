@@ -8,51 +8,24 @@ from typing import Any, IO, Iterable, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
 
+from .exceptions import (
+    ClientMismatch,
+    CloudPathFileExistsError,
+    CloudPathIsADirectoryError,
+    CloudPathNotADirectoryError,
+    DirectoryNotEmpty,
+    IncompleteImplementation,
+    InvalidPrefix,
+    MissingDependencies,
+    NoStat,
+    OverwriteDirtyFile,
+    OverwriteNewerCloud,
+    OverwriteNewerLocal,
+)
+
 
 if TYPE_CHECKING:
     from .client import Client
-
-
-# Custom Exceptions
-class MissingDependencies(Exception):
-    pass
-
-
-class IncompleteImplementation(NotImplementedError):
-    pass
-
-
-class ClientMismatch(ValueError):
-    pass
-
-
-class InvalidPrefix(ValueError):
-    pass
-
-
-class OverwriteDirtyFile(Exception):
-    pass
-
-
-class OverwriteNewerCloud(Exception):
-    pass
-
-
-class OverwriteNewerLocal(Exception):
-    pass
-
-
-class DirectoryNotEmpty(Exception):
-    pass
-
-
-class NoStat(Exception):
-    """Used if stats cannot be retrieved; e.g., file does not exist
-    or for some backends path is a directory (which doesn't have
-    stats available).
-    """
-
-    pass
 
 
 class CloudImplementation:
@@ -351,10 +324,12 @@ class CloudPath(metaclass=CloudPathMeta):
     ) -> IO:
         # if trying to call open on a directory that exists
         if self.exists() and not self.is_file():
-            raise ValueError(f"Cannot open directory, only files. Tried to open ({self})")
+            raise CloudPathIsADirectoryError(
+                f"Cannot open directory, only files. Tried to open ({self})"
+            )
 
         if mode == "x" and self.exists():
-            raise ValueError(f"Cannot open existing file ({self}) for creation.")
+            raise CloudPathFileExistsError(f"Cannot open existing file ({self}) for creation.")
 
         # TODO: consider streaming from client rather than DLing entire file to cache
         self._refresh_cache(force_overwrite_from_cloud=force_overwrite_from_cloud)
@@ -405,7 +380,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def replace(self, target: "CloudPath") -> "CloudPath":
         if type(self) != type(target):
-            raise ValueError(
+            raise TypeError(
                 f"The target based to rename must be an instantiated class of type: {type(self)}"
             )
 
@@ -425,7 +400,9 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def rmdir(self):
         if self.is_file():
-            raise ValueError(f"Path {self} is a file; call unlink instead of rmdir.")
+            raise CloudPathNotADirectoryError(
+                f"Path {self} is a file; call unlink instead of rmdir."
+            )
         try:
             next(self.iterdir())
             raise DirectoryNotEmpty(
@@ -441,7 +418,9 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def unlink(self):
         if self.is_dir():
-            raise ValueError(f"Path {self} is a directory; call rmdir instead of unlink.")
+            raise CloudPathIsADirectoryError(
+                f"Path {self} is a directory; call rmdir instead of unlink."
+            )
         self.client._remove(self)
 
     def write_bytes(self, data: bytes):
@@ -611,7 +590,9 @@ class CloudPath(metaclass=CloudPathMeta):
     def rmtree(self):
         """Delete an entire directory tree."""
         if self.is_file():
-            raise ValueError(f"Path {self} is a file; call unlink instead of rmtree.")
+            raise CloudPathNotADirectoryError(
+                f"Path {self} is a file; call unlink instead of rmtree."
+            )
         self.client._remove(self)
 
     # ===========  private cloud methods ===============
