@@ -1,5 +1,6 @@
 import sys
 
+from .anypath import AnyPath
 from .azure.azblobclient import AzureBlobClient
 from .azure.azblobpath import AzureBlobPath
 from .cloudpath import CloudPath, implementation_registry
@@ -29,6 +30,7 @@ from .cloudpath import (
 )
 
 __all__ = [
+    "AnyPath",
     "AzureBlobClient",
     "AzureBlobPath",
     "ClientMismatch",
