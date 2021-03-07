@@ -2,11 +2,7 @@ class CloudPathException(Exception):
     """Base exception for all cloudpathlib custom exceptions."""
 
 
-class AccessError(CloudPathException):
-    pass
-
-
-class ClientMismatch(CloudPathException, ValueError):
+class ClientMismatchError(CloudPathException, ValueError):
     pass
 
 
@@ -22,15 +18,15 @@ class CloudPathNotADirectoryError(CloudPathException, NotADirectoryError):
     pass
 
 
-class DirectoryNotEmpty(CloudPathException):
+class DirectoryNotEmptyError(CloudPathException):
     pass
 
 
-class IncompleteImplementation(CloudPathException, NotImplementedError):
+class IncompleteImplementationError(CloudPathException, NotImplementedError):
     pass
 
 
-class InvalidPrefix(CloudPathException, ValueError):
+class InvalidPrefixError(CloudPathException, ValueError):
     pass
 
 
@@ -38,24 +34,24 @@ class MissingCredentialsError(CloudPathException):
     pass
 
 
-class MissingDependencies(CloudPathException, ModuleNotFoundError):
+class MissingDependenciesError(CloudPathException, ModuleNotFoundError):
     pass
 
 
-class NoStat(CloudPathException):
+class NoStatError(CloudPathException):
     """Used if stats cannot be retrieved; e.g., file does not exist
     or for some backends path is a directory (which doesn't have
     stats available).
     """
 
 
-class OverwriteDirtyFile(CloudPathException):
+class OverwriteDirtyFileError(CloudPathException):
     pass
 
 
-class OverwriteNewerCloud(CloudPathException):
+class OverwriteNewerCloudError(CloudPathException):
     pass
 
 
-class OverwriteNewerLocal(CloudPathException):
+class OverwriteNewerLocalError(CloudPathException):
     pass

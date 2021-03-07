@@ -9,18 +9,18 @@ from urllib.parse import urlparse
 from warnings import warn
 
 from .exceptions import (
-    ClientMismatch,
+    ClientMismatchError,
     CloudPathFileExistsError,
     CloudPathIsADirectoryError,
     CloudPathNotADirectoryError,
-    DirectoryNotEmpty,
-    IncompleteImplementation,
-    InvalidPrefix,
-    MissingDependencies,
-    NoStat,
-    OverwriteDirtyFile,
-    OverwriteNewerCloud,
-    OverwriteNewerLocal,
+    DirectoryNotEmptyError,
+    IncompleteImplementationError,
+    InvalidPrefixError,
+    MissingDependenciesError,
+    NoStatError,
+    OverwriteDirtyFileError,
+    OverwriteNewerCloudError,
+    OverwriteNewerLocalError,
 )
 
 
@@ -39,11 +39,11 @@ class CloudImplementation:
         expected = ["client_class", "path_class"]
         missing = [cls for cls in expected if getattr(self, f"_{cls}") is None]
         if missing:
-            raise IncompleteImplementation(
+            raise IncompleteImplementationError(
                 f"Implementation is missing registered components: {missing}"
             )
         if not self.dependencies_loaded:
-            raise MissingDependencies(
+            raise MissingDependenciesError(
                 f"Missing dependencies for {self._client_class.__name__}. You can install them "
                 f"with 'pip install cloudpathlib[{self.name}]'."
             )
@@ -95,7 +95,7 @@ class CloudPathMeta(abc.ABCMeta):
                 for impl in implementation_registry.values()
                 if impl._path_class is not None
             ]
-            raise InvalidPrefix(
+            raise InvalidPrefixError(
                 f"Path {cloud_path} does not begin with a known prefix " f"{valid}."
             )
 
@@ -141,7 +141,7 @@ class CloudPath(metaclass=CloudPathMeta):
             else:
                 client = self._cloud_meta.client_class.get_default_client()
         if not isinstance(client, self._cloud_meta.client_class):
-            raise ClientMismatch(
+            raise ClientMismatchError(
                 f"Client of type [{client.__class__}] is not valid for cloud path of type "
                 f"[{self.__class__}]; must be instance of [{self._cloud_meta.client_class}], or "
                 f"None to use default client for this cloud path class."
@@ -172,7 +172,7 @@ class CloudPath(metaclass=CloudPathMeta):
         valid = str(path).lower().startswith(cls.cloud_prefix.lower())
 
         if raise_on_error and not valid:
-            raise InvalidPrefix(
+            raise InvalidPrefixError(
                 f"'{path}' is not a valid path since it does not start with '{cls.cloud_prefix}'"
             )
 
@@ -405,7 +405,7 @@ class CloudPath(metaclass=CloudPathMeta):
             )
         try:
             next(self.iterdir())
-            raise DirectoryNotEmpty(
+            raise DirectoryNotEmptyError(
                 f"Directory not empty: '{self}'. Use rmtree to delete recursively."
             )
         except StopIteration:
@@ -622,7 +622,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def _refresh_cache(self, force_overwrite_from_cloud=False):
         try:
             stats = self.stat()
-        except NoStat:
+        except NoStatError:
             # nothing to cache if the file does not exist; happens when creating
             # new files that will be uploaded
             return
@@ -641,7 +641,7 @@ class CloudPath(metaclass=CloudPathMeta):
             os.utime(self._local, times=(stats.st_mtime, stats.st_mtime))
 
         if self._dirty:
-            raise OverwriteDirtyFile(
+            raise OverwriteDirtyFileError(
                 f"Local file ({self._local}) for cloud path ({self}) has been changed by your code, but "
                 f"is being requested for download from cloud. Either (1) push your changes to the cloud, "
                 f"(2) remove the local file, or (3) pass `force_overwrite_from_cloud=True` to "
@@ -651,7 +651,7 @@ class CloudPath(metaclass=CloudPathMeta):
         # if local newer but not dirty, it was updated
         # by a separate process; do not overwrite unless forced to
         if self._local.stat().st_mtime > stats.st_mtime:
-            raise OverwriteNewerLocal(
+            raise OverwriteNewerLocalError(
                 f"Local file ({self._local}) for cloud path ({self}) is newer on disk, but "
                 f"is being requested for download from cloud. Either (1) push your changes to the cloud, "
                 f"(2) remove the local file, or (3) pass `force_overwrite_from_cloud=True` to "
@@ -666,7 +666,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
         try:
             stats = self.stat()
-        except NoStat:
+        except NoStatError:
             stats = None
 
         # if cloud does not exist or local is newer or we are overwriting, do the upload
@@ -691,7 +691,7 @@ class CloudPath(metaclass=CloudPathMeta):
             return self
 
         # cloud is newer and we are not overwriting
-        raise OverwriteNewerCloud(
+        raise OverwriteNewerCloudError(
             f"Local file ({self._local}) for cloud path ({self}) is newer in the cloud disk, but "
             f"is being requested to be uploaded to the cloud. Either (1) redownload changes from the cloud or "
             f"(2) pass `force_overwrite_to_cloud=True` to "

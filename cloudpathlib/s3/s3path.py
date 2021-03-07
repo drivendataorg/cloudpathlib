@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 
-from ..cloudpath import CloudPath, NoStat, register_path_class
+from ..cloudpath import CloudPath, NoStatError, register_path_class
 
 
 if TYPE_CHECKING:
@@ -45,7 +45,9 @@ class S3Path(CloudPath):
         try:
             meta = self.client._get_metadata(self)
         except self.client.client.exceptions.NoSuchKey:
-            raise NoStat(f"No stats available for {self}; it may be a directory or not exist.")
+            raise NoStatError(
+                f"No stats available for {self}; it may be a directory or not exist."
+            )
 
         return os.stat_result(
             (

@@ -2,7 +2,8 @@ import os
 
 import pytest
 
-from cloudpathlib import AzureBlobPath, CloudPath, InvalidPrefix, MissingDependencies, S3Path
+from cloudpathlib import AzureBlobPath, CloudPath, GSPath, S3Path
+from cloudpathlib.exceptions import InvalidPrefixError, MissingDependenciesError
 
 
 @pytest.mark.parametrize(
@@ -14,6 +15,10 @@ from cloudpathlib import AzureBlobPath, CloudPath, InvalidPrefix, MissingDepende
         (AzureBlobPath, "aZ://b/k"),
         (S3Path, "s3://b/k"),
         (S3Path, "S3://b/k"),
+        (GSPath, "gs://b/k"),
+        (GSPath, "GS://b/k"),
+        (GSPath, "Gs://b/k"),
+        (GSPath, "gS://b/k"),
     ],
 )
 def test_dispatch(path_class, cloud_path, monkeypatch):
@@ -27,7 +32,7 @@ def test_dispatch(path_class, cloud_path, monkeypatch):
 
 
 def test_dispatch_error():
-    with pytest.raises(InvalidPrefix):
+    with pytest.raises(InvalidPrefixError):
         CloudPath("pp://b/k")
 
 
@@ -52,7 +57,7 @@ def test_instantiation_errors(rig):
     with pytest.raises(TypeError):
         rig.path_class()
 
-    with pytest.raises(InvalidPrefix):
+    with pytest.raises(InvalidPrefixError):
         rig.path_class("NOT_S3_PATH")
 
 
@@ -69,9 +74,9 @@ def test_idempotency(rig):
 
 def test_dependencies_not_loaded(rig, monkeypatch):
     monkeypatch.setattr(rig.path_class._cloud_meta, "dependencies_loaded", False)
-    with pytest.raises(MissingDependencies):
+    with pytest.raises(MissingDependenciesError):
         CloudPath(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/dir_0/file0_0.txt")
-    with pytest.raises(MissingDependencies):
+    with pytest.raises(MissingDependenciesError):
         rig.create_cloud_path("dir_0/file0_0.txt")
 
 
