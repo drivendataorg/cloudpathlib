@@ -1,0 +1,11 @@
+# Base requirements for library
+importlib_metadata ; python_version < "3.8"
+
+## extras: azure
+azure-storage-blob>=12
+
+## extras: gs
+google-cloud-storage
+
+## extras: s3
+boto3

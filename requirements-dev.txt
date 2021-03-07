@@ -13,6 +13,7 @@ mkdocstrings
 mypy
 pandas
 pillow
+pydantic
 pytest
 pytest-cases
 pytest-cov

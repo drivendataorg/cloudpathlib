@@ -1,0 +1,3 @@
+# AnyPath
+
+::: cloudpathlib.anypath.AnyPath

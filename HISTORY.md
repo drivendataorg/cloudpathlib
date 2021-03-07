@@ -4,6 +4,8 @@
 
 - Added rich comparison operator support to cloud paths, which means you can now use them with `sorted`.
 - Fixed bug where `hash(...)` of a cloud path was not consistent with the equality operator.
+- Added polymorphic class `AnyPath` which creates a cloud path or `pathlib.Path` instance appropriately for an input filepath. See new [documentation](http://https://cloudpathlib.drivendata.org/anypath-polymorphism/) for details and example usage.
+- Added integration with [Pydantic](https://pydantic-docs.helpmanual.io/). See new [documentation](http://https://cloudpathlib.drivendata.org/integrations/#pydantic) for details and example usage.
 
 ## v0.3.0 (2021-01-29)
 
