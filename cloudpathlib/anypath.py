@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Union
 
 from .cloudpath import InvalidPrefix, CloudPath
+from .exceptions import AnyPathTypeError
 
 
 class AnyPathMeta(type):
