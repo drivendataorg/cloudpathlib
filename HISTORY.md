@@ -10,9 +10,10 @@
     - Changed all custom `cloudpathlib` exceptions to subclass from new base `CloudPathException`. This allows for easy catching of any custom exception from `cloudpathlib`.
     - Changed all custom exceptions names to end with `Error` as recommended by [PEP 8](https://www.python.org/dev/peps/pep-0008/#exception-names).
     - Changed various functions to throw new `CloudPathFileExistsError`, `CloudPathIsADirectoryError` or `CloudPathNotADirectoryError` exceptions instead of a generic `ValueError`.
+    - Removed exception exports from the root `cloudpathlib` package namespace. Import from `cloudpathlib.exceptions` instead if needed.
 - Fixed bug where `hash(...)` of a cloud path was not consistent with the equality operator.
-- Fixed Azure client instantiation to throw new error `MissingCredentialsError` when no credentials are provided, instead of `AttributeError`.
-- Fixed Google Storage client to instantiate as anonymous when instantiated with no credentials, instead of erroring.
+- Fixed `AzureBlobClient` instantiation to throw new error `MissingCredentialsError` when no credentials are provided, instead of `AttributeError`.
+- Fixed `GSClient` to instantiate as anonymous with public access only when instantiated with no credentials, instead of erroring.
 
 ## v0.3.0 (2021-01-29)
 
