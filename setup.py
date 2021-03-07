@@ -2,35 +2,35 @@
 
 """The setup script."""
 
+from collections import defaultdict
 from setuptools import setup, find_packages
 from itertools import chain
 from pathlib import Path
 
 
 def load_requirements(path: Path):
-    requirements = []
+    requirements = defaultdict(list)
     with path.open("r") as fp:
+        reqs_type = "base"
         for line in fp.readlines():
+            if line.startswith("## extras:"):
+                reqs_type = line.partition(":")[-1].strip()
+                if reqs_type in ("base", "all"):
+                    raise ValueError(f"'{reqs_type}' is a reserved extras keyword.")
             if line.startswith("-r"):
-                requirements += load_requirements(line.split(" ")[1].strip())
+                requirements += load_requirements(line.split(" ")[1].strip())["base"]
             else:
                 requirement = line.strip()
                 if requirement and not requirement.startswith("#"):
-                    requirements.append(requirement)
+                    requirements[reqs_type].append(requirement)
     return requirements
 
 
-readme = Path("README.md").read_text(encoding="UTF-8")
-
-extra_reqs = {}
-for req_path in (Path(__file__).parent / "requirements").glob("*.txt"):
-    if req_path.stem == "base":
-        base_reqs = load_requirements(req_path)
-        continue
-    if req_path.stem == "all":
-        raise ValueError("'all' is a reserved keyword and can't be used for a cloud provider key")
-    extra_reqs[req_path.stem] = load_requirements(req_path)
+requirements = load_requirements(Path(__file__).parent / "requirements.txt")
+extra_reqs = {k: v for k, v in requirements.items() if k != "base"}
 extra_reqs["all"] = list(chain(*extra_reqs.values()))
+
+readme = Path("README.md").read_text(encoding="UTF-8")
 
 setup(
     author="DrivenData",
@@ -47,7 +47,7 @@ setup(
     ],
     description=("pathlib-style classes for cloud storage services"),
     extras_require=extra_reqs,
-    install_requires=base_reqs,
+    install_requires=requirements["base"],
     long_description=readme,
     long_description_content_type="text/markdown",
     include_package_data=True,
