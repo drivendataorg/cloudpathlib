@@ -1,11 +1,18 @@
 # History
 
-## v0.3.1 (Unreleased)
+## v0.4.0 (Unreleased)
 
 - Added rich comparison operator support to cloud paths, which means you can now use them with `sorted`.
-- Fixed bug where `hash(...)` of a cloud path was not consistent with the equality operator.
 - Added polymorphic class `AnyPath` which creates a cloud path or `pathlib.Path` instance appropriately for an input filepath. See new [documentation](http://https://cloudpathlib.drivendata.org/anypath-polymorphism/) for details and example usage.
 - Added integration with [Pydantic](https://pydantic-docs.helpmanual.io/). See new [documentation](http://https://cloudpathlib.drivendata.org/integrations/#pydantic) for details and example usage.
+- Exceptions:
+    - Changed all custom `cloudpathlib` exceptions to be located in new `cloudpathlib.exceptions` module.
+    - Changed all custom `cloudpathlib` exceptions to subclass from new base `CloudPathException`. This allows for easy catching of any custom exception from `cloudpathlib`.
+    - Changed all custom exceptions names to end with `Error` as recommended by [PEP 8](https://www.python.org/dev/peps/pep-0008/#exception-names).
+    - Changed various functions to throw new `CloudPathFileExistsError`, `CloudPathIsADirectoryError` or `CloudPathNotADirectoryError` exceptions instead of a generic `ValueError`.
+- Fixed bug where `hash(...)` of a cloud path was not consistent with the equality operator.
+- Fixed Azure client instantiation to throw new error `MissingCredentialsError` when no credentials are provided, instead of `AttributeError`.
+- Fixed Google Storage client to instantiate as anonymous when instantiated with no credentials, instead of erroring.
 
 ## v0.3.0 (2021-01-29)
 
