@@ -40,6 +40,7 @@ dist: clean ## builds source and wheel package
 
 docs: clean-docs
 	sed 's|https://raw.githubusercontent.com/drivendataorg/cloudpathlib/master/docs/docs/logo.svg|logo.svg|g' README.md > docs/docs/index.md
+	cp HISTORY.md docs/docs/changelog.md
 	cd docs && mkdocs build
 
 format:

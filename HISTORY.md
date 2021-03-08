@@ -1,4 +1,4 @@
-# History
+# cloudpathlib Changelog
 
 ## v0.4.0 (Unreleased)
 
