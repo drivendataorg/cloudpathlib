@@ -29,7 +29,8 @@ from .mock_clients.mock_gs import mocked_client_class_factory as mocked_gsclient
 from .mock_clients.mock_s3 import mocked_session_class_factory
 
 
-load_dotenv(find_dotenv())
+if os.getenv("USE_LIVE_CLOUD"):
+    load_dotenv(find_dotenv())
 
 
 SESSION_UUID = uuid()
@@ -103,6 +104,7 @@ def azure_rig(request, monkeypatch, assets_dir):
             )
             blob_client.upload_blob(test_file.read_bytes(), overwrite=True)
     else:
+        monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
         # Mock cloud SDK
         monkeypatch.setattr(
             cloudpathlib.azure.azblobclient,
