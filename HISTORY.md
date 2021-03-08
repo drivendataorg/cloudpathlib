@@ -12,7 +12,7 @@
     - Changed various functions to throw new `CloudPathFileExistsError`, `CloudPathIsADirectoryError` or `CloudPathNotADirectoryError` exceptions instead of a generic `ValueError`.
     - Removed exception exports from the root `cloudpathlib` package namespace. Import from `cloudpathlib.exceptions` instead if needed.
 - Fixed bug where `hash(...)` of a cloud path was not consistent with the equality operator.
-- Fixed `AzureBlobClient` instantiation to throw new error `MissingCredentialsError` when no credentials are provided, instead of `AttributeError`.
+- Fixed `AzureBlobClient` instantiation to throw new error `MissingCredentialsError` when no credentials are provided, instead of `AttributeError`. `LocalAzureBlobClient` has also been changed to accordingly error under those conditions.
 - Fixed `GSClient` to instantiate as anonymous with public access only when instantiated with no credentials, instead of erroring.
 
 ## v0.3.0 (2021-01-29)
