@@ -2,8 +2,9 @@ from pathlib import Path, PosixPath, WindowsPath
 
 import pytest
 
-from cloudpathlib.anypath import AnyPath, AnyPathTypeError
+from cloudpathlib.anypath import AnyPath
 from cloudpathlib.cloudpath import CloudPath
+from cloudpathlib.exceptions import AnyPathTypeError
 
 
 def test_anypath_path():

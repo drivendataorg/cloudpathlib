@@ -8,7 +8,7 @@ try:
 except ImportError:
     pass
 
-from ..cloudpath import CloudPath, NoStat, register_path_class
+from ..cloudpath import CloudPath, NoStatError, register_path_class
 
 
 if TYPE_CHECKING:
@@ -50,7 +50,9 @@ class AzureBlobPath(CloudPath):
         try:
             meta = self.client._get_metadata(self)
         except ResourceNotFoundError:
-            raise NoStat(f"No stats available for {self}; it may be a directory or not exist.")
+            raise NoStatError(
+                f"No stats available for {self}; it may be a directory or not exist."
+            )
 
         return os.stat_result(
             (

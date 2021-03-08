@@ -1,11 +1,8 @@
 from pathlib import Path
 from typing import Union
 
-from .cloudpath import InvalidPrefix, CloudPath
-
-
-class AnyPathTypeError(TypeError):
-    pass
+from .cloudpath import InvalidPrefixError, CloudPath
+from .exceptions import AnyPathTypeError
 
 
 class AnyPathMeta(type):
@@ -33,7 +30,7 @@ class AnyPath(metaclass=AnyPathMeta):
     def __new__(cls, *args, **kwargs) -> Union[CloudPath, Path]:  # type: ignore
         try:
             return CloudPath(*args, **kwargs)  # type: ignore
-        except InvalidPrefix as cloudpath_exception:
+        except InvalidPrefixError as cloudpath_exception:
             try:
                 return Path(*args, **kwargs)
             except TypeError as path_exception:

@@ -5,7 +5,7 @@ from time import sleep
 
 import pytest
 
-from cloudpathlib import DirectoryNotEmpty
+from cloudpathlib.exceptions import CloudPathIsADirectoryError, DirectoryNotEmptyError
 
 
 def test_file_discovery(rig):
@@ -23,10 +23,10 @@ def test_file_discovery(rig):
     assert len(list(p3.iterdir())) == 3
     assert len(list(p3.glob("**/*"))) == 3
 
-    with pytest.raises(ValueError):
+    with pytest.raises(CloudPathIsADirectoryError):
         p3.unlink()
 
-    with pytest.raises(DirectoryNotEmpty):
+    with pytest.raises(DirectoryNotEmptyError):
         p3.rmdir()
     p3.rmtree()
     assert not p3.exists()

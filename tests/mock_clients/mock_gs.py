@@ -17,6 +17,10 @@ def mocked_client_class_factory(test_dir: str):
             shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
 
         @classmethod
+        def create_anonymous_client(cls):
+            return cls()
+
+        @classmethod
         def from_service_account_json(cls, *args, **kwargs):
             return cls()
 

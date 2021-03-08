@@ -1,11 +1,15 @@
+import pytest
+
 from cloudpathlib import GSPath
+from cloudpathlib.local import LocalGSPath
 
 
-def test_gspath_properties(gs_rig):
-    p = GSPath(f"gs://{gs_rig.drive}")
+@pytest.mark.parametrize("path_class", [GSPath, LocalGSPath])
+def test_gspath_properties(path_class):
+    p = path_class("gs://mybucket")
     assert p.blob == ""
-    assert p.bucket == gs_rig.drive
+    assert p.bucket == "mybucket"
 
-    p2 = GSPath(f"gs://{gs_rig.drive}/")
+    p2 = path_class("gs://mybucket/")
     assert p2.blob == ""
-    assert p2.bucket == gs_rig.drive
+    assert p2.bucket == "mybucket"

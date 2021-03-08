@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from ..cloudpath import CloudPath, NoStat
+from ..cloudpath import CloudPath, NoStatError
 
 
 if TYPE_CHECKING:
@@ -23,7 +23,9 @@ class LocalPath(CloudPath):
         try:
             meta = self.client._stat(self)
         except FileNotFoundError:
-            raise NoStat(f"No stats available for {self}; it may be a directory or not exist.")
+            raise NoStatError(
+                f"No stats available for {self}; it may be a directory or not exist."
+            )
         return meta
 
     def touch(self):

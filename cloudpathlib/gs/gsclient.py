@@ -58,6 +58,8 @@ class GSClient(Client):
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory.
         """
+        if application_credentials is None:
+            application_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
         if storage_client is not None:
             self.client = storage_client
@@ -66,9 +68,7 @@ class GSClient(Client):
         elif application_credentials is not None:
             self.client = StorageClient.from_service_account_json(application_credentials)
         else:
-            self.client = StorageClient.from_service_account_json(
-                os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-            )
+            self.client = StorageClient.create_anonymous_client()
 
         super().__init__(local_cache_dir=local_cache_dir)
 
