@@ -29,7 +29,7 @@ from .mock_clients.mock_gs import mocked_client_class_factory as mocked_gsclient
 from .mock_clients.mock_s3 import mocked_session_class_factory
 
 
-if os.getenv("USE_LIVE_CLOUD"):
+if os.getenv("USE_LIVE_CLOUD") == "1":
     load_dotenv(find_dotenv())
 
 
