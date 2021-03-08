@@ -1,3 +1,3 @@
-# GSClient
+# cloudpathlib.GSClient
 
 ::: cloudpathlib.gs.gsclient.GSClient

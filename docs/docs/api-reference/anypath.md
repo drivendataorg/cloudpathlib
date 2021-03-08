@@ -1,3 +1,3 @@
-# AnyPath
+# cloudpathlib.AnyPath
 
 ::: cloudpathlib.anypath.AnyPath
