@@ -1,4 +1,4 @@
-![](docs/docs/logo.svg)
+![](https://raw.githubusercontent.com/drivendataorg/cloudpathlib/master/docs/docs/logo.svg)
 
 [![Docs Status](https://img.shields.io/badge/docs-latest-blueviolet)](https://cloudpathlib.drivendata.org/)
 [![PyPI](https://img.shields.io/pypi/v/cloudpathlib.svg)](https://pypi.org/project/cloudpathlib/)
