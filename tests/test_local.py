@@ -2,7 +2,6 @@ import pytest
 
 from inspect import signature
 
-
 from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
 from cloudpathlib.local import (
     LocalAzureBlobClient,
@@ -43,8 +42,11 @@ def test_interface(cloud_class, local_class):
 
 
 @pytest.mark.parametrize("client_class", [LocalAzureBlobClient, LocalGSClient, LocalS3Client])
-def test_default_storage_dir(client_class):
+def test_default_storage_dir(client_class, monkeypatch):
     """Test that local file storage for a LocalClient persists across client instantiations."""
+
+    if client_class is LocalAzureBlobClient:
+        monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
 
     cloud_prefix = client_class._cloud_meta.path_class.cloud_prefix
 
@@ -65,8 +67,11 @@ def test_default_storage_dir(client_class):
 
 
 @pytest.mark.parametrize("client_class", [LocalAzureBlobClient, LocalGSClient, LocalS3Client])
-def test_reset_default_storage_dir(client_class):
+def test_reset_default_storage_dir(client_class, monkeypatch):
     """Test that LocalClient default storage reset changes the default temp directory."""
+
+    if client_class is LocalAzureBlobClient:
+        monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
 
     cloud_prefix = client_class._cloud_meta.path_class.cloud_prefix
 

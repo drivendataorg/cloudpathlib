@@ -229,6 +229,7 @@ def local_azure_rig(request, monkeypatch, assets_dir):
         test_dir=test_dir,
     )
 
+    monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
     rig.client_class().set_as_default_client()  # set default client
 
     yield rig
