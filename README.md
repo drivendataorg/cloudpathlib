@@ -1,5 +1,7 @@
 ![](https://raw.githubusercontent.com/drivendataorg/cloudpathlib/master/docs/docs/logo.svg)
 
+<h1></h1>
+
 [![Docs Status](https://img.shields.io/badge/docs-latest-blueviolet)](https://cloudpathlib.drivendata.org/)
 [![PyPI](https://img.shields.io/pypi/v/cloudpathlib.svg)](https://pypi.org/project/cloudpathlib/)
 [![conda-forge](https://img.shields.io/conda/vn/conda-forge/cloudpathlib.svg)](https://anaconda.org/conda-forge/cloudpathlib)
