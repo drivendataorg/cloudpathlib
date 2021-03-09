@@ -22,6 +22,7 @@ nav:
   - AnyPath: "anypath-polymorphism.md"
   - Testing code that uses cloudpathlib: "testing_mocked_cloudpathlib.ipynb"
   - Integrations: "integrations.md"
+  - Changelog: "changelog.md"
   - API Reference:
       - CloudPath: "api-reference/cloudpath.md"
       - AnyPath: "api-reference/anypath.md"
@@ -38,7 +39,6 @@ nav:
           - cloudpathlib.client: "api-reference/client.md"
           - cloudpathlib.exceptions: "api-reference/exceptions.md"
           - cloudpathlib.local: "api-reference/local.md"
-  - Changelog: "changelog.md"
 
 markdown_extensions:
   - pymdownx.highlight
