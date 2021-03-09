@@ -1,5 +1,9 @@
 # cloudpathlib.local
 
+::: cloudpathlib.local
+    selection:
+        members: false
+
 ## Attributes
 
 ::: cloudpathlib.local.local_azure_blob_implementation

@@ -15,7 +15,9 @@ except ModuleNotFoundError:
 
 @register_client_class("s3")
 class S3Client(Client):
-    """Client for AWS S3."""
+    """Client class for AWS S3 which handles authentication with AWS for [`S3Path`](../s3path/)
+    instances. See documentation for the [`__init__` method][cloudpathlib.s3.s3client.S3Client.__init__]
+    for detailed authentication options."""
 
     def __init__(
         self,

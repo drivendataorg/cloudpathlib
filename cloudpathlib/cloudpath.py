@@ -123,6 +123,20 @@ class CloudPathMeta(abc.ABCMeta):
 
 # Abstract base class
 class CloudPath(metaclass=CloudPathMeta):
+    """Base class for cloud storage file URIs, in the style of the Python standard library's
+    [`pathlib` module](https://docs.python.org/3/library/pathlib.html). Instances represent a path
+    in cloud storage with filesystem path semantics, and convenient methods allow for basic
+    operations like joining, reading, writing, iterating over contents, etc. `CloudPath` almost
+    entirely mimics the [`pathlib.Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+    interface, so most familiar properties and methods should be available and behave in the
+    expected way.
+
+    Analogous to the way `pathlib.Path` works, instantiating `CloudPath` will instead create an
+    instance of an appropriate subclass that implements a particular cloud storage service, such as
+    [`S3Path`](../s3path). This dispatching behavior is based on the URI scheme part of a cloud
+    storage URI (e.g., `"s3://"`).
+    """
+
     _cloud_meta: CloudImplementation
     cloud_prefix: str
 

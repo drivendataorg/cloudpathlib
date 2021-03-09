@@ -8,7 +8,7 @@ jupyter
 matplotlib
 mkdocs>=1.1
 mkdocs-jupyter
-mkdocs-material
+mkdocs-material>=7
 mkdocstrings>=0.15
 mypy
 pandas

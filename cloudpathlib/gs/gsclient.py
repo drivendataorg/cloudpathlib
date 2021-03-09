@@ -19,7 +19,11 @@ except ModuleNotFoundError:
 
 @register_client_class("gs")
 class GSClient(Client):
-    """Client for Google Cloud Storage."""
+    """Client class for Google Cloud Storage which handles authentication with GCP for
+    [`GSPath`](../gspath/) instances. See documentation for the
+    [`__init__` method][cloudpathlib.gs.gsclient.GSClient.__init__] for detailed authentication
+    options.
+    """
 
     def __init__(
         self,

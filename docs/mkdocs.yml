@@ -6,6 +6,9 @@ theme:
   name: material
   logo: logo-no-text.svg
   favicon: favicon.svg
+  features:
+    - navigation.sections
+    - navigation.expand
 
 extra_css:
   - stylesheets/extra.css

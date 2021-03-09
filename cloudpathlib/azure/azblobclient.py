@@ -19,7 +19,11 @@ except ModuleNotFoundError:
 
 @register_client_class("azure")
 class AzureBlobClient(Client):
-    """Client for Azure Blob Storage."""
+    """Client class for Azure Blob Storage which handles authentication with Azure for
+    [`AzureBlobPath`](../azblobpath/) instances. See documentation for the
+    [`__init__` method][cloudpathlib.azure.azblobclient.AzureBlobClient.__init__] for detailed
+    authentication options.
+    """
 
     def __init__(
         self,
