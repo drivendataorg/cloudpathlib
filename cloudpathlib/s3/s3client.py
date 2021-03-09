@@ -35,6 +35,9 @@ class S3Client(Client):
         variables supported by boto3. See [boto3 Session documentation](
         https://boto3.amazonaws.com/v1/documentation/api/latest/guide/session.html).
 
+        If no authentication arguments or environment variables are provided, then the client will
+        be instantiated as anonymous, which will only have access to public buckets.
+
         Args:
             aws_access_key_id (Optional[str]): AWS access key ID.
             aws_secret_access_key (Optional[str]): AWS secret access key.
