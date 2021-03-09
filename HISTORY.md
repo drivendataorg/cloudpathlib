@@ -2,18 +2,18 @@
 
 ## v0.4.0 (Unreleased)
 
-- Added rich comparison operator support to cloud paths, which means you can now use them with `sorted`.
-- Added polymorphic class `AnyPath` which creates a cloud path or `pathlib.Path` instance appropriately for an input filepath. See new [documentation](http://https://cloudpathlib.drivendata.org/anypath-polymorphism/) for details and example usage.
-- Added integration with [Pydantic](https://pydantic-docs.helpmanual.io/). See new [documentation](http://https://cloudpathlib.drivendata.org/integrations/#pydantic) for details and example usage.
-- Exceptions:
+- Added rich comparison operator support to cloud paths, which means you can now use them with `sorted`. ([#129](https://github.com/drivendataorg/cloudpathlib/pull/129))
+- Added polymorphic class `AnyPath` which creates a cloud path or `pathlib.Path` instance appropriately for an input filepath. See new [documentation](http://https://cloudpathlib.drivendata.org/anypath-polymorphism/) for details and example usage. ([#130](https://github.com/drivendataorg/cloudpathlib/pull/130))
+- Added integration with [Pydantic](https://pydantic-docs.helpmanual.io/). See new [documentation](http://https://cloudpathlib.drivendata.org/integrations/#pydantic) for details and example usage. ([#130](https://github.com/drivendataorg/cloudpathlib/pull/130))
+- Exceptions: ([#131](https://github.com/drivendataorg/cloudpathlib/pull/131))
     - Changed all custom `cloudpathlib` exceptions to be located in new `cloudpathlib.exceptions` module.
     - Changed all custom `cloudpathlib` exceptions to subclass from new base `CloudPathException`. This allows for easy catching of any custom exception from `cloudpathlib`.
     - Changed all custom exceptions names to end with `Error` as recommended by [PEP 8](https://www.python.org/dev/peps/pep-0008/#exception-names).
     - Changed various functions to throw new `CloudPathFileExistsError`, `CloudPathIsADirectoryError` or `CloudPathNotADirectoryError` exceptions instead of a generic `ValueError`.
     - Removed exception exports from the root `cloudpathlib` package namespace. Import from `cloudpathlib.exceptions` instead if needed.
-- Fixed bug where `hash(...)` of a cloud path was not consistent with the equality operator.
-- Fixed `AzureBlobClient` instantiation to throw new error `MissingCredentialsError` when no credentials are provided, instead of `AttributeError`. `LocalAzureBlobClient` has also been changed to accordingly error under those conditions.
-- Fixed `GSClient` to instantiate as anonymous with public access only when instantiated with no credentials, instead of erroring.
+- Fixed bug where `hash(...)` of a cloud path was not consistent with the equality operator. ([#129](https://github.com/drivendataorg/cloudpathlib/pull/129))
+- Fixed `AzureBlobClient` instantiation to throw new error `MissingCredentialsError` when no credentials are provided, instead of `AttributeError`. `LocalAzureBlobClient` has also been changed to accordingly error under those conditions. ([#131](https://github.com/drivendataorg/cloudpathlib/pull/131))
+- Fixed `GSClient` to instantiate as anonymous with public access only when instantiated with no credentials, instead of erroring. ([#131](https://github.com/drivendataorg/cloudpathlib/pull/131))
 
 ## v0.3.0 (2021-01-29)
 
