@@ -35,7 +35,7 @@ nav:
       - GS:
           - GSClient: "api-reference/gsclient.md"
           - GSPath: "api-reference/gspath.md"
-      - Other Modules:
+      - Submodules:
           - cloudpathlib.client: "api-reference/client.md"
           - cloudpathlib.exceptions: "api-reference/exceptions.md"
           - cloudpathlib.local: "api-reference/local.md"
