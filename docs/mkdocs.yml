@@ -1,5 +1,5 @@
 site_name: cloudpathlib
-site_url: https://cloudpathlib.drivendata.org
+site_url: https://cloudpathlib.drivendata.org/
 site_description: A library that implements pathlib.Path methods for URIs for different cloud providers.
 repo_url: https://github.com/drivendataorg/cloudpathlib
 theme:
