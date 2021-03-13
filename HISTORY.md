@@ -11,6 +11,7 @@
     - Changed all custom exceptions names to end with `Error` as recommended by [PEP 8](https://www.python.org/dev/peps/pep-0008/#exception-names).
     - Changed various functions to throw new `CloudPathFileExistsError`, `CloudPathIsADirectoryError` or `CloudPathNotADirectoryError` exceptions instead of a generic `ValueError`.
     - Removed exception exports from the root `cloudpathlib` package namespace. Import from `cloudpathlib.exceptions` instead if needed.
+- Fixed `download_to` method to handle case when source is a file and destination is a directory. ([#121](https://github.com/drivendataorg/cloudpathlib/pull/121) thanks to [@genziano](https://github.com/genziano))
 - Fixed bug where `hash(...)` of a cloud path was not consistent with the equality operator. ([#129](https://github.com/drivendataorg/cloudpathlib/pull/129))
 - Fixed `AzureBlobClient` instantiation to throw new error `MissingCredentialsError` when no credentials are provided, instead of `AttributeError`. `LocalAzureBlobClient` has also been changed to accordingly error under those conditions. ([#131](https://github.com/drivendataorg/cloudpathlib/pull/131))
 - Fixed `GSClient` to instantiate as anonymous with public access only when instantiated with no credentials, instead of erroring. ([#131](https://github.com/drivendataorg/cloudpathlib/pull/131))
