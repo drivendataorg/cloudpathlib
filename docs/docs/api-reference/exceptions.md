@@ -1,0 +1,3 @@
+# cloudpathlib.exceptions
+
+::: cloudpathlib.exceptions

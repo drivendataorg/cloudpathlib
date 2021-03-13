@@ -2,6 +2,7 @@ docs/docs/command-reference/*.md
 
 # always built by `make docs`
 docs/docs/index.md
+docs/docs/changelog.md
 
 ## GitHub Python .gitignore ##
 # https://github.com/github/gitignore/blob/master/Python.gitignore

@@ -1,4 +1,6 @@
-![](docs/docs/logo.svg)
+![](https://raw.githubusercontent.com/drivendataorg/cloudpathlib/master/docs/docs/logo.svg)
+
+<h1></h1>
 
 [![Docs Status](https://img.shields.io/badge/docs-latest-blueviolet)](https://cloudpathlib.drivendata.org/)
 [![PyPI](https://img.shields.io/pypi/v/cloudpathlib.svg)](https://pypi.org/project/cloudpathlib/)
@@ -8,7 +10,7 @@
 
 > Our goal is to be the meringue of file management libraries: the subtle sweetness of `pathlib` working in harmony with the ethereal lightness of the cloud.
 
-A library that implements (nearly all) of the `pathlib.Path` methods for URIs for different cloud storage services.
+A Python library with classes that mimic `pathlib.Path`'s interface for URIs from different cloud storage services.
 
 ```python
 with CloudPath("s3://bucket/filename.txt").open("w+") as f:

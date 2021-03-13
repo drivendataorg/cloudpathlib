@@ -1,3 +1,9 @@
+"""This module contains all custom exceptions in the `cloudpathlib` library. All exceptions
+subclass the [`CloudPathException` base exception][cloudpathlib.exceptions.CloudPathException] to
+facilitate catching any exception from this library.
+"""
+
+
 class CloudPathException(Exception):
     """Base exception for all cloudpathlib custom exceptions."""
 

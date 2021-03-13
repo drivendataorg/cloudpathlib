@@ -12,6 +12,19 @@ if TYPE_CHECKING:
 
 @register_path_class("gs")
 class GSPath(CloudPath):
+    """Class for representing and operating on Google Cloud Storage URIs, in the style of the
+    Python standard library's [`pathlib` module](https://docs.python.org/3/library/pathlib.html).
+    Instances represent a path in GS with filesystem path semantics, and convenient methods allow
+    for basic operations like joining, reading, writing, iterating over contents, etc. This class
+    almost entirely mimics the [`pathlib.Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+    interface, so most familiar properties and methods should be available and behave in the
+    expected way.
+
+    The [`GSClient`](../gsclient/) class handles authentication with GCP. If a client instance is
+    not explicitly specified on `GSPath` instantiation, a default client is used. See `GSClient`'s
+    documentation for more details.
+    """
+
     cloud_prefix: str = "gs://"
     client: "GSClient"
 

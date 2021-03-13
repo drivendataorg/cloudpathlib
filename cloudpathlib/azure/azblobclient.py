@@ -19,7 +19,11 @@ except ModuleNotFoundError:
 
 @register_client_class("azure")
 class AzureBlobClient(Client):
-    """Client for Azure Blob Storage."""
+    """Client class for Azure Blob Storage which handles authentication with Azure for
+    [`AzureBlobPath`](../azblobpath/) instances. See documentation for the
+    [`__init__` method][cloudpathlib.azure.azblobclient.AzureBlobClient.__init__] for detailed
+    authentication options.
+    """
 
     def __init__(
         self,
@@ -44,7 +48,8 @@ class AzureBlobClient(Client):
         https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
 
         If multiple methods are used, priority order is reverse of list above (later in list takes
-        priority).
+        priority). If no methods are used, a [`MissingCredentialsError`][cloudpathlib.exceptions.MissingCredentialsError]
+        exception will be raised raised.
 
         Args:
             account_url (Optional[str]): The URL to the blob storage account, optionally

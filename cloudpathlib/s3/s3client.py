@@ -15,7 +15,9 @@ except ModuleNotFoundError:
 
 @register_client_class("s3")
 class S3Client(Client):
-    """Client for AWS S3."""
+    """Client class for AWS S3 which handles authentication with AWS for [`S3Path`](../s3path/)
+    instances. See documentation for the [`__init__` method][cloudpathlib.s3.s3client.S3Client.__init__]
+    for detailed authentication options."""
 
     def __init__(
         self,
@@ -32,6 +34,9 @@ class S3Client(Client):
         Directly supports the same authentication interface, as well as the same environment
         variables supported by boto3. See [boto3 Session documentation](
         https://boto3.amazonaws.com/v1/documentation/api/latest/guide/session.html).
+
+        If no authentication arguments or environment variables are provided, then the client will
+        be instantiated as anonymous, which will only have access to public buckets.
 
         Args:
             aws_access_key_id (Optional[str]): AWS access key ID.

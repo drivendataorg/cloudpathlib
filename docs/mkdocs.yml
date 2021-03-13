@@ -1,14 +1,18 @@
 site_name: cloudpathlib
-site_url: https://cloudpathlib.drivendata.org
+site_url: https://cloudpathlib.drivendata.org/
 site_description: A library that implements pathlib.Path methods for URIs for different cloud providers.
 repo_url: https://github.com/drivendataorg/cloudpathlib
 theme:
   name: material
   logo: logo-no-text.svg
   favicon: favicon.svg
+  features:
+    - navigation.sections
+    - navigation.expand
 
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/custom_mkdocstrings.css
 
 nav:
   - Home: "index.md"
@@ -18,27 +22,30 @@ nav:
   - AnyPath: "anypath-polymorphism.md"
   - Testing code that uses cloudpathlib: "testing_mocked_cloudpathlib.ipynb"
   - Integrations: "integrations.md"
+  - Changelog: "changelog.md"
   - API Reference:
       - CloudPath: "api-reference/cloudpath.md"
-      - S3:
-          - S3Client: "api-reference/s3client.md"
-          - S3Path: "api-reference/s3path.md"
+      - AnyPath: "api-reference/anypath.md"
       - Azure:
           - AzureBlobClient: "api-reference/azblobclient.md"
           - AzureBlobPath: "api-reference/azblobpath.md"
+      - S3:
+          - S3Client: "api-reference/s3client.md"
+          - S3Path: "api-reference/s3path.md"
       - GS:
           - GSClient: "api-reference/gsclient.md"
           - GSPath: "api-reference/gspath.md"
-      - AnyPath: "api-reference/anypath.md"
-      - Local: "api-reference/local.md"
+      - Submodules:
+          - cloudpathlib.client: "api-reference/client.md"
+          - cloudpathlib.exceptions: "api-reference/exceptions.md"
+          - cloudpathlib.local: "api-reference/local.md"
 
 markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
   - toc:
       permalink: True
-  - codehilite:
-      use_pygments: true
+      toc_depth: 3
 
 plugins:
   - search
@@ -55,7 +62,10 @@ plugins:
             show_root_toc_entry: false
             show_root_full_path: false
             show_if_no_docstring: true
+            show_signature_annotations: true
             show_source: true
-            heading_level: 3
+            heading_level: 2
+            group_by_category: true
+            show_category_heading: true
       watch:
         - cloudpathlib
