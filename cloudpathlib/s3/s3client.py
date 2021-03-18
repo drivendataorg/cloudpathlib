@@ -28,6 +28,7 @@ class S3Client(Client):
         profile_name: Optional[str] = None,
         boto3_session: Optional["Session"] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
+        endpoint_url: Optional[str] = None,
     ):
         """Class constructor. Sets up a boto3 [`Session`](
         https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html).
@@ -49,6 +50,7 @@ class S3Client(Client):
             boto3_session (Optional[Session]): An already instantiated boto3 Session.
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory.
+            endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.
         """
         if boto3_session is not None:
             self.sess = boto3_session
@@ -60,8 +62,8 @@ class S3Client(Client):
                 botocore_session=botocore_session,
                 profile_name=profile_name,
             )
-        self.s3 = self.sess.resource("s3")
-        self.client = self.sess.client("s3")
+        self.s3 = self.sess.resource("s3", endpoint_url=endpoint_url)
+        self.client = self.sess.client("s3", endpoint_url=endpoint_url)
 
         super().__init__(local_cache_dir=local_cache_dir)
 
