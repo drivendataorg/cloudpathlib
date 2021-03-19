@@ -51,6 +51,7 @@ class S3Client(Client):
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory.
             endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.
+                Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.
         """
         if boto3_session is not None:
             self.sess = boto3_session
