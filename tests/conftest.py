@@ -51,15 +51,22 @@ class CloudProviderTestRig:
     """Class that holds together the components needed to test a cloud implementation."""
 
     def __init__(
-        self, path_class: type, client_class: type, drive: str = "drive", test_dir: str = ""
+        self,
+        path_class: type,
+        client_class: type,
+        drive: str = "drive",
+        test_dir: str = "",
+        **client_kwargs: dict,
     ):
         """
         Args:
             path_class (type): CloudPath subclass
             client_class (type): Client subclass
+            client_kwargs (dict): Kwargs, passed to instantiate the client
         """
         self.path_class = path_class
         self.client_class = client_class
+        self.client_kwargs = client_kwargs
         self.drive = drive
         self.test_dir = test_dir
 
@@ -210,6 +217,49 @@ def s3_rig(request, monkeypatch, assets_dir):
     if os.getenv("USE_LIVE_CLOUD") == "1":
         # Clean up test dir
         bucket.objects.filter(Prefix=test_dir).delete()
+
+
+@fixture()
+def custom_s3_rig(request, monkeypatch, assets_dir):
+    drive = os.getenv("CUSTOM_S3_BUCKET", "bucket")
+    custom_endpoint_url = os.getenv("CUSTOM_S3_ENDPOINT")
+    custom_key_id = os.getenv("CUSTOM_S3_KEY_ID")
+    custom_secret_key = os.getenv("CUSTOM_S3_SECRET_KEY")
+    test_dir = create_test_dir_name(request)
+
+    # Upload test assets
+    s3 = boto3.resource(
+        "s3",
+        aws_access_key_id=custom_key_id,
+        aws_secret_access_key=custom_secret_key,
+        endpoint_url=custom_endpoint_url,
+    )
+    bucket = s3.Bucket(drive)
+    test_files = [
+        f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
+    ]
+    for test_file in test_files:
+        bucket.upload_file(
+            str(test_file),
+            str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
+        )
+
+    rig = CloudProviderTestRig(
+        path_class=S3Path,
+        client_class=S3Client,
+        drive=drive,
+        test_dir=test_dir,
+        endpoint_url=custom_endpoint_url,
+        aws_access_key_id=custom_key_id,
+        aws_secret_access_key=custom_secret_key,
+    )
+
+    rig.client_class(**rig.client_kwargs).set_as_default_client()  # set default client
+
+    yield rig
+
+    rig.client_class._default_client = None  # reset default client
+    bucket.objects.filter(Prefix=test_dir).delete()
 
 
 @fixture()
