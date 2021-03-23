@@ -221,27 +221,41 @@ def s3_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def custom_s3_rig(request, monkeypatch, assets_dir):
+    """
+    Custom S3 rig used to test the integrations with non-AWS S3-compatible object storages like
+        - MinIO (https://min.io/)
+        - CEPH  (https://ceph.io/ceph-storage/object-storage/)
+        - others
+    """
     drive = os.getenv("CUSTOM_S3_BUCKET", "bucket")
     custom_endpoint_url = os.getenv("CUSTOM_S3_ENDPOINT")
     custom_key_id = os.getenv("CUSTOM_S3_KEY_ID")
     custom_secret_key = os.getenv("CUSTOM_S3_SECRET_KEY")
     test_dir = create_test_dir_name(request)
 
-    # Upload test assets
-    s3 = boto3.resource(
-        "s3",
-        aws_access_key_id=custom_key_id,
-        aws_secret_access_key=custom_secret_key,
-        endpoint_url=custom_endpoint_url,
-    )
-    bucket = s3.Bucket(drive)
-    test_files = [
-        f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
-    ]
-    for test_file in test_files:
-        bucket.upload_file(
-            str(test_file),
-            str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
+    if os.getenv("USE_LIVE_CLOUD") == "1":
+        # Upload test assets
+        s3 = boto3.resource(
+            "s3",
+            aws_access_key_id=custom_key_id,
+            aws_secret_access_key=custom_secret_key,
+            endpoint_url=custom_endpoint_url,
+        )
+        bucket = s3.Bucket(drive)
+        test_files = [
+            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
+        ]
+        for test_file in test_files:
+            bucket.upload_file(
+                str(test_file),
+                str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
+            )
+    else:
+        # Mock cloud SDK
+        monkeypatch.setattr(
+            cloudpathlib.s3.s3client,
+            "Session",
+            mocked_session_class_factory(test_dir),
         )
 
     rig = CloudProviderTestRig(
