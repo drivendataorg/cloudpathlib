@@ -69,10 +69,15 @@ provinding http/https URL including port.
 ```python
 from cloudpathlib import S3Client, CloudPath
 
+# create a client pointing to the endpoint
 client = S3Client(endpoint_url="http://my.s3.server:1234")
-# set this client as a default one
-client.set_as_default_client()
+# option 1: use the client to create paths
 cp1 = client.CloudPath("s3://cloudpathlib-test-bucket/")
-# or pass the client as keyword argument
+
+# option 2: pass the client as keyword argument
 cp2 = CloudPath("s3://cloudpathlib-test-bucket/", client=client)
+
+# option3: set this client as the default so it is used in any future paths
+client.set_as_default_client()
+cp3 = CloudPath("s3://cloudpathlib-test-bucket/")
 ```
