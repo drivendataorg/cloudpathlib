@@ -4,6 +4,7 @@ import shutil
 
 from azure.storage.blob import BlobServiceClient
 import boto3
+import botocore
 from dotenv import find_dotenv, load_dotenv
 from google.cloud import storage as google_storage
 from pytest_cases import fixture, fixture_union
@@ -241,7 +242,16 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
             aws_secret_access_key=custom_secret_key,
             endpoint_url=custom_endpoint_url,
         )
+
+        # idempotent and our test server on heroku only has ephemeral storage
+        # so we need to try to create each time
+        try:
+            s3.meta.client.head_bucket(Bucket=drive)
+        except botocore.exceptions.ClientError:
+            s3.create_bucket(Bucket=drive)
+
         bucket = s3.Bucket(drive)
+
         test_files = [
             f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
         ]
@@ -273,7 +283,9 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
     yield rig
 
     rig.client_class._default_client = None  # reset default client
-    bucket.objects.filter(Prefix=test_dir).delete()
+
+    if os.getenv("USE_LIVE_CLOUD") == "1":
+        bucket.objects.filter(Prefix=test_dir).delete()
 
 
 @fixture()
@@ -358,6 +370,7 @@ rig = fixture_union(
         azure_rig,
         gs_rig,
         s3_rig,
+        custom_s3_rig,
         local_azure_rig,
         local_s3_rig,
         local_gs_rig,
