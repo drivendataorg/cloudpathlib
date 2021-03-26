@@ -35,13 +35,9 @@ class AnyPath(metaclass=AnyPathMeta):
                 return Path(*args, **kwargs)
             except TypeError as path_exception:
                 raise AnyPathTypeError(
-                    " ".join(
-                        [
-                            "Invalid input for both CloudPath and Path.",
-                            f"CloudPath exception: {repr(cloudpath_exception)}",
-                            f"Path exception: {repr(path_exception)}",
-                        ]
-                    )
+                    "Invalid input for both CloudPath and Path. "
+                    f"CloudPath exception: {repr(cloudpath_exception)} "
+                    f"Path exception: {repr(path_exception)}"
                 )
 
     @classmethod
