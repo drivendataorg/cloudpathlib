@@ -1,5 +1,8 @@
 # cloudpathlib Changelog
 
+## v0.4.1 (unreleased)
+ - Add `.cloud` accessor to `pandas.Series` and `pandas.Index` through [pandas-path](https://github.com/drivendataorg/pandas-path) integration. Registered if user does `from cloudpathlib.pandas import cloud`.
+
 ## v0.4.0 (2021-03-13)
 
 - Added rich comparison operator support to cloud paths, which means you can now use them with `sorted`. ([#129](https://github.com/drivendataorg/cloudpathlib/pull/129))

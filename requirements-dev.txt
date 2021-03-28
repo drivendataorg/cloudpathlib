@@ -12,6 +12,7 @@ mkdocs-material>=7
 mkdocstrings>=0.15
 mypy
 pandas
+pandas-path>=0.3.0
 pillow
 pydantic
 pytest
