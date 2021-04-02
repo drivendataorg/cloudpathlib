@@ -43,7 +43,7 @@ jobs:
           LIVE_S3_BUCKET: ${{ secrets.LIVE_S3_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          CUSTOM_S3_BUCKET: ${{CUSTOM_S3_BUCKET}}
-          CUSTOM_S3_KEY_ID: ${{CUSTOM_S3_KEY_ID}}
-          CUSTOM_S3_SECRET_KEY: ${{CUSTOM_S3_SECRET_KEY}}
-          CUSTOM_S3_ENDPOINT: ${{CUSTOM_S3_ENDPOINT}}
+          CUSTOM_S3_BUCKET: ${{secrets.CUSTOM_S3_BUCKET}}
+          CUSTOM_S3_KEY_ID: ${{secrets.CUSTOM_S3_KEY_ID}}
+          CUSTOM_S3_SECRET_KEY: ${{secrets.CUSTOM_S3_SECRET_KEY}}
+          CUSTOM_S3_ENDPOINT: ${{secrets.CUSTOM_S3_ENDPOINT}}
