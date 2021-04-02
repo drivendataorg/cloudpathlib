@@ -267,6 +267,9 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
         endpoint_url=custom_endpoint_url
     ).set_as_default_client()  # set default client
 
+    # add flag for custom_s3 rig to skip some tests
+    rig.is_custom_s3 = True
+
     yield rig
 
     rig.client_class._default_client = None  # reset default client
