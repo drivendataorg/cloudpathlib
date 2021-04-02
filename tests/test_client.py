@@ -1,8 +1,17 @@
-from cloudpathlib import CloudPath
+import os
+
+from cloudpathlib import CloudPath, S3Client
 
 
 def test_default_client_instantiation(rig):
-    rig.client_class._default_client = None
+    if not (
+        rig.client_class is S3Client
+        and rig.client_class._default_client.client.meta.endpoint_url
+        == os.getenv("CUSTOM_S3_ENDPOINT")
+    ):
+        # Skip resetting the default client for custom S3 endpoint, but keep the other tests,
+        # since they're still useful.
+        rig.client_class._default_client = None
 
     # CloudPath dispatch
     p = CloudPath(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/dir_0/file0_0.txt")
