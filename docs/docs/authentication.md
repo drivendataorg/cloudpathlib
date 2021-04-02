@@ -71,6 +71,7 @@ from cloudpathlib import S3Client, CloudPath
 
 # create a client pointing to the endpoint
 client = S3Client(endpoint_url="http://my.s3.server:1234")
+
 # option 1: use the client to create paths
 cp1 = client.CloudPath("s3://cloudpathlib-test-bucket/")
 
