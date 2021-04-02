@@ -60,7 +60,7 @@ def test_file_read_writes(rig, tmp_path):
 
     before_touch = datetime.now()
     sleep(1)
-    p.touch()  # I think touch does not change modified time on MinIO
+    p.touch()
     assert datetime.fromtimestamp(p.stat().st_mtime) > before_touch
 
     # no-op
