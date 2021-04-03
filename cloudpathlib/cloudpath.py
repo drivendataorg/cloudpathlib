@@ -4,11 +4,14 @@ import collections.abc
 import fnmatch
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
+import inspect
+import traceback
 from typing import Any, IO, Iterable, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
 
 from .exceptions import (
+    BuiltInOpenWriteError,
     ClientMismatchError,
     CloudPathFileExistsError,
     CloudPathIsADirectoryError,
@@ -205,6 +208,19 @@ class CloudPath(metaclass=CloudPathMeta):
         return isinstance(other, type(self)) and str(self) == str(other)
 
     def __fspath__(self):
+        WRITE_MODES = {"r+", "w", "w+", "a", "a+", "rb+", "wb", "wb+", "ab", "ab+"}
+        for frame, _ in traceback.walk_stack(None):
+            if "open" in frame.f_code.co_names:
+                code_context = inspect.getframeinfo(frame).code_context
+                if "open(" in code_context[0]:
+                    for mode in WRITE_MODES:
+                        if f'"{mode}"' in code_context[0] or f"'{mode}'" in code_context[0]:
+                            raise BuiltInOpenWriteError(
+                                "Detected the use of built-in open function with a cloud path and write mode. "
+                                "Cloud paths do not support the open function in write mode; "
+                                "please use the .open() method instead."
+                            )
+
         if self.is_file():
             self._refresh_cache(force_overwrite_from_cloud=False)
         return str(self._local)

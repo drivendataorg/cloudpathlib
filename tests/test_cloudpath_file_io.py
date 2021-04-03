@@ -5,7 +5,11 @@ from time import sleep
 
 import pytest
 
-from cloudpathlib.exceptions import CloudPathIsADirectoryError, DirectoryNotEmptyError
+from cloudpathlib.exceptions import (
+    BuiltInOpenWriteError,
+    CloudPathIsADirectoryError,
+    DirectoryNotEmptyError,
+)
 
 
 def test_file_discovery(rig):
@@ -113,3 +117,26 @@ def test_os_open(rig):
     p = rig.create_cloud_path("dir_0/file0_0.txt")
     with open(p, "r") as f:
         assert f.readable()
+
+    with pytest.raises(BuiltInOpenWriteError):
+        with open(p, "w") as f:
+            pass
+
+    with pytest.raises(BuiltInOpenWriteError):
+        with open(p, "wb") as f:
+            pass
+
+    with pytest.raises(BuiltInOpenWriteError):
+        with open(p, "a") as f:
+            pass
+
+    with pytest.raises(BuiltInOpenWriteError):
+        with open(p, "r+") as f:
+            pass
+
+    # with pytest.raises(BuiltInOpenWriteError):
+    #     with open(
+    #         p,
+    #         "w",
+    #     ) as f:
+    #         pass

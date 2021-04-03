@@ -12,6 +12,10 @@ class AnyPathTypeError(CloudPathException, TypeError):
     pass
 
 
+class BuiltInOpenWriteError(CloudPathException):
+    pass
+
+
 class ClientMismatchError(CloudPathException, ValueError):
     pass
 
