@@ -32,7 +32,7 @@ cloud_path.client
 
 All subsequent instances of that service's cloud paths (in the example, all subsequent `S3Path` instances) will reference the same client instance.
 
-You can also explicitly instantiate a client instance. You will need to do so if you want to authenticate using any option other than the environment variables from the table in the previous section. (To see what those options are, check out the API documentation pages linked to in the table above.) You can then use that client instance's cloud path factory method, or pass it into a cloud path instantiation
+You can also explicitly instantiate a client instance. You will need to do so if you want to authenticate using any option other than the environment variables from the table in the previous section. (To see what those options are, check out the API documentation pages linked to in the table above.) You can then use that client instance's cloud path factory method, or pass it into a cloud path instantiation.
 
 ```python
 from cloudpathlib import S3Client
@@ -58,4 +58,27 @@ If you need a reference to the default client:
 ```python
 S3Client.get_default_client()
 #> <cloudpathlib.s3.s3client.S3Client at 0x7feac3d1fb90>
+```
+
+## Accessing custom S3-compatible object stores
+It might happen so that you need to access a customly deployed S3 object store ([MinIO](https://min.io/), [Ceph](https://ceph.io/ceph-storage/object-storage/) or any other).
+In such cases, the service endpoint will be different from the AWS object store endpoints (used by default).
+To specify a custom endpoint address, you will need to manually instantiate `Client` with the `endpoint_url` parameter,
+provinding http/https URL including port.
+
+```python
+from cloudpathlib import S3Client, CloudPath
+
+# create a client pointing to the endpoint
+client = S3Client(endpoint_url="http://my.s3.server:1234")
+
+# option 1: use the client to create paths
+cp1 = client.CloudPath("s3://cloudpathlib-test-bucket/")
+
+# option 2: pass the client as keyword argument
+cp2 = CloudPath("s3://cloudpathlib-test-bucket/", client=client)
+
+# option3: set this client as the default so it is used in any future paths
+client.set_as_default_client()
+cp3 = CloudPath("s3://cloudpathlib-test-bucket/")
 ```

@@ -4,6 +4,7 @@ import shutil
 
 from azure.storage.blob import BlobServiceClient
 import boto3
+import botocore
 from dotenv import find_dotenv, load_dotenv
 from google.cloud import storage as google_storage
 from pytest_cases import fixture, fixture_union
@@ -180,7 +181,8 @@ def s3_rig(request, monkeypatch, assets_dir):
 
     if os.getenv("USE_LIVE_CLOUD") == "1":
         # Set up test assets
-        bucket = boto3.resource("s3").Bucket(drive)
+        session = boto3.Session()  # Fresh session to ensure isolation
+        bucket = session.resource("s3").Bucket(drive)
         test_files = [
             f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
         ]
@@ -209,6 +211,70 @@ def s3_rig(request, monkeypatch, assets_dir):
 
     if os.getenv("USE_LIVE_CLOUD") == "1":
         # Clean up test dir
+        bucket.objects.filter(Prefix=test_dir).delete()
+
+
+@fixture()
+def custom_s3_rig(request, monkeypatch, assets_dir):
+    """
+    Custom S3 rig used to test the integrations with non-AWS S3-compatible object storages like
+        - MinIO (https://min.io/)
+        - CEPH  (https://ceph.io/ceph-storage/object-storage/)
+        - others
+    """
+    drive = os.getenv("CUSTOM_S3_BUCKET", "bucket")
+    test_dir = create_test_dir_name(request)
+    custom_endpoint_url = os.getenv("CUSTOM_S3_ENDPOINT", "https://s3.us-west-1.drivendatabws.com")
+
+    if os.getenv("USE_LIVE_CLOUD") == "1":
+        monkeypatch.setenv("AWS_ACCESS_KEY_ID", os.getenv("CUSTOM_S3_KEY_ID"))
+        monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", os.getenv("CUSTOM_S3_SECRET_KEY"))
+
+        # Upload test assets
+        session = boto3.Session()  # Fresh session to ensure isolation from AWS S3 auth
+        s3 = session.resource("s3", endpoint_url=custom_endpoint_url)
+
+        # idempotent and our test server on heroku only has ephemeral storage
+        # so we need to try to create each time
+        try:
+            s3.meta.client.head_bucket(Bucket=drive)
+        except botocore.exceptions.ClientError:
+            s3.create_bucket(Bucket=drive)
+
+        bucket = s3.Bucket(drive)
+
+        test_files = [
+            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
+        ]
+        for test_file in test_files:
+            bucket.upload_file(
+                str(test_file),
+                str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
+            )
+    else:
+        # Mock cloud SDK
+        monkeypatch.setattr(
+            cloudpathlib.s3.s3client,
+            "Session",
+            mocked_session_class_factory(test_dir),
+        )
+
+    rig = CloudProviderTestRig(
+        path_class=S3Path, client_class=S3Client, drive=drive, test_dir=test_dir
+    )
+
+    rig.client_class(
+        endpoint_url=custom_endpoint_url
+    ).set_as_default_client()  # set default client
+
+    # add flag for custom_s3 rig to skip some tests
+    rig.is_custom_s3 = True
+
+    yield rig
+
+    rig.client_class._default_client = None  # reset default client
+
+    if os.getenv("USE_LIVE_CLOUD") == "1":
         bucket.objects.filter(Prefix=test_dir).delete()
 
 
@@ -294,6 +360,7 @@ rig = fixture_union(
         azure_rig,
         gs_rig,
         s3_rig,
+        custom_s3_rig,
         local_azure_rig,
         local_s3_rig,
         local_gs_rig,
