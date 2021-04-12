@@ -190,6 +190,21 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `key`                  | ❌                | ✅         | ❌         |
 | `md5`                  | ✅                | ❌         | ❌         |
 
+
+## Writing to cloud files
+
+**Warning:** You can't call `open(CloudPath("s3://path"), "w")` and have write to the cloud file (reading works fine with the built-in open). Instead of using the Python built-in open, you must use `CloudPath("s3://path").open("w")`. For more iformation, see [#128](https://github.com/drivendataorg/cloudpathlib/issues/128) and [#140](https://github.com/drivendataorg/cloudpathlib/pull/140).
+
+We try to detect this scenario and raise a `BuiltInOpenWriteError` exception for you. There is a slight performance hit for this check, and if _you are sure_ that either (1) you are not writing to cloud files or (2) you are writing, but you are using the `CloudPath.open` method every time, you can skip this check by setting the environment variable `CLOUDPATHLIB_CHECK_UNSAFE_OPEN=False`.
+
+If you are passing the `CloudPath` into another library and you see `BuiltInOpenWriteError`, try opening and  passing the buffer into that function instead:
+
+```python
+with CloudPath("s3://bucket/path_to_write.txt").open("w") as fp:
+    function_that_writes(fp)
+```
+
+
 ----
 
 <sup>Icon made by <a href="https://www.flaticon.com/authors/srip" title="srip">srip</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>.</sup>
