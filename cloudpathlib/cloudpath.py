@@ -1,11 +1,12 @@
 import abc
+import ast
 from collections import defaultdict
 import collections.abc
 import fnmatch
+import inspect
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
-import inspect
-import traceback
+from textwrap import dedent
 from typing import Any, IO, Iterable, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
@@ -29,6 +30,8 @@ from .exceptions import (
 
 if TYPE_CHECKING:
     from .client import Client
+
+CHECK_UNSAFE_OPEN = not (os.getenv("CLOUDPATHLIB_CHECK_UNSAFE_OPEN", "True").lower() == "false")
 
 
 class CloudImplementation:
@@ -208,18 +211,43 @@ class CloudPath(metaclass=CloudPathMeta):
         return isinstance(other, type(self)) and str(self) == str(other)
 
     def __fspath__(self):
-        WRITE_MODES = {"r+", "w", "w+", "a", "a+", "rb+", "wb", "wb+", "ab", "ab+"}
-        for frame, _ in traceback.walk_stack(None):
-            if "open" in frame.f_code.co_names:
-                code_context = inspect.getframeinfo(frame).code_context
-                if "open(" in code_context[0]:
-                    for mode in WRITE_MODES:
-                        if f'"{mode}"' in code_context[0] or f"'{mode}'" in code_context[0]:
-                            raise BuiltInOpenWriteError(
-                                "Detected the use of built-in open function with a cloud path and write mode. "
-                                "Cloud paths do not support the open function in write mode; "
-                                "please use the .open() method instead."
-                            )
+        # make sure that we're not getting called by the builtin open
+        # in a write mode, since we won't actually write to the cloud in
+        # that scenario
+        if CHECK_UNSAFE_OPEN:
+            frame = inspect.currentframe().f_back
+
+            # use entire file source if possible since we need
+            # a valid ast.
+            # caller_src_file = Path(inspect.getsourcefile(frame))
+
+            # if caller_src_file.exists():
+            #     caller_src = caller_src_file.read_text()
+            # else:
+            caller_src = inspect.getsource(frame)
+
+            # also get local variables in the frame
+            caller_local_variables = frame.f_locals
+
+            # get all the instances in the previous frame of our class
+            instances_of_type = [
+                varname
+                for varname, instance in caller_local_variables.items()
+                if isinstance(instance, type(self))
+            ]
+
+            # Walk the AST of the previous frame source and see if
+            # open is called with a variable of our type...
+            if any(
+                _is_open_call_write_with_var(n, var_names=instances_of_type, var_type=type(self))
+                for n in ast.walk(ast.parse(dedent(caller_src)))
+            ):
+                raise BuiltInOpenWriteError(
+                    "Detected the use of built-in open function with a cloud path and write mode. "
+                    "Cloud paths do not support the open function in write mode; "
+                    "please use the .open() method instead.\n\n"
+                    "Line may be incorrect, but call is within file "
+                )
 
         if self.is_file():
             self._refresh_cache(force_overwrite_from_cloud=False)
@@ -765,3 +793,42 @@ def _resolve(path: PurePosixPath) -> str:
         newpath = newpath + sep + name
 
     return newpath or sep
+
+
+# This function is used to check if our `__fspath__` implementation has been
+# called in a writeable mode from the built-in open function.
+def _is_open_call_write_with_var(ast_node, var_names=None, var_type=None):
+    """For a given AST node, check that the node is a `Call`, and that the
+    call is to a function with the name `open`, and that the last argument
+
+    If passed, return True if the first argument is a variable with a name in var_names.
+
+    If passed, return True if the first arg is a Call to instantiate var_type.
+    """
+    if not isinstance(ast_node, ast.Call):
+        return False
+    if not hasattr(ast_node, "func"):
+        return False
+    if not hasattr(ast_node.func, "id"):
+        return False
+    if ast_node.func.id != "open":
+        return False
+
+    # we are in an open call, get the path as first arg
+    path = ast_node.args[0]
+
+    # get the mode as second arg or kwarg where arg==mode
+    mode = (
+        ast_node.args[1]
+        if len(ast_node.args) >= 2
+        else [kwarg for kwarg in ast_node.keywords if kwarg.arg == "mode"][0].value
+    )
+
+    # Ensure the path is either a call to instantiate var_type or
+    # the name of a variable we know is of the right type
+    path_is_of_type = (isinstance(path, ast.Call) and path.func.id == var_type.__name__) or (
+        hasattr(path, "id") and (path.id in var_names)
+    )
+
+    WRITE_MODES = {"r+", "w", "w+", "a", "a+", "rb+", "wb", "wb+", "ab", "ab+"}
+    return (mode.s in WRITE_MODES) and path_is_of_type

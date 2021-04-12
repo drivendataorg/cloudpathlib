@@ -113,30 +113,51 @@ def test_fspath(rig):
     assert os.fspath(p) == p.fspath
 
 
-def test_os_open(rig):
+def test_os_open_read(rig):
     p = rig.create_cloud_path("dir_0/file0_0.txt")
     with open(p, "r") as f:
         assert f.readable()
 
+
+# entire function is passed as source, so check separately
+# that all of the built in open write modes fail
+def test_os_open_write0(rig):
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
+
     with pytest.raises(BuiltInOpenWriteError):
         with open(p, "w") as f:
-            pass
+            assert f.readable()
+
+
+def test_os_open_write1(rig):
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
 
     with pytest.raises(BuiltInOpenWriteError):
         with open(p, "wb") as f:
-            pass
+            assert f.readable()
+
+
+def test_os_open_write2(rig):
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
 
     with pytest.raises(BuiltInOpenWriteError):
         with open(p, "a") as f:
-            pass
+            assert f.readable()
+
+
+def test_os_open_write3(rig):
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
 
     with pytest.raises(BuiltInOpenWriteError):
         with open(p, "r+") as f:
-            pass
+            assert f.readable()
 
-    # with pytest.raises(BuiltInOpenWriteError):
-    #     with open(
-    #         p,
-    #         "w",
-    #     ) as f:
-    #         pass
+
+def test_os_open_write4(rig):
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
+    with pytest.raises(BuiltInOpenWriteError):
+        with open(
+            p,
+            "w",
+        ) as f:
+            assert f.readable()
