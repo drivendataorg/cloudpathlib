@@ -217,13 +217,6 @@ class CloudPath(metaclass=CloudPathMeta):
         if CHECK_UNSAFE_OPEN:
             frame = inspect.currentframe().f_back
 
-            # use entire file source if possible since we need
-            # a valid ast.
-            # caller_src_file = Path(inspect.getsourcefile(frame))
-
-            # if caller_src_file.exists():
-            #     caller_src = caller_src_file.read_text()
-            # else:
             caller_src = inspect.getsource(frame)
 
             # also get local variables in the frame
@@ -246,7 +239,8 @@ class CloudPath(metaclass=CloudPathMeta):
                     "Detected the use of built-in open function with a cloud path and write mode. "
                     "Cloud paths do not support the open function in write mode; "
                     "please use the .open() method instead.\n\n"
-                    "Line may be incorrect, but call is within file "
+                    "NOTE: Exact line of this error may be incorrect, but open-for-write call is "
+                    "within the same scope. (Skip this check with env var CLOUDPATHLIB_CHECK_UNSAFE_OPEN=False)."
                 )
 
         if self.is_file():
