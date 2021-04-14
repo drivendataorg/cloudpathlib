@@ -37,7 +37,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
 
     def __del__(self) -> None:
         # make sure temp is cleaned up if we created it
-        if self._cache_tmp_dir is not None:
+        if hasattr(self, "_cache_tmp_dir") and self._cache_tmp_dir is not None:
             self._cache_tmp_dir.cleanup()
 
     @classmethod
