@@ -129,15 +129,15 @@ def test_os_open_write1(rig):
 
     with pytest.raises(BuiltInOpenWriteError):
         with open(p, "w") as f:
-            assert f.readable()
+            assert f.writable()
 
     with pytest.raises(BuiltInOpenWriteError):
         with open(p, "W") as f:
-            assert f.readable()
+            assert f.writable()
 
     with pytest.raises(BuiltInOpenWriteError):
         with open(p, "wb") as f:
-            assert f.readable()
+            assert f.writable()
 
 
 def test_os_open_write2(rig):
@@ -145,7 +145,7 @@ def test_os_open_write2(rig):
 
     with pytest.raises(BuiltInOpenWriteError):
         with open(p, "a") as f:
-            assert f.readable()
+            assert f.writable()
 
     with pytest.raises(BuiltInOpenWriteError):
         with open(rig.create_cloud_path("dir_0/file0_0.txt"), "r+") as f:
@@ -166,7 +166,7 @@ def test_os_open_write3(rig):
             p,
             "w",
         ) as f:
-            assert f.readable()
+            assert f.writable()
 
 
 def test_os_open_write4(monkeypatch, rig):
