@@ -609,6 +609,44 @@ class CloudPath(metaclass=CloudPathMeta):
             )
         self.client._remove(self)
 
+    def upload_from(self, source: Union[str, os.PathLike]):
+        """ Upload a single file to the cloud path. """
+        source = Path(source)
+        if not source.is_file():
+            raise ValueError("Method upload_from implemented only when the source is a file.")
+        if self.is_dir():
+            self.client._upload_file(local_path=self, cloud_path=self / source.name)
+        else:
+            self.client._upload_file(local_path=self, cloud_path=self)
+
+    def copy(self, destination: "CloudPath"):
+        """ Copy self to destination folder of file, if self is a file. """
+        if not self.is_file():
+            raise ValueError(
+                f"Path {self} should be a file. To copy a directory tree use the method copytree."
+            )
+        temp_file = self._local
+        temp_file.parent.mkdir(parents=True)
+        self.download_to(temp_file)
+        if destination.is_file():
+            destination.upload_from(temp_file)
+        else:
+            (destination / self.name).upload_from(temp_file)
+
+    def copytree(self, destination: "CloudPath"):
+        """ Copy self to a directory, if self is a directory. """
+        if not self.is_dir():
+            raise ValueError(
+                f"Origin path {self} must be a directory. To copy a single file use the method copy."
+            )
+        if not destination.is_dir():
+            raise ValueError("Destination path {destination} of copytree must be a directory.")
+        for subpath in self.iterdir():
+            if subpath.is_file():
+                subpath.copy(destination / subpath.name)
+            elif subpath.is_dir():
+                subpath.copytree(destination / subpath.name)
+
     # ===========  private cloud methods ===============
     @property
     def _local(self):
