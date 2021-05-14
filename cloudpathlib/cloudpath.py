@@ -6,6 +6,7 @@ import fnmatch
 import inspect
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
+import sys
 from textwrap import dedent
 from typing import Any, IO, Iterable, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
@@ -221,36 +222,41 @@ class CloudPath(metaclass=CloudPathMeta):
             frame = inspect.currentframe().f_back
 
             # line number of the call for this frame
-            lineno = inspect.getframeinfo(frame).lineno
+            lineno = frame.f_lineno
 
             # get source lines and start of the entire function
             lines, start_lineno = inspect.getsourcelines(frame)
 
-            # in some contexts, start_lineno is 0, but should be 1-indexed
+            # in some contexts like jupyter, start_lineno is 0, but should be 1-indexed
             if start_lineno == 0:
                 start_lineno = 1
 
-            # walk forward from this call until we find the line
-            # that actually has "open" call on it
-            if "open" not in lines[lineno - start_lineno]:
-                lineno += 1
+            all_lines = "".join(lines)
 
-            # 1-indexed line within this scope
-            line_to_check = (lineno - start_lineno) + 1
+            if "open" in all_lines:
+                # walk from this call until we find the line
+                # that actually has "open" call on it
+                # only needed on Python <= 3.7
+                if (sys.version_info.major, sys.version_info.minor) <= (3, 7):
+                    while "open" not in lines[lineno - start_lineno]:
+                        lineno -= 1
 
-            # Walk the AST of the previous frame source and see if we
-            # ended up here from a call to the builtin open with and a writeable mode
-            if any(
-                _is_open_call_write_with_var(n, line_to_check)
-                for n in ast.walk(ast.parse(dedent("".join(lines))))
-            ):
-                raise BuiltInOpenWriteError(
-                    "Cannot use built-in open function with a CloudPath in a writeable mode. "
-                    "Changes would not be uploaded to the cloud; instead, "
-                    "please use the .open() method instead. "
-                    "NOTE: If you are sure and want to skip this check with "
-                    "set the env var CLOUDPATHLIB_CHECK_UNSAFE_OPEN=False"
-                )
+                # 1-indexed line within this scope
+                line_to_check = (lineno - start_lineno) + 1
+
+                # Walk the AST of the previous frame source and see if we
+                # ended up here from a call to the builtin open with and a writeable mode
+                if any(
+                    _is_open_call_write_with_var(n, line_to_check)
+                    for n in ast.walk(ast.parse(dedent(all_lines)))
+                ):
+                    raise BuiltInOpenWriteError(
+                        "Cannot use built-in open function with a CloudPath in a writeable mode. "
+                        "Changes would not be uploaded to the cloud; instead, "
+                        "please use the .open() method instead. "
+                        "NOTE: If you are sure and want to skip this check with "
+                        "set the env var CLOUDPATHLIB_CHECK_UNSAFE_OPEN=False"
+                    )
 
         if self.is_file():
             self._refresh_cache(force_overwrite_from_cloud=False)
