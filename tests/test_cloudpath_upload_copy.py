@@ -1,4 +1,5 @@
 from pathlib import Path
+from time import sleep
 
 import pytest
 
@@ -53,6 +54,7 @@ def test_upload_from_file(rig, upload_assets_dir):
 
     # to file, file exists
     to_upload_2 = upload_assets_dir / "upload_2.txt"
+    sleep(0.25)
     to_upload_2.touch()  # make sure local is newer
     p.upload_from(to_upload_2)
     assert p.exists()
@@ -65,6 +67,7 @@ def test_upload_from_file(rig, upload_assets_dir):
 
     # to file, file exists and is newer; overwrite
     p.touch()
+    sleep(0.25)
     p.upload_from(upload_assets_dir / "upload_1.txt", force_overwrite_to_cloud=True)
     assert p.exists()
     assert p.read_text() == "Hello from 1"
