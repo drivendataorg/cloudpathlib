@@ -154,7 +154,7 @@ class S3Client(Client):
                 for result_key in result.get("Contents", []):
                     yield self.CloudPath(f"s3://{cloud_path.bucket}/{result_key.get('Key')}")
 
-    def _move_file(self, src: S3Path, dst: S3Path) -> S3Path:
+    def _move_file(self, src: S3Path, dst: S3Path, remove_src: bool = True) -> S3Path:
         # just a touch, so "REPLACE" metadata
         if src == dst:
             o = self.s3.Object(src.bucket, src.key)
@@ -168,7 +168,8 @@ class S3Client(Client):
             target = self.s3.Object(dst.bucket, dst.key)
             target.copy({"Bucket": src.bucket, "Key": src.key})
 
-            self._remove(src)
+            if remove_src:
+                self._remove(src)
         return dst
 
     def _remove(self, cloud_path: S3Path) -> None:

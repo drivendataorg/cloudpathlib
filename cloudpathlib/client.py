@@ -83,7 +83,9 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         pass
 
     @abc.abstractmethod
-    def _move_file(self, src: BoundedCloudPath, dst: BoundedCloudPath) -> BoundedCloudPath:
+    def _move_file(
+        self, src: BoundedCloudPath, dst: BoundedCloudPath, remove_src: bool = True
+    ) -> BoundedCloudPath:
         pass
 
     @abc.abstractmethod

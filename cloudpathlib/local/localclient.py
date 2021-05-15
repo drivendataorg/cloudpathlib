@@ -83,9 +83,15 @@ class LocalClient(Client):
     def _md5(self, cloud_path: "LocalPath") -> str:
         return md5(self._cloud_path_to_local(cloud_path).read_bytes()).hexdigest()
 
-    def _move_file(self, src: "LocalPath", dst: "LocalPath") -> "LocalPath":
+    def _move_file(
+        self, src: "LocalPath", dst: "LocalPath", remove_src: bool = True
+    ) -> "LocalPath":
         self._cloud_path_to_local(dst).parent.mkdir(exist_ok=True, parents=True)
-        self._cloud_path_to_local(src).replace(self._cloud_path_to_local(dst))
+
+        if remove_src:
+            self._cloud_path_to_local(src).replace(self._cloud_path_to_local(dst))
+        else:
+            shutil.copy(self._cloud_path_to_local(src), self._cloud_path_to_local(dst))
         return dst
 
     def _remove(self, cloud_path: "LocalPath") -> None:
