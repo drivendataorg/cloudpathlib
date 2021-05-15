@@ -585,12 +585,12 @@ class CloudPath(metaclass=CloudPathMeta):
         return self._dispatch_to_local_cache_path("read_text")
 
     # ===========  public cloud methods, not in pathlib ===============
-    def download_to(self, destination: Union[str, os.PathLike]):
+    def download_to(self, destination: Union[str, os.PathLike]) -> os.PathLike:
         destination = Path(destination)
         if self.is_file():
             if destination.is_dir():
                 destination = destination / self.name
-            self.client._download_file(self, destination)
+            return self.client._download_file(self, destination)
         else:
             destination.mkdir(exist_ok=True)
             for f in self.iterdir():
@@ -601,6 +601,8 @@ class CloudPath(metaclass=CloudPathMeta):
                 rel_dest = str(f)[len(rel) :]
                 f.download_to(destination / rel_dest)
 
+            return destination
+
     def rmtree(self):
         """Delete an entire directory tree."""
         if self.is_file():
@@ -609,42 +611,68 @@ class CloudPath(metaclass=CloudPathMeta):
             )
         self.client._remove(self)
 
-    def upload_from(self, source: Union[str, os.PathLike], force_overwrite_to_cloud: bool = False):
+    def upload_from(
+        self, source: Union[str, os.PathLike], force_overwrite_to_cloud: bool = False
+    ) -> "CloudPath":
         """Upload a file or directory to the cloud path."""
         source = Path(source)
 
         if source.is_dir():
             for p in source.iterdir():
-                (self / p.name).upload_from(p)
+                (self / p.name).upload_from(p, force_overwrite_to_cloud=force_overwrite_to_cloud)
 
-        if self.exists() and self.is_dir():
-            dst = self / source.name
         else:
-            dst = self
+            if self.exists() and self.is_dir():
+                dst = self / source.name
+            else:
+                dst = self
 
-        dst._upload_file_to_cloud(source, force_overwrite_to_cloud=force_overwrite_to_cloud)
+            dst._upload_file_to_cloud(source, force_overwrite_to_cloud=force_overwrite_to_cloud)
 
         return self
 
-    def copy(self, destination: "CloudPath", force_overwrite_to_cloud: bool = False):
+    def copy(
+        self,
+        destination: Union[str, os.PathLike, "CloudPath"],
+        force_overwrite_to_cloud: bool = False,
+    ) -> Union[os.PathLike, "CloudPath"]:
         """Copy self to destination folder of file, if self is a file."""
-        if not self.is_file():
+        if not self.exists() or not self.is_file():
             raise ValueError(
                 f"Path {self} should be a file. To copy a directory tree use the method copytree."
             )
 
+        if not isinstance(destination, CloudPath):
+            return self.download_to(destination)
+
         # if same client, use cloud-native _move_file on client to avoid downloading
-        if self.client is destination.client:
-            self.client._move_file(self, destination, remove_src=False)
+        elif self.client is destination.client:
+            if (
+                not force_overwrite_to_cloud
+                and destination.exists()
+                and destination.stat().st_mtime >= self.stat().st_mtime
+            ):
+                raise OverwriteNewerCloudError(
+                    f"File ({destination}) is newer than ({self}). "
+                    f"To overwrite "
+                    f"pass `force_overwrite_to_cloud=True`."
+                )
 
-        if destination.is_file():
-            destination.upload_from(self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud)
+            return self.client._move_file(self, destination, remove_src=False)
+
         else:
-            (destination / self.name).upload_from(
-                self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
-            )
+            if not destination.exists() or destination.is_file():
+                return destination.upload_from(
+                    self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
+                )
+            else:
+                return (destination / self.name).upload_from(
+                    self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
+                )
 
-    def copytree(self, destination: "CloudPath", force_overwrite_to_cloud: bool = False):
+    def copytree(
+        self, destination: "CloudPath", force_overwrite_to_cloud: bool = False
+    ) -> Union[os.PathLike, "CloudPath"]:
         """Copy self to a directory, if self is a directory."""
         if not self.is_dir():
             raise ValueError(
@@ -664,6 +692,8 @@ class CloudPath(metaclass=CloudPathMeta):
                 subpath.copytree(
                     destination / subpath.name, force_overwrite_to_cloud=force_overwrite_to_cloud
                 )
+
+        return destination
 
     # ===========  private cloud methods ===============
     @property
