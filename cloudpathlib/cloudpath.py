@@ -585,7 +585,7 @@ class CloudPath(metaclass=CloudPathMeta):
         return self._dispatch_to_local_cache_path("read_text")
 
     # ===========  public cloud methods, not in pathlib ===============
-    def download_to(self, destination: Union[str, os.PathLike]) -> os.PathLike:
+    def download_to(self, destination: Union[str, os.PathLike]) -> Union[str, os.PathLike]:
         destination = Path(destination)
         if self.is_file():
             if destination.is_dir():
@@ -635,7 +635,7 @@ class CloudPath(metaclass=CloudPathMeta):
         self,
         destination: Union[str, os.PathLike, "CloudPath"],
         force_overwrite_to_cloud: bool = False,
-    ) -> Union[os.PathLike, "CloudPath"]:
+    ) -> Union[str, os.PathLike, "CloudPath"]:
         """Copy self to destination folder of file, if self is a file."""
         if not self.exists() or not self.is_file():
             raise ValueError(
