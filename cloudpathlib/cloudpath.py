@@ -609,43 +609,61 @@ class CloudPath(metaclass=CloudPathMeta):
             )
         self.client._remove(self)
 
-    def upload_from(self, source: Union[str, os.PathLike]):
-        """ Upload a single file to the cloud path. """
+    def upload_from(self, source: Union[str, os.PathLike], force_overwrite_to_cloud: bool = False):
+        """Upload a file or directory to the cloud path."""
         source = Path(source)
-        if not source.is_file():
-            raise ValueError("Method upload_from implemented only when the source is a file.")
-        if self.is_dir():
-            self.client._upload_file(local_path=self, cloud_path=self / source.name)
-        else:
-            self.client._upload_file(local_path=self, cloud_path=self)
 
-    def copy(self, destination: "CloudPath"):
-        """ Copy self to destination folder of file, if self is a file. """
+        if source.is_dir():
+            for p in source.iterdir():
+                (self / p.name).upload_from(p)
+
+        if self.exists() and self.is_dir():
+            dst = self / source.name
+        else:
+            dst = self
+
+        dst._upload_file_to_cloud(source, force_overwrite_to_cloud=force_overwrite_to_cloud)
+
+        return self
+
+    def copy(self, destination: "CloudPath", force_overwrite_to_cloud: bool = False):
+        """Copy self to destination folder of file, if self is a file."""
         if not self.is_file():
             raise ValueError(
                 f"Path {self} should be a file. To copy a directory tree use the method copytree."
             )
-        temp_file = self._local
-        temp_file.parent.mkdir(parents=True)
-        self.download_to(temp_file)
-        if destination.is_file():
-            destination.upload_from(temp_file)
-        else:
-            (destination / self.name).upload_from(temp_file)
 
-    def copytree(self, destination: "CloudPath"):
-        """ Copy self to a directory, if self is a directory. """
+        # if same client, use cloud-native _move_file on client to avoid downloading
+        if self.client is destination.client:
+            self.client._move_file(self, destination, remove_src=False)
+
+        if destination.is_file():
+            destination.upload_from(self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud)
+        else:
+            (destination / self.name).upload_from(
+                self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
+            )
+
+    def copytree(self, destination: "CloudPath", force_overwrite_to_cloud: bool = False):
+        """Copy self to a directory, if self is a directory."""
         if not self.is_dir():
             raise ValueError(
                 f"Origin path {self} must be a directory. To copy a single file use the method copy."
             )
-        if not destination.is_dir():
+        if destination.exists() and destination.is_file():
             raise ValueError("Destination path {destination} of copytree must be a directory.")
+
+        destination.mkdir(parents=True, exist_ok=True)
+
         for subpath in self.iterdir():
             if subpath.is_file():
-                subpath.copy(destination / subpath.name)
+                subpath.copy(
+                    destination / subpath.name, force_overwrite_to_cloud=force_overwrite_to_cloud
+                )
             elif subpath.is_dir():
-                subpath.copytree(destination / subpath.name)
+                subpath.copytree(
+                    destination / subpath.name, force_overwrite_to_cloud=force_overwrite_to_cloud
+                )
 
     # ===========  private cloud methods ===============
     @property
@@ -711,11 +729,30 @@ class CloudPath(metaclass=CloudPathMeta):
             )
 
     def _upload_local_to_cloud(self, force_overwrite_to_cloud: bool = False):
+        """Uploads cache file at self._local to the cloud"""
         # We should never try to be syncing entire directories; we should only
         # cache and upload individual files.
         if self._local.is_dir():
             raise ValueError("Only individual files can be uploaded to the cloud")
 
+        uploaded = self._upload_file_to_cloud(
+            self._local, force_overwrite_to_cloud=force_overwrite_to_cloud
+        )
+
+        # force cache time to match cloud times
+        stats = self.stat()
+        os.utime(self._local, times=(stats.st_mtime, stats.st_mtime))
+
+        # reset dirty and handle now that this is uploaded
+        self._dirty = False
+        self._handle = None
+
+        return uploaded
+
+    def _upload_file_to_cloud(self, local_path, force_overwrite_to_cloud: bool = False):
+        """Uploads file at `local_path` to the cloud if there is not a newer file
+        already there.
+        """
         try:
             stats = self.stat()
         except NoStatError:
@@ -724,21 +761,13 @@ class CloudPath(metaclass=CloudPathMeta):
         # if cloud does not exist or local is newer or we are overwriting, do the upload
         if (
             not stats  # cloud does not exist
-            or (self._local.stat().st_mtime > stats.st_mtime)
+            or (local_path.stat().st_mtime > stats.st_mtime)
             or force_overwrite_to_cloud
         ):
             self.client._upload_file(
-                self._local,
+                local_path,
                 self,
             )
-
-            # force cache time to match cloud times
-            stats = self.stat()
-            os.utime(self._local, times=(stats.st_mtime, stats.st_mtime))
-
-            # reset dirty and handle now that this is uploaded
-            self._dirty = False
-            self._handle = None
 
             return self
 
