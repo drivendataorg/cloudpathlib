@@ -179,11 +179,14 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `symlink_to`           | ❌                | ❌         | ❌         |
 | `with_stem`            | ❌                | ❌         | ❌         |
 | `cloud_prefix`         | ✅                | ✅         | ✅         |
+| `copy`                 | ✅                | ✅         | ✅         |
+| `copytree`             | ✅                | ✅         | ✅         |
 | `download_to`          | ✅                | ✅         | ✅         |
 | `etag`                 | ✅                | ✅         | ✅         |
 | `fspath`               | ✅                | ✅         | ✅         |
 | `is_valid_cloudpath`   | ✅                | ✅         | ✅         |
 | `rmtree`               | ✅                | ✅         | ✅         |
+| `upload_from`          | ✅                | ✅         | ✅         |
 | `blob`                 | ✅                | ❌         | ✅         |
 | `bucket`               | ❌                | ✅         | ✅         |
 | `container`            | ✅                | ❌         | ❌         |
