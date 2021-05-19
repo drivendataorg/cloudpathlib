@@ -1,5 +1,5 @@
 import os
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, Optional, Union
 
 from ..client import Client, register_client_class
@@ -79,9 +79,8 @@ class S3Client(Client):
             "extra": data["Metadata"],
         }
 
-    def _download_file(
-        self, cloud_path: S3Path, local_path: Union[str, os.PathLike]
-    ) -> Union[str, os.PathLike]:
+    def _download_file(self, cloud_path: S3Path, local_path: Union[str, os.PathLike]) -> Path:
+        local_path = Path(local_path)
         obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
         obj.download_file(str(local_path))

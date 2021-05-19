@@ -52,9 +52,7 @@ class LocalClient(Client):
             f"{cloud_prefix}{PurePosixPath(local_path.relative_to(self._local_storage_dir))}"
         )
 
-    def _download_file(
-        self, cloud_path: "LocalPath", local_path: Union[str, os.PathLike]
-    ) -> Union[str, os.PathLike]:
+    def _download_file(self, cloud_path: "LocalPath", local_path: Union[str, os.PathLike]) -> Path:
         local_path = Path(local_path)
         local_path.parent.mkdir(exist_ok=True, parents=True)
         shutil.copyfile(self._cloud_path_to_local(cloud_path), local_path)

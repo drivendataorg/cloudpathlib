@@ -5,6 +5,8 @@ import pytest
 
 from cloudpathlib.local import LocalGSPath, LocalS3Path, LocalS3Client
 from cloudpathlib.exceptions import (
+    CloudPathFileExistsError,
+    CloudPathNotADirectoryError,
     OverwriteNewerCloudError,
 )
 
@@ -135,6 +137,19 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     assert not p._local.exists()  # cache should never have been downloaded
     assert p_new.read_text() == "Hello from 1"
 
+    # cloud to cloud path as string
+    cloud_dest = str(p.parent / "new_upload_0.txt")
+    p_new = p.copy(cloud_dest)
+    assert p_new.exists()
+    assert p_new.read_text() == "Hello from 1"
+
+    # cloud to cloud directory
+    cloud_dest = rig.create_cloud_path("dir_1")  # created by fixtures
+    p_new = p.copy(cloud_dest)
+    assert str(p_new) == str(p_new.parent / p.name)  # file created
+    assert p_new.exists()
+    assert p_new.read_text() == "Hello from 1"
+
     # cloud to cloud overwrite
     p_new.touch()
     with pytest.raises(OverwriteNewerCloudError):
@@ -154,18 +169,55 @@ def test_copy(rig, upload_assets_dir, tmpdir):
 
     assert not p2._local.exists()  # not in cache
     p2.copy(other)  # forces download + reupload
-    assert p2._local.exists()  # not in cache
+    assert p2._local.exists()  # in cache
     assert other.exists()
     assert other.read_text() == p2.read_text()
 
     other.unlink()
 
+    # cloud to other cloud dir
+    other_dir = (
+        LocalS3Path("s3://fake-bucket/new_other")
+        if not isinstance(p2.client, LocalS3Client)
+        else LocalGSPath("gs://fake-bucket/new_other")
+    )
+    (other_dir / "file.txt").write_text("i am a file")  # ensure other_dir exists
+    assert other_dir.exists()
+    assert not (other_dir / p2.name).exists()
+
+    p2.copy(other_dir)
+    assert (other_dir / p2.name).exists()
+    assert (other_dir / p2.name).read_text() == p2.read_text()
+    (other_dir / p2.name).unlink()
+
+    # cloud dir raises
+    cloud_dir = rig.create_cloud_path("dir_1")  # created by fixtures
+    with pytest.raises(ValueError) as e:
+        p_new = cloud_dir.copy(Path(tmpdir.mkdir("test_copy_dir_fails")))
+        assert "use the method copytree" in str(e)
+
 
 def test_copytree(rig, tmpdir):
+    # cloud file raises
+    with pytest.raises(CloudPathNotADirectoryError):
+        p = rig.create_cloud_path("dir_0/file0_0.txt")
+        local_out = Path(tmpdir.mkdir("copytree_fail_on_file"))
+        p.copytree(local_out)
+
+    with pytest.raises(CloudPathFileExistsError):
+        p = rig.create_cloud_path("dir_0")
+        p_out = rig.create_cloud_path("dir_0/file0_0.txt")
+        p.copytree(p_out)
+
     # cloud dir to local dir that exists
-    p = rig.create_cloud_path("dir_0")
+    p = rig.create_cloud_path("dir_1")
     local_out = Path(tmpdir.mkdir("copytree_from_cloud"))
     p.copytree(local_out)
+    assert assert_mirrored(p, local_out)
+
+    # str version of path
+    local_out = Path(tmpdir.mkdir("copytree_to_str_path"))
+    p.copytree(str(local_out))
     assert assert_mirrored(p, local_out)
 
     # cloud dir to local dir that does not exist

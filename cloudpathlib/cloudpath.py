@@ -8,6 +8,8 @@ from typing import Any, IO, Iterable, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
 
+from . import anypath
+
 from .exceptions import (
     ClientMismatchError,
     CloudPathFileExistsError,
@@ -585,7 +587,7 @@ class CloudPath(metaclass=CloudPathMeta):
         return self._dispatch_to_local_cache_path("read_text")
 
     # ===========  public cloud methods, not in pathlib ===============
-    def download_to(self, destination: Union[str, os.PathLike]) -> Union[str, os.PathLike]:
+    def download_to(self, destination: Union[str, os.PathLike]) -> Path:
         destination = Path(destination)
         if self.is_file():
             if destination.is_dir():
@@ -621,6 +623,8 @@ class CloudPath(metaclass=CloudPathMeta):
             for p in source.iterdir():
                 (self / p.name).upload_from(p, force_overwrite_to_cloud=force_overwrite_to_cloud)
 
+            return self
+
         else:
             if self.exists() and self.is_dir():
                 dst = self / source.name
@@ -629,24 +633,31 @@ class CloudPath(metaclass=CloudPathMeta):
 
             dst._upload_file_to_cloud(source, force_overwrite_to_cloud=force_overwrite_to_cloud)
 
-        return self
+            return dst
 
     def copy(
         self,
         destination: Union[str, os.PathLike, "CloudPath"],
         force_overwrite_to_cloud: bool = False,
-    ) -> Union[str, os.PathLike, "CloudPath"]:
+    ) -> Union[Path, "CloudPath"]:
         """Copy self to destination folder of file, if self is a file."""
         if not self.exists() or not self.is_file():
             raise ValueError(
                 f"Path {self} should be a file. To copy a directory tree use the method copytree."
             )
 
+        # handle string version of cloud paths + local paths
+        if isinstance(destination, (str, os.PathLike)):
+            destination = anypath.to_anypath(destination)
+
         if not isinstance(destination, CloudPath):
             return self.download_to(destination)
 
         # if same client, use cloud-native _move_file on client to avoid downloading
         elif self.client is destination.client:
+            if destination.exists() and destination.is_dir():
+                destination: CloudPath = destination / self.name  # type: ignore
+
             if (
                 not force_overwrite_to_cloud
                 and destination.exists()
@@ -671,15 +682,24 @@ class CloudPath(metaclass=CloudPathMeta):
                 )
 
     def copytree(
-        self, destination: "CloudPath", force_overwrite_to_cloud: bool = False
-    ) -> Union[os.PathLike, "CloudPath"]:
+        self,
+        destination: Union[str, os.PathLike, "CloudPath"],
+        force_overwrite_to_cloud: bool = False,
+    ) -> Union[Path, "CloudPath"]:
         """Copy self to a directory, if self is a directory."""
         if not self.is_dir():
-            raise ValueError(
+            raise CloudPathNotADirectoryError(
                 f"Origin path {self} must be a directory. To copy a single file use the method copy."
             )
+
+        # handle string version of cloud paths + local paths
+        if isinstance(destination, (str, os.PathLike)):
+            destination = anypath.to_anypath(destination)
+
         if destination.exists() and destination.is_file():
-            raise ValueError("Destination path {destination} of copytree must be a directory.")
+            raise CloudPathFileExistsError(
+                "Destination path {destination} of copytree must be a directory."
+            )
 
         destination.mkdir(parents=True, exist_ok=True)
 

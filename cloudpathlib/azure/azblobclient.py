@@ -98,7 +98,7 @@ class AzureBlobClient(Client):
 
     def _download_file(
         self, cloud_path: AzureBlobPath, local_path: Union[str, os.PathLike]
-    ) -> Union[str, os.PathLike]:
+    ) -> Path:
         blob = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
