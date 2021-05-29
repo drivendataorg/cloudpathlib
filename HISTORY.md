@@ -1,8 +1,12 @@
 # cloudpathlib Changelog
 
-## v0.4.1 (unreleased)
+## v0.4.1 (2021-05-29)
 
 - Added support for custom S3-compatible object stores. This functionality is available via the `endpoint_url` keyword argument when instantiating an `S3Client` instance. See [documentation](https://cloudpathlib.drivendata.org/authentication/#accessing-custom-s3-compatible-object-stores) for more details. ([#138](https://github.com/drivendataorg/cloudpathlib/pull/138) thanks to [@YevheniiSemendiak](https://github.com/YevheniiSemendiak))
+- Added `CloudPath.upload_from` which uploads the passed path to this CloudPath (issuse [#58](https://github.com/drivendataorg/cloudpathlib/issues/58))
+- Added support for common file transfer functions based on `shutil`. Issue [#108](https://github.com/drivendataorg/cloudpathlib/issues/108). PR [#142](https://github.com/drivendataorg/cloudpathlib/pull/142).
+  - `CloudPath.copy` copy a file from one location to another. Can be cloud -> local or cloud -> cloud. If `client` is not the same, the file transits through the local machine.
+  - `CloudPath.copytree` reucrsively copy a directory from one location to another. Can be cloud -> local or cloud -> cloud. Uses `CloudPath.copy` so if `client` is not the same, the file transits through the local machine.
 
 ## v0.4.0 (2021-03-13)
 
