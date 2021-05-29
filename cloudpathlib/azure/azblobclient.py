@@ -98,7 +98,7 @@ class AzureBlobClient(Client):
 
     def _download_file(
         self, cloud_path: AzureBlobPath, local_path: Union[str, os.PathLike]
-    ) -> Union[str, os.PathLike]:
+    ) -> Path:
         blob = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
@@ -171,7 +171,9 @@ class AzureBlobClient(Client):
 
             yield self.CloudPath(f"az://{cloud_path.container}/{o.name}")
 
-    def _move_file(self, src: AzureBlobPath, dst: AzureBlobPath) -> AzureBlobPath:
+    def _move_file(
+        self, src: AzureBlobPath, dst: AzureBlobPath, remove_src: bool = True
+    ) -> AzureBlobPath:
         # just a touch, so "REPLACE" metadata
         if src == dst:
             blob_client = self.service_client.get_blob_client(
@@ -189,7 +191,8 @@ class AzureBlobClient(Client):
 
             target.start_copy_from_url(source.url)
 
-            self._remove(src)
+            if remove_src:
+                self._remove(src)
 
         return dst
 

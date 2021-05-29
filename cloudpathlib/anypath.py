@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Union
 
@@ -52,3 +53,14 @@ class AnyPath(metaclass=AnyPathMeta):
         https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
         # Note __new__ is static method and not a class method
         return cls.__new__(cls, value)
+
+
+def to_anypath(s: Union[str, os.PathLike]) -> Union[CloudPath, Path]:
+    """Convenience method to convert a str or os.PathLike to the
+    proper Path or CloudPath object using AnyPath.
+    """
+    # shortcut pathlike items that are already valid Path/CloudPath
+    if isinstance(s, (CloudPath, Path)):
+        return s
+
+    return AnyPath(s)  # type: ignore

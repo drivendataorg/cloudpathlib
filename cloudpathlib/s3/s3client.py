@@ -1,5 +1,5 @@
 import os
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, Optional, Union
 
 from ..client import Client, register_client_class
@@ -79,9 +79,8 @@ class S3Client(Client):
             "extra": data["Metadata"],
         }
 
-    def _download_file(
-        self, cloud_path: S3Path, local_path: Union[str, os.PathLike]
-    ) -> Union[str, os.PathLike]:
+    def _download_file(self, cloud_path: S3Path, local_path: Union[str, os.PathLike]) -> Path:
+        local_path = Path(local_path)
         obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
         obj.download_file(str(local_path))
@@ -154,7 +153,7 @@ class S3Client(Client):
                 for result_key in result.get("Contents", []):
                     yield self.CloudPath(f"s3://{cloud_path.bucket}/{result_key.get('Key')}")
 
-    def _move_file(self, src: S3Path, dst: S3Path) -> S3Path:
+    def _move_file(self, src: S3Path, dst: S3Path, remove_src: bool = True) -> S3Path:
         # just a touch, so "REPLACE" metadata
         if src == dst:
             o = self.s3.Object(src.bucket, src.key)
@@ -168,7 +167,8 @@ class S3Client(Client):
             target = self.s3.Object(dst.bucket, dst.key)
             target.copy({"Bucket": src.bucket, "Key": src.key})
 
-            self._remove(src)
+            if remove_src:
+                self._remove(src)
         return dst
 
     def _remove(self, cloud_path: S3Path) -> None:

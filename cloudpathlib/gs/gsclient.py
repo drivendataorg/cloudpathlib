@@ -1,6 +1,6 @@
 from datetime import datetime
 import os
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, Optional, TYPE_CHECKING, Union
 
 from ..client import Client, register_client_class
@@ -91,11 +91,11 @@ class GSClient(Client):
                 "updated": blob.updated,
             }
 
-    def _download_file(
-        self, cloud_path: GSPath, local_path: Union[str, os.PathLike]
-    ) -> Union[str, os.PathLike]:
+    def _download_file(self, cloud_path: GSPath, local_path: Union[str, os.PathLike]) -> Path:
         bucket = self.client.bucket(cloud_path.bucket)
         blob = bucket.get_blob(cloud_path.blob)
+
+        local_path = Path(local_path)
 
         blob.download_to_filename(local_path)
         return local_path
@@ -158,7 +158,7 @@ class GSClient(Client):
 
             yield self.CloudPath(f"gs://{cloud_path.bucket}/{o.name}")
 
-    def _move_file(self, src: GSPath, dst: GSPath) -> GSPath:
+    def _move_file(self, src: GSPath, dst: GSPath, remove_src: bool = True) -> GSPath:
         # just a touch, so "REPLACE" metadata
         if src == dst:
             bucket = self.client.bucket(src.bucket)
@@ -177,7 +177,9 @@ class GSClient(Client):
 
             src_blob = src_bucket.get_blob(src.blob)
             src_bucket.copy_blob(src_blob, dst_bucket, dst.blob)
-            src_blob.delete()
+
+            if remove_src:
+                src_blob.delete()
 
         return dst
 

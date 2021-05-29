@@ -60,7 +60,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     @abc.abstractmethod
     def _download_file(
         self, cloud_path: BoundedCloudPath, local_path: Union[str, os.PathLike]
-    ) -> Union[str, os.PathLike]:
+    ) -> Path:
         pass
 
     @abc.abstractmethod
@@ -83,7 +83,9 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         pass
 
     @abc.abstractmethod
-    def _move_file(self, src: BoundedCloudPath, dst: BoundedCloudPath) -> BoundedCloudPath:
+    def _move_file(
+        self, src: BoundedCloudPath, dst: BoundedCloudPath, remove_src: bool = True
+    ) -> BoundedCloudPath:
         pass
 
     @abc.abstractmethod
