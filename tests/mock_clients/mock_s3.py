@@ -70,11 +70,11 @@ class MockBoto3Object:
         else:
             self.path.write_bytes((self.root / Path(CopySource["Key"])).read_bytes())
 
-    def download_file(self, to_path):
+    def download_file(self, to_path, Config=None):
         to_path = Path(to_path)
         to_path.write_bytes(self.path.read_bytes())
 
-    def upload_file(self, from_path):
+    def upload_file(self, from_path, Config=None):
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_bytes(Path(from_path).read_bytes())
 
