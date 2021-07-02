@@ -9,6 +9,7 @@ from .s3path import S3Path
 try:
     from boto3.session import Session
     import botocore.session
+    from boto3.s3.transfer import TransferConfig
 except ModuleNotFoundError:
     implementation_registry["s3"].dependencies_loaded = False
 
@@ -69,7 +70,9 @@ class S3Client(Client):
             )
         self.s3 = self.sess.resource("s3", endpoint_url=endpoint_url)
         self.client = self.sess.client("s3", endpoint_url=endpoint_url)
-        self.boto3_transfer_config = boto3_transfer_config
+        if boto3_transfer_config is None:
+            boto3_transfer_config = dict()
+        self.boto3_transfer_config = TransferConfig(**boto3_transfer_config)
 
         super().__init__(local_cache_dir=local_cache_dir)
 
