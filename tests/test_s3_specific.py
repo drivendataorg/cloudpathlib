@@ -30,11 +30,13 @@ def test_transfer_config(s3_rig, assets_dir, tmp_path):
     dl_dir = tmp_path
     assert not (dl_dir / p.name).exists()
     p.download_to(dl_dir)
-    assert client.s3.download_config == transfer_config
+    if "mock_s3" in client.sess.__module__:
+        assert client.s3.download_config == transfer_config
 
     # upload
     p2 = s3_rig.create_cloud_path("dir_0/file0_0_uploaded.txt")
     assert not p2.exists()
     p2.upload_from(dl_dir / p.name)
-    assert client.s3.upload_config == transfer_config
+    if "mock_s3" in client.sess.__module__:
+        assert client.s3.upload_config == transfer_config
     p2.unlink()
