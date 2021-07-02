@@ -30,7 +30,7 @@ class S3Client(Client):
         boto3_session: Optional["Session"] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         endpoint_url: Optional[str] = None,
-        boto3_transfer_config: Optional[dict] = None,
+        boto3_transfer_config: Optional["TransferConfig"] = None,
     ):
         """Class constructor. Sets up a boto3 [`Session`](
         https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html).
@@ -54,8 +54,7 @@ class S3Client(Client):
                 for downloaded files. If None, will use a temporary directory.
             endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.
                 Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.
-            boto3_transfer_config (Optional[dict]): TransferConfig parameters for controlling multipart
-                and threads in uploads and downloads.
+            boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing s3 transfers.
                 (https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)
         """
         if boto3_session is not None:
@@ -70,9 +69,7 @@ class S3Client(Client):
             )
         self.s3 = self.sess.resource("s3", endpoint_url=endpoint_url)
         self.client = self.sess.client("s3", endpoint_url=endpoint_url)
-        if boto3_transfer_config is None:
-            boto3_transfer_config = dict()
-        self.boto3_transfer_config = TransferConfig(**boto3_transfer_config)
+        self.boto3_transfer_config = boto3_transfer_config
 
         super().__init__(local_cache_dir=local_cache_dir)
 
