@@ -29,6 +29,7 @@ class S3Client(Client):
         boto3_session: Optional["Session"] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         endpoint_url: Optional[str] = None,
+        boto3_transfer_config: Optional[dict] = None,
     ):
         """Class constructor. Sets up a boto3 [`Session`](
         https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html).
@@ -52,6 +53,9 @@ class S3Client(Client):
                 for downloaded files. If None, will use a temporary directory.
             endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.
                 Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.
+            boto3_transfer_config (Optional[dict]): TransferConfig parameters for controlling multipart
+                and threads in uploads and downloads.
+                (https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)
         """
         if boto3_session is not None:
             self.sess = boto3_session
@@ -65,6 +69,7 @@ class S3Client(Client):
             )
         self.s3 = self.sess.resource("s3", endpoint_url=endpoint_url)
         self.client = self.sess.client("s3", endpoint_url=endpoint_url)
+        self.boto3_transfer_config = boto3_transfer_config
 
         super().__init__(local_cache_dir=local_cache_dir)
 
@@ -83,7 +88,7 @@ class S3Client(Client):
         local_path = Path(local_path)
         obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
-        obj.download_file(str(local_path))
+        obj.download_file(str(local_path), Config=self.boto3_transfer_config)
         return local_path
 
     def _is_file_or_dir(self, cloud_path: S3Path) -> Optional[str]:
@@ -199,7 +204,7 @@ class S3Client(Client):
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: S3Path) -> S3Path:
         obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
-        obj.upload_file(str(local_path))
+        obj.upload_file(str(local_path), Config=self.boto3_transfer_config)
         return cloud_path
 
 
