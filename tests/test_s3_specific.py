@@ -1,8 +1,11 @@
+from concurrent.futures import ProcessPoolExecutor
+from time import sleep
 import pytest
 
+from boto3.s3.transfer import TransferConfig
 from cloudpathlib import S3Path
 from cloudpathlib.local import LocalS3Path
-from boto3.s3.transfer import TransferConfig
+import psutil
 
 
 @pytest.mark.parametrize("path_class", [S3Path, LocalS3Path])
@@ -16,8 +19,7 @@ def test_s3path_properties(path_class):
     assert p2.bucket == "bucket"
 
 
-def test_transfer_config(s3_rig, assets_dir, tmp_path):
-
+def test_transfer_config(s3_rig, tmp_path):
     transfer_config = TransferConfig(multipart_threshold=50)
     client = s3_rig.client_class(boto3_transfer_config=transfer_config)
     assert client.boto3_transfer_config.multipart_threshold == 50
@@ -30,13 +32,100 @@ def test_transfer_config(s3_rig, assets_dir, tmp_path):
     dl_dir = tmp_path
     assert not (dl_dir / p.name).exists()
     p.download_to(dl_dir)
-    if "mock_s3" in client.sess.__module__:
+
+    # we can only check the configs are actually passed on the mock
+    if not s3_rig.live_server:
         assert client.s3.download_config == transfer_config
 
     # upload
     p2 = s3_rig.create_cloud_path("dir_0/file0_0_uploaded.txt")
     assert not p2.exists()
     p2.upload_from(dl_dir / p.name)
-    if "mock_s3" in client.sess.__module__:
+
+    # we can only check the configs are actually passed on the mock
+    if not s3_rig.live_server:
         assert client.s3.upload_config == transfer_config
+
     p2.unlink()
+
+
+def _download_with_threads(s3_rig, tmp_path, use_threads):
+    """Job used by tests to ensure Transfer config changes are
+    actually passed through to boto3 and respected.
+    """
+    try:
+        sleep(1)  # give test monitoring process time to start watching
+
+        transfer_config = TransferConfig(
+            max_concurrency=100,
+            use_threads=use_threads,
+            multipart_chunksize=1 * 1024,
+            multipart_threshold=10 * 1024,
+        )
+        client = s3_rig.client_class(boto3_transfer_config=transfer_config)
+        p = client.CloudPath(f"s3://{s3_rig.drive}/dir_0/file0_to_download.txt")
+
+        assert not p.exists()
+
+        # file should be about 60KB
+        text = "lalala" * 10_000
+        p.write_text(text)
+
+        assert p.exists()
+
+        # assert not (dl_dir / p.name).exists()
+        p.download_to(tmp_path)
+
+        p.unlink()
+
+        assert not p.exists()
+
+    finally:
+        p = s3_rig.create_cloud_path("/dir_0/file0_0.txt")
+        if p.exists():
+            p.unlink()
+
+
+def test_transfer_config_live(s3_rig, tmp_path):
+    """Tests that boto3 receives and respects the transfer config
+    when working with a live backend. Does this by observing
+    if the `use_threads` parameter changes to number of threads
+    used by a child process that does a download.
+    """
+    if s3_rig.live_server:
+        def _execute_on_subprocess_and_observe(use_threads):
+            main_test_process = psutil.Process().pid
+
+            with ProcessPoolExecutor(max_workers=1) as executor:
+                job = executor.submit(
+                    _download_with_threads,
+                    s3_rig=s3_rig,
+                    tmp_path=tmp_path,
+                    use_threads=use_threads,
+                )
+
+                max_threads = 0
+
+                # timeout after 100 seconds
+                for _ in range(1000):
+                    worker_process_id = (
+                        psutil.Process(main_test_process).children()[-1].pid
+                    )  # most recently started child
+                    n_thread = psutil.Process(worker_process_id).num_threads()
+
+                    # observe number of threads used
+                    max_threads = max(max_threads, n_thread)
+
+                    sleep(0.1)
+
+                    if job.done():
+                        _ = job.result()  # raises if job raised
+                        break
+
+                return max_threads
+
+        # usually ~3 threads are spun up whe use_threads is False
+        assert _execute_on_subprocess_and_observe(use_threads=False) < 5
+
+        # usually ~15 threads are spun up whe use_threads is True
+        assert _execute_on_subprocess_and_observe(use_threads=True) > 10
