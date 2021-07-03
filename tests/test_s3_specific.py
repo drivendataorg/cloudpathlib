@@ -93,6 +93,7 @@ def test_transfer_config_live(s3_rig, tmp_path):
     used by a child process that does a download.
     """
     if s3_rig.live_server:
+
         def _execute_on_subprocess_and_observe(use_threads):
             main_test_process = psutil.Process().pid
 
