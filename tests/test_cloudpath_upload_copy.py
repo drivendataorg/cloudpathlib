@@ -98,6 +98,7 @@ def test_upload_from_dir(rig, upload_assets_dir):
     assert assert_mirrored(p2, upload_assets_dir, check_no_extra=False)
 
     # a newer file exists on cloud
+    sleep(1)
     (p / "upload_1.txt").touch()
     with pytest.raises(OverwriteNewerCloudError):
         p.upload_from(upload_assets_dir)
