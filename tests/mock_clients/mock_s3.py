@@ -41,6 +41,8 @@ def mocked_session_class_factory(test_dir: str):
 class MockBoto3Resource:
     def __init__(self, root):
         self.root = root
+        self.download_config = None
+        self.upload_config = None
 
     def Bucket(self, bucket):
         return MockBoto3Bucket(self.root)
@@ -49,13 +51,14 @@ class MockBoto3Resource:
         return MockBoto3ObjectSummary(self.root, key)
 
     def Object(self, bucket, key):
-        return MockBoto3Object(self.root, key)
+        return MockBoto3Object(self.root, key, self)
 
 
 class MockBoto3Object:
-    def __init__(self, root, path):
+    def __init__(self, root, path, resource):
         self.root = root
         self.path = root / path
+        self.resource = resource
 
     def get(self):
         if not self.path.exists() or self.path.is_dir():
@@ -70,13 +73,16 @@ class MockBoto3Object:
         else:
             self.path.write_bytes((self.root / Path(CopySource["Key"])).read_bytes())
 
-    def download_file(self, to_path):
+    def download_file(self, to_path, Config=None):
         to_path = Path(to_path)
         to_path.write_bytes(self.path.read_bytes())
+        # track config to make sure it's used in tests
+        self.resource.download_config = Config
 
-    def upload_file(self, from_path):
+    def upload_file(self, from_path, Config=None):
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_bytes(Path(from_path).read_bytes())
+        self.resource.upload_config = Config
 
     def delete(self):
         self.path.unlink()

@@ -52,7 +52,12 @@ class CloudProviderTestRig:
     """Class that holds together the components needed to test a cloud implementation."""
 
     def __init__(
-        self, path_class: type, client_class: type, drive: str = "drive", test_dir: str = ""
+        self,
+        path_class: type,
+        client_class: type,
+        drive: str = "drive",
+        test_dir: str = "",
+        live_server: bool = False,
     ):
         """
         Args:
@@ -63,6 +68,7 @@ class CloudProviderTestRig:
         self.client_class = client_class
         self.drive = drive
         self.test_dir = test_dir
+        self.live_server = live_server  # if the server is a live server
 
     @property
     def cloud_prefix(self):
@@ -90,7 +96,9 @@ def azure_rig(request, monkeypatch, assets_dir):
     drive = os.getenv("LIVE_AZURE_CONTAINER", "container")
     test_dir = create_test_dir_name(request)
 
-    if os.getenv("USE_LIVE_CLOUD") == "1":
+    live_server = os.getenv("USE_LIVE_CLOUD") == "1"
+
+    if live_server:
         # Set up test assets
         blob_service_client = BlobServiceClient.from_connection_string(
             os.getenv("AZURE_STORAGE_CONNECTION_STRING")
@@ -118,6 +126,7 @@ def azure_rig(request, monkeypatch, assets_dir):
         client_class=AzureBlobClient,
         drive=drive,
         test_dir=test_dir,
+        live_server=live_server,
     )
 
     rig.client_class().set_as_default_client()  # set default client
@@ -126,7 +135,7 @@ def azure_rig(request, monkeypatch, assets_dir):
 
     rig.client_class._default_client = None  # reset default client
 
-    if os.getenv("USE_LIVE_CLOUD") == "1":
+    if live_server:
         # Clean up test dir
         container_client = blob_service_client.get_container_client(drive)
         to_delete = container_client.list_blobs(name_starts_with=test_dir)
@@ -138,7 +147,9 @@ def gs_rig(request, monkeypatch, assets_dir):
     drive = os.getenv("LIVE_GS_BUCKET", "bucket")
     test_dir = create_test_dir_name(request)
 
-    if os.getenv("USE_LIVE_CLOUD") == "1":
+    live_server = os.getenv("USE_LIVE_CLOUD") == "1"
+
+    if live_server:
         # Set up test assets
         bucket = google_storage.Client().bucket(drive)
         test_files = [
@@ -159,7 +170,11 @@ def gs_rig(request, monkeypatch, assets_dir):
         )
 
     rig = CloudProviderTestRig(
-        path_class=GSPath, client_class=GSClient, drive=drive, test_dir=test_dir
+        path_class=GSPath,
+        client_class=GSClient,
+        drive=drive,
+        test_dir=test_dir,
+        live_server=live_server,
     )
 
     rig.client_class().set_as_default_client()  # set default client
@@ -168,7 +183,7 @@ def gs_rig(request, monkeypatch, assets_dir):
 
     rig.client_class._default_client = None  # reset default client
 
-    if os.getenv("USE_LIVE_CLOUD") == "1":
+    if live_server:
         # Clean up test dir
         for blob in bucket.list_blobs(prefix=test_dir):
             blob.delete()
@@ -179,7 +194,9 @@ def s3_rig(request, monkeypatch, assets_dir):
     drive = os.getenv("LIVE_S3_BUCKET", "bucket")
     test_dir = create_test_dir_name(request)
 
-    if os.getenv("USE_LIVE_CLOUD") == "1":
+    live_server = os.getenv("USE_LIVE_CLOUD") == "1"
+
+    if live_server:
         # Set up test assets
         session = boto3.Session()  # Fresh session to ensure isolation
         bucket = session.resource("s3").Bucket(drive)
@@ -200,7 +217,11 @@ def s3_rig(request, monkeypatch, assets_dir):
         )
 
     rig = CloudProviderTestRig(
-        path_class=S3Path, client_class=S3Client, drive=drive, test_dir=test_dir
+        path_class=S3Path,
+        client_class=S3Client,
+        drive=drive,
+        test_dir=test_dir,
+        live_server=live_server,
     )
 
     rig.client_class().set_as_default_client()  # set default client
@@ -209,7 +230,7 @@ def s3_rig(request, monkeypatch, assets_dir):
 
     rig.client_class._default_client = None  # reset default client
 
-    if os.getenv("USE_LIVE_CLOUD") == "1":
+    if live_server:
         # Clean up test dir
         bucket.objects.filter(Prefix=test_dir).delete()
 
@@ -226,7 +247,9 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
     test_dir = create_test_dir_name(request)
     custom_endpoint_url = os.getenv("CUSTOM_S3_ENDPOINT", "https://s3.us-west-1.drivendatabws.com")
 
-    if os.getenv("USE_LIVE_CLOUD") == "1":
+    live_server = os.getenv("USE_LIVE_CLOUD") == "1"
+
+    if live_server:
         monkeypatch.setenv("AWS_ACCESS_KEY_ID", os.getenv("CUSTOM_S3_KEY_ID"))
         monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", os.getenv("CUSTOM_S3_SECRET_KEY"))
 
@@ -260,7 +283,11 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
         )
 
     rig = CloudProviderTestRig(
-        path_class=S3Path, client_class=S3Client, drive=drive, test_dir=test_dir
+        path_class=S3Path,
+        client_class=S3Client,
+        drive=drive,
+        test_dir=test_dir,
+        live_server=live_server,
     )
 
     rig.client_class(
@@ -274,7 +301,7 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
 
     rig.client_class._default_client = None  # reset default client
 
-    if os.getenv("USE_LIVE_CLOUD") == "1":
+    if live_server:
         bucket.objects.filter(Prefix=test_dir).delete()
 
 
