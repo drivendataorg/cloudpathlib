@@ -9,13 +9,35 @@ on:
     - cron: "0 0 * * 0"
 
 jobs:
-  build:
-    name: ${{ matrix.os }}, Python ${{ matrix.python-version }}
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Lint package
+        run: |
+          make lint
+
+  tests:
+    name: Mocked Tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    needs: code-quality
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.6, 3.7, 3.8, 3.9]
 
     steps:
       - uses: actions/checkout@v2
@@ -28,11 +50,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt --use-feature=2020-resolver
-
-      - name: Lint package
-        run: |
-          make lint
+          pip install -r requirements-dev.txt
 
       - name: Run mocked tests
         run: |
@@ -43,7 +61,9 @@ jobs:
         run: |
           make dist
           python -m pip install dist/cloudpathlib-*.whl --no-deps --force-reinstall
+          python -c "import cloudpathlib"
           python -m pip install dist/cloudpathlib-*.tar.gz --no-deps --force-reinstall
+          python -c "import cloudpathlib"
 
       - name: Upload coverage to codecov
         if: matrix.os == 'ubuntu-latest'
@@ -51,3 +71,60 @@ jobs:
         with:
           file: ./coverage.xml
           fail_ci_if_error: true
+
+  live-tests:
+    name: Live Tests
+    needs: tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2.0
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Run live tests
+        run: |
+          make test-live-cloud
+        env:
+          LIVE_AZURE_CONTAINER: ${{ secrets.LIVE_AZURE_CONTAINER }}
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          LIVE_GS_BUCKET: ${{ secrets.LIVE_GS_BUCKET }}
+          LIVE_S3_BUCKET: ${{ secrets.LIVE_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          CUSTOM_S3_BUCKET: ${{secrets.CUSTOM_S3_BUCKET}}
+          CUSTOM_S3_KEY_ID: ${{secrets.CUSTOM_S3_KEY_ID}}
+          CUSTOM_S3_SECRET_KEY: ${{secrets.CUSTOM_S3_SECRET_KEY}}
+          CUSTOM_S3_ENDPOINT: ${{secrets.CUSTOM_S3_ENDPOINT}}
+
+  notify:
+    name: Notify failed build
+    needs: [code-quality, tests, live-tests]
+    if: failure() && github.event.pull_request == null
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+          RUN_NUMBER: ${{ github.run_number}}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        with:
+          filename: .github/failed_build_issue_template.md
