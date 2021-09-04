@@ -25,11 +25,13 @@ jobs:
           pip install -e .
 
       - name: Check that versions match
+        id: version
         run: |
-          echo "${{ github.event.release.tag_name }}"
+          echo "Release tag: [${{ github.event.release.tag_name }}]"
           PACKAGE_VERSION=$(python -c "import cloudpathlib; print(cloudpathlib.__version__)")
-          echo $PACKAGE_VERSION
+          echo "Package version: [$PACKAGE_VERSION]"
           [ ${{ github.event.release.tag_name }} == "v$PACKAGE_VERSION" ] || { exit 1; }
+          echo "::set-output name=major_minor_version::v${PACKAGE_VERSION%.*}"
 
       - name: Build package
         run: |
@@ -38,21 +40,6 @@ jobs:
       - name: Build docs
         run: |
           make docs
-
-      - name: Deploy docs to Netlify
-        uses: nwtgck/actions-netlify@v1.1
-        with:
-          publish-dir: "./docs/site"
-          production-deploy: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from GitHub Actions"
-          enable-pull-request-comment: false
-          enable-commit-comment: false
-          overwrites-pull-request-comment: false
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        timeout-minutes: 1
 
       - name: Publish to Test PyPI
         uses: pypa/gh-action-pypi-publish@v1.3.0
@@ -68,3 +55,39 @@ jobs:
           user: ${{ secrets.PYPI_PROD_USERNAME }}
           password: ${{ secrets.PYPI_PROD_PASSWORD }}
           skip_existing: false
+
+      - name: Stage docs on gh-pages
+        working-directory: docs
+        run: |
+          git fetch origin gh-pages --depth=1
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          mike deploy --push --update-aliases --no-redirect \
+            ${{ steps.version.outputs.major_minor_version }} \
+            stable \
+            --title=${{ github.event.release.tag_name }}
+
+  deploy-docs:
+    name: Deploy docs to Netlify
+    needs: build
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+
+      - name: Deploy docs to Netlify
+        uses: nwtgck/actions-netlify@v1.1
+        with:
+          publish-dir: "./"
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions"
+          enable-pull-request-comment: false
+          enable-commit-comment: false
+          overwrites-pull-request-comment: false
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 1
