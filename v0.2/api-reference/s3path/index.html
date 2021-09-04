@@ -1,0 +1,2542 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A library that implements pathlib.Path methods for URIs for different cloud providers.">
+      
+      
+      
+      
+        <link rel="canonical" href="https://cloudpathlib.drivendata.org/v0.2/api-reference/s3path/">
+      
+      <link rel="icon" href="../../favicon.svg">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.2.6">
+    
+    
+      
+        <title>S3Path - cloudpathlib</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.802231af.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#s3path" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="cloudpathlib" class="md-header__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
+      
+  <img src="../../logo-no-text.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            cloudpathlib
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              S3Path
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="cloudpathlib" class="md-nav__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
+      
+  <img src="../../logo-no-text.svg" alt="logo">
+
+    </a>
+    cloudpathlib
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../why_cloudpathlib/" class="md-nav__link">
+        Why cloudpathlib?
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../authentication/" class="md-nav__link">
+        Authentication
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../caching/" class="md-nav__link">
+        Caching
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" checked>
+      
+      <label class="md-nav__link" for="__nav_5">
+        API Reference
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="API Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          API Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cloudpath/" class="md-nav__link">
+        CloudPath
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_2" type="checkbox" id="__nav_5_2" checked>
+      
+      <label class="md-nav__link" for="__nav_5_2">
+        S3
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="S3" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_2">
+          <span class="md-nav__icon md-icon"></span>
+          S3
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../s3client/" class="md-nav__link">
+        S3Client
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          S3Path
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        S3Path
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.anchor" class="md-nav__link">
+    anchor
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.bucket" class="md-nav__link">
+    bucket
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.cloud_prefix" class="md-nav__link">
+    cloud_prefix
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.drive" class="md-nav__link">
+    drive
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.etag" class="md-nav__link">
+    etag
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.fspath" class="md-nav__link">
+    fspath
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.key" class="md-nav__link">
+    key
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.name" class="md-nav__link">
+    name
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.parent" class="md-nav__link">
+    parent
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.parents" class="md-nav__link">
+    parents
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.parts" class="md-nav__link">
+    parts
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.stem" class="md-nav__link">
+    stem
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.suffix" class="md-nav__link">
+    suffix
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.suffixes" class="md-nav__link">
+    suffixes
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.as_uri" class="md-nav__link">
+    as_uri()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.download_to" class="md-nav__link">
+    download_to()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.exists" class="md-nav__link">
+    exists()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.glob" class="md-nav__link">
+    glob()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.is_dir" class="md-nav__link">
+    is_dir()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.is_file" class="md-nav__link">
+    is_file()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.iterdir" class="md-nav__link">
+    iterdir()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.joinpath" class="md-nav__link">
+    joinpath()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.match" class="md-nav__link">
+    match()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.mkdir" class="md-nav__link">
+    mkdir()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.open" class="md-nav__link">
+    open()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.read_bytes" class="md-nav__link">
+    read_bytes()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.read_text" class="md-nav__link">
+    read_text()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.rename" class="md-nav__link">
+    rename()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.replace" class="md-nav__link">
+    replace()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.rglob" class="md-nav__link">
+    rglob()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.rmdir" class="md-nav__link">
+    rmdir()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.rmtree" class="md-nav__link">
+    rmtree()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.samefile" class="md-nav__link">
+    samefile()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.stat" class="md-nav__link">
+    stat()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.touch" class="md-nav__link">
+    touch()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.unlink" class="md-nav__link">
+    unlink()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.with_name" class="md-nav__link">
+    with_name()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.with_suffix" class="md-nav__link">
+    with_suffix()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.write_bytes" class="md-nav__link">
+    write_bytes()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.write_text" class="md-nav__link">
+    write_text()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_3" type="checkbox" id="__nav_5_3" >
+      
+      <label class="md-nav__link" for="__nav_5_3">
+        Azure
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Azure" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_3">
+          <span class="md-nav__icon md-icon"></span>
+          Azure
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../azblobclient/" class="md-nav__link">
+        AzureBlobClient
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../azblobpath/" class="md-nav__link">
+        AzureBlobPath
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_4" type="checkbox" id="__nav_5_4" >
+      
+      <label class="md-nav__link" for="__nav_5_4">
+        GS
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="GS" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_4">
+          <span class="md-nav__icon md-icon"></span>
+          GS
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gsclient/" class="md-nav__link">
+        GSClient
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gspath/" class="md-nav__link">
+        GSPath
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.anchor" class="md-nav__link">
+    anchor
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.bucket" class="md-nav__link">
+    bucket
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.cloud_prefix" class="md-nav__link">
+    cloud_prefix
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.drive" class="md-nav__link">
+    drive
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.etag" class="md-nav__link">
+    etag
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.fspath" class="md-nav__link">
+    fspath
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.key" class="md-nav__link">
+    key
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.name" class="md-nav__link">
+    name
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.parent" class="md-nav__link">
+    parent
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.parents" class="md-nav__link">
+    parents
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.parts" class="md-nav__link">
+    parts
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.stem" class="md-nav__link">
+    stem
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.suffix" class="md-nav__link">
+    suffix
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.suffixes" class="md-nav__link">
+    suffixes
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.as_uri" class="md-nav__link">
+    as_uri()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.download_to" class="md-nav__link">
+    download_to()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.exists" class="md-nav__link">
+    exists()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.glob" class="md-nav__link">
+    glob()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.is_dir" class="md-nav__link">
+    is_dir()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.is_file" class="md-nav__link">
+    is_file()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.iterdir" class="md-nav__link">
+    iterdir()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.joinpath" class="md-nav__link">
+    joinpath()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.match" class="md-nav__link">
+    match()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.mkdir" class="md-nav__link">
+    mkdir()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.open" class="md-nav__link">
+    open()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.read_bytes" class="md-nav__link">
+    read_bytes()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.read_text" class="md-nav__link">
+    read_text()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.rename" class="md-nav__link">
+    rename()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.replace" class="md-nav__link">
+    replace()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.rglob" class="md-nav__link">
+    rglob()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.rmdir" class="md-nav__link">
+    rmdir()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.rmtree" class="md-nav__link">
+    rmtree()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.samefile" class="md-nav__link">
+    samefile()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.stat" class="md-nav__link">
+    stat()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.touch" class="md-nav__link">
+    touch()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.unlink" class="md-nav__link">
+    unlink()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.with_name" class="md-nav__link">
+    with_name()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.with_suffix" class="md-nav__link">
+    with_suffix()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.write_bytes" class="md-nav__link">
+    write_bytes()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3path.S3Path.write_text" class="md-nav__link">
+    write_text()
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/drivendataorg/cloudpathlib/edit/master/docs/api-reference/s3path.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="s3path">S3Path<a class="headerlink" href="#s3path" title="Permanent link">&para;</a></h1>
+
+
+  <div class="doc doc-object doc-class">
+
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.anchor" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">anchor</span><span class="p">:</span> <span class="nb">str</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.anchor" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The concatenation of the drive and root, or ''. <em>(Docstring copied from pathlib.Path)</em></p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.bucket" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.bucket" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.cloud_prefix" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">cloud_prefix</span><span class="p">:</span> <span class="nb">str</span></code>
+
+
+<a href="#cloudpathlib.s3.s3path.S3Path.cloud_prefix" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.drive" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">drive</span><span class="p">:</span> <span class="nb">str</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.drive" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The drive prefix (letter or UNC path), if any. <em>(Docstring copied from pathlib.Path)</em></p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.etag" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">etag</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.etag" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.fspath" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">fspath</span><span class="p">:</span> <span class="nb">str</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.fspath" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.key" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">key</span><span class="p">:</span> <span class="nb">str</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.key" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">name</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.name" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The final path component, if any. <em>(Docstring copied from pathlib.Path)</em></p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.parent" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">parent</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.parent" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The logical parent of the path. <em>(Docstring copied from pathlib.Path)</em></p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.parents" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">parents</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.parents" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>A sequence of this path's logical parents. <em>(Docstring copied from pathlib.Path)</em></p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.parts" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">parts</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.parts" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>An object providing sequence-like access to the
+components in the filesystem path. <em>(Docstring copied from pathlib.Path)</em></p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.stem" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">stem</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.stem" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The final path component, minus its last suffix. <em>(Docstring copied from pathlib.Path)</em></p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.suffix" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">suffix</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.suffix" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The final component's last suffix, if any.</p>
+<p>This includes the leading period. For example: '.txt'
+ <em>(Docstring copied from pathlib.Path)</em></p>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.suffixes" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">suffixes</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.suffixes" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>A list of the final component's suffixes, if any.</p>
+<p>These include the leading periods. For example: ['.tar', '.gz']
+ <em>(Docstring copied from pathlib.Path)</em></p>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.__init__" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span> <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Client&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">is_valid_cloudpath</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">raise_on_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># versions of the raw string that provide useful methods</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_str</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_no_prefix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># setup client</span>
+    <span class="k">if</span> <span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">):</span>
+            <span class="n">client</span> <span class="o">=</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">client</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">client_class</span><span class="o">.</span><span class="n">get_default_client</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">client_class</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">ClientMismatch</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Client of type [</span><span class="si">{</span><span class="n">client</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s2">] is not valid for cloud path of type &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s2">]; must be instance of [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">client_class</span><span class="si">}</span><span class="s2">], or &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;None to use default client for this cloud path class.&quot;</span>
+        <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">:</span> <span class="n">Client</span> <span class="o">=</span> <span class="n">client</span>
+
+    <span class="c1"># track if local has been written to, if so it may need to be uploaded</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># handle if local file gets opened</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="o">=</span> <span class="kc">None</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.as_uri" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">as_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.as_uri" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Return the path as a 'file' URI. <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">as_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.download_to" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">download_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.download_to" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">download_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]):</span>
+    <span class="n">destination</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_download_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">destination</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+            <span class="n">rel</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">rel</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+                <span class="n">rel</span> <span class="o">=</span> <span class="n">rel</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+
+            <span class="n">rel_dest</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="nb">len</span><span class="p">(</span><span class="n">rel</span><span class="p">)</span> <span class="p">:]</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">download_to</span><span class="p">(</span><span class="n">destination</span> <span class="o">/</span> <span class="n">rel_dest</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.exists" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.exists" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Whether this path exists.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.glob" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.glob" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Iterate over this subtree and yield all existing files (of any
+kind, including directories) matching the given relative pattern.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">glob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="s2">&quot;CloudPath&quot;</span><span class="p">]:</span>
+    <span class="c1"># strip cloud prefix from pattern if it is included</span>
+    <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="p">):</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="p">)</span> <span class="p">:]</span>
+
+    <span class="c1"># strip &quot;drive&quot; from pattern if it is included</span>
+    <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drive</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drive</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="p">:]</span>
+
+    <span class="c1"># identify if pattern is recursive or not</span>
+    <span class="n">recursive</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;**/&quot;</span><span class="p">):</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">recursive</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">_no_prefix_no_drive</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">f</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.is_dir" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+<a href="#cloudpathlib.s3.s3path.S3Path.is_dir" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Whether this path is a directory.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;dir&quot;</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.is_file" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+<a href="#cloudpathlib.s3.s3path.S3Path.is_file" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Whether this path is a regular file (also True for symlinks pointing
+to regular files).
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.iterdir" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">iterdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.iterdir" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Iterate over the files in this directory.  Does not yield any
+result for the special paths '.' and '..'.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">iterdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="s2">&quot;CloudPath&quot;</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">f</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.joinpath" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">joinpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.joinpath" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Combine this path with one or several arguments, and return a
+new path representing either a subpath (if all arguments are relative
+paths) or a totally different path (if one of the arguments is
+anchored).
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">joinpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;joinpath&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.match" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_pattern</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.match" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Return True if this path matches the given pattern.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_pattern</span><span class="p">):</span>
+    <span class="c1"># strip scheme from start of pattern before testing</span>
+    <span class="k">if</span> <span class="n">path_pattern</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">drive</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
+        <span class="n">path_pattern</span> <span class="o">=</span> <span class="n">path_pattern</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">drive</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="p">:]</span>
+
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;match&quot;</span><span class="p">,</span> <span class="n">path_pattern</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.mkdir" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+
+<a href="#cloudpathlib.s3.s3path.S3Path.mkdir" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Create a new directory at this given path.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="c1"># not possible to make empty directory on s3</span>
+    <span class="k">pass</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.open" class="doc doc-heading">
+<code class="highlight language-python"><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_overwrite_from_cloud</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.open" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Open the file pointed by this path and return a file object, as
+the built-in open() function does.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">open</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span>
+    <span class="n">buffering</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">newline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">force_overwrite_from_cloud</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># extra kwarg not in pathlib</span>
+    <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># extra kwarg not in pathlib</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">:</span>
+    <span class="c1"># if trying to call open on a directory that exists</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot open directory, only files. Tried to open (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;x&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot open existing file (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">) for creation.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># TODO: consider streaming from client rather than DLing entire file to cache</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_cache</span><span class="p">(</span><span class="n">force_overwrite_from_cloud</span><span class="o">=</span><span class="n">force_overwrite_from_cloud</span><span class="p">)</span>
+
+    <span class="c1"># create any directories that may be needed if the file is new</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">original_mtime</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">original_mtime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span>
+
+    <span class="n">buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+        <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+        <span class="n">buffering</span><span class="o">=</span><span class="n">buffering</span><span class="p">,</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
+        <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span>
+        <span class="n">newline</span><span class="o">=</span><span class="n">newline</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># write modes need special on closing the buffer</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)):</span>
+        <span class="c1"># dirty, handle, patch close</span>
+        <span class="n">original_close</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">close</span>
+
+        <span class="c1"># since we are pretending this is a cloud file, upload it to the cloud</span>
+        <span class="c1"># when the buffer is closed</span>
+        <span class="k">def</span> <span class="nf">_patched_close</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">original_close</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="c1"># original mtime should match what was in the cloud; because of system clocks or rounding</span>
+            <span class="c1"># by the cloud provider, the new version in our cache is &quot;older&quot; than the original version;</span>
+            <span class="c1"># explicitly set the new modified time to be after the original modified time.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span> <span class="o">&lt;</span> <span class="n">original_mtime</span><span class="p">:</span>
+                <span class="n">new_mtime</span> <span class="o">=</span> <span class="n">original_mtime</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">(</span><span class="n">new_mtime</span><span class="p">,</span> <span class="n">new_mtime</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_upload_local_to_cloud</span><span class="p">(</span><span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span><span class="p">)</span>
+
+        <span class="n">buffer</span><span class="o">.</span><span class="n">close</span> <span class="o">=</span> <span class="n">_patched_close</span>
+
+        <span class="c1"># keep reference in case we need to close when __del__ is called on this object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="o">=</span> <span class="n">buffer</span>
+
+        <span class="c1"># opened for write, so mark dirty</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="n">buffer</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.read_bytes" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">read_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.read_bytes" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Open the file in bytes mode, read it, and close the file.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">read_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;read_bytes&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.read_text" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.read_text" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Open the file in text mode, read it, and close the file.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;read_text&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.rename" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.rename" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Rename this path to the target path.</p>
+<p>The target path may be absolute or relative. Relative paths are
+interpreted relative to the current working directory, <em>not</em> the
+directory of the Path object.</p>
+<p>Returns the new Path instance pointing to the target path.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">:</span>
+    <span class="c1"># for cloud services replace == rename since we don&#39;t just rename,</span>
+    <span class="c1"># we actually move files</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.replace" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.replace" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Rename this path to the target path, overwriting if that path exists.</p>
+<p>The target path may be absolute or relative. Relative paths are
+interpreted relative to the current working directory, <em>not</em> the
+directory of the Path object.</p>
+<p>Returns the new Path instance pointing to the target path.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The target based to rename must be an instantiated class of type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">target</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_move_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">target</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.rglob" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">rglob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.rglob" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Recursively yield all existing files (of any kind, including
+directories) matching the given relative pattern, anywhere in
+this subtree.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">rglob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="s2">&quot;CloudPath&quot;</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/&quot;</span> <span class="o">+</span> <span class="n">pattern</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.rmdir" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.rmdir" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Remove this directory.  The directory must be empty.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2"> is a file; call unlink instead of rmdir.&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span>
+        <span class="k">raise</span> <span class="n">DirectoryNotEmpty</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Directory not empty: &#39;</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">&#39;. Use rmtree to delete recursively.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.rmtree" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.rmtree" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Delete an entire directory tree.</p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Delete an entire directory tree.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2"> is a file; call unlink instead of rmtree.&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.samefile" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">samefile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_path</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.samefile" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Return whether other_path is the same or not as this file
+(as returned by os.path.samefile()).
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">samefile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_path</span><span class="p">:</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="c1"># all cloud paths are absolute and the paths are used for hash</span>
+    <span class="k">return</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other_path</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.stat" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+<a href="#cloudpathlib.s3.s3path.S3Path.stat" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Return the result of the stat() system call on this path, like
+os.stat() does.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="k">except</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">NoSuchKey</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">NoStat</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No stats available for </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">; it may be a directory or not exist.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">stat_result</span><span class="p">(</span>
+        <span class="p">(</span>
+            <span class="kc">None</span><span class="p">,</span>  <span class="c1"># mode</span>
+            <span class="kc">None</span><span class="p">,</span>  <span class="c1"># ino</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="p">,</span>  <span class="c1"># dev,</span>
+            <span class="kc">None</span><span class="p">,</span>  <span class="c1"># nlink,</span>
+            <span class="kc">None</span><span class="p">,</span>  <span class="c1"># uid,</span>
+            <span class="kc">None</span><span class="p">,</span>  <span class="c1"># gid,</span>
+            <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;size&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>  <span class="c1"># size,</span>
+            <span class="kc">None</span><span class="p">,</span>  <span class="c1"># atime,</span>
+            <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;last_modified&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">timestamp</span><span class="p">(),</span>  <span class="c1"># mtime,</span>
+            <span class="kc">None</span><span class="p">,</span>  <span class="c1"># ctime,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.touch" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">touch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+<a href="#cloudpathlib.s3.s3path.S3Path.touch" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Create this file with the given access mode, if it doesn't exist.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">touch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_move_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tf</span> <span class="o">=</span> <span class="n">TemporaryDirectory</span><span class="p">()</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;empty&quot;</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">touch</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_upload_file</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">tf</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.unlink" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.unlink" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Remove this file or link.
+If the path is a directory, use rmdir() instead.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">unlink</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2"> is a directory; call rmdir instead of unlink.&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.with_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">with_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.with_name" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Return a new path with the file name changed. <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">with_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;with_name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.with_suffix" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">with_suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.with_suffix" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Return a new path with the file suffix changed.  If the path
+has no suffix, add given suffix.  If the given suffix is an empty
+string, remove the suffix from the path.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">with_suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">suffix</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;with_suffix&quot;</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.write_bytes" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">write_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.write_bytes" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Open the file in bytes mode, write to it, and close the file.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">write_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Open the file in bytes mode, write to it, and close the file.</span>
+
+<span class="sd">    NOTE: vendored from pathlib since we override open</span>
+<span class="sd">    https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1235-L1242</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># type-check for the buffer interface before truncating the file</span>
+    <span class="n">view</span> <span class="o">=</span> <span class="nb">memoryview</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.s3.s3path.S3Path.write_text" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">write_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.s3.s3path.S3Path.write_text" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Open the file in text mode, write to it, and close the file.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">write_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Open the file in text mode, write to it, and close the file.</span>
+
+<span class="sd">    NOTE: vendored from pathlib since we override open</span>
+<span class="sd">    https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1244-L1252</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;data must be str, not </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">data</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../s3client/" class="md-footer__link md-footer__link--prev" aria-label="Previous: S3Client" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              S3Client
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../azblobclient/" class="md-footer__link md-footer__link--next" aria-label="Next: AzureBlobClient" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              AzureBlobClient
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.409db549.min.js", "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.756773cc.min.js"></script>
+      
+    
+  </body>
+</html>
