@@ -1,0 +1,1062 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A library that implements pathlib.Path methods for URIs for different cloud providers.">
+      
+      
+      
+      
+        <link rel="canonical" href="https://cloudpathlib.drivendata.org/v0.1/">
+      
+      <link rel="icon" href="favicon.svg">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.2.6">
+    
+    
+      
+        <title>cloudpathlib</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.802231af.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.3f5d1f46.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="stylesheets/extra.css">
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL(".",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#why-use-cloudpathlib" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="cloudpathlib" class="md-header__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
+      
+  <img src="logo-no-text.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            cloudpathlib
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="cloudpathlib" class="md-nav__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
+      
+  <img src="logo-no-text.svg" alt="logo">
+
+    </a>
+    cloudpathlib
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Home
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        Home
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-use-cloudpathlib" class="md-nav__link">
+    Why use cloudpathlib?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    Installation
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#conda" class="md-nav__link">
+    conda
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development-version" class="md-nav__link">
+    Development version
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-usage" class="md-nav__link">
+    Quick usage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-methods-and-properties" class="md-nav__link">
+    Supported methods and properties
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="why_cloudpathlib/" class="md-nav__link">
+        Why cloudpathlib?
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="authentication/" class="md-nav__link">
+        Authentication
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="caching/" class="md-nav__link">
+        Caching
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      <label class="md-nav__link" for="__nav_5">
+        API Reference
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="API Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          API Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/cloudpath/" class="md-nav__link">
+        CloudPath
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_2" type="checkbox" id="__nav_5_2" >
+      
+      <label class="md-nav__link" for="__nav_5_2">
+        S3
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="S3" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_2">
+          <span class="md-nav__icon md-icon"></span>
+          S3
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/s3client/" class="md-nav__link">
+        S3Client
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/s3path/" class="md-nav__link">
+        S3Path
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5_3" type="checkbox" id="__nav_5_3" >
+      
+      <label class="md-nav__link" for="__nav_5_3">
+        Azure
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Azure" data-md-level="2">
+        <label class="md-nav__title" for="__nav_5_3">
+          <span class="md-nav__icon md-icon"></span>
+          Azure
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/azblobclient/" class="md-nav__link">
+        AzureBlobClient
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/azblobpath/" class="md-nav__link">
+        AzureBlobPath
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-use-cloudpathlib" class="md-nav__link">
+    Why use cloudpathlib?
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    Installation
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#conda" class="md-nav__link">
+    conda
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development-version" class="md-nav__link">
+    Development version
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-usage" class="md-nav__link">
+    Quick usage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-methods-and-properties" class="md-nav__link">
+    Supported methods and properties
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/drivendataorg/cloudpathlib/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                  <h1>Home</h1>
+                
+                <p><img alt="" src="logo.svg" /></p>
+<p><a href="https://cloudpathlib.drivendata.org/"><img alt="Docs Status" src="https://img.shields.io/badge/docs-latest-blueviolet" /></a>
+<a href="https://pypi.org/project/cloudpathlib/"><img alt="PyPI" src="https://img.shields.io/pypi/v/cloudpathlib.svg" /></a>
+<a href="https://anaconda.org/conda-forge/cloudpathlib"><img alt="conda-forge" src="https://img.shields.io/conda/vn/conda-forge/cloudpathlib.svg" /></a>
+<a href="https://github.com/drivendataorg/cloudpathlib/actions?query=workflow%3Atests+branch%3Amaster"><img alt="tests" src="https://github.com/drivendataorg/cloudpathlib/workflows/tests/badge.svg?branch=master" /></a>
+<a href="https://codecov.io/gh/drivendataorg/cloudpathlib"><img alt="codecov" src="https://codecov.io/gh/drivendataorg/cloudpathlib/branch/master/graph/badge.svg" /></a></p>
+<blockquote>
+<p>Our goal is to be the meringue of file management libraries: the subtle sweetness of <code>pathlib</code> working in harmony with the ethereal lightness of the cloud.</p>
+</blockquote>
+<p>A library that implements (nearly all) of the <code>pathlib.Path</code> methods for URIs for different cloud storage services.</p>
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://bucket/filename.txt&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Send my changes to the cloud!&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="why-use-cloudpathlib">Why use cloudpathlib?<a class="headerlink" href="#why-use-cloudpathlib" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Familiar</strong>: If you know how to interact with <code>Path</code>, you know how to interact with <code>CloudPath</code>. All of the cloud-relevant <code>Path</code> methods are implemented.</li>
+<li><strong>Supported clouds</strong>: AWS S3 and Azure Blob Storage are implemented. Google Cloud Storage and FTP are on the way.</li>
+<li><strong>Extensible</strong>: The base classes do most of the work generically, so implementing two small classes <code>MyPath</code> and <code>MyClient</code> is all you need to add support for a new cloud storage service.</li>
+<li><strong>Read/write support</strong>: Reading just works. Using the <code>write_text</code>, <code>write_bytes</code> or <code>.open('w')</code> methods will all upload your changes to cloud storage without any additional file management as a developer.</li>
+<li><strong>Seamless caching</strong>: Files are downloaded locally only when necessary. You can also easily pass a persistent cache folder so that across processes and sessions you only re-download what is necessary.</li>
+<li><strong>Tested</strong>: Comprehensive test suite and code coverage.</li>
+</ul>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<p><code>cloudpathlib</code> depends on the cloud services' SDKs (e.g., <code>boto3</code>, <code>azure-storage-blob</code>) to communicate with their respective storage service. If you try to use cloud paths for a cloud service for which you don't have dependencies installed, <code>cloudpathlib</code> will error and let you know what you need to install.</p>
+<p>To install a cloud service's SDK dependency when installing <code>cloudpathlib</code>, you need to specify it using pip's <a href="https://packaging.python.org/tutorials/installing-packages/#installing-setuptools-extras">"extras"</a> specification. For example:</p>
+<div class="highlight"><pre><span></span><code>pip install cloudpathlib<span class="o">[</span>s3,azure<span class="o">]</span>
+</code></pre></div>
+<p>Currently supported cloud storage services are: <code>azure</code>, <code>s3</code>. You can also use <code>all</code> to install all available services' dependencies.</p>
+<p>If you do not specify any extras or separately install any cloud SDKs, you will only be able to develop with the base classes for rolling your own cloud path class.</p>
+<h3 id="conda">conda<a class="headerlink" href="#conda" title="Permanent link">&para;</a></h3>
+<p><code>cloudpathlib</code> is also available using <code>conda</code> from conda-forge. Note that to install the necessary cloud service SDK dependency, you should include the appropriate suffix in the package name. For example:</p>
+<div class="highlight"><pre><span></span><code>conda install cloudpathlib-s3 -c conda-forge
+</code></pre></div>
+<p>If no suffix is used, only the base classes will be usable. See the <a href="https://github.com/conda-forge/cloudpathlib-feedstock">conda-forge/cloudpathlib-feedstock</a> for all installation options.</p>
+<h3 id="development-version">Development version<a class="headerlink" href="#development-version" title="Permanent link">&para;</a></h3>
+<p>You can get latest development version from GitHub:</p>
+<div class="highlight"><pre><span></span><code>pip install https://github.com/drivendataorg/cloudpathlib.git#egg<span class="o">=</span>cloudpathlib<span class="o">[</span>all<span class="o">]</span>
+</code></pre></div>
+<p>Note that you similarly need to specify cloud service dependencies, such as <code>all</code> in the above example command.</p>
+<h2 id="quick-usage">Quick usage<a class="headerlink" href="#quick-usage" title="Permanent link">&para;</a></h2>
+<p>Here's an example to get the gist of using the package. By default, <code>cloudpathlib</code> authenticates with the environment variables supported by each respective cloud service SDK. For more details and advanced authentication options, see the <a href="https://cloudpathlib.drivendata.org/authentication/">"Authentication"</a> documentation.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">cloudpathlib</span> <span class="kn">import</span> <span class="n">CloudPath</span>
+
+<span class="c1"># dispatches to S3Path based on prefix</span>
+<span class="n">root_dir</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://drivendata-public-assets/&quot;</span><span class="p">)</span>
+<span class="n">root_dir</span>
+<span class="c1">#&gt; S3Path(&#39;s3://drivendata-public-assets/&#39;)</span>
+
+<span class="c1"># there&#39;s only one file, but globbing works in nested folder</span>
+<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">root_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;**/*.txt&#39;</span><span class="p">):</span>
+    <span class="n">text_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">text_data</span><span class="p">)</span>
+<span class="c1">#&gt; s3://drivendata-public-assets/odsc-west-2019/DATA_DICTIONARY.txt</span>
+<span class="c1">#&gt; Eviction Lab Data Dictionary</span>
+<span class="c1">#&gt;</span>
+<span class="c1">#&gt; Additional information in our FAQ evictionlab.org/help-faq/</span>
+<span class="c1">#&gt; Full methodology evictionlab.org/methods/</span>
+<span class="c1">#&gt;</span>
+<span class="c1">#&gt; ... (additional text output truncated)</span>
+
+<span class="c1"># use / to join paths (and, in this case, create a new file)</span>
+<span class="n">new_file_copy</span> <span class="o">=</span> <span class="n">root_dir</span> <span class="o">/</span> <span class="s2">&quot;nested_dir/copy_file.txt&quot;</span>
+<span class="n">new_file_copy</span>
+<span class="c1">#&gt; S3Path(&#39;s3://drivendata-public-assets/nested_dir/copy_file.txt&#39;)</span>
+
+<span class="c1"># show things work and the file does not exist yet</span>
+<span class="n">new_file_copy</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+<span class="c1">#&gt; False</span>
+
+<span class="c1"># writing text data to the new file in the cloud</span>
+<span class="n">new_file_copy</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">text_data</span><span class="p">)</span>
+<span class="c1">#&gt; 6933</span>
+
+<span class="c1"># file now listed</span>
+<span class="nb">list</span><span class="p">(</span><span class="n">root_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;**/*.txt&#39;</span><span class="p">))</span>
+<span class="c1">#&gt; [S3Path(&#39;s3://drivendata-public-assets/nested_dir/copy_file.txt&#39;),</span>
+<span class="c1">#&gt;  S3Path(&#39;s3://drivendata-public-assets/odsc-west-2019/DATA_DICTIONARY.txt&#39;)]</span>
+
+<span class="c1"># but, we can remove it</span>
+<span class="n">new_file_copy</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+
+<span class="c1"># no longer there</span>
+<span class="nb">list</span><span class="p">(</span><span class="n">root_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;**/*.txt&#39;</span><span class="p">))</span>
+<span class="c1">#&gt; [S3Path(&#39;s3://drivendata-public-assets/odsc-west-2019/DATA_DICTIONARY.txt&#39;)]</span>
+</code></pre></div>
+<h2 id="supported-methods-and-properties">Supported methods and properties<a class="headerlink" href="#supported-methods-and-properties" title="Permanent link">&para;</a></h2>
+<p>Most methods and properties from <code>pathlib.Path</code> are supported except for the ones that don't make sense in a cloud context. There are a few additional methods or properties that relate to specific cloud services or specifically for cloud paths.</p>
+<table>
+<thead>
+<tr>
+<th align="left">Methods + properties</th>
+<th align="left"><code>AzureBlobPath</code></th>
+<th align="left"><code>S3Path</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><code>anchor</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>as_uri</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>drive</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>exists</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>glob</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>is_dir</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>is_file</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>iterdir</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>joinpath</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>match</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>mkdir</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>name</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>open</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>parent</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>parents</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>parts</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>read_bytes</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>read_text</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>rename</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>replace</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>rglob</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>rmdir</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>samefile</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>stat</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>stem</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>suffix</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>suffixes</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>touch</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>unlink</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>with_name</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>with_suffix</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>write_bytes</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>write_text</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>absolute</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>as_posix</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>chmod</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>cwd</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>expanduser</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>group</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>home</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>is_absolute</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>is_block_device</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>is_char_device</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>is_fifo</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>is_mount</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>is_reserved</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>is_socket</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>is_symlink</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>lchmod</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>link_to</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>lstat</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>owner</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>relative_to</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>resolve</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>root</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>symlink_to</code></td>
+<td align="left">❌</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>cloud_prefix</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>download_to</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>etag</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>is_valid_cloudpath</code></td>
+<td align="left">✅</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>blob</code></td>
+<td align="left">✅</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>bucket</code></td>
+<td align="left">❌</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>container</code></td>
+<td align="left">✅</td>
+<td align="left">❌</td>
+</tr>
+<tr>
+<td align="left"><code>key</code></td>
+<td align="left">❌</td>
+<td align="left">✅</td>
+</tr>
+<tr>
+<td align="left"><code>md5</code></td>
+<td align="left">✅</td>
+<td align="left">❌</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><sup>Icon made by <a href="https://www.flaticon.com/authors/srip" title="srip">srip</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>.</sup>
+<br /><sup>Sample code block generated using the <a href="https://github.com/crew102/reprexpy">reprexpy package</a>.</sup></p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+      
+        
+        <a href="why_cloudpathlib/" class="md-footer__link md-footer__link--next" aria-label="Next: Why cloudpathlib?" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Why cloudpathlib?
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": ".", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "assets/javascripts/workers/search.409db549.min.js", "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.756773cc.min.js"></script>
+      
+    
+  </body>
+</html>
