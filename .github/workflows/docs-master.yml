@@ -33,7 +33,7 @@ jobs:
           git fetch origin gh-pages --depth=1
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          mike deploy --push ~dev --title=dev
+          mike deploy --push ~latest --title=latest
 
   deploy:
     name: Deploy docs to Netlify
