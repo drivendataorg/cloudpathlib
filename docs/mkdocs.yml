@@ -69,3 +69,7 @@ plugins:
             show_category_heading: true
       watch:
         - cloudpathlib
+
+extra:
+  version:
+    provider: mike

@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build and publish docs on master
+    name: Build docs from master
     runs-on: "ubuntu-latest"
 
     steps:
@@ -20,17 +20,35 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt --use-feature=2020-resolver
+          pip install -r requirements-dev.txt
           pip install -e .
 
       - name: Build docs
         run: |
           make docs
 
+      - name: Stage docs on gh-pages
+        working-directory: docs
+        run: |
+          git fetch origin gh-pages --depth=1
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          mike deploy --push ~latest --title=latest
+
+  deploy:
+    name: Deploy docs to Netlify
+    needs: build
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+
       - name: Deploy docs to Netlify
         uses: nwtgck/actions-netlify@v1.1
         with:
-          publish-dir: "./docs/site"
+          publish-dir: "./"
           production-deploy: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deploy from GitHub Actions"
