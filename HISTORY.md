@@ -2,7 +2,7 @@
 
 ## v0.5.1 (unreleased)
 
- - Fix #38 to allow passing `no_sign_request` to `S3Client` so that we can do anonymous requests for public resources on S3.
+ - Added `no_sign_request` parameter to `S3Client` instantiation for anonymous requests for public resources on S3. See [documentation](https://cloudpathlib.drivendata.org/stable/api-reference/s3client/#cloudpathlib.s3.s3client.S3Client.__init__) for more details. ([#164](https://github.com/drivendataorg/cloudpathlib/pull/164))
 
 ## v0.5.0 (2021-08-31)
 
