@@ -113,6 +113,12 @@ jobs:
           CUSTOM_S3_SECRET_KEY: ${{secrets.CUSTOM_S3_SECRET_KEY}}
           CUSTOM_S3_ENDPOINT: ${{secrets.CUSTOM_S3_ENDPOINT}}
 
+      - name: Upload coverage to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: true
+
   notify:
     name: Notify failed build
     needs: [code-quality, tests, live-tests]
