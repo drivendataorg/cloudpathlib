@@ -133,11 +133,9 @@ def test_transfer_config_live(s3_rig, tmp_path):
         assert _execute_on_subprocess_and_observe(use_threads=True) > 10
 
 
-def test_no_sign_request(s3_rig, tmp_path):
-    """Tests that boto3 receives and respects the transfer config
-    when working with a live backend. Does this by observing
-    if the `use_threads` parameter changes to number of threads
-    used by a child process that does a download.
+def test_no_sign_request(s3_rig):
+    """Tests that we can pass no_sign_request to the S3Client and we will
+    be able to access public resources but not private ones.
     """
     if s3_rig.live_server:
         client = s3_rig.client_class(no_sign_request=True)
