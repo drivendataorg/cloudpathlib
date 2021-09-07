@@ -8,8 +8,9 @@ from .s3path import S3Path
 
 try:
     from boto3.session import Session
-    import botocore.session
     from boto3.s3.transfer import TransferConfig
+    from botocore.config import Config
+    import botocore.session
 except ModuleNotFoundError:
     implementation_registry["s3"].dependencies_loaded = False
 
@@ -25,6 +26,7 @@ class S3Client(Client):
         aws_access_key_id: Optional[str] = None,
         aws_secret_access_key: Optional[str] = None,
         aws_session_token: Optional[str] = None,
+        no_sign_request: Optional[bool] = False,
         botocore_session: Optional["botocore.session.Session"] = None,
         profile_name: Optional[str] = None,
         boto3_session: Optional["Session"] = None,
@@ -46,6 +48,9 @@ class S3Client(Client):
             aws_secret_access_key (Optional[str]): AWS secret access key.
             aws_session_token (Optional[str]): Session key for your AWS account. This is only
                 needed when you are using temporarycredentials.
+            no_sign_request: (Optional[bool]): If `True`, credentials are not looked for and we use unsigned
+                requests to fetch resources. This will only allow access to public resources. This is equivalent
+                to `--no-sign-request` in the AWS CLI (https://docs.aws.amazon.com/cli/latest/reference/).
             botocore_session (Optional[botocore.session.Session]): An already instantiated botocore
                 Session.
             profile_name (Optional[str]): Profile name of a profile in a shared credentials file.
@@ -57,18 +62,34 @@ class S3Client(Client):
             boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing s3 transfers.
                 (https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)
         """
-        if boto3_session is not None:
-            self.sess = boto3_session
-        else:
-            self.sess = Session(
-                aws_access_key_id=aws_access_key_id,
-                aws_secret_access_key=aws_secret_access_key,
-                aws_session_token=aws_session_token,
-                botocore_session=botocore_session,
-                profile_name=profile_name,
+
+        if no_sign_request:
+            self.sess = Session()
+            self.s3 = self.sess.resource(
+                "s3",
+                endpoint_url=endpoint_url,
+                config=Config(signature_version=botocore.session.UNSIGNED),
             )
-        self.s3 = self.sess.resource("s3", endpoint_url=endpoint_url)
-        self.client = self.sess.client("s3", endpoint_url=endpoint_url)
+            self.client = self.sess.client(
+                "s3",
+                endpoint_url=endpoint_url,
+                config=Config(signature_version=botocore.session.UNSIGNED),
+            )
+        else:
+            if boto3_session is not None:
+                self.sess = boto3_session
+            else:
+                self.sess = Session(
+                    aws_access_key_id=aws_access_key_id,
+                    aws_secret_access_key=aws_secret_access_key,
+                    aws_session_token=aws_session_token,
+                    botocore_session=botocore_session,
+                    profile_name=profile_name,
+                )
+
+            self.s3 = self.sess.resource("s3", endpoint_url=endpoint_url)
+            self.client = self.sess.client("s3", endpoint_url=endpoint_url)
+
         self.boto3_transfer_config = boto3_transfer_config
 
         super().__init__(local_cache_dir=local_cache_dir)

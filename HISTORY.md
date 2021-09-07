@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## v0.5.1 (unreleased)
+
+ - Fix #38 to allow passing `no_sign_request` to `S3Client` so that we can do anonymous requests for public resources on S3.
+
 ## v0.5.0 (2021-08-31)
 
 - Added `boto3_transfer_config` parameter to `S3Client` instantiation, which allows passing a `boto3.s3.transfer.TransferConfig` object and is useful for controlling multipart and thread use in uploads and downloads. See [documentation](https://cloudpathlib.drivendata.org/api-reference/s3client/#cloudpathlib.s3.s3client.S3Client.__init__) for more details. ([#150](https://github.com/drivendataorg/cloudpathlib/pull/150))

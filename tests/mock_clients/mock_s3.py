@@ -29,10 +29,10 @@ def mocked_session_class_factory(test_dir: str):
         def __del__(self):
             self.tmp.cleanup()
 
-        def resource(self, item, endpoint_url):
+        def resource(self, item, endpoint_url, config=None):
             return MockBoto3Resource(self.tmp_path)
 
-        def client(self, item, endpoint_url):
+        def client(self, item, endpoint_url, config=None):
             return MockBoto3Client(self.tmp_path)
 
     return MockBoto3Session
