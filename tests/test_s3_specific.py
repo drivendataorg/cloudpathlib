@@ -3,6 +3,7 @@ from time import sleep
 import pytest
 
 from boto3.s3.transfer import TransferConfig
+import botocore
 from cloudpathlib import S3Path
 from cloudpathlib.local import LocalS3Path
 import psutil
@@ -130,3 +131,22 @@ def test_transfer_config_live(s3_rig, tmp_path):
 
         # usually ~15 threads are spun up whe use_threads is True
         assert _execute_on_subprocess_and_observe(use_threads=True) > 10
+
+
+def test_no_sign_request(s3_rig):
+    """Tests that we can pass no_sign_request to the S3Client and we will
+    be able to access public resources but not private ones.
+    """
+    if s3_rig.live_server:
+        client = s3_rig.client_class(no_sign_request=True)
+
+        # unsigned can access public path (part of AWS open data)
+        p = client.CloudPath(
+            "s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg"
+        )
+        assert p.exists()
+
+        # unsigned raises for private S3 file that exists
+        p = client.CloudPath(f"s3://{s3_rig.drive}/dir_0/file0_to_download.txt")
+        with pytest.raises(botocore.exceptions.ClientError):
+            p.exists()
