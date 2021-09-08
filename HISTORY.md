@@ -1,16 +1,20 @@
 # cloudpathlib Changelog
 
+## v0.6.1 (unreleased)
+
+- Fixed absolute documentation URLs to point to the new versioned documentation pages.
+
 ## v0.6.0 (2021-09-07)
 
 - Added `no_sign_request` parameter to `S3Client` instantiation for anonymous requests for public resources on S3. See [documentation](https://cloudpathlib.drivendata.org/stable/api-reference/s3client/#cloudpathlib.s3.s3client.S3Client.__init__) for more details. ([#164](https://github.com/drivendataorg/cloudpathlib/pull/164))
 
 ## v0.5.0 (2021-08-31)
 
-- Added `boto3_transfer_config` parameter to `S3Client` instantiation, which allows passing a `boto3.s3.transfer.TransferConfig` object and is useful for controlling multipart and thread use in uploads and downloads. See [documentation](https://cloudpathlib.drivendata.org/api-reference/s3client/#cloudpathlib.s3.s3client.S3Client.__init__) for more details. ([#150](https://github.com/drivendataorg/cloudpathlib/pull/150))
+- Added `boto3_transfer_config` parameter to `S3Client` instantiation, which allows passing a `boto3.s3.transfer.TransferConfig` object and is useful for controlling multipart and thread use in uploads and downloads. See [documentation](https://cloudpathlib.drivendata.org/stable/api-reference/s3client/#cloudpathlib.s3.s3client.S3Client.__init__) for more details. ([#150](https://github.com/drivendataorg/cloudpathlib/pull/150))
 
 ## v0.4.1 (2021-05-29)
 
-- Added support for custom S3-compatible object stores. This functionality is available via the `endpoint_url` keyword argument when instantiating an `S3Client` instance. See [documentation](https://cloudpathlib.drivendata.org/authentication/#accessing-custom-s3-compatible-object-stores) for more details. ([#138](https://github.com/drivendataorg/cloudpathlib/pull/138) thanks to [@YevheniiSemendiak](https://github.com/YevheniiSemendiak))
+- Added support for custom S3-compatible object stores. This functionality is available via the `endpoint_url` keyword argument when instantiating an `S3Client` instance. See [documentation](https://cloudpathlib.drivendata.org/stable/authentication/#accessing-custom-s3-compatible-object-stores) for more details. ([#138](https://github.com/drivendataorg/cloudpathlib/pull/138) thanks to [@YevheniiSemendiak](https://github.com/YevheniiSemendiak))
 - Added `CloudPath.upload_from` which uploads the passed path to this CloudPath (issuse [#58](https://github.com/drivendataorg/cloudpathlib/issues/58))
 - Added support for common file transfer functions based on `shutil`. Issue [#108](https://github.com/drivendataorg/cloudpathlib/issues/108). PR [#142](https://github.com/drivendataorg/cloudpathlib/pull/142).
   - `CloudPath.copy` copy a file from one location to another. Can be cloud -> local or cloud -> cloud. If `client` is not the same, the file transits through the local machine.
@@ -19,8 +23,8 @@
 ## v0.4.0 (2021-03-13)
 
 - Added rich comparison operator support to cloud paths, which means you can now use them with `sorted`. ([#129](https://github.com/drivendataorg/cloudpathlib/pull/129))
-- Added polymorphic class `AnyPath` which creates a cloud path or `pathlib.Path` instance appropriately for an input filepath. See new [documentation](https://cloudpathlib.drivendata.org/anypath-polymorphism/) for details and example usage. ([#130](https://github.com/drivendataorg/cloudpathlib/pull/130))
-- Added integration with [Pydantic](https://pydantic-docs.helpmanual.io/). See new [documentation](https://cloudpathlib.drivendata.org/integrations/#pydantic) for details and example usage. ([#130](https://github.com/drivendataorg/cloudpathlib/pull/130))
+- Added polymorphic class `AnyPath` which creates a cloud path or `pathlib.Path` instance appropriately for an input filepath. See new [documentation](https://cloudpathlib.drivendata.org/stable/anypath-polymorphism/) for details and example usage. ([#130](https://github.com/drivendataorg/cloudpathlib/pull/130))
+- Added integration with [Pydantic](https://pydantic-docs.helpmanual.io/). See new [documentation](https://cloudpathlib.drivendata.org/stable/integrations/#pydantic) for details and example usage. ([#130](https://github.com/drivendataorg/cloudpathlib/pull/130))
 - Exceptions: ([#131](https://github.com/drivendataorg/cloudpathlib/pull/131))
     - Changed all custom `cloudpathlib` exceptions to be located in new `cloudpathlib.exceptions` module.
     - Changed all custom `cloudpathlib` exceptions to subclass from new base `CloudPathException`. This allows for easy catching of any custom exception from `cloudpathlib`.
@@ -34,7 +38,7 @@
 
 ## v0.3.0 (2021-01-29)
 
-- Added a new module `cloudpathlib.local` with utilities for mocking cloud paths in tests. The module has "Local" substitute classes that use the local filesystem in place of cloud storage. See the new documentation article ["Testing code that uses cloudpathlib"](https://cloudpathlib.drivendata.org/testing_mocked_cloudpathlib/) to learn more about how to use them. ([#107](https://github.com/drivendataorg/cloudpathlib/pull/107))
+- Added a new module `cloudpathlib.local` with utilities for mocking cloud paths in tests. The module has "Local" substitute classes that use the local filesystem in place of cloud storage. See the new documentation article ["Testing code that uses cloudpathlib"](https://cloudpathlib.drivendata.org/stable/testing_mocked_cloudpathlib/) to learn more about how to use them. ([#107](https://github.com/drivendataorg/cloudpathlib/pull/107))
 
 ## v0.2.1 (2021-01-25)
 
