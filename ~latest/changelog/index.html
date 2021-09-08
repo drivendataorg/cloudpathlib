@@ -347,6 +347,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v061-unreleased" class="md-nav__link">
+    v0.6.1 (unreleased)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v060-2021-09-07" class="md-nav__link">
     v0.6.0 (2021-09-07)
   </a>
@@ -722,6 +729,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v061-unreleased" class="md-nav__link">
+    v0.6.1 (unreleased)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v060-2021-09-07" class="md-nav__link">
     v0.6.0 (2021-09-07)
   </a>
@@ -809,17 +823,21 @@
                 
                 
                 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
+<h2 id="v061-unreleased">v0.6.1 (unreleased)<a class="headerlink" href="#v061-unreleased" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Fixed absolute documentation URLs to point to the new versioned documentation pages.</li>
+</ul>
 <h2 id="v060-2021-09-07">v0.6.0 (2021-09-07)<a class="headerlink" href="#v060-2021-09-07" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Added <code>no_sign_request</code> parameter to <code>S3Client</code> instantiation for anonymous requests for public resources on S3. See <a href="https://cloudpathlib.drivendata.org/stable/api-reference/s3client/#cloudpathlib.s3.s3client.S3Client.__init__">documentation</a> for more details. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/164">#164</a>)</li>
+<li>Added <code>no_sign_request</code> parameter to <code>S3Client</code> instantiation for anonymous requests for public resources on S3. See <a href="../api-reference/s3client/#cloudpathlib.s3.s3client.S3Client.__init__">documentation</a> for more details. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/164">#164</a>)</li>
 </ul>
 <h2 id="v050-2021-08-31">v0.5.0 (2021-08-31)<a class="headerlink" href="#v050-2021-08-31" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Added <code>boto3_transfer_config</code> parameter to <code>S3Client</code> instantiation, which allows passing a <code>boto3.s3.transfer.TransferConfig</code> object and is useful for controlling multipart and thread use in uploads and downloads. See <a href="https://cloudpathlib.drivendata.org/api-reference/s3client/#cloudpathlib.s3.s3client.S3Client.__init__">documentation</a> for more details. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/150">#150</a>)</li>
+<li>Added <code>boto3_transfer_config</code> parameter to <code>S3Client</code> instantiation, which allows passing a <code>boto3.s3.transfer.TransferConfig</code> object and is useful for controlling multipart and thread use in uploads and downloads. See <a href="../api-reference/s3client/#cloudpathlib.s3.s3client.S3Client.__init__">documentation</a> for more details. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/150">#150</a>)</li>
 </ul>
 <h2 id="v041-2021-05-29">v0.4.1 (2021-05-29)<a class="headerlink" href="#v041-2021-05-29" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Added support for custom S3-compatible object stores. This functionality is available via the <code>endpoint_url</code> keyword argument when instantiating an <code>S3Client</code> instance. See <a href="https://cloudpathlib.drivendata.org/authentication/#accessing-custom-s3-compatible-object-stores">documentation</a> for more details. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/138">#138</a> thanks to <a href="https://github.com/YevheniiSemendiak">@YevheniiSemendiak</a>)</li>
+<li>Added support for custom S3-compatible object stores. This functionality is available via the <code>endpoint_url</code> keyword argument when instantiating an <code>S3Client</code> instance. See <a href="../authentication/#accessing-custom-s3-compatible-object-stores">documentation</a> for more details. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/138">#138</a> thanks to <a href="https://github.com/YevheniiSemendiak">@YevheniiSemendiak</a>)</li>
 <li>Added <code>CloudPath.upload_from</code> which uploads the passed path to this CloudPath (issuse <a href="https://github.com/drivendataorg/cloudpathlib/issues/58">#58</a>)</li>
 <li>Added support for common file transfer functions based on <code>shutil</code>. Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/108">#108</a>. PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/142">#142</a>.</li>
 <li><code>CloudPath.copy</code> copy a file from one location to another. Can be cloud -&gt; local or cloud -&gt; cloud. If <code>client</code> is not the same, the file transits through the local machine.</li>
@@ -828,8 +846,8 @@
 <h2 id="v040-2021-03-13">v0.4.0 (2021-03-13)<a class="headerlink" href="#v040-2021-03-13" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Added rich comparison operator support to cloud paths, which means you can now use them with <code>sorted</code>. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/129">#129</a>)</li>
-<li>Added polymorphic class <code>AnyPath</code> which creates a cloud path or <code>pathlib.Path</code> instance appropriately for an input filepath. See new <a href="https://cloudpathlib.drivendata.org/anypath-polymorphism/">documentation</a> for details and example usage. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/130">#130</a>)</li>
-<li>Added integration with <a href="https://pydantic-docs.helpmanual.io/">Pydantic</a>. See new <a href="https://cloudpathlib.drivendata.org/integrations/#pydantic">documentation</a> for details and example usage. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/130">#130</a>)</li>
+<li>Added polymorphic class <code>AnyPath</code> which creates a cloud path or <code>pathlib.Path</code> instance appropriately for an input filepath. See new <a href="../anypath-polymorphism/">documentation</a> for details and example usage. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/130">#130</a>)</li>
+<li>Added integration with <a href="https://pydantic-docs.helpmanual.io/">Pydantic</a>. See new <a href="../integrations/#pydantic">documentation</a> for details and example usage. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/130">#130</a>)</li>
 <li>Exceptions: (<a href="https://github.com/drivendataorg/cloudpathlib/pull/131">#131</a>)<ul>
 <li>Changed all custom <code>cloudpathlib</code> exceptions to be located in new <code>cloudpathlib.exceptions</code> module.</li>
 <li>Changed all custom <code>cloudpathlib</code> exceptions to subclass from new base <code>CloudPathException</code>. This allows for easy catching of any custom exception from <code>cloudpathlib</code>.</li>
@@ -845,7 +863,7 @@
 </ul>
 <h2 id="v030-2021-01-29">v0.3.0 (2021-01-29)<a class="headerlink" href="#v030-2021-01-29" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Added a new module <code>cloudpathlib.local</code> with utilities for mocking cloud paths in tests. The module has "Local" substitute classes that use the local filesystem in place of cloud storage. See the new documentation article <a href="https://cloudpathlib.drivendata.org/testing_mocked_cloudpathlib/">"Testing code that uses cloudpathlib"</a> to learn more about how to use them. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/107">#107</a>)</li>
+<li>Added a new module <code>cloudpathlib.local</code> with utilities for mocking cloud paths in tests. The module has "Local" substitute classes that use the local filesystem in place of cloud storage. See the new documentation article <a href="../testing_mocked_cloudpathlib/">"Testing code that uses cloudpathlib"</a> to learn more about how to use them. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/107">#107</a>)</li>
 </ul>
 <h2 id="v021-2021-01-25">v0.2.1 (2021-01-25)<a class="headerlink" href="#v021-2021-01-25" title="Permanent link">&para;</a></h2>
 <ul>
