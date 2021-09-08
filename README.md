@@ -64,7 +64,7 @@ Note that you similarly need to specify cloud service dependencies, such as `all
 
 ## Quick usage
 
-Here's an example to get the gist of using the package. By default, `cloudpathlib` authenticates with the environment variables supported by each respective cloud service SDK. For more details and advanced authentication options, see the ["Authentication"](https://cloudpathlib.drivendata.org/authentication/) documentation.
+Here's an example to get the gist of using the package. By default, `cloudpathlib` authenticates with the environment variables supported by each respective cloud service SDK. For more details and advanced authentication options, see the ["Authentication"](https://cloudpathlib.drivendata.org/stable/authentication/) documentation.
 
 ```python
 from cloudpathlib import CloudPath

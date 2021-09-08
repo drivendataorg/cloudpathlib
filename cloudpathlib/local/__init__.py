@@ -2,7 +2,7 @@
 counterparts but use the local filesystem in place of cloud storage. They can be used as drop-in
 replacements, with the intent that you can use them as mock or monkepatch substitutes in your
 tests. See ["Testing code that uses cloudpathlib"
-](https://cloudpathlib.drivendata.org/testing_mocked_cloudpathlib/) for usage examples.
+](https://cloudpathlib.drivendata.org/stable/testing_mocked_cloudpathlib/) for usage examples.
 """
 
 from .implementations import (
