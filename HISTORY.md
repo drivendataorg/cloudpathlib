@@ -1,8 +1,9 @@
 # cloudpathlib Changelog
 
-## v0.6.1 (unreleased)
+## v0.6.1 (2021-09-17)
 
 - Fixed absolute documentation URLs to point to the new versioned documentation pages.
+- Fixed bug where `no_sign_request` couldn't be used to download files since our code required list permissions to the bucket to do so, which is tracked in issue [#169](https://github.com/drivendataorg/cloudpathlib/issues/169). PR [#168](https://github.com/drivendataorg/cloudpathlib/pull/168).
 
 ## v0.6.0 (2021-09-07)
 
