@@ -2,6 +2,8 @@ import os
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, Optional, Union
 
+from botocore.exceptions import ClientError
+
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
 from .s3path import S3Path
@@ -130,17 +132,26 @@ class S3Client(Client):
 
     def _s3_file_query(self, cloud_path: S3Path):
         """Boto3 query used for quick checks of existence and if path is file/dir"""
-        return next(
-            (
-                obj
-                for obj in (
-                    self.s3.Bucket(cloud_path.bucket)
-                    .objects.filter(Prefix=cloud_path.key)
-                    .limit(1)
-                )
-            ),
-            None,
-        )
+        # first check if this is an object that we can access directly
+
+        try:
+            obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
+            obj.load()
+            return obj
+
+        # else, confirm it is a dir by filtering to the first item under the prefix
+        except ClientError:
+            return next(
+                (
+                    obj
+                    for obj in (
+                        self.s3.Bucket(cloud_path.bucket)
+                        .objects.filter(Prefix=cloud_path.key)
+                        .limit(1)
+                    )
+                ),
+                None,
+            )
 
     def _list_dir(self, cloud_path: S3Path, recursive=False) -> Iterable[S3Path]:
         bucket = self.s3.Bucket(cloud_path.bucket)
@@ -200,12 +211,12 @@ class S3Client(Client):
             obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
             # will throw if not a file
-            obj.get()
+            obj.load()
 
             resp = obj.delete()
             assert resp.get("ResponseMetadata").get("HTTPStatusCode") == 204
 
-        except self.client.exceptions.NoSuchKey:
+        except ClientError:
             # try to delete as a direcotry instead
             bucket = self.s3.Bucket(cloud_path.bucket)
 

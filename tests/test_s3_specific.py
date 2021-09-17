@@ -1,5 +1,7 @@
 from concurrent.futures import ProcessPoolExecutor
 from time import sleep
+from pathlib import Path
+
 import pytest
 
 from boto3.s3.transfer import TransferConfig
@@ -29,7 +31,9 @@ def test_transfer_config(s3_rig, tmp_path):
 
     # download
     client.set_as_default_client()
-    p = s3_rig.create_cloud_path("dir_0/file0_0.txt")
+    p = s3_rig.create_cloud_path(f"{s3_rig.test_dir}/dir_0/file0_0.txt")
+    p.write_text("test file")
+
     dl_dir = tmp_path
     assert not (dl_dir / p.name).exists()
     p.download_to(dl_dir)
@@ -39,7 +43,7 @@ def test_transfer_config(s3_rig, tmp_path):
         assert client.s3.download_config == transfer_config
 
     # upload
-    p2 = s3_rig.create_cloud_path("dir_0/file0_0_uploaded.txt")
+    p2 = s3_rig.create_cloud_path(f"{s3_rig.test_dir}/dir_0/file0_0_uploaded.txt")
     assert not p2.exists()
     p2.upload_from(dl_dir / p.name)
 
@@ -64,7 +68,7 @@ def _download_with_threads(s3_rig, tmp_path, use_threads):
             multipart_threshold=10 * 1024,
         )
         client = s3_rig.client_class(boto3_transfer_config=transfer_config)
-        p = client.CloudPath(f"s3://{s3_rig.drive}/dir_0/file0_to_download.txt")
+        p = client.CloudPath(f"s3://{s3_rig.drive}/{s3_rig.test_dir}/dir_0/file0_to_download.txt")
 
         assert not p.exists()
 
@@ -82,7 +86,7 @@ def _download_with_threads(s3_rig, tmp_path, use_threads):
         assert not p.exists()
 
     finally:
-        p = s3_rig.create_cloud_path("/dir_0/file0_0.txt")
+        p = s3_rig.create_cloud_path(f"{s3_rig.test_dir}/dir_0/file0_0.txt")
         if p.exists():
             p.unlink()
 
@@ -133,10 +137,11 @@ def test_transfer_config_live(s3_rig, tmp_path):
         assert _execute_on_subprocess_and_observe(use_threads=True) > 10
 
 
-def test_no_sign_request(s3_rig):
+def test_no_sign_request(s3_rig, tmp_path):
     """Tests that we can pass no_sign_request to the S3Client and we will
     be able to access public resources but not private ones.
     """
+    tmp_path = Path(tmp_path)
     if s3_rig.live_server:
         client = s3_rig.client_class(no_sign_request=True)
 
@@ -145,6 +150,9 @@ def test_no_sign_request(s3_rig):
             "s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg"
         )
         assert p.exists()
+
+        p.download_to(tmp_path)
+        assert (tmp_path / p.name).read_bytes() == p.read_bytes()
 
         # unsigned raises for private S3 file that exists
         p = client.CloudPath(f"s3://{s3_rig.drive}/dir_0/file0_to_download.txt")

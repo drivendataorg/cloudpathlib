@@ -5,6 +5,7 @@ import shutil
 from tempfile import TemporaryDirectory
 
 from boto3.session import Session
+from botocore.exceptions import ClientError
 
 from .utils import delete_empty_parents_up_to_root
 
@@ -65,6 +66,16 @@ class MockBoto3Object:
             raise NoSuchKey({}, {})
         else:
             return {"key": self.path}
+
+    def load(self):
+        if not self.path.exists() or self.path.is_dir():
+            raise ClientError({}, {})
+        else:
+            return {"key": str(self.path)}
+
+    @property
+    def key(self):
+        return str(self.path.relative_to(self.root))
 
     def copy_from(self, CopySource=None, Metadata=None, MetadataDirective=None):
         if CopySource["Key"] == str(self.path.relative_to(self.root)):
