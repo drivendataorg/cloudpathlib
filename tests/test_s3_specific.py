@@ -1,5 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
 from time import sleep
+
 import pytest
 
 from boto3.s3.transfer import TransferConfig
@@ -30,6 +31,7 @@ def test_transfer_config(s3_rig, tmp_path):
     # download
     client.set_as_default_client()
     p = s3_rig.create_cloud_path("dir_0/file0_0.txt")
+
     dl_dir = tmp_path
     assert not (dl_dir / p.name).exists()
     p.download_to(dl_dir)
@@ -54,37 +56,31 @@ def _download_with_threads(s3_rig, tmp_path, use_threads):
     """Job used by tests to ensure Transfer config changes are
     actually passed through to boto3 and respected.
     """
-    try:
-        sleep(1)  # give test monitoring process time to start watching
+    sleep(1)  # give test monitoring process time to start watching
 
-        transfer_config = TransferConfig(
-            max_concurrency=100,
-            use_threads=use_threads,
-            multipart_chunksize=1 * 1024,
-            multipart_threshold=10 * 1024,
-        )
-        client = s3_rig.client_class(boto3_transfer_config=transfer_config)
-        p = client.CloudPath(f"s3://{s3_rig.drive}/dir_0/file0_to_download.txt")
+    transfer_config = TransferConfig(
+        max_concurrency=100,
+        use_threads=use_threads,
+        multipart_chunksize=1 * 1024,
+        multipart_threshold=10 * 1024,
+    )
+    client = s3_rig.client_class(boto3_transfer_config=transfer_config)
+    p = client.CloudPath(f"s3://{s3_rig.drive}/{s3_rig.test_dir}/dir_0/file0_to_download.txt")
 
-        assert not p.exists()
+    assert not p.exists()
 
-        # file should be about 60KB
-        text = "lalala" * 10_000
-        p.write_text(text)
+    # file should be about 60KB
+    text = "lalala" * 10_000
+    p.write_text(text)
 
-        assert p.exists()
+    assert p.exists()
 
-        # assert not (dl_dir / p.name).exists()
-        p.download_to(tmp_path)
+    # assert not (dl_dir / p.name).exists()
+    p.download_to(tmp_path)
 
-        p.unlink()
+    p.unlink()
 
-        assert not p.exists()
-
-    finally:
-        p = s3_rig.create_cloud_path("/dir_0/file0_0.txt")
-        if p.exists():
-            p.unlink()
+    assert not p.exists()
 
 
 def test_transfer_config_live(s3_rig, tmp_path):
@@ -133,7 +129,7 @@ def test_transfer_config_live(s3_rig, tmp_path):
         assert _execute_on_subprocess_and_observe(use_threads=True) > 10
 
 
-def test_no_sign_request(s3_rig):
+def test_no_sign_request(s3_rig, tmp_path):
     """Tests that we can pass no_sign_request to the S3Client and we will
     be able to access public resources but not private ones.
     """
@@ -145,6 +141,9 @@ def test_no_sign_request(s3_rig):
             "s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg"
         )
         assert p.exists()
+
+        p.download_to(tmp_path)
+        assert (tmp_path / p.name).read_bytes() == p.read_bytes()
 
         # unsigned raises for private S3 file that exists
         p = client.CloudPath(f"s3://{s3_rig.drive}/dir_0/file0_to_download.txt")
