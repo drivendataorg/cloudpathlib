@@ -31,7 +31,7 @@ def test_transfer_config(s3_rig, tmp_path):
 
     # download
     client.set_as_default_client()
-    p = s3_rig.create_cloud_path(f"{s3_rig.test_dir}/dir_0/file0_0.txt")
+    p = s3_rig.create_cloud_path("dir_0/file0_0.txt")
     p.write_text("test file")
 
     dl_dir = tmp_path
@@ -43,7 +43,7 @@ def test_transfer_config(s3_rig, tmp_path):
         assert client.s3.download_config == transfer_config
 
     # upload
-    p2 = s3_rig.create_cloud_path(f"{s3_rig.test_dir}/dir_0/file0_0_uploaded.txt")
+    p2 = s3_rig.create_cloud_path("dir_0/file0_0_uploaded.txt")
     assert not p2.exists()
     p2.upload_from(dl_dir / p.name)
 
@@ -86,7 +86,7 @@ def _download_with_threads(s3_rig, tmp_path, use_threads):
         assert not p.exists()
 
     finally:
-        p = s3_rig.create_cloud_path(f"{s3_rig.test_dir}/dir_0/file0_0.txt")
+        p = s3_rig.create_cloud_path("dir_0/file0_0.txt")
         if p.exists():
             p.unlink()
 
@@ -141,7 +141,6 @@ def test_no_sign_request(s3_rig, tmp_path):
     """Tests that we can pass no_sign_request to the S3Client and we will
     be able to access public resources but not private ones.
     """
-    tmp_path = Path(tmp_path)
     if s3_rig.live_server:
         client = s3_rig.client_class(no_sign_request=True)
 
