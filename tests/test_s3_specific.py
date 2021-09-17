@@ -1,6 +1,5 @@
 from concurrent.futures import ProcessPoolExecutor
 from time import sleep
-from pathlib import Path
 
 import pytest
 
@@ -32,7 +31,6 @@ def test_transfer_config(s3_rig, tmp_path):
     # download
     client.set_as_default_client()
     p = s3_rig.create_cloud_path("dir_0/file0_0.txt")
-    p.write_text("test file")
 
     dl_dir = tmp_path
     assert not (dl_dir / p.name).exists()
