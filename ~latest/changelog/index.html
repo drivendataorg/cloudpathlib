@@ -14,7 +14,7 @@
         <link rel="canonical" href="https://cloudpathlib.drivendata.org/~latest/changelog/">
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.2.6">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.2.8">
     
     
       
@@ -22,7 +22,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.802231af.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.92558b1b.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
@@ -345,6 +345,13 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v062-2021-09-20" class="md-nav__link">
+    v0.6.2 (2021-09-20)
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#v061-2021-09-17" class="md-nav__link">
@@ -729,6 +736,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v062-2021-09-20" class="md-nav__link">
+    v0.6.2 (2021-09-20)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v061-2021-09-17" class="md-nav__link">
     v0.6.1 (2021-09-17)
   </a>
@@ -823,10 +837,14 @@
                 
                 
                 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
+<h2 id="v062-2021-09-20">v0.6.2 (2021-09-20)<a class="headerlink" href="#v062-2021-09-20" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Fixed error when importing <code>cloudpathlib</code> for missing <code>botocore</code> dependency when not installed with S3 dependencies. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/168">PR #168</a>)</li>
+</ul>
 <h2 id="v061-2021-09-17">v0.6.1 (2021-09-17)<a class="headerlink" href="#v061-2021-09-17" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Fixed absolute documentation URLs to point to the new versioned documentation pages.</li>
-<li>Fixed bug where <code>no_sign_request</code> couldn't be used to download files since our code required list permissions to the bucket to do so, which is tracked in issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/169">#169</a>. PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/168">#168</a>.</li>
+<li>Fixed bug where <code>no_sign_request</code> couldn't be used to download files since our code required list permissions to the bucket to do so. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/169">Issue #169</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/168">PR #168</a>).</li>
 </ul>
 <h2 id="v060-2021-09-07">v0.6.0 (2021-09-07)<a class="headerlink" href="#v060-2021-09-07" title="Permanent link">&para;</a></h2>
 <ul>
@@ -957,10 +975,10 @@
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.409db549.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.94ec81fe.min.js", "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.756773cc.min.js"></script>
+      <script src="../assets/javascripts/bundle.48dfec6c.min.js"></script>
       
     
   </body>
