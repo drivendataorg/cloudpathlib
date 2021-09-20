@@ -2,7 +2,6 @@ import os
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, Optional, Union
 
-from botocore.exceptions import ClientError
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
@@ -12,6 +11,7 @@ try:
     from boto3.session import Session
     from boto3.s3.transfer import TransferConfig
     from botocore.config import Config
+    from botocore.exceptions import ClientError
     import botocore.session
 except ModuleNotFoundError:
     implementation_registry["s3"].dependencies_loaded = False
