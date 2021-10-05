@@ -12,7 +12,7 @@ from .azblobpath import AzureBlobPath
 
 try:
     from azure.core.exceptions import ResourceNotFoundError
-    from azure.storage.blob import BlobServiceClient
+    from azure.storage.blob import BlobServiceClient, BlobProperties
 except ModuleNotFoundError:
     implementation_registry["azure"].dependencies_loaded = False
 
@@ -88,7 +88,7 @@ class AzureBlobClient(Client):
 
         super().__init__(local_cache_dir=local_cache_dir)
 
-    def _get_metadata(self, cloud_path: AzureBlobPath) -> Dict[str, Any]:
+    def _get_metadata(self, cloud_path: AzureBlobPath) -> Union[BlobProperties, Dict[str, Any]]:
         blob = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
