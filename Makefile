@@ -38,20 +38,17 @@ dist: clean ## builds source and wheel package
 	python setup.py bdist_wheel
 	ls -l dist
 
-docs: clean-docs
+docs-setup:  ## setup docs pages based on README.md and HISTORY.md
 	sed 's|https://raw.githubusercontent.com/drivendataorg/cloudpathlib/master/docs/docs/logo.svg|logo.svg|g' README.md \
 		| sed 's|https://cloudpathlib.drivendata.org/stable/||g' \
 		> docs/docs/index.md
 	sed 's|https://cloudpathlib.drivendata.org/stable/|../|g' HISTORY.md \
 		> docs/docs/changelog.md
+
+docs: clean-docs docs-setup ## build the static version of the docs
 	cd docs && mkdocs build
 
-docs-serve:
-	sed 's|https://raw.githubusercontent.com/drivendataorg/cloudpathlib/master/docs/docs/logo.svg|logo.svg|g' README.md \
-		| sed 's|https://cloudpathlib.drivendata.org/stable/||g' \
-		> docs/docs/index.md
-	sed 's|https://cloudpathlib.drivendata.org/stable/|../|g' HISTORY.md \
-		> docs/docs/changelog.md
+docs-serve: clean-docs docs-setup ## serve documentation to livereload while you work
 	cd docs && mkdocs serve
 
 format:
