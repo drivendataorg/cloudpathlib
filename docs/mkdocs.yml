@@ -68,7 +68,7 @@ plugins:
             group_by_category: true
             show_category_heading: true
       watch:
-        - cloudpathlib
+        - ../cloudpathlib
 
 extra:
   version:
