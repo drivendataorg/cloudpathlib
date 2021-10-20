@@ -46,6 +46,14 @@ docs: clean-docs
 		> docs/docs/changelog.md
 	cd docs && mkdocs build
 
+docs-serve:
+	sed 's|https://raw.githubusercontent.com/drivendataorg/cloudpathlib/master/docs/docs/logo.svg|logo.svg|g' README.md \
+		| sed 's|https://cloudpathlib.drivendata.org/stable/||g' \
+		> docs/docs/index.md
+	sed 's|https://cloudpathlib.drivendata.org/stable/|../|g' HISTORY.md \
+		> docs/docs/changelog.md
+	cd docs && mkdocs serve
+
 format:
 	black cloudpathlib tests docs
 
