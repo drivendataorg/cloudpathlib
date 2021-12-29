@@ -198,7 +198,7 @@ class AzureBlobClient(Client):
 
     def _remove(self, cloud_path: AzureBlobPath) -> None:
         if self._is_file_or_dir(cloud_path) == "dir":
-            blobs = [b.blob for b in self._list_dir(cloud_path, recursive=True)]
+            blobs = [b.blob for b in self._list_dir(cloud_path, recursive=True) if b.is_file()]
             container_client = self.service_client.get_container_client(cloud_path.container)
             container_client.delete_blobs(*blobs)
         elif self._is_file_or_dir(cloud_path) == "file":

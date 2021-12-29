@@ -185,7 +185,7 @@ class GSClient(Client):
 
     def _remove(self, cloud_path: GSPath) -> None:
         if self._is_file_or_dir(cloud_path) == "dir":
-            blobs = [b.blob for b in self._list_dir(cloud_path, recursive=True)]
+            blobs = [b.blob for b in self._list_dir(cloud_path, recursive=True) if b.is_file()]
             bucket = self.client.bucket(cloud_path.bucket)
             for blob in blobs:
                 bucket.get_blob(blob).delete()

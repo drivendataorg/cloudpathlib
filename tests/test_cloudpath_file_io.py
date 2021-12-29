@@ -39,6 +39,19 @@ def test_file_discovery(rig):
 
     assert list(p4.glob("**/*")) == list(p4.rglob("*"))
 
+    # try rmtree on dir_1, which has a nested directory
+    p5 = rig.create_cloud_path("dir_1/")
+    assert p5.exists()
+    assert len(list(p5.glob("**/*"))) == 3
+    with pytest.raises(CloudPathIsADirectoryError):
+        p5.unlink()
+
+    with pytest.raises(DirectoryNotEmptyError):
+        p5.rmdir()
+
+    p5.rmtree()
+    assert not p5.exists()
+
 
 def test_file_read_writes(rig, tmp_path):
     p = rig.create_cloud_path("dir_0/file0_0.txt")

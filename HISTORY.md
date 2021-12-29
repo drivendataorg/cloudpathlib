@@ -1,5 +1,11 @@
 # cloudpathlib Changelog
 
+## v0.6.3 (2021-12-29)
+
+- Fixed error when using `rmtree` on nested directories for Google Cloud Storage and Azure Blob Storage. ([Issue #184](https://github.com/drivendataorg/cloudpathlib/issues/184), [PR #185](https://github.com/drivendataorg/cloudpathlib/pull/185))
+- Fixed broken builds due mypy errors in azure dependency ([PR #177](https://github.com/drivendataorg/cloudpathlib/pull/177))
+- Fixed dev tools for building and serving documentation locally ([PR #178](https://github.com/drivendataorg/cloudpathlib/pull/178))
+
 ## v0.6.2 (2021-09-20)
 
 - Fixed error when importing `cloudpathlib` for missing `botocore` dependency when not installed with S3 dependencies. ([PR #168](https://github.com/drivendataorg/cloudpathlib/pull/168))
