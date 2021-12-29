@@ -10,11 +10,10 @@
       
       
       
-      
         <link rel="canonical" href="https://cloudpathlib.drivendata.org/v0.6/api-reference/cloudpath/">
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.2.8">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.3">
     
     
       
@@ -22,10 +21,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.92558b1b.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.edf004c2.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.e6a45f82.min.css">
         
       
     
@@ -35,9 +34,8 @@
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
-        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
-    
     
     
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
@@ -46,9 +44,9 @@
     
       <link rel="stylesheet" href="../../stylesheets/custom_mkdocstrings.css">
     
+    <script>__md_scope=new URL("../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
-
 
     
     
@@ -63,7 +61,6 @@
     <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
   
     
-    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
@@ -80,7 +77,16 @@
       
     </div>
     
-      <header class="md-header" data-md-component="header">
+      <div data-md-component="outdated" hidden>
+        <aside class="md-banner md-banner--warning">
+          
+        </aside>
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="cloudpathlib" class="md-header__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
       
@@ -112,8 +118,7 @@
       <label class="md-header__button md-icon" for="__search">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
       </label>
-      
-<div class="md-search" data-md-component="search" role="dialog">
+      <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
@@ -145,8 +150,7 @@
     
     
       <div class="md-header__source">
-        
-<a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
@@ -158,11 +162,14 @@
       </div>
     
   </nav>
+  
 </header>
     
     <div class="md-container" data-md-component="container">
       
       
+        
+          
         
       
       <main class="md-main" data-md-component="main">
@@ -187,8 +194,7 @@
   </label>
   
     <div class="md-nav__source">
-      
-<a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
@@ -338,10 +344,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9" type="checkbox" id="__nav_9" checked>
       
-      <label class="md-nav__link" for="__nav_9">
-        API Reference
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9">
+          API Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="API Reference" data-md-level="1">
         <label class="md-nav__title" for="__nav_9">
           <span class="md-nav__icon md-icon"></span>
@@ -350,6 +360,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
     
@@ -373,6 +384,7 @@
       </a>
       
         
+
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -706,8 +718,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -718,8 +732,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -729,10 +745,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9_3" data-md-state="indeterminate" type="checkbox" id="__nav_9_3" checked>
       
-      <label class="md-nav__link" for="__nav_9_3">
-        Azure
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_3">
+          Azure
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="Azure" data-md-level="2">
         <label class="md-nav__title" for="__nav_9_3">
           <span class="md-nav__icon md-icon"></span>
@@ -741,6 +761,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -751,8 +772,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -763,14 +786,17 @@
     </li>
   
 
+            
           
         </ul>
       </nav>
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -780,10 +806,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9_4" data-md-state="indeterminate" type="checkbox" id="__nav_9_4" checked>
       
-      <label class="md-nav__link" for="__nav_9_4">
-        S3
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_4">
+          S3
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="S3" data-md-level="2">
         <label class="md-nav__title" for="__nav_9_4">
           <span class="md-nav__icon md-icon"></span>
@@ -792,6 +822,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -802,8 +833,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -814,14 +847,17 @@
     </li>
   
 
+            
           
         </ul>
       </nav>
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -831,10 +867,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9_5" data-md-state="indeterminate" type="checkbox" id="__nav_9_5" checked>
       
-      <label class="md-nav__link" for="__nav_9_5">
-        GS
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_5">
+          GS
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="GS" data-md-level="2">
         <label class="md-nav__title" for="__nav_9_5">
           <span class="md-nav__icon md-icon"></span>
@@ -843,6 +883,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -853,8 +894,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -865,14 +908,17 @@
     </li>
   
 
+            
           
         </ul>
       </nav>
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -882,10 +928,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9_6" data-md-state="indeterminate" type="checkbox" id="__nav_9_6" checked>
       
-      <label class="md-nav__link" for="__nav_9_6">
-        Submodules
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_6">
+          Submodules
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="Submodules" data-md-level="2">
         <label class="md-nav__title" for="__nav_9_6">
           <span class="md-nav__icon md-icon"></span>
@@ -894,6 +944,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -904,8 +955,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -916,8 +969,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -928,12 +983,14 @@
     </li>
   
 
+            
           
         </ul>
       </nav>
     </li>
   
 
+            
           
         </ul>
       </nav>
@@ -953,6 +1010,7 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
+
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -1291,12 +1349,12 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/drivendataorg/cloudpathlib/edit/master/docs/api-reference/cloudpath.md" title="Edit this page" class="md-content__button md-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
-                  </a>
-                
-                
-                <h1 id="cloudpathlibcloudpath">cloudpathlib.CloudPath<a class="headerlink" href="#cloudpathlibcloudpath" title="Permanent link">&para;</a></h1>
+<a href="https://github.com/drivendataorg/cloudpathlib/edit/master/docs/api-reference/cloudpath.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+<h1 id="cloudpathlibcloudpath">cloudpathlib.CloudPath<a class="headerlink" href="#cloudpathlibcloudpath" title="Permanent link">&para;</a></h1>
 
 
   <div class="doc doc-object doc-class">
@@ -1316,6 +1374,727 @@ instance of an appropriate subclass that implements a particular cloud storage s
 <a href="../s3path"><code>S3Path</code></a>. This dispatching behavior is based on the URI scheme part of a cloud
 storage URI (e.g., <code>"s3://"</code>).</p>
 
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">CloudPath</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">CloudPathMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for cloud storage file URIs, in the style of the Python standard library&#39;s</span>
+<span class="sd">    [`pathlib` module](https://docs.python.org/3/library/pathlib.html). Instances represent a path</span>
+<span class="sd">    in cloud storage with filesystem path semantics, and convenient methods allow for basic</span>
+<span class="sd">    operations like joining, reading, writing, iterating over contents, etc. `CloudPath` almost</span>
+<span class="sd">    entirely mimics the [`pathlib.Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)</span>
+<span class="sd">    interface, so most familiar properties and methods should be available and behave in the</span>
+<span class="sd">    expected way.</span>
+
+<span class="sd">    Analogous to the way `pathlib.Path` works, instantiating `CloudPath` will instead create an</span>
+<span class="sd">    instance of an appropriate subclass that implements a particular cloud storage service, such as</span>
+<span class="sd">    [`S3Path`](../s3path). This dispatching behavior is based on the URI scheme part of a cloud</span>
+<span class="sd">    storage URI (e.g., `&quot;s3://&quot;`).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_cloud_meta</span><span class="p">:</span> <span class="n">CloudImplementation</span>
+    <span class="n">cloud_prefix</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span> <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Client&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_valid_cloudpath</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">raise_on_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># versions of the raw string that provide useful methods</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_str</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_no_prefix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># setup client</span>
+        <span class="k">if</span> <span class="n">client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">):</span>
+                <span class="n">client</span> <span class="o">=</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">client</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">client_class</span><span class="o">.</span><span class="n">get_default_client</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">client_class</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">ClientMismatchError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Client of type [</span><span class="si">{</span><span class="n">client</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s2">] is not valid for cloud path of type &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s2">]; must be instance of [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">client_class</span><span class="si">}</span><span class="s2">], or &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;None to use default client for this cloud path class.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="p">:</span> <span class="n">Client</span> <span class="o">=</span> <span class="n">client</span>
+
+        <span class="c1"># track if local has been written to, if so it may need to be uploaded</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># handle if local file gets opened</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># make sure that file handle to local path is closed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_no_prefix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_str</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="p">)</span> <span class="p">:]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_no_prefix_no_drive</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_str</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drive</span><span class="p">)</span> <span class="p">:]</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">is_valid_cloudpath</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span> <span class="n">raise_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">raise_on_error</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">valid</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InvalidPrefixError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&#39; is not a valid path since it does not start with &#39;</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">valid</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(&#39;</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">&#39;)&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_str</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__fspath__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_cache</span><span class="p">(</span><span class="n">force_overwrite_from_cloud</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parts</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">parts</span>
+
+    <span class="k">def</span> <span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parts</span> <span class="o">&lt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">parts</span>
+
+    <span class="k">def</span> <span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parts</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">parts</span>
+
+    <span class="k">def</span> <span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parts</span> <span class="o">&gt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">parts</span>
+
+    <span class="c1"># ====================== NOT IMPLEMENTED ======================</span>
+    <span class="c1"># absolute - no cloud equivalent; all cloud paths are absolute already</span>
+    <span class="c1"># as_posix - no cloud equivalent; not needed since we assume url separator</span>
+    <span class="c1"># chmod - permission changing should be explicitly done per client with methods</span>
+    <span class="c1">#           that make sense for the client permission options</span>
+    <span class="c1"># cwd - no cloud equivalent</span>
+    <span class="c1"># expanduser - no cloud equivalent</span>
+    <span class="c1"># group - should be implemented with client-specific permissions</span>
+    <span class="c1"># home - no cloud equivalent</span>
+    <span class="c1"># is_absolute - no cloud equivalent; all cloud paths are absolute already</span>
+    <span class="c1"># is_block_device - no cloud equivalent</span>
+    <span class="c1"># is_char_device - no cloud equivalent</span>
+    <span class="c1"># is_fifo - no cloud equivalent</span>
+    <span class="c1"># is_mount - no cloud equivalent</span>
+    <span class="c1"># is_reserved - no cloud equivalent</span>
+    <span class="c1"># is_socket - no cloud equivalent</span>
+    <span class="c1"># is_symlink - no cloud equivalent</span>
+    <span class="c1"># lchmod - no cloud equivalent</span>
+    <span class="c1"># lstat - no cloud equivalent</span>
+    <span class="c1"># owner - no cloud equivalent</span>
+    <span class="c1"># relative to - cloud paths are absolute</span>
+    <span class="c1"># resolve - all cloud paths are absolute, so no resolving</span>
+    <span class="c1"># root - drive already has the bucket and anchor/prefix has the scheme, so nothing to store here</span>
+    <span class="c1"># symlink_to - no cloud equivalent</span>
+
+    <span class="c1"># ====================== REQUIRED, NOT GENERIC ======================</span>
+    <span class="c1"># Methods that must be implemented, but have no generic application</span>
+    <span class="nd">@property</span>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">drive</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;For example &quot;bucket&quot; on S3 or &quot;container&quot; on Azure; needs to be defined for each class&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Should be implemented without requiring a dir is downloaded&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Should be implemented without requiring that the file is downloaded&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parents</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Should be implemented using the client API without requiring a dir is downloaded&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">touch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Should be implemented using the client API to create and update modified time&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># ====================== IMPLEMENTED FROM SCRATCH ======================</span>
+    <span class="c1"># Methods with their own implementations that work generically</span>
+    <span class="k">def</span> <span class="fm">__rtruediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Cannot change a cloud path&#39;s root since all paths are absolute; create a new path instead.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">anchor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span>
+
+    <span class="k">def</span> <span class="nf">as_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fspath</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fspath__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">glob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="s2">&quot;CloudPath&quot;</span><span class="p">]:</span>
+        <span class="c1"># strip cloud prefix from pattern if it is included</span>
+        <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="p">):</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="p">)</span> <span class="p">:]</span>
+
+        <span class="c1"># strip &quot;drive&quot; from pattern if it is included</span>
+        <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drive</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drive</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="p">:]</span>
+
+        <span class="c1"># identify if pattern is recursive or not</span>
+        <span class="n">recursive</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;**/&quot;</span><span class="p">):</span>
+            <span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">recursive</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">_no_prefix_no_drive</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">f</span>
+
+    <span class="k">def</span> <span class="nf">iterdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="s2">&quot;CloudPath&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">f</span>
+
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span>
+        <span class="n">buffering</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">newline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">force_overwrite_from_cloud</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># extra kwarg not in pathlib</span>
+        <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># extra kwarg not in pathlib</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">:</span>
+        <span class="c1"># if trying to call open on a directory that exists</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">CloudPathIsADirectoryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Cannot open directory, only files. Tried to open (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;x&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">CloudPathFileExistsError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot open existing file (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">) for creation.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># TODO: consider streaming from client rather than DLing entire file to cache</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_cache</span><span class="p">(</span><span class="n">force_overwrite_from_cloud</span><span class="o">=</span><span class="n">force_overwrite_from_cloud</span><span class="p">)</span>
+
+        <span class="c1"># create any directories that may be needed if the file is new</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">original_mtime</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">original_mtime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span>
+
+        <span class="n">buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">open</span><span class="p">(</span>
+            <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+            <span class="n">buffering</span><span class="o">=</span><span class="n">buffering</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
+            <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span>
+            <span class="n">newline</span><span class="o">=</span><span class="n">newline</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># write modes need special on closing the buffer</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)):</span>
+            <span class="c1"># dirty, handle, patch close</span>
+            <span class="n">original_close</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">close</span>
+
+            <span class="c1"># since we are pretending this is a cloud file, upload it to the cloud</span>
+            <span class="c1"># when the buffer is closed</span>
+            <span class="k">def</span> <span class="nf">_patched_close</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="n">original_close</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+                <span class="c1"># original mtime should match what was in the cloud; because of system clocks or rounding</span>
+                <span class="c1"># by the cloud provider, the new version in our cache is &quot;older&quot; than the original version;</span>
+                <span class="c1"># explicitly set the new modified time to be after the original modified time.</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span> <span class="o">&lt;</span> <span class="n">original_mtime</span><span class="p">:</span>
+                    <span class="n">new_mtime</span> <span class="o">=</span> <span class="n">original_mtime</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">(</span><span class="n">new_mtime</span><span class="p">,</span> <span class="n">new_mtime</span><span class="p">))</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_upload_local_to_cloud</span><span class="p">(</span><span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span><span class="p">)</span>
+
+            <span class="n">buffer</span><span class="o">.</span><span class="n">close</span> <span class="o">=</span> <span class="n">_patched_close</span>
+
+            <span class="c1"># keep reference in case we need to close when __del__ is called on this object</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="o">=</span> <span class="n">buffer</span>
+
+            <span class="c1"># opened for write, so mark dirty</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="n">buffer</span>
+
+    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The target based to rename must be an instantiated class of type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_move_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">target</span>
+
+    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">:</span>
+        <span class="c1"># for cloud services replace == rename since we don&#39;t just rename,</span>
+        <span class="c1"># we actually move files</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">rglob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="s2">&quot;CloudPath&quot;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/&quot;</span> <span class="o">+</span> <span class="n">pattern</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">CloudPathNotADirectoryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2"> is a file; call unlink instead of rmdir.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span>
+            <span class="k">raise</span> <span class="n">DirectoryNotEmptyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Directory not empty: &#39;</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">&#39;. Use rmtree to delete recursively.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">samefile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_path</span><span class="p">:</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="c1"># all cloud paths are absolute and the paths are used for hash</span>
+        <span class="k">return</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other_path</span>
+
+    <span class="k">def</span> <span class="nf">unlink</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">CloudPathIsADirectoryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2"> is a directory; call rmdir instead of unlink.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">write_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open the file in bytes mode, write to it, and close the file.</span>
+
+<span class="sd">        NOTE: vendored from pathlib since we override open</span>
+<span class="sd">        https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1235-L1242</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># type-check for the buffer interface before truncating the file</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="nb">memoryview</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">view</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">write_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Open the file in text mode, write to it, and close the file.</span>
+
+<span class="sd">        NOTE: vendored from pathlib since we override open</span>
+<span class="sd">        https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1244-L1252</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;data must be str, not </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">data</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="c1"># ====================== DISPATCHED TO POSIXPATH FOR PURE PATHS ======================</span>
+    <span class="c1"># Methods that are dispatched to exactly how pathlib.PurePosixPath would calculate it on</span>
+    <span class="c1"># self._path for pure paths (does not matter if file exists);</span>
+    <span class="c1"># see the next session for ones that require a real file to exist</span>
+    <span class="k">def</span> <span class="nf">_dispatch_to_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Some functions we can just dispatch to the pathlib version</span>
+<span class="sd">        We want to do this explicitly so we don&#39;t have to support all</span>
+<span class="sd">        of pathlib and subclasses can override individually if necessary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
+        <span class="c1"># Path functions should be called so the results are calculated</span>
+        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">path_version</span><span class="p">):</span>
+            <span class="n">path_version</span> <span class="o">=</span> <span class="n">path_version</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Paths should always be resolved and then converted to the same client + class as this one</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_version</span><span class="p">,</span> <span class="n">PurePosixPath</span><span class="p">):</span>
+            <span class="c1"># always resolve since cloud paths must be absolute</span>
+            <span class="n">path_version</span> <span class="o">=</span> <span class="n">_resolve</span><span class="p">(</span><span class="n">path_version</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_cloudpath</span><span class="p">(</span><span class="n">path_version</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_version</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Sequence</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">path_version</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">PurePosixPath</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_new_cloudpath</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">path_version</span> <span class="k">if</span> <span class="n">_resolve</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">!=</span> <span class="n">p</span><span class="o">.</span><span class="n">root</span>
+            <span class="p">]</span>
+
+        <span class="c1"># when pathlib returns a string, etc. we probably just want that thing</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">path_version</span>
+
+    <span class="k">def</span> <span class="fm">__truediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Can only join path </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> with strings.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;__truediv__&quot;</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">joinpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;joinpath&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_pattern</span><span class="p">):</span>
+        <span class="c1"># strip scheme from start of pattern before testing</span>
+        <span class="k">if</span> <span class="n">path_pattern</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">drive</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
+            <span class="n">path_pattern</span> <span class="o">=</span> <span class="n">path_pattern</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">drive</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="p">:]</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;match&quot;</span><span class="p">,</span> <span class="n">path_pattern</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;parent&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;parents&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;parts&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;/&quot;</span><span class="p">:</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor</span><span class="p">,</span> <span class="o">*</span><span class="n">parts</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stem</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;stem&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;suffix&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">suffixes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;suffixes&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">with_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;with_name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">with_suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">suffix</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;with_suffix&quot;</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
+
+    <span class="c1"># ====================== DISPATCHED TO LOCAL CACHE FOR CONCRETE PATHS ======================</span>
+    <span class="c1"># Items that can be executed on the cached file on the local filesystem</span>
+    <span class="k">def</span> <span class="nf">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_cache</span><span class="p">()</span>
+
+        <span class="n">path_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+
+        <span class="c1"># Path functions should be called so the results are calculated</span>
+        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">path_version</span><span class="p">):</span>
+            <span class="n">path_version</span> <span class="o">=</span> <span class="n">path_version</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Paths should always be resolved and then converted to the same client + class as this one</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_version</span><span class="p">,</span> <span class="p">(</span><span class="n">PosixPath</span><span class="p">,</span> <span class="n">WindowsPath</span><span class="p">)):</span>
+            <span class="c1"># always resolve since cloud paths must be absolute</span>
+            <span class="n">path_version</span> <span class="o">=</span> <span class="n">path_version</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_cloudpath</span><span class="p">(</span><span class="n">path_version</span><span class="p">)</span>
+
+        <span class="c1"># when pathlib returns a string, etc. we probably just want that thing</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">path_version</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Note: for many clients, we may want to override so we don&#39;t incur</span>
+<span class="sd">        network costs since many of these properties are available as</span>
+<span class="sd">        API calls.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;stat not implemented as API call for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s2"> so file must be downloaded to &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;calculate stats; this may take a long time depending on filesize&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;stat&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">read_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;read_bytes&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;read_text&quot;</span><span class="p">)</span>
+
+    <span class="c1"># ===========  public cloud methods, not in pathlib ===============</span>
+    <span class="k">def</span> <span class="nf">download_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+        <span class="n">destination</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">destination</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="n">destination</span> <span class="o">=</span> <span class="n">destination</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_download_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">destination</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+                <span class="n">rel</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">rel</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+                    <span class="n">rel</span> <span class="o">=</span> <span class="n">rel</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+
+                <span class="n">rel_dest</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="nb">len</span><span class="p">(</span><span class="n">rel</span><span class="p">)</span> <span class="p">:]</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">download_to</span><span class="p">(</span><span class="n">destination</span> <span class="o">/</span> <span class="n">rel_dest</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">destination</span>
+
+    <span class="k">def</span> <span class="nf">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete an entire directory tree.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">CloudPathNotADirectoryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2"> is a file; call unlink instead of rmtree.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">upload_from</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">force_overwrite_to_cloud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Upload a file or directory to the cloud path.&quot;&quot;&quot;</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">source</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+                <span class="p">(</span><span class="bp">self</span> <span class="o">/</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">upload_from</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="n">dst</span> <span class="o">=</span> <span class="bp">self</span> <span class="o">/</span> <span class="n">source</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dst</span> <span class="o">=</span> <span class="bp">self</span>
+
+            <span class="n">dst</span><span class="o">.</span><span class="n">_upload_file_to_cloud</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">dst</span>
+
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span>
+        <span class="n">force_overwrite_to_cloud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Copy self to destination folder of file, if self is a file.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2"> should be a file. To copy a directory tree use the method copytree.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># handle string version of cloud paths + local paths</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">destination</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
+            <span class="n">destination</span> <span class="o">=</span> <span class="n">anypath</span><span class="o">.</span><span class="n">to_anypath</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">destination</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">download_to</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span>
+
+        <span class="c1"># if same client, use cloud-native _move_file on client to avoid downloading</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="n">destination</span><span class="o">.</span><span class="n">client</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">destination</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">destination</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="n">destination</span><span class="p">:</span> <span class="n">CloudPath</span> <span class="o">=</span> <span class="n">destination</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>  <span class="c1"># type: ignore</span>
+
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="n">force_overwrite_to_cloud</span>
+                <span class="ow">and</span> <span class="n">destination</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+                <span class="ow">and</span> <span class="n">destination</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="n">OverwriteNewerCloudError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;File (</span><span class="si">{</span><span class="n">destination</span><span class="si">}</span><span class="s2">) is newer than (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">). &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;To overwrite &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;pass `force_overwrite_to_cloud=True`.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_move_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">remove_src</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">destination</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="n">destination</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">destination</span><span class="o">.</span><span class="n">upload_from</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fspath</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">destination</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">upload_from</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fspath</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span>
+                <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">copytree</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span>
+        <span class="n">force_overwrite_to_cloud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Copy self to a directory, if self is a directory.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">CloudPathNotADirectoryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Origin path </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2"> must be a directory. To copy a single file use the method copy.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># handle string version of cloud paths + local paths</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">destination</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
+            <span class="n">destination</span> <span class="o">=</span> <span class="n">anypath</span><span class="o">.</span><span class="n">to_anypath</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">destination</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">destination</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">CloudPathFileExistsError</span><span class="p">(</span>
+                <span class="s2">&quot;Destination path </span><span class="si">{destination}</span><span class="s2"> of copytree must be a directory.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">destination</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">subpath</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">subpath</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                <span class="n">subpath</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                    <span class="n">destination</span> <span class="o">/</span> <span class="n">subpath</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">subpath</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+                <span class="n">subpath</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span>
+                    <span class="n">destination</span> <span class="o">/</span> <span class="n">subpath</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">destination</span>
+
+    <span class="c1"># ===========  private cloud methods ===============</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_local</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cached local version of the file.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_local_cache_dir</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_no_prefix</span>
+
+    <span class="k">def</span> <span class="nf">_new_cloudpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Use the scheme, client, cache dir of this cloudpath to instantiate</span>
+<span class="sd">        a new cloudpath of the same type with the path passed.</span>
+
+<span class="sd">        Used to make results of iterdir and joins have a unified client + cache.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="c1"># strip initial &quot;/&quot; if path has one</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+        <span class="c1"># add prefix/anchor if it is not already</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="p">):</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_refresh_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_overwrite_from_cloud</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">NoStatError</span><span class="p">:</span>
+            <span class="c1"># nothing to cache if the file does not exist; happens when creating</span>
+            <span class="c1"># new files that will be uploaded</span>
+            <span class="k">return</span>
+
+        <span class="c1"># if not exist or cloud newer</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span> <span class="o">&lt;</span> <span class="n">stats</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">force_overwrite_from_cloud</span>
+        <span class="p">):</span>
+            <span class="c1"># ensure there is a home for the file</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">download_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">)</span>
+
+            <span class="c1"># force cache time to match cloud times</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">OverwriteDirtyFileError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Local file (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="si">}</span><span class="s2">) for cloud path (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">) has been changed by your code, but &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;is being requested for download from cloud. Either (1) push your changes to the cloud, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(2) remove the local file, or (3) pass `force_overwrite_from_cloud=True` to &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;overwrite.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># if local newer but not dirty, it was updated</span>
+        <span class="c1"># by a separate process; do not overwrite unless forced to</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span> <span class="o">&gt;</span> <span class="n">stats</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">OverwriteNewerLocalError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Local file (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="si">}</span><span class="s2">) for cloud path (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">) is newer on disk, but &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;is being requested for download from cloud. Either (1) push your changes to the cloud, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(2) remove the local file, or (3) pass `force_overwrite_from_cloud=True` to &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;overwrite.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_upload_local_to_cloud</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Uploads cache file at self._local to the cloud&quot;&quot;&quot;</span>
+        <span class="c1"># We should never try to be syncing entire directories; we should only</span>
+        <span class="c1"># cache and upload individual files.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Only individual files can be uploaded to the cloud&quot;</span><span class="p">)</span>
+
+        <span class="n">uploaded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_upload_file_to_cloud</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span>
+        <span class="p">)</span>
+
+        <span class="c1"># force cache time to match cloud times</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">,</span> <span class="n">stats</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">))</span>
+
+        <span class="c1"># reset dirty and handle now that this is uploaded</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">uploaded</span>
+
+    <span class="k">def</span> <span class="nf">_upload_file_to_cloud</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Uploads file at `local_path` to the cloud if there is not a newer file</span>
+<span class="sd">        already there.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">NoStatError</span><span class="p">:</span>
+            <span class="n">stats</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># if cloud does not exist or local is newer or we are overwriting, do the upload</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">stats</span>  <span class="c1"># cloud does not exist</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="n">local_path</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span> <span class="o">&gt;</span> <span class="n">stats</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">force_overwrite_to_cloud</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_upload_file</span><span class="p">(</span>
+                <span class="n">local_path</span><span class="p">,</span>
+                <span class="bp">self</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="c1"># cloud is newer and we are not overwriting</span>
+        <span class="k">raise</span> <span class="n">OverwriteNewerCloudError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Local file (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="si">}</span><span class="s2">) for cloud path (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">) is newer in the cloud disk, but &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;is being requested to be uploaded to the cloud. Either (1) redownload changes from the cloud or &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;(2) pass `force_overwrite_to_cloud=True` to &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;overwrite.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># ===========  pydantic integration special methods ===============</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">__get_validators__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pydantic special method. See</span>
+<span class="sd">        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types&quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_validate</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Used as a Pydantic validator. See</span>
+<span class="sd">        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+</code></pre></div>
+        </details>
 
 
 
@@ -2701,11 +3480,6 @@ string, remove the suffix from the path.
     </div>
 
   </div>
-                
-              
-              
-                
-
 
               
             </article>
@@ -2714,8 +3488,7 @@ string, remove the suffix from the path.
         
       </main>
       
-        
-<footer class="md-footer">
+        <footer class="md-footer">
   
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
@@ -2754,14 +3527,15 @@ string, remove the suffix from the path.
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
-      <div class="md-footer-copyright">
-        
-        Made with
-        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-          Material for MkDocs
-        </a>
-        
-      </div>
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
       
     </div>
   </div>
@@ -2771,10 +3545,10 @@ string, remove the suffix from the path.
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.94ec81fe.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.0bbba5b5.min.js", "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.48dfec6c.min.js"></script>
+      <script src="../../assets/javascripts/bundle.e1a181d9.min.js"></script>
       
     
   </body>

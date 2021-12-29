@@ -10,11 +10,10 @@
       
       
       
-      
         <link rel="canonical" href="https://cloudpathlib.drivendata.org/v0.6/api-reference/local/">
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.2.8">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.3">
     
     
       
@@ -22,10 +21,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.92558b1b.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.edf004c2.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.e6a45f82.min.css">
         
       
     
@@ -35,9 +34,8 @@
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
-        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
-    
     
     
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
@@ -46,9 +44,9 @@
     
       <link rel="stylesheet" href="../../stylesheets/custom_mkdocstrings.css">
     
+    <script>__md_scope=new URL("../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
-
 
     
     
@@ -63,7 +61,6 @@
     <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
   
     
-    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
@@ -80,7 +77,16 @@
       
     </div>
     
-      <header class="md-header" data-md-component="header">
+      <div data-md-component="outdated" hidden>
+        <aside class="md-banner md-banner--warning">
+          
+        </aside>
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="cloudpathlib" class="md-header__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
       
@@ -112,8 +118,7 @@
       <label class="md-header__button md-icon" for="__search">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
       </label>
-      
-<div class="md-search" data-md-component="search" role="dialog">
+      <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
@@ -145,8 +150,7 @@
     
     
       <div class="md-header__source">
-        
-<a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
@@ -158,11 +162,14 @@
       </div>
     
   </nav>
+  
 </header>
     
     <div class="md-container" data-md-component="container">
       
       
+        
+          
         
       
       <main class="md-main" data-md-component="main">
@@ -187,8 +194,7 @@
   </label>
   
     <div class="md-nav__source">
-      
-<a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
@@ -338,10 +344,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9" type="checkbox" id="__nav_9" checked>
       
-      <label class="md-nav__link" for="__nav_9">
-        API Reference
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9">
+          API Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="API Reference" data-md-level="1">
         <label class="md-nav__title" for="__nav_9">
           <span class="md-nav__icon md-icon"></span>
@@ -350,6 +360,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -360,8 +371,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -372,8 +385,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -383,10 +398,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9_3" data-md-state="indeterminate" type="checkbox" id="__nav_9_3" checked>
       
-      <label class="md-nav__link" for="__nav_9_3">
-        Azure
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_3">
+          Azure
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="Azure" data-md-level="2">
         <label class="md-nav__title" for="__nav_9_3">
           <span class="md-nav__icon md-icon"></span>
@@ -395,6 +414,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -405,8 +425,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -417,14 +439,17 @@
     </li>
   
 
+            
           
         </ul>
       </nav>
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -434,10 +459,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9_4" data-md-state="indeterminate" type="checkbox" id="__nav_9_4" checked>
       
-      <label class="md-nav__link" for="__nav_9_4">
-        S3
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_4">
+          S3
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="S3" data-md-level="2">
         <label class="md-nav__title" for="__nav_9_4">
           <span class="md-nav__icon md-icon"></span>
@@ -446,6 +475,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -456,8 +486,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -468,14 +500,17 @@
     </li>
   
 
+            
           
         </ul>
       </nav>
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -485,10 +520,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9_5" data-md-state="indeterminate" type="checkbox" id="__nav_9_5" checked>
       
-      <label class="md-nav__link" for="__nav_9_5">
-        GS
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_5">
+          GS
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="GS" data-md-level="2">
         <label class="md-nav__title" for="__nav_9_5">
           <span class="md-nav__icon md-icon"></span>
@@ -497,6 +536,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -507,8 +547,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -519,14 +561,17 @@
     </li>
   
 
+            
           
         </ul>
       </nav>
     </li>
   
 
+            
           
             
+              
   
   
     
@@ -538,10 +583,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9_6" type="checkbox" id="__nav_9_6" checked>
       
-      <label class="md-nav__link" for="__nav_9_6">
-        Submodules
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_6">
+          Submodules
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="Submodules" data-md-level="2">
         <label class="md-nav__title" for="__nav_9_6">
           <span class="md-nav__icon md-icon"></span>
@@ -550,6 +599,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -560,8 +610,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -572,8 +624,10 @@
     </li>
   
 
+            
           
             
+              
   
   
     
@@ -597,6 +651,7 @@
       </a>
       
         
+
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -720,12 +775,14 @@
     </li>
   
 
+            
           
         </ul>
       </nav>
     </li>
   
 
+            
           
         </ul>
       </nav>
@@ -745,6 +802,7 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
+
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -873,12 +931,12 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/drivendataorg/cloudpathlib/edit/master/docs/api-reference/local.md" title="Edit this page" class="md-content__button md-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
-                  </a>
-                
-                
-                <h1 id="cloudpathliblocal">cloudpathlib.local<a class="headerlink" href="#cloudpathliblocal" title="Permanent link">&para;</a></h1>
+<a href="https://github.com/drivendataorg/cloudpathlib/edit/master/docs/api-reference/local.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+<h1 id="cloudpathliblocal">cloudpathlib.local<a class="headerlink" href="#cloudpathliblocal" title="Permanent link">&para;</a></h1>
 
 
   <div class="doc doc-object doc-module">
@@ -960,7 +1018,9 @@ examples.</p>
 
 
 <h3 id="cloudpathlib.local.implementations.azure.LocalAzureBlobClient" class="doc doc-heading">
-        <code>LocalAzureBlobClient</code>
+        <code>
+LocalAzureBlobClient            (<a title="cloudpathlib.local.localclient.LocalClient" href="#cloudpathlib.local.localclient.LocalClient">LocalClient</a>)
+        </code>
 
 
 
@@ -971,6 +1031,30 @@ examples.</p>
       <p>Replacement for AzureBlobClient that uses the local file system. Intended as a monkeypatch
 substitute when writing tests.</p>
 
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/local/implementations/azure.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">LocalAzureBlobClient</span><span class="p">(</span><span class="n">LocalClient</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Replacement for AzureBlobClient that uses the local file system. Intended as a monkeypatch</span>
+<span class="sd">    substitute when writing tests.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_cloud_meta</span> <span class="o">=</span> <span class="n">local_azure_blob_implementation</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">cred_opts</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;blob_service_client&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;connection_string&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;account_url&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;AZURE_STORAGE_CONNECTION_STRING&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">opt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="n">cred_opts</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">MissingCredentialsError</span><span class="p">(</span>
+                <span class="s2">&quot;AzureBlobClient does not support anonymous instantiation. &quot;</span>
+                <span class="s2">&quot;Credentials are required; see docs for options.&quot;</span>
+            <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+        </details>
 
 
 
@@ -983,45 +1067,6 @@ substitute when writing tests.</p>
 
 
 <h4 id="cloudpathlib.local.implementations.azure.LocalAzureBlobClient-methods">Methods<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobClient-methods" class="headerlink" title="Permanent link">&para;</a></h4>
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h5 id="cloudpathlib.local.implementations.azure.LocalAzureBlobClient.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-special"><code>special</code></small>
-  </span>
-
-<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobClient.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
-
-    <div class="doc doc-contents ">
-
-
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/local/implementations/azure.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="n">cred_opts</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;blob_service_client&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;connection_string&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;account_url&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;AZURE_STORAGE_CONNECTION_STRING&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-    <span class="p">]</span>
-    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">opt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="n">cred_opts</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">MissingCredentialsError</span><span class="p">(</span>
-            <span class="s2">&quot;AzureBlobClient does not support anonymous instantiation. &quot;</span>
-            <span class="s2">&quot;Credentials are required; see docs for options.&quot;</span>
-        <span class="p">)</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
 
   <div class="doc doc-object doc-method">
 
@@ -1080,6 +1125,45 @@ substitute when writing tests.</p>
 
 
 
+<h5 id="cloudpathlib.local.implementations.azure.LocalAzureBlobClient.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobClient.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+    <div class="doc doc-contents ">
+
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/local/implementations/azure.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">cred_opts</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;blob_service_client&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;connection_string&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;account_url&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;AZURE_STORAGE_CONNECTION_STRING&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">opt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="n">cred_opts</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">MissingCredentialsError</span><span class="p">(</span>
+            <span class="s2">&quot;AzureBlobClient does not support anonymous instantiation. &quot;</span>
+            <span class="s2">&quot;Credentials are required; see docs for options.&quot;</span>
+        <span class="p">)</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
 <h5 id="cloudpathlib.local.implementations.azure.LocalAzureBlobClient.set_as_default_client" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">set_as_default_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
 
@@ -1123,7 +1207,9 @@ instances for this cloud without a client specified.</p>
 
 
 <h3 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath" class="doc doc-heading">
-        <code>LocalAzureBlobPath</code>
+        <code>
+LocalAzureBlobPath            (<a title="cloudpathlib.local.localpath.LocalPath" href="#cloudpathlib.local.localpath.LocalPath">LocalPath</a>)
+        </code>
 
 
 
@@ -2693,7 +2779,9 @@ string, remove the suffix from the path.
 
 
 <h3 id="cloudpathlib.local.localclient.LocalClient" class="doc doc-heading">
-        <code>LocalClient</code>
+        <code>
+LocalClient            (<a title="cloudpathlib.client.Client" href="../client/#cloudpathlib.client.Client">Client</a>)
+        </code>
 
 
 
@@ -2704,6 +2792,129 @@ string, remove the suffix from the path.
       <p>Abstract client for accessing objects the local filesystem. Subclasses are as a monkeypatch
 substitutes for normal Client subclasses when writing tests.</p>
 
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/local/localclient.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">LocalClient</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract client for accessing objects the local filesystem. Subclasses are as a monkeypatch</span>
+<span class="sd">    substitutes for normal Client subclasses when writing tests.&quot;&quot;&quot;</span>
+
+    <span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="c1"># setup caching and local versions of file. use default temp dir if not provided</span>
+        <span class="k">if</span> <span class="n">local_storage_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">local_storage_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_storage_dir</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_default_storage_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="n">TemporaryDirectory</span><span class="p">()</span>
+            <span class="n">_temp_dirs_to_clean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">reset_default_storage_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_cloud_path_to_local</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">/</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">_no_prefix</span>
+
+    <span class="k">def</span> <span class="nf">_local_to_cloud_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">:</span>
+        <span class="n">local_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
+        <span class="n">cloud_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">path_class</span><span class="o">.</span><span class="n">cloud_prefix</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">PurePosixPath</span><span class="p">(</span><span class="n">local_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_download_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+        <span class="n">local_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
+        <span class="n">local_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">),</span> <span class="n">local_path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">local_path</span>
+
+    <span class="k">def</span> <span class="nf">_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="s2">&quot;LocalPath&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_local_to_cloud_path</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_local_to_cloud_path</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_md5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">md5</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_move_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">,</span> <span class="n">remove_src</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">remove_src</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">src</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">dst</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">src</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">dst</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">dst</span>
+
+    <span class="k">def</span> <span class="nf">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">local_storage_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">local_storage_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="n">local_storage_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">local_storage_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">local_storage_path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">os</span><span class="o">.</span><span class="n">stat_result</span><span class="p">:</span>
+        <span class="n">stat_result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">stat_result</span><span class="p">(</span>
+            <span class="p">(</span>  <span class="c1"># type: ignore</span>
+                <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore # mode</span>
+                <span class="kc">None</span><span class="p">,</span>  <span class="c1"># ino</span>
+                <span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="p">,</span>  <span class="c1"># dev,</span>
+                <span class="kc">None</span><span class="p">,</span>  <span class="c1"># nlink,</span>
+                <span class="kc">None</span><span class="p">,</span>  <span class="c1"># uid,</span>
+                <span class="kc">None</span><span class="p">,</span>  <span class="c1"># gid,</span>
+                <span class="n">stat_result</span><span class="o">.</span><span class="n">st_size</span><span class="p">,</span>  <span class="c1"># size,</span>
+                <span class="kc">None</span><span class="p">,</span>  <span class="c1"># atime,</span>
+                <span class="n">stat_result</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">,</span>  <span class="c1"># mtime,</span>
+                <span class="kc">None</span><span class="p">,</span>  <span class="c1"># ctime,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_touch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">local_storage_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
+        <span class="n">local_storage_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">local_storage_path</span><span class="o">.</span><span class="n">touch</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_upload_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">:</span>
+        <span class="n">dst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
+        <span class="n">dst</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">local_path</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cloud_path</span>
+</code></pre></div>
+        </details>
 
 
 
@@ -2716,6 +2927,34 @@ substitutes for normal Client subclasses when writing tests.</p>
 
 
 <h4 id="cloudpathlib.local.localclient.LocalClient-methods">Methods<a href="#cloudpathlib.local.localclient.LocalClient-methods" class="headerlink" title="Permanent link">&para;</a></h4>
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h5 id="cloudpathlib.local.localclient.LocalClient.CloudPath" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">~</span><span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="o">~</span><span class="n">BoundedCloudPath</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.local.localclient.LocalClient.CloudPath" class="headerlink" title="Permanent link">&para;</a></h5>
+
+    <div class="doc doc-contents ">
+
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/local/localclient.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BoundedCloudPath</span><span class="p">:</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">path_class</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">=</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
 
   <div class="doc doc-object doc-method">
 
@@ -2748,34 +2987,6 @@ substitutes for normal Client subclasses when writing tests.</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_storage_dir</span><span class="p">)</span>
 
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">)</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h5 id="cloudpathlib.local.localclient.LocalClient.CloudPath" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">~</span><span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="o">~</span><span class="n">BoundedCloudPath</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
-  </span>
-
-<a href="#cloudpathlib.local.localclient.LocalClient.CloudPath" class="headerlink" title="Permanent link">&para;</a></h5>
-
-    <div class="doc doc-contents ">
-
-
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/local/localclient.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BoundedCloudPath</span><span class="p">:</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">path_class</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">=</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -2893,7 +3104,9 @@ instances for this cloud without a client specified.</p>
 
 
 <h3 id="cloudpathlib.local.implementations.gs.LocalGSClient" class="doc doc-heading">
-        <code>LocalGSClient</code>
+        <code>
+LocalGSClient            (<a title="cloudpathlib.local.localclient.LocalClient" href="#cloudpathlib.local.localclient.LocalClient">LocalClient</a>)
+        </code>
 
 
 
@@ -2904,6 +3117,16 @@ instances for this cloud without a client specified.</p>
       <p>Replacement for GSClient that uses the local file system. Intended as a monkeypatch
 substitute when writing tests.</p>
 
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/local/implementations/gs.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">LocalGSClient</span><span class="p">(</span><span class="n">LocalClient</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Replacement for GSClient that uses the local file system. Intended as a monkeypatch</span>
+<span class="sd">    substitute when writing tests.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_cloud_meta</span> <span class="o">=</span> <span class="n">local_gs_implementation</span>
+</code></pre></div>
+        </details>
 
 
 
@@ -2916,46 +3139,6 @@ substitute when writing tests.</p>
 
 
 <h4 id="cloudpathlib.local.implementations.gs.LocalGSClient-methods">Methods<a href="#cloudpathlib.local.implementations.gs.LocalGSClient-methods" class="headerlink" title="Permanent link">&para;</a></h4>
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h5 id="cloudpathlib.local.implementations.gs.LocalGSClient.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
-      <small class="doc doc-property doc-property-special"><code>special</code></small>
-  </span>
-
-<a href="#cloudpathlib.local.implementations.gs.LocalGSClient.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
-
-    <div class="doc doc-contents ">
-
-
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/local/implementations/gs.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-    <span class="bp">self</span><span class="p">,</span>
-    <span class="o">*</span><span class="n">args</span><span class="p">,</span>
-    <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-<span class="p">):</span>
-    <span class="c1"># setup caching and local versions of file. use default temp dir if not provided</span>
-    <span class="k">if</span> <span class="n">local_storage_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">local_storage_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_storage_dir</span><span class="p">)</span>
-
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">)</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
 
   <div class="doc doc-object doc-method">
 
@@ -3014,6 +3197,46 @@ substitute when writing tests.</p>
 
 
 
+<h5 id="cloudpathlib.local.implementations.gs.LocalGSClient.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+<a href="#cloudpathlib.local.implementations.gs.LocalGSClient.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+    <div class="doc doc-contents ">
+
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/local/implementations/gs.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+    <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># setup caching and local versions of file. use default temp dir if not provided</span>
+    <span class="k">if</span> <span class="n">local_storage_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">local_storage_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_storage_dir</span><span class="p">)</span>
+
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
 <h5 id="cloudpathlib.local.implementations.gs.LocalGSClient.set_as_default_client" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">set_as_default_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
 
@@ -3057,7 +3280,9 @@ instances for this cloud without a client specified.</p>
 
 
 <h3 id="cloudpathlib.local.implementations.gs.LocalGSPath" class="doc doc-heading">
-        <code>LocalGSPath</code>
+        <code>
+LocalGSPath            (<a title="cloudpathlib.local.localpath.LocalPath" href="#cloudpathlib.local.localpath.LocalPath">LocalPath</a>)
+        </code>
 
 
 
@@ -4605,7 +4830,9 @@ string, remove the suffix from the path.
 
 
 <h3 id="cloudpathlib.local.localpath.LocalPath" class="doc doc-heading">
-        <code>LocalPath</code>
+        <code>
+LocalPath            (<a title="cloudpathlib.cloudpath.CloudPath" href="../cloudpath/#cloudpathlib.cloudpath.CloudPath">CloudPath</a>)
+        </code>
 
 
 
@@ -4616,6 +4843,33 @@ string, remove the suffix from the path.
       <p>Abstract CloudPath for accessing objects the local filesystem. Subclasses are as a
 monkeypatch substitutes for normal CloudPath subclasses when writing tests.</p>
 
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/local/localpath.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">LocalPath</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract CloudPath for accessing objects the local filesystem. Subclasses are as a</span>
+<span class="sd">    monkeypatch substitutes for normal CloudPath subclasses when writing tests.&quot;&quot;&quot;</span>
+
+    <span class="n">client</span><span class="p">:</span> <span class="s2">&quot;LocalClient&quot;</span>
+
+    <span class="k">def</span> <span class="nf">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_stat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NoStatError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No stats available for </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">; it may be a directory or not exist.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">meta</span>
+
+    <span class="k">def</span> <span class="nf">touch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_touch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
 
 
 
@@ -6062,7 +6316,9 @@ string, remove the suffix from the path.
 
 
 <h3 id="cloudpathlib.local.implementations.s3.LocalS3Client" class="doc doc-heading">
-        <code>LocalS3Client</code>
+        <code>
+LocalS3Client            (<a title="cloudpathlib.local.localclient.LocalClient" href="#cloudpathlib.local.localclient.LocalClient">LocalClient</a>)
+        </code>
 
 
 
@@ -6073,6 +6329,16 @@ string, remove the suffix from the path.
       <p>Replacement for S3Client that uses the local file system. Intended as a monkeypatch
 substitute when writing tests.</p>
 
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/local/implementations/s3.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">LocalS3Client</span><span class="p">(</span><span class="n">LocalClient</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Replacement for S3Client that uses the local file system. Intended as a monkeypatch</span>
+<span class="sd">    substitute when writing tests.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_cloud_meta</span> <span class="o">=</span> <span class="n">local_s3_implementation</span>
+</code></pre></div>
+        </details>
 
 
 
@@ -6085,46 +6351,6 @@ substitute when writing tests.</p>
 
 
 <h4 id="cloudpathlib.local.implementations.s3.LocalS3Client-methods">Methods<a href="#cloudpathlib.local.implementations.s3.LocalS3Client-methods" class="headerlink" title="Permanent link">&para;</a></h4>
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h5 id="cloudpathlib.local.implementations.s3.LocalS3Client.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
-      <small class="doc doc-property doc-property-special"><code>special</code></small>
-  </span>
-
-<a href="#cloudpathlib.local.implementations.s3.LocalS3Client.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
-
-    <div class="doc doc-contents ">
-
-
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/local/implementations/s3.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-    <span class="bp">self</span><span class="p">,</span>
-    <span class="o">*</span><span class="n">args</span><span class="p">,</span>
-    <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-<span class="p">):</span>
-    <span class="c1"># setup caching and local versions of file. use default temp dir if not provided</span>
-    <span class="k">if</span> <span class="n">local_storage_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">local_storage_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_storage_dir</span><span class="p">)</span>
-
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">)</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
 
   <div class="doc doc-object doc-method">
 
@@ -6183,6 +6409,46 @@ substitute when writing tests.</p>
 
 
 
+<h5 id="cloudpathlib.local.implementations.s3.LocalS3Client.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+      <small class="doc doc-property doc-property-special"><code>special</code></small>
+  </span>
+
+<a href="#cloudpathlib.local.implementations.s3.LocalS3Client.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+    <div class="doc doc-contents ">
+
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/local/implementations/s3.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+    <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># setup caching and local versions of file. use default temp dir if not provided</span>
+    <span class="k">if</span> <span class="n">local_storage_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">local_storage_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_storage_dir</span><span class="p">)</span>
+
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
 <h5 id="cloudpathlib.local.implementations.s3.LocalS3Client.set_as_default_client" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">set_as_default_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
 
@@ -6226,7 +6492,9 @@ instances for this cloud without a client specified.</p>
 
 
 <h3 id="cloudpathlib.local.implementations.s3.LocalS3Path" class="doc doc-heading">
-        <code>LocalS3Path</code>
+        <code>
+LocalS3Path            (<a title="cloudpathlib.local.localpath.LocalPath" href="#cloudpathlib.local.localpath.LocalPath">LocalPath</a>)
+        </code>
 
 
 
@@ -7766,11 +8034,6 @@ string, remove the suffix from the path.
     </div>
 
   </div>
-                
-              
-              
-                
-
 
               
             </article>
@@ -7779,8 +8042,7 @@ string, remove the suffix from the path.
         
       </main>
       
-        
-<footer class="md-footer">
+        <footer class="md-footer">
   
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
@@ -7804,14 +8066,15 @@ string, remove the suffix from the path.
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
-      <div class="md-footer-copyright">
-        
-        Made with
-        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-          Material for MkDocs
-        </a>
-        
-      </div>
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
       
     </div>
   </div>
@@ -7821,10 +8084,10 @@ string, remove the suffix from the path.
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.94ec81fe.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.0bbba5b5.min.js", "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.48dfec6c.min.js"></script>
+      <script src="../../assets/javascripts/bundle.e1a181d9.min.js"></script>
       
     
   </body>

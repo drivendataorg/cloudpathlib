@@ -10,11 +10,10 @@
       
       
       
-      
         <link rel="canonical" href="https://cloudpathlib.drivendata.org/v0.6/api-reference/azblobclient/">
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.2.8">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.3">
     
     
       
@@ -22,10 +21,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.92558b1b.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.edf004c2.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.e6a45f82.min.css">
         
       
     
@@ -35,9 +34,8 @@
         
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
-        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
-    
     
     
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
@@ -46,9 +44,9 @@
     
       <link rel="stylesheet" href="../../stylesheets/custom_mkdocstrings.css">
     
+    <script>__md_scope=new URL("../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
-
 
     
     
@@ -63,7 +61,6 @@
     <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
   
     
-    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
@@ -80,7 +77,16 @@
       
     </div>
     
-      <header class="md-header" data-md-component="header">
+      <div data-md-component="outdated" hidden>
+        <aside class="md-banner md-banner--warning">
+          
+        </aside>
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="cloudpathlib" class="md-header__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
       
@@ -112,8 +118,7 @@
       <label class="md-header__button md-icon" for="__search">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
       </label>
-      
-<div class="md-search" data-md-component="search" role="dialog">
+      <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
@@ -145,8 +150,7 @@
     
     
       <div class="md-header__source">
-        
-<a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
@@ -158,11 +162,14 @@
       </div>
     
   </nav>
+  
 </header>
     
     <div class="md-container" data-md-component="container">
       
       
+        
+          
         
       
       <main class="md-main" data-md-component="main">
@@ -187,8 +194,7 @@
   </label>
   
     <div class="md-nav__source">
-      
-<a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
@@ -338,10 +344,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9" type="checkbox" id="__nav_9" checked>
       
-      <label class="md-nav__link" for="__nav_9">
-        API Reference
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9">
+          API Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="API Reference" data-md-level="1">
         <label class="md-nav__title" for="__nav_9">
           <span class="md-nav__icon md-icon"></span>
@@ -350,6 +360,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -360,8 +371,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -372,8 +385,10 @@
     </li>
   
 
+            
           
             
+              
   
   
     
@@ -385,10 +400,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9_3" type="checkbox" id="__nav_9_3" checked>
       
-      <label class="md-nav__link" for="__nav_9_3">
-        Azure
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_3">
+          Azure
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="Azure" data-md-level="2">
         <label class="md-nav__title" for="__nav_9_3">
           <span class="md-nav__icon md-icon"></span>
@@ -397,6 +416,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
     
@@ -420,6 +440,7 @@
       </a>
       
         
+
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -442,13 +463,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.__init__" class="md-nav__link">
-    __init__()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.AzureBlobPath" class="md-nav__link">
     AzureBlobPath()
   </a>
@@ -458,6 +472,13 @@
           <li class="md-nav__item">
   <a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.CloudPath" class="md-nav__link">
     CloudPath()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.__init__" class="md-nav__link">
+    __init__()
   </a>
   
 </li>
@@ -481,8 +502,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -493,14 +516,17 @@
     </li>
   
 
+            
           
         </ul>
       </nav>
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -510,10 +536,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9_4" data-md-state="indeterminate" type="checkbox" id="__nav_9_4" checked>
       
-      <label class="md-nav__link" for="__nav_9_4">
-        S3
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_4">
+          S3
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="S3" data-md-level="2">
         <label class="md-nav__title" for="__nav_9_4">
           <span class="md-nav__icon md-icon"></span>
@@ -522,6 +552,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -532,8 +563,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -544,14 +577,17 @@
     </li>
   
 
+            
           
         </ul>
       </nav>
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -561,10 +597,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9_5" data-md-state="indeterminate" type="checkbox" id="__nav_9_5" checked>
       
-      <label class="md-nav__link" for="__nav_9_5">
-        GS
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_5">
+          GS
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="GS" data-md-level="2">
         <label class="md-nav__title" for="__nav_9_5">
           <span class="md-nav__icon md-icon"></span>
@@ -573,6 +613,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -583,8 +624,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -595,14 +638,17 @@
     </li>
   
 
+            
           
         </ul>
       </nav>
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -612,10 +658,14 @@
       
         <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_9_6" data-md-state="indeterminate" type="checkbox" id="__nav_9_6" checked>
       
-      <label class="md-nav__link" for="__nav_9_6">
-        Submodules
-        <span class="md-nav__icon md-icon"></span>
-      </label>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_9_6">
+          Submodules
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <nav class="md-nav" aria-label="Submodules" data-md-level="2">
         <label class="md-nav__title" for="__nav_9_6">
           <span class="md-nav__icon md-icon"></span>
@@ -624,6 +674,7 @@
         <ul class="md-nav__list" data-md-scrollfix>
           
             
+              
   
   
   
@@ -634,8 +685,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -646,8 +699,10 @@
     </li>
   
 
+            
           
             
+              
   
   
   
@@ -658,12 +713,14 @@
     </li>
   
 
+            
           
         </ul>
       </nav>
     </li>
   
 
+            
           
         </ul>
       </nav>
@@ -683,6 +740,7 @@
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
+
 <nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
@@ -705,13 +763,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.__init__" class="md-nav__link">
-    __init__()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.AzureBlobPath" class="md-nav__link">
     AzureBlobPath()
   </a>
@@ -721,6 +772,13 @@
           <li class="md-nav__item">
   <a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.CloudPath" class="md-nav__link">
     CloudPath()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.__init__" class="md-nav__link">
+    __init__()
   </a>
   
 </li>
@@ -749,12 +807,12 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/drivendataorg/cloudpathlib/edit/master/docs/api-reference/azblobclient.md" title="Edit this page" class="md-content__button md-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
-                  </a>
-                
-                
-                <h1 id="cloudpathlibazureblobclient">cloudpathlib.AzureBlobClient<a class="headerlink" href="#cloudpathlibazureblobclient" title="Permanent link">&para;</a></h1>
+<a href="https://github.com/drivendataorg/cloudpathlib/edit/master/docs/api-reference/azblobclient.md" title="Edit this page" class="md-content__button md-icon">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+</a>
+
+
+<h1 id="cloudpathlibazureblobclient">cloudpathlib.AzureBlobClient<a class="headerlink" href="#cloudpathlibazureblobclient" title="Permanent link">&para;</a></h1>
 
 
   <div class="doc doc-object doc-class">
@@ -767,6 +825,210 @@
 <a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.__init__"><code>__init__</code> method</a> for detailed
 authentication options.</p>
 
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/azure/azblobclient.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">AzureBlobClient</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Client class for Azure Blob Storage which handles authentication with Azure for</span>
+<span class="sd">    [`AzureBlobPath`](../azblobpath/) instances. See documentation for the</span>
+<span class="sd">    [`__init__` method][cloudpathlib.azure.azblobclient.AzureBlobClient.__init__] for detailed</span>
+<span class="sd">    authentication options.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">account_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">credential</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">connection_string</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">blob_service_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;BlobServiceClient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class constructor. Sets up a [`BlobServiceClient`](</span>
+<span class="sd">        https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).</span>
+<span class="sd">        Supports the following authentication methods of `BlobServiceClient`.</span>
+
+<span class="sd">        - Environment variable `&quot;&quot;AZURE_STORAGE_CONNECTION_STRING&quot;` containing connecting string</span>
+<span class="sd">        with account credentials. See [Azure Storage SDK documentation](</span>
+<span class="sd">        https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).</span>
+<span class="sd">        - Account URL via `account_url`, authenticated either with an embedded SAS token, or with</span>
+<span class="sd">        credentials passed to `credentials`.</span>
+<span class="sd">        - Connection string via `connection_string`, authenticated either with an embedded SAS</span>
+<span class="sd">        token or with credentials passed to `credentials`.</span>
+<span class="sd">        - Instantiated and already authenticated [`BlobServiceClient`](</span>
+<span class="sd">        https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).</span>
+
+<span class="sd">        If multiple methods are used, priority order is reverse of list above (later in list takes</span>
+<span class="sd">        priority). If no methods are used, a [`MissingCredentialsError`][cloudpathlib.exceptions.MissingCredentialsError]</span>
+<span class="sd">        exception will be raised raised.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            account_url (Optional[str]): The URL to the blob storage account, optionally</span>
+<span class="sd">                authenticated with a SAS token. See documentation for [`BlobServiceClient`](</span>
+<span class="sd">                https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).</span>
+<span class="sd">            credential (Optional[Any]): Credentials with which to authenticate. Can be used with</span>
+<span class="sd">                `account_url` or `connection_string`, but is unnecessary if the other already has</span>
+<span class="sd">                an SAS token. See documentation for [`BlobServiceClient`](</span>
+<span class="sd">                https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python)</span>
+<span class="sd">                or [`BlobServiceClient.from_connection_string`](</span>
+<span class="sd">                https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python#from-connection-string-conn-str--credential-none----kwargs-).</span>
+<span class="sd">            connection_string (Optional[str]): A connection string to an Azure Storage account. See</span>
+<span class="sd">                [Azure Storage SDK documentation](</span>
+<span class="sd">                https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).</span>
+<span class="sd">            blob_service_client (Optional[BlobServiceClient]): Instantiated [`BlobServiceClient`](</span>
+<span class="sd">                https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).</span>
+<span class="sd">            local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache</span>
+<span class="sd">                for downloaded files. If None, will use a temporary directory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">connection_string</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">connection_string</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;AZURE_STORAGE_CONNECTION_STRING&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">blob_service_client</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span> <span class="o">=</span> <span class="n">blob_service_client</span>
+        <span class="k">elif</span> <span class="n">connection_string</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span> <span class="o">=</span> <span class="n">BlobServiceClient</span><span class="o">.</span><span class="n">from_connection_string</span><span class="p">(</span>
+                <span class="n">conn_str</span><span class="o">=</span><span class="n">connection_string</span><span class="p">,</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">account_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span> <span class="o">=</span> <span class="n">BlobServiceClient</span><span class="p">(</span><span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="p">,</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MissingCredentialsError</span><span class="p">(</span>
+                <span class="s2">&quot;AzureBlobClient does not support anonymous instantiation. &quot;</span>
+                <span class="s2">&quot;Credentials are required; see docs for options.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">BlobProperties</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="n">blob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span>
+            <span class="n">container</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">blob</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span>
+        <span class="p">)</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="n">blob</span><span class="o">.</span><span class="n">get_blob_properties</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">properties</span>
+
+    <span class="k">def</span> <span class="nf">_download_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+        <span class="n">blob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span>
+            <span class="n">container</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">blob</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span>
+        <span class="p">)</span>
+
+        <span class="n">download_stream</span> <span class="o">=</span> <span class="n">blob</span><span class="o">.</span><span class="n">download_blob</span><span class="p">()</span>
+
+        <span class="n">local_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
+
+        <span class="n">local_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">local_path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">download_stream</span><span class="o">.</span><span class="n">readall</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">local_path</span>
+
+    <span class="k">def</span> <span class="nf">_is_file_or_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="c1"># short-circuit the root-level container</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;dir&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_metadata</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;file&quot;</span>
+        <span class="k">except</span> <span class="n">ResourceNotFoundError</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span>
+            <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+                <span class="n">prefix</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
+
+            <span class="c1"># not a file, see if it is a directory</span>
+            <span class="n">container_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_container_client</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">next</span><span class="p">(</span><span class="n">container_client</span><span class="o">.</span><span class="n">list_blobs</span><span class="p">(</span><span class="n">name_starts_with</span><span class="o">=</span><span class="n">prefix</span><span class="p">))</span>
+                <span class="k">return</span> <span class="s2">&quot;dir&quot;</span>
+            <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="s2">&quot;dir&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_list_dir</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">AzureBlobPath</span><span class="p">]:</span>
+        <span class="n">container_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_container_client</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
+
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span>
+        <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+            <span class="n">prefix</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
+
+        <span class="n">yielded_dirs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="c1"># NOTE: Not recursive may be slower than necessary since it just filters</span>
+        <span class="c1">#   the recursive implementation</span>
+        <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">container_client</span><span class="o">.</span><span class="n">list_blobs</span><span class="p">(</span><span class="n">name_starts_with</span><span class="o">=</span><span class="n">prefix</span><span class="p">):</span>
+            <span class="c1"># get directory from this path</span>
+            <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:])</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
+
+                <span class="c1"># if we haven&#39;t surfaced thei directory already</span>
+                <span class="k">if</span> <span class="n">parent</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">yielded_dirs</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
+
+                    <span class="c1"># skip if not recursive and this is beyond our depth</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">recursive</span> <span class="ow">and</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
+                        <span class="k">continue</span>
+
+                    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;az://</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">parent</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">yielded_dirs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+            <span class="c1"># skip file if not recursive and this is beyond our depth</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">recursive</span> <span class="ow">and</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:]:</span>
+                <span class="k">continue</span>
+
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;az://</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_move_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">,</span> <span class="n">remove_src</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AzureBlobPath</span><span class="p">:</span>
+        <span class="c1"># just a touch, so &quot;REPLACE&quot; metadata</span>
+        <span class="k">if</span> <span class="n">src</span> <span class="o">==</span> <span class="n">dst</span><span class="p">:</span>
+            <span class="n">blob_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span>
+                <span class="n">container</span><span class="o">=</span><span class="n">src</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">blob</span><span class="o">=</span><span class="n">src</span><span class="o">.</span><span class="n">blob</span>
+            <span class="p">)</span>
+
+            <span class="n">blob_client</span><span class="o">.</span><span class="n">set_blob_metadata</span><span class="p">(</span>
+                <span class="n">metadata</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">last_modified</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">timestamp</span><span class="p">()))</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span><span class="n">container</span><span class="o">=</span><span class="n">dst</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">blob</span><span class="o">=</span><span class="n">dst</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span>
+
+            <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span><span class="n">container</span><span class="o">=</span><span class="n">src</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">blob</span><span class="o">=</span><span class="n">src</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span>
+
+            <span class="n">target</span><span class="o">.</span><span class="n">start_copy_from_url</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">remove_src</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_remove</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dst</span>
+
+    <span class="k">def</span> <span class="nf">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;dir&quot;</span><span class="p">:</span>
+            <span class="n">blobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">blob</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">is_file</span><span class="p">()]</span>
+            <span class="n">container_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_container_client</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
+            <span class="n">container_client</span><span class="o">.</span><span class="n">delete_blobs</span><span class="p">(</span><span class="o">*</span><span class="n">blobs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span><span class="p">:</span>
+            <span class="n">blob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span>
+                <span class="n">container</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">blob</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span>
+            <span class="p">)</span>
+
+            <span class="n">blob</span><span class="o">.</span><span class="n">delete_blob</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_upload_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AzureBlobPath</span><span class="p">:</span>
+        <span class="n">blob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span>
+            <span class="n">container</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">blob</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span>
+        <span class="p">)</span>
+
+        <span class="n">blob</span><span class="o">.</span><span class="n">upload_blob</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(),</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">cloud_path</span>
+</code></pre></div>
+        </details>
 
 
 
@@ -779,6 +1041,59 @@ authentication options.</p>
 
 
 <h2 id="cloudpathlib.azure.azblobclient.AzureBlobClient-methods">Methods<a href="#cloudpathlib.azure.azblobclient.AzureBlobClient-methods" class="headerlink" title="Permanent link">&para;</a></h2>
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.azure.azblobclient.AzureBlobClient.AzureBlobPath" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">AzureBlobPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">~</span><span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="o">~</span><span class="n">BoundedCloudPath</span></code>
+
+
+<a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.AzureBlobPath" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/azure/azblobclient.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BoundedCloudPath</span><span class="p">:</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">path_class</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">=</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.azure.azblobclient.AzureBlobClient.CloudPath" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">~</span><span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="o">~</span><span class="n">BoundedCloudPath</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+  </span>
+
+<a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.CloudPath" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/azure/azblobclient.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BoundedCloudPath</span><span class="p">:</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">path_class</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">=</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
 
   <div class="doc doc-object doc-method">
 
@@ -852,7 +1167,7 @@ or <a href="https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure
       </tr>
       <tr>
         <td><code>local_cache_dir</code></td>
-        <td><code>Union[str, os.PathLike]</code></td>
+        <td><code>Optional[Union[str, os.PathLike]]</code></td>
         <td><p>Path to directory to use as cache
 for downloaded files. If None, will use a temporary directory.</p></td>
         <td><code>None</code></td>
@@ -935,59 +1250,6 @@ for downloaded files. If None, will use a temporary directory.</p></td>
 
 
 
-<h3 id="cloudpathlib.azure.azblobclient.AzureBlobClient.AzureBlobPath" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">AzureBlobPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">~</span><span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="o">~</span><span class="n">BoundedCloudPath</span></code>
-
-
-<a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.AzureBlobPath" class="headerlink" title="Permanent link">&para;</a></h3>
-
-    <div class="doc doc-contents ">
-
-
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/azure/azblobclient.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BoundedCloudPath</span><span class="p">:</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">path_class</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">=</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h3 id="cloudpathlib.azure.azblobclient.AzureBlobClient.CloudPath" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">~</span><span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="o">~</span><span class="n">BoundedCloudPath</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
-  </span>
-
-<a href="#cloudpathlib.azure.azblobclient.AzureBlobClient.CloudPath" class="headerlink" title="Permanent link">&para;</a></h3>
-
-    <div class="doc doc-contents ">
-
-
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/azure/azblobclient.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BoundedCloudPath</span><span class="p">:</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">path_class</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">=</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
-
-  <div class="doc doc-object doc-method">
-
-
-
 <h3 id="cloudpathlib.azure.azblobclient.AzureBlobClient.set_as_default_client" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">set_as_default_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
 
@@ -1023,11 +1285,6 @@ instances for this cloud without a client specified.</p>
     </div>
 
   </div>
-                
-              
-              
-                
-
 
               
             </article>
@@ -1036,8 +1293,7 @@ instances for this cloud without a client specified.</p>
         
       </main>
       
-        
-<footer class="md-footer">
+        <footer class="md-footer">
   
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
@@ -1076,14 +1332,15 @@ instances for this cloud without a client specified.</p>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
-      <div class="md-footer-copyright">
-        
-        Made with
-        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
-          Material for MkDocs
-        </a>
-        
-      </div>
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
       
     </div>
   </div>
@@ -1093,10 +1350,10 @@ instances for this cloud without a client specified.</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.94ec81fe.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.0bbba5b5.min.js", "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.48dfec6c.min.js"></script>
+      <script src="../../assets/javascripts/bundle.e1a181d9.min.js"></script>
       
     
   </body>
