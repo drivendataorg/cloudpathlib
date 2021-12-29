@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## v0.6.4 (2021-12-29)
+
+ - Fixed error where `BlobProperties` type hint causes import error if Azure dependencies not installed.
+
 ## v0.6.3 (2021-12-29)
 
 - Fixed error when using `rmtree` on nested directories for Google Cloud Storage and Azure Blob Storage. ([Issue #184](https://github.com/drivendataorg/cloudpathlib/issues/184), [PR #185](https://github.com/drivendataorg/cloudpathlib/pull/185))

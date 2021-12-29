@@ -88,7 +88,7 @@ class AzureBlobClient(Client):
 
         super().__init__(local_cache_dir=local_cache_dir)
 
-    def _get_metadata(self, cloud_path: AzureBlobPath) -> Union[BlobProperties, Dict[str, Any]]:
+    def _get_metadata(self, cloud_path: AzureBlobPath) -> Union["BlobProperties", Dict[str, Any]]:
         blob = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
