@@ -395,8 +395,8 @@ rig = fixture_union(
 )
 
 # run some s3-specific tests on custom s3 (ceph, minio, etc.) and aws s3
-live_s3_like_rig = fixture_union(
-    "live_s3_like_rig",
+s3_like_rig = fixture_union(
+    "s3_like_rig",
     [
         s3_rig,
         custom_s3_rig,
