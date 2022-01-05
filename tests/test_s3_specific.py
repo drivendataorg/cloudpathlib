@@ -129,6 +129,38 @@ def test_transfer_config_live(s3_rig, tmp_path):
         assert _execute_on_subprocess_and_observe(use_threads=True) > 10
 
 
+def test_fake_directories(live_s3_like_rig):
+    """S3 can have "fake" directories created
+    either in the AWS S3 Console or by uploading
+    a 0 size object ending in a `/`. If these objects
+    exist, we want to treat them as directories.
+
+    Note: Our normal tests do _not_ create folders in this
+    way, so this test is the only one to exercise these "fake" dirs.
+
+    Ref: https://github.com/boto/boto3/issues/377
+    """
+    if live_s3_like_rig.live_server:
+        boto3_s3_client = live_s3_like_rig.client_class._default_client.client
+
+        response = boto3_s3_client.put_object(
+            Bucket=f"{live_s3_like_rig.drive}",
+            Body="",
+            Key=f"{live_s3_like_rig.test_dir}/fake_directory/",
+        )
+
+        assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+
+        # test either way of referring to the directory (with and w/o terminal slash)
+        fake_dir_slash = live_s3_like_rig.create_cloud_path("fake_directory/")
+        fake_dir_no_slash = live_s3_like_rig.create_cloud_path("fake_directory")
+
+        for test_case in [fake_dir_no_slash, fake_dir_slash]:
+            assert test_case.exists()
+            assert test_case.is_dir()
+            assert not test_case.is_file()
+
+
 def test_no_sign_request(s3_rig, tmp_path):
     """Tests that we can pass no_sign_request to the S3Client and we will
     be able to access public resources but not private ones.
