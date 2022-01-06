@@ -53,6 +53,30 @@ def test_file_discovery(rig):
     assert not p5.exists()
 
 
+def test_is_dir_is_file(rig, tmp_path):
+    # test on directories
+    dir_slash = rig.create_cloud_path("dir_0/")
+    dir_no_slash = rig.create_cloud_path("dir_0")
+    dir_nested_slash = rig.create_cloud_path("dir_1/dir_1_0/")
+    dir_nested_no_slash = rig.create_cloud_path("dir_1/dir_1_0")
+
+    for test_case in [dir_slash, dir_no_slash, dir_nested_slash, dir_nested_no_slash]:
+        assert test_case.is_dir()
+        assert not test_case.is_file()
+
+    file = rig.create_cloud_path("dir_0/file0_0.txt")
+    file_nested = rig.create_cloud_path("dir_1/dir_1_0/file_1_0_0.txt")
+
+    for test_case in [file, file_nested]:
+        assert test_case.is_file()
+        assert not test_case.is_dir()
+
+    # does not exist (same behavior as pathlib.Path that does not exist)
+    non_existant = rig.create_cloud_path("dir_0/not_a_file")
+    assert not non_existant.is_file()
+    assert not non_existant.is_dir()
+
+
 def test_file_read_writes(rig, tmp_path):
     p = rig.create_cloud_path("dir_0/file0_0.txt")
     p2 = rig.create_cloud_path("dir_0/not_a_file")

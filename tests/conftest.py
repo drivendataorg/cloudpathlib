@@ -393,3 +393,12 @@ rig = fixture_union(
         local_gs_rig,
     ],
 )
+
+# run some s3-specific tests on custom s3 (ceph, minio, etc.) and aws s3
+s3_like_rig = fixture_union(
+    "s3_like_rig",
+    [
+        s3_rig,
+        custom_s3_rig,
+    ],
+)

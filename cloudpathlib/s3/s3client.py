@@ -124,8 +124,18 @@ class S3Client(Client):
             return None
 
         # since S3 only returns files when filtering objects:
-        # if the first item key is equal to the path key, this is a file; else it is a dir
-        return "file" if s3_obj.key == cloud_path.key else "dir"
+        # if the first item key is equal to the path key, this is a file
+        if s3_obj.key == cloud_path.key:
+
+            # "fake" directories on S3 can be created in the console UI
+            # these are 0-size keys that end in `/`
+            #  Ref: https://github.com/boto/boto3/issues/377
+            if s3_obj.key.endswith("/") and s3_obj.content_length == 0:
+                return "dir"
+            else:
+                return "file"
+        else:
+            return "dir"
 
     def _exists(self, cloud_path: S3Path) -> bool:
         return self._s3_file_query(cloud_path) is not None

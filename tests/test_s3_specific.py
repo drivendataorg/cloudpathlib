@@ -89,63 +89,100 @@ def test_transfer_config_live(s3_rig, tmp_path):
     if the `use_threads` parameter changes to number of threads
     used by a child process that does a download.
     """
-    if s3_rig.live_server:
+    if not s3_rig.live_server:
+        pytest.skip("This test only runs against live servers.")
 
-        def _execute_on_subprocess_and_observe(use_threads):
-            main_test_process = psutil.Process().pid
+    def _execute_on_subprocess_and_observe(use_threads):
+        main_test_process = psutil.Process().pid
 
-            with ProcessPoolExecutor(max_workers=1) as executor:
-                job = executor.submit(
-                    _download_with_threads,
-                    s3_rig=s3_rig,
-                    tmp_path=tmp_path,
-                    use_threads=use_threads,
-                )
+        with ProcessPoolExecutor(max_workers=1) as executor:
+            job = executor.submit(
+                _download_with_threads,
+                s3_rig=s3_rig,
+                tmp_path=tmp_path,
+                use_threads=use_threads,
+            )
 
-                max_threads = 0
+            max_threads = 0
 
-                # timeout after 100 seconds
-                for _ in range(1000):
-                    worker_process_id = (
-                        psutil.Process(main_test_process).children()[-1].pid
-                    )  # most recently started child
-                    n_thread = psutil.Process(worker_process_id).num_threads()
+            # timeout after 100 seconds
+            for _ in range(1000):
+                worker_process_id = (
+                    psutil.Process(main_test_process).children()[-1].pid
+                )  # most recently started child
+                n_thread = psutil.Process(worker_process_id).num_threads()
 
-                    # observe number of threads used
-                    max_threads = max(max_threads, n_thread)
+                # observe number of threads used
+                max_threads = max(max_threads, n_thread)
 
-                    sleep(0.1)
+                sleep(0.1)
 
-                    if job.done():
-                        _ = job.result()  # raises if job raised
-                        break
+                if job.done():
+                    _ = job.result()  # raises if job raised
+                    break
 
-                return max_threads
+            return max_threads
 
-        # usually ~3 threads are spun up whe use_threads is False
-        assert _execute_on_subprocess_and_observe(use_threads=False) < 5
+    # usually ~3 threads are spun up whe use_threads is False
+    assert _execute_on_subprocess_and_observe(use_threads=False) < 5
 
-        # usually ~15 threads are spun up whe use_threads is True
-        assert _execute_on_subprocess_and_observe(use_threads=True) > 10
+    # usually ~15 threads are spun up whe use_threads is True
+    assert _execute_on_subprocess_and_observe(use_threads=True) > 10
+
+
+def test_fake_directories(s3_like_rig):
+    """S3 can have "fake" directories created
+    either in the AWS S3 Console or by uploading
+    a 0 size object ending in a `/`. If these objects
+    exist, we want to treat them as directories.
+
+    Note: Our normal tests do _not_ create folders in this
+    way, so this test is the only one to exercise these "fake" dirs.
+
+    Ref: https://github.com/boto/boto3/issues/377
+    """
+    if not s3_like_rig.live_server:
+        pytest.skip("This test only runs against live servers.")
+
+    boto3_s3_client = s3_like_rig.client_class._default_client.client
+
+    response = boto3_s3_client.put_object(
+        Bucket=f"{s3_like_rig.drive}",
+        Body="",
+        Key=f"{s3_like_rig.test_dir}/fake_directory/",
+    )
+
+    assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+
+    # test either way of referring to the directory (with and w/o terminal slash)
+    fake_dir_slash = s3_like_rig.create_cloud_path("fake_directory/")
+    fake_dir_no_slash = s3_like_rig.create_cloud_path("fake_directory")
+
+    for test_case in [fake_dir_no_slash, fake_dir_slash]:
+        assert test_case.exists()
+        assert test_case.is_dir()
+        assert not test_case.is_file()
 
 
 def test_no_sign_request(s3_rig, tmp_path):
     """Tests that we can pass no_sign_request to the S3Client and we will
     be able to access public resources but not private ones.
     """
-    if s3_rig.live_server:
-        client = s3_rig.client_class(no_sign_request=True)
+    if not s3_rig.live_server:
+        pytest.skip("This test only runs against live servers.")
 
-        # unsigned can access public path (part of AWS open data)
-        p = client.CloudPath(
-            "s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg"
-        )
-        assert p.exists()
+    client = s3_rig.client_class(no_sign_request=True)
 
-        p.download_to(tmp_path)
-        assert (tmp_path / p.name).read_bytes() == p.read_bytes()
+    # unsigned can access public path (part of AWS open data)
+    p = client.CloudPath(
+        "s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg"
+    )
+    assert p.exists()
 
-        # unsigned raises for private S3 file that exists
-        p = client.CloudPath(f"s3://{s3_rig.drive}/dir_0/file0_to_download.txt")
-        with pytest.raises(botocore.exceptions.ClientError):
-            p.exists()
+    p.download_to(tmp_path)
+    assert (tmp_path / p.name).read_bytes() == p.read_bytes()
+
+    # unsigned raises for private S3 file that exists
+    p = client.CloudPath(f"s3://{s3_rig.drive}/dir_0/file0_to_download.txt")
+    with pytest.raises(botocore.exceptions.ClientError):
+        p.exists()
