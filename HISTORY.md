@@ -1,5 +1,10 @@
 # cloudpathlib Changelog
 
+## Unreleased (2022-01-05)
+
+ - Fixed error when "directories" created on AWS S3 were reported as files. ([Issue #148](https://github.com/drivendataorg/cloudpathlib/issues/148), [PR #190](https://github.com/drivendataorg/cloudpathlib/pull/190))
+
+
 ## v0.6.4 (2021-12-29)
 
  - Fixed error where `BlobProperties` type hint causes import error if Azure dependencies not installed.
