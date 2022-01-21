@@ -11,7 +11,9 @@ try:
     if TYPE_CHECKING:
         from google.auth.credentials import Credentials
 
+    from google.auth.exceptions import DefaultCredentialsError
     from google.cloud.storage import Client as StorageClient
+
 
 except ModuleNotFoundError:
     implementation_registry["gs"].dependencies_loaded = False
@@ -74,7 +76,10 @@ class GSClient(Client):
         elif application_credentials is not None:
             self.client = StorageClient.from_service_account_json(application_credentials)
         else:
-            self.client = StorageClient.create_anonymous_client()
+            try:
+                self.client = StorageClient()
+            except DefaultCredentialsError:
+                self.client = StorageClient.create_anonymous_client()
 
         super().__init__(local_cache_dir=local_cache_dir)
 
