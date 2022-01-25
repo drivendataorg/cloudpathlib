@@ -65,7 +65,6 @@ class S3Client(Client):
                 (https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)
         """
         endpoint_url = endpoint_url or os.getenv("AWS_ENDPOINT_URL")
-        print("ENDPOINT URL IN INIT:", endpoint_url)
         if boto3_session is not None:
             self.sess = boto3_session
         else:
