@@ -5,7 +5,7 @@ import pytest
 
 from boto3.s3.transfer import TransferConfig
 import botocore
-from cloudpathlib import S3Path
+from cloudpathlib import S3Client, S3Path
 from cloudpathlib.local import LocalS3Path
 import psutil
 
@@ -186,3 +186,19 @@ def test_no_sign_request(s3_rig, tmp_path):
     p = client.CloudPath(f"s3://{s3_rig.drive}/dir_0/file0_to_download.txt")
     with pytest.raises(botocore.exceptions.ClientError):
         p.exists()
+
+
+def test_aws_endpoint_url_env(monkeypatch):
+    """Allows setting endpoint_url from env variable
+    until upstream boto3 PR is merged.
+    https://github.com/boto/boto3/pull/2746
+    """
+    s3_url = "https://s3.amazonaws.com"
+    localstack_url = "http://localhost:4566"
+
+    s3_client = S3Client()
+    assert s3_client.client.meta.endpoint_url == s3_url
+
+    monkeypatch.setenv("AWS_ENDPOINT_URL", localstack_url)
+    s3_client_custom_endpoint = S3Client()
+    assert s3_client_custom_endpoint.client.meta.endpoint_url == localstack_url
