@@ -195,7 +195,7 @@ def test_aws_endpoint_url_env(monkeypatch):
     """
     s3_url = "https://s3.amazonaws.com"
     localstack_url = "http://localhost:4566"
-    
+
     s3_client = S3Client()
     assert s3_client.client.meta.endpoint_url == s3_url
 
