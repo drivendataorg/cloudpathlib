@@ -1,9 +1,10 @@
 # cloudpathlib Changelog
 
-## Unreleased (2022-01-05)
+## v0.6.5 (2022-01-25)
 
  - Fixed error when "directories" created on AWS S3 were reported as files. ([Issue #148](https://github.com/drivendataorg/cloudpathlib/issues/148), [PR #190](https://github.com/drivendataorg/cloudpathlib/pull/190))
  - Fixed bug where GCE machines can instantiate default client, but we don't attempt it. ([Issue #191](https://github.com/drivendataorg/cloudpathlib/issues/191)
+ - Support `AWS_ENDPOINT_URL` environment variable to set the `endpoint_url` for `S3Client`. ([PR #193](https://github.com/drivendataorg/cloudpathlib/pull/193))
 
 ## v0.6.4 (2021-12-29)
 
