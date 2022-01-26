@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://cloudpathlib.drivendata.org/v0.6/caching/">
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.3">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.8">
     
     
       
@@ -21,7 +21,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.edf004c2.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.6e60f8b8.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
@@ -1474,13 +1474,16 @@ all of MD as it is not optimized for dense, information rich UIs.
     init_mathjax();
     </script>
     <!-- End of mathjax configuration --><div class="jupyter-wrapper">
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h1 id="caching">Caching<a class="anchor-link" href="#caching">&#182;</a></h1><p>Interacting with files on a cloud provider can mean a lot of waiting on files downloading and uploading. <code>cloudpathlib</code> provides seamless on-demand caching of cloud content that can be persistent across processes and sessions to make sure you only download or upload when you need to.</p>
 
 </div>
 </div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div>
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h2 id="are-we-synced">Are we synced?<a class="anchor-link" href="#are-we-synced">&#182;</a></h2><p>Before <code>cloudpathlib</code>, we spent a lot of time syncing our remote and local files. There was no great solution. For example, I just need one file, but I only have a script that downloads the entire 800GB bucket (or worse, you can't remember exactly <em>which</em> files you need 🤮). Or <em>even worse</em>, you have all the files synced to your local machine, but you suspect that some are are up-to-date and some are stale. More often that I'd like to admit, the simplest answer was to blast the whole data directory and download all over again. Bandwidth doesn't grow on trees!</p>
 <h2 id="cache-me-if-you-can">Cache me if you can<a class="anchor-link" href="#cache-me-if-you-can">&#182;</a></h2><p>Part of what makes <code>cloudpathlib</code> so useful is that it takes care of all of that, leaving your precious mental resources free to do other things! It maintains a local cache and only downloads a file if the local version and remote versions are out of sync. Every time you read or write a file, <code>cloudpathlib</code> goes through these steps:</p>
@@ -1499,9 +1502,12 @@ all of MD as it is not optimized for dense, information rich UIs.
 <p>As an example, let's look at using the <a href="https://registry.opendata.aws/ladi/">Low Altitude Disaster Imagery</a> open dataset on S3. We'll view one images available of a flooding incident available on S3.</p>
 
 </div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
@@ -1542,6 +1548,8 @@ for p in islice(ladi.iterdir(), 5):
 </div>
 
 <div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
@@ -1568,14 +1576,18 @@ s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0005_d05609ce-1c45-4de3-b0f1-401c2bb341
 
 </div>
 </div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <p>Just because we saw these images are available, it doesn't mean we have downloaded any of this data yet.</p>
 
 </div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
@@ -1604,6 +1616,8 @@ s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0005_d05609ce-1c45-4de3-b0f1-401c2bb341
 </div>
 
 <div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
@@ -1628,14 +1642,18 @@ s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0005_d05609ce-1c45-4de3-b0f1-401c2bb341
 
 </div>
 </div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <p>Now let's look at just the first image from this dataset.</p>
 
 </div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
@@ -1664,6 +1682,8 @@ flood_image.exists()</div>
 </div>
 
 <div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
@@ -1690,6 +1710,8 @@ flood_image.exists()</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
@@ -1718,6 +1740,8 @@ flood_image.exists()</div>
 </div>
 
 <div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
@@ -1742,15 +1766,19 @@ flood_image.exists()</div>
 
 </div>
 </div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <p>Even though we refer to a specific file and make sure it exists in the cloud, we can still do all of that work without actually downloading the file.</p>
 <p>In order to read the file, we do have to download the data. Let's actually display the image:</p>
 
 </div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
@@ -1792,6 +1820,8 @@ with flood_image.open("rb") as f:
 </div>
 
 <div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
@@ -1833,6 +1863,8 @@ Wall time: 2.27 s
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
@@ -1861,6 +1893,8 @@ Wall time: 2.27 s
 </div>
 
 <div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
@@ -1886,14 +1920,18 @@ Wall time: 2.27 s
 
 </div>
 </div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <p>Just be using <code>open</code>, we've downloaded the file in the background to the cache. Now that it is local, we won't redownload that file unless it changes on the server. We can confirm that by checking if the file is faster to read a second time.</p>
 
 </div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
@@ -1926,6 +1964,8 @@ with flood_image.open("rb") as f:
 </div>
 
 <div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
@@ -1965,22 +2005,28 @@ Wall time: 1.08 s
 
 </div>
 </div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <p>Notice that the second display is much faster since we use the cached version!</p>
 
 </div>
 </div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div>
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h2 id="keeping-the-cache-around">Keeping the cache around<a class="anchor-link" href="#keeping-the-cache-around">&#182;</a></h2><p>By default, the cache uses <a href="https://docs.python.org/3/library/tempfile.html"><code>tempfile</code></a> this means at some point either Python or your operating system will remove whatever files you have cached. This is helpful in that it means the downloaded files get cleaned up regularly and don't necessarily clutter up your local hard drive.</p>
 <p>However, sometimes I don't want to have to re-download files I know won't change. For example, in the LADI dataset, I may want to use the images in a Jupyter notebook and every time I restart the notebook I want to always have the downloaded files. I don't want to re-download since I know the LADI images won't be changing on S3.</p>
 <p>We can do this just by using a <code>Client</code> that does all the downloading/uploading to a specfic folder on our local machine.</p>
 
 </div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
@@ -2020,6 +2066,8 @@ ladi = client.CloudPath("s3://ladi/Images/FEMA_CAP/2020/70349")</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[9]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
@@ -2048,6 +2096,8 @@ ladi = client.CloudPath("s3://ladi/Images/FEMA_CAP/2020/70349")</div>
 </div>
 
 <div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
@@ -2072,14 +2122,18 @@ ladi = client.CloudPath("s3://ladi/Images/FEMA_CAP/2020/70349")</div>
 
 </div>
 </div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <p>Now let's look at just the first image from this dataset. Note that paths created by using the <code>ladi</code> root (e.g., by using the <code>/</code> operator below or calls like <code>iterdir</code> and <code>glob</code>) will inherit the same <code>Client</code> instance, and therefore the same <code>local_cache_dir</code> without our having to do extra work.</p>
 
 </div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[10]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
@@ -2114,6 +2168,8 @@ with flood_image.open("rb") as f:
 </div>
 
 <div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
@@ -2142,6 +2198,8 @@ with flood_image.open("rb") as f:
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[11]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
@@ -2170,6 +2228,8 @@ with flood_image.open("rb") as f:
 </div>
 
 <div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
@@ -2197,6 +2257,8 @@ with flood_image.open("rb") as f:
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[12]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
@@ -2226,7 +2288,8 @@ with flood_image.open("rb") as f:
 
 </div>
 </div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h2 id="accessing-the-cached-version-directly-read-only">Accessing the cached version directly (read-only)<a class="anchor-link" href="#accessing-the-cached-version-directly-read-only">&#182;</a></h2><p>Many Python libraries don't properly handle <code>PathLike</code> objects. These libraries often only expect a <code>str</code> to be passed when working with files or, even worse, they will call <code>str(p)</code> on a Path that is passed before using it.</p>
 <p>To use <code>cloudpathlib</code> with these libraries, you can pass <code>.fspath</code> which will provide the path to the cached version of the file as a string.</p>
@@ -2235,7 +2298,9 @@ with flood_image.open("rb") as f:
 
 </div>
 </div>
-<div class="jp-Cell-inputWrapper"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div>
+<div class="jp-Cell-inputWrapper">
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h2 id="handling-conflicts">Handling conflicts<a class="anchor-link" href="#handling-conflicts">&#182;</a></h2><p>We try to be conservative in terms of not losing data—especially data stored on the cloud, which is likely to be the canonical version. Given this, we will raise exceptions in two scenarios:</p>
 <p><code>OverwriteNewerLocalError</code>
@@ -2245,6 +2310,7 @@ This exception is raised if we are asked to download a file, but our local versi
 This exception is raised if we are asked to upload a file, but the one on the cloud is newer than our local version. This likely means that a separate process has updated the cloud version, and we don't want to overwrite and lose that new data in the cloud.</p>
 <p>The <code>CloudPath.open</code> method supports a <code>force_overwrite_to_cloud</code> kwarg to force overwriting the cloud version.</p>
 
+</div>
 </div>
 </div>
 </div>
@@ -2315,10 +2381,10 @@ This exception is raised if we are asked to upload a file, but the one on the cl
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.0bbba5b5.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.22074ed6.min.js", "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.e1a181d9.min.js"></script>
+      <script src="../assets/javascripts/bundle.960e086b.min.js"></script>
       
     
   </body>
