@@ -1,9 +1,13 @@
 import abc
+import ast
 from collections import defaultdict
 import collections.abc
 import fnmatch
+import inspect
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
+import sys
+from textwrap import dedent
 from typing import Any, IO, Iterable, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
@@ -11,6 +15,7 @@ from warnings import warn
 from . import anypath
 
 from .exceptions import (
+    BuiltInOpenWriteError,
     ClientMismatchError,
     CloudPathFileExistsError,
     CloudPathIsADirectoryError,
@@ -28,6 +33,11 @@ from .exceptions import (
 
 if TYPE_CHECKING:
     from .client import Client
+
+CHECK_UNSAFE_OPEN = str(os.getenv("CLOUDPATHLIB_CHECK_UNSAFE_OPEN", "True").lower()) not in {
+    "false",
+    "0",
+}
 
 
 class CloudImplementation:
@@ -172,7 +182,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def __del__(self):
         # make sure that file handle to local path is closed
-        if self._handle is not None:
+        if hasattr(self, "_handle") and self._handle is not None:
             self._handle.close()
 
     @property
@@ -207,6 +217,49 @@ class CloudPath(metaclass=CloudPathMeta):
         return isinstance(other, type(self)) and str(self) == str(other)
 
     def __fspath__(self):
+        # make sure that we're not getting called by the builtin open
+        # in a write mode, since we won't actually write to the cloud in
+        # that scenario
+        if CHECK_UNSAFE_OPEN:
+            frame = inspect.currentframe().f_back
+
+            # line number of the call for this frame
+            lineno = frame.f_lineno
+
+            # get source lines and start of the entire function
+            lines, start_lineno = inspect.getsourcelines(frame)
+
+            # in some contexts like jupyter, start_lineno is 0, but should be 1-indexed
+            if start_lineno == 0:
+                start_lineno = 1
+
+            all_lines = "".join(lines)
+
+            if "open" in all_lines:
+                # walk from this call until we find the line
+                # that actually has "open" call on it
+                # only needed on Python <= 3.7
+                if (sys.version_info.major, sys.version_info.minor) <= (3, 7):
+                    while "open" not in lines[lineno - start_lineno]:
+                        lineno -= 1
+
+                # 1-indexed line within this scope
+                line_to_check = (lineno - start_lineno) + 1
+
+                # Walk the AST of the previous frame source and see if we
+                # ended up here from a call to the builtin open with and a writeable mode
+                if any(
+                    _is_open_call_write_with_var(n, line_to_check)
+                    for n in ast.walk(ast.parse(dedent(all_lines)))
+                ):
+                    raise BuiltInOpenWriteError(
+                        "Cannot use built-in open function with a CloudPath in a writeable mode. "
+                        "Changes would not be uploaded to the cloud; instead, "
+                        "please use the .open() method instead. "
+                        "NOTE: If you are sure and want to skip this check with "
+                        "set the env var CLOUDPATHLIB_CHECK_UNSAFE_OPEN=False"
+                    )
+
         if self.is_file():
             self._refresh_cache(force_overwrite_from_cloud=False)
         return str(self._local)
@@ -866,3 +919,38 @@ def _resolve(path: PurePosixPath) -> str:
         newpath = newpath + sep + name
 
     return newpath or sep
+
+
+WRITE_MODES = {"r+", "w", "w+", "a", "a+", "rb+", "wb", "wb+", "ab", "ab+"}
+
+
+# This function is used to check if our `__fspath__` implementation has been
+# called in a writeable mode from the built-in open function.
+def _is_open_call_write_with_var(ast_node, lineno):
+    """For a given AST node, check that the node is a `Call`, and that the
+    call is to a function with the name `open` at line number `lineno`,
+    and that the last argument or the `mode` kwarg is one of the writeable modes.
+    """
+    if not isinstance(ast_node, ast.Call):
+        return False
+    if not hasattr(ast_node, "func"):
+        return False
+    if not hasattr(ast_node.func, "id"):
+        return False
+    if ast_node.func.id != "open":
+        return False
+
+    # there may be an invalid open call in the scope,
+    # but it is not on the line for our current stack,
+    # so we skip it for now since it will get parsed later
+    if ast_node.func.lineno != lineno:
+        return False
+
+    # get the mode as second arg or kwarg where arg==mode
+    mode = (
+        ast_node.args[1]
+        if len(ast_node.args) >= 2
+        else [kwarg for kwarg in ast_node.keywords if kwarg.arg == "mode"][0].value
+    )
+
+    return mode.s.lower() in WRITE_MODES

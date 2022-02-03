@@ -5,7 +5,11 @@ from time import sleep
 
 import pytest
 
-from cloudpathlib.exceptions import CloudPathIsADirectoryError, DirectoryNotEmptyError
+from cloudpathlib.exceptions import (
+    BuiltInOpenWriteError,
+    CloudPathIsADirectoryError,
+    DirectoryNotEmptyError,
+)
 
 
 def test_file_discovery(rig):
@@ -148,7 +152,70 @@ def test_fspath(rig):
     assert os.fspath(p) == p.fspath
 
 
-def test_os_open(rig):
+def test_os_open_read(rig):
     p = rig.create_cloud_path("dir_0/file0_0.txt")
     with open(p, "r") as f:
+        assert f.readable()
+
+
+# entire function is passed as source, so check separately
+# that all of the built in open write modes fail
+def test_os_open_write1(rig):
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
+
+    with open(p, "r") as f:
+        assert f.readable()
+
+    with pytest.raises(BuiltInOpenWriteError):
+        with open(p, "w") as f:
+            assert f.writable()
+
+    with pytest.raises(BuiltInOpenWriteError):
+        with open(p, "W") as f:
+            assert f.writable()
+
+    with pytest.raises(BuiltInOpenWriteError):
+        with open(p, "wb") as f:
+            assert f.writable()
+
+
+def test_os_open_write2(rig):
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
+
+    with pytest.raises(BuiltInOpenWriteError):
+        with open(p, "a") as f:
+            assert f.writable()
+
+    with pytest.raises(BuiltInOpenWriteError):
+        with open(rig.create_cloud_path("dir_0/file0_0.txt"), "r+") as f:
+            assert f.readable()
+
+
+def test_os_open_write3(rig):
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
+    # first call should not raise even though there is an unsafe open in same scope
+    with open(
+        p,
+        "r",
+    ) as f:
+        assert f.readable()
+
+    with pytest.raises(BuiltInOpenWriteError):
+        with open(
+            p,
+            "w",
+        ) as f:
+            assert f.writable()
+
+
+def test_os_open_write4(monkeypatch, rig):
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
+
+    monkeypatch.setattr("cloudpathlib.cloudpath.CHECK_UNSAFE_OPEN", False)
+
+    # unsafe write check is skipped
+    with open(
+        p,
+        "w+",
+    ) as f:
         assert f.readable()
