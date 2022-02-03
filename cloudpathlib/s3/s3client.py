@@ -197,7 +197,8 @@ class S3Client(Client):
 
                 # files in the directory
                 for result_key in result.get("Contents", []):
-                    yield self.CloudPath(f"s3://{cloud_path.bucket}/{result_key.get('Key')}")
+                    if result_key.get("Size") > 0:
+                        yield self.CloudPath(f"s3://{cloud_path.bucket}/{result_key.get('Key')}")
 
     def _move_file(self, src: S3Path, dst: S3Path, remove_src: bool = True) -> S3Path:
         # just a touch, so "REPLACE" metadata
