@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, Optional, Union
+from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
 
 from ..client import Client, register_client_class
@@ -140,7 +140,7 @@ class AzureBlobClient(Client):
 
     def _list_dir(
         self, cloud_path: AzureBlobPath, recursive: bool = False
-    ) -> Iterable[AzureBlobPath]:
+    ) -> Iterable[Tuple[AzureBlobPath, bool]]:
         container_client = self.service_client.get_container_client(cloud_path.container)
 
         prefix = cloud_path.blob
@@ -155,21 +155,24 @@ class AzureBlobClient(Client):
             # get directory from this path
             for parent in PurePosixPath(o.name[len(prefix) :]).parents:
 
-                # if we haven't surfaced thei directory already
+                # if we haven't surfaced this directory already
                 if parent not in yielded_dirs and str(parent) != ".":
 
                     # skip if not recursive and this is beyond our depth
                     if not recursive and "/" in str(parent):
                         continue
 
-                    yield self.CloudPath(f"az://{cloud_path.container}/{prefix}{parent}")
+                    yield (
+                        self.CloudPath(f"az://{cloud_path.container}/{prefix}{parent}"),
+                        True,  # is a directory
+                    )
                     yielded_dirs.add(parent)
 
             # skip file if not recursive and this is beyond our depth
             if not recursive and "/" in o.name[len(prefix) :]:
                 continue
 
-            yield self.CloudPath(f"az://{cloud_path.container}/{o.name}")
+            yield (self.CloudPath(f"az://{cloud_path.container}/{o.name}"), False)  # is a file
 
     def _move_file(
         self, src: AzureBlobPath, dst: AzureBlobPath, remove_src: bool = True
@@ -198,7 +201,9 @@ class AzureBlobClient(Client):
 
     def _remove(self, cloud_path: AzureBlobPath) -> None:
         if self._is_file_or_dir(cloud_path) == "dir":
-            blobs = [b.blob for b in self._list_dir(cloud_path, recursive=True) if b.is_file()]
+            blobs = [
+                b.blob for b, is_dir in self._list_dir(cloud_path, recursive=True) if not is_dir
+            ]
             container_client = self.service_client.get_container_client(cloud_path.container)
             container_client.delete_blobs(*blobs)
         elif self._is_file_or_dir(cloud_path) == "file":

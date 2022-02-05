@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 from pathlib import PurePosixPath
+from shutil import rmtree
 from time import sleep
 
 import pytest
@@ -51,6 +52,139 @@ def test_file_discovery(rig):
 
     p5.rmtree()
     assert not p5.exists()
+
+
+@pytest.fixture
+def glob_test_dirs(rig, tmp_path):
+    """Sets up a local directory and a cloud directory that matches the
+    tests used for glob in the CPython codebase. So we can make sure
+    our implementation matches CPython glob.
+
+    Adapted from this test setup ()
+    https://github.com/python/cpython/blob/7ffe7ba30fc051014977c6f393c51e57e71a6648/Lib/test/test_pathlib.py#L1378-L1395
+    """
+
+    def _make_glob_directory(root):
+        (root / "dirB").mkdir()
+        (root / "dirB" / "fileB").write_text("fileB")
+        (root / "dirC").mkdir()
+        (root / "dirC" / "dirD").mkdir()
+        (root / "dirC" / "dirD" / "fileD").write_text("fileD")
+        (root / "dirC" / "fileC").write_text("fileC")
+        (root / "dirE").mkdir()
+        (root / "fileA").write_text("fileA")
+
+    cloud_root = rig.create_cloud_path("glob-tests")
+    cloud_root.mkdir()
+
+    _make_glob_directory(cloud_root)
+
+    local_root = tmp_path / "glob-tests"
+    local_root.mkdir()
+
+    _make_glob_directory(local_root)
+
+    yield cloud_root, local_root
+
+    cloud_root.rmtree()
+    rmtree(local_root)
+
+
+def _assert_glob_results_match(cloud_results, local_results, cloud_root, local_root):
+    def _lstrip_path_root(path, root):
+        return str(path)[len(str(root)) :]
+
+    local_results_no_root = {_lstrip_path_root(c, local_root) for c in local_results}
+    cloud_results_no_root = {_lstrip_path_root(c, cloud_root) for c in cloud_results}
+    assert local_results_no_root == cloud_results_no_root
+
+
+def test_glob(glob_test_dirs):
+    cloud_root, local_root = glob_test_dirs
+
+    # cases adapted from CPython glob tests:
+    #  https://github.com/python/cpython/blob/7ffe7ba30fc051014977c6f393c51e57e71a6648/Lib/test/test_pathlib.py#L1634-L1720
+
+    def _check_glob(pattern, glob_method):
+        _assert_glob_results_match(
+            getattr(cloud_root, glob_method)(pattern),
+            getattr(local_root, glob_method)(pattern),
+            cloud_root,
+            local_root,
+        )
+
+    # glob_common
+    _check_glob("fileA", "glob")
+    _check_glob("fileB", "glob")
+    _check_glob("dir*/file*", "glob")
+    _check_glob("*A", "glob")
+    _check_glob("*B/*", "glob")
+    _check_glob("*/fileB", "glob")
+
+    # rglob_common
+    _check_glob("fileA", "rglob")
+    _check_glob("fileB", "rglob")
+    _check_glob("*/fileA", "rglob")
+    _check_glob("*/fileB", "rglob")
+    _check_glob("file*", "rglob")
+
+    dir_c_cloud = cloud_root / "dirC"
+    dir_c_local = local_root / "dirC"
+    _assert_glob_results_match(
+        dir_c_cloud.rglob("file*"), dir_c_local.rglob("file*"), dir_c_cloud, dir_c_local
+    )
+    _assert_glob_results_match(
+        dir_c_cloud.rglob("*/*"), dir_c_local.rglob("*/*"), dir_c_cloud, dir_c_local
+    )
+
+    # test_glob_many_open_files
+    depth = 30
+    base = cloud_root / "deep"
+    p = base / "/".join(["d"] * depth)
+    (p / "file.txt").write_text("hello")  # create file so parent dirs exist
+    pattern = "/".join(["*"] * depth)
+    iters = [base.glob(pattern) for j in range(100)]
+    for it in iters:
+        print(it)
+        assert next(it) == p
+    iters = [base.rglob("d") for j in range(100)]
+    p = base
+    for i in range(depth):
+        p = p / "d"
+        for it in iters:
+            assert next(it) == p
+
+
+def test_glob_exceptions(rig):
+    cp = rig.create_cloud_path("dir_0/")
+
+    # relative path with ..
+    with pytest.raises(NotImplementedError, match="Relative paths with"):
+        list(cp.glob("../hello"))
+
+    with pytest.raises(NotImplementedError, match="Relative paths with"):
+        list(cp.rglob("../hello"))
+
+    # non-relative paths
+    with pytest.raises(NotImplementedError, match="Non-relative patterns"):
+        list(cp.glob(f"{rig.path_class.cloud_prefix}bucket/path/**/*.jpg"))
+
+    with pytest.raises(NotImplementedError, match="Non-relative patterns"):
+        list(cp.glob("/path/**/*.jpg"))
+
+    with pytest.raises(NotImplementedError, match="Non-relative patterns"):
+        list(cp.rglob(f"{rig.path_class.cloud_prefix}bucket/path/**/*.jpg"))
+
+    with pytest.raises(NotImplementedError, match="Non-relative patterns"):
+        list(cp.rglob("/path/**/*.jpg"))
+
+    # file is root of glob call
+    file = rig.create_cloud_path("dir_0/file0_0.txt")
+    with pytest.raises(NotImplementedError, match="file as the root"):
+        list(file.glob("*"))
+
+    with pytest.raises(NotImplementedError, match="file as the root"):
+        list(file.rglob("*"))
 
 
 def test_is_dir_is_file(rig, tmp_path):

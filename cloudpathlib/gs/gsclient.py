@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
@@ -132,7 +132,7 @@ class GSClient(Client):
     def _exists(self, cloud_path: GSPath) -> bool:
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
-    def _list_dir(self, cloud_path: GSPath, recursive=False) -> Iterable[GSPath]:
+    def _list_dir(self, cloud_path: GSPath, recursive=False) -> Iterable[Tuple[GSPath, bool]]:
         bucket = self.client.bucket(cloud_path.bucket)
 
         prefix = cloud_path.blob
@@ -154,14 +154,17 @@ class GSClient(Client):
                     if not recursive and "/" in str(parent):
                         continue
 
-                    yield self.CloudPath(f"gs://{cloud_path.bucket}/{prefix}{parent}")
+                    yield (
+                        self.CloudPath(f"gs://{cloud_path.bucket}/{prefix}{parent}"),
+                        True,  # is a directory
+                    )
                     yielded_dirs.add(parent)
 
             # skip file if not recursive and this is beyond our depth
             if not recursive and "/" in o.name[len(prefix) :]:
                 continue
 
-            yield self.CloudPath(f"gs://{cloud_path.bucket}/{o.name}")
+            yield (self.CloudPath(f"gs://{cloud_path.bucket}/{o.name}"), False)  # is a file
 
     def _move_file(self, src: GSPath, dst: GSPath, remove_src: bool = True) -> GSPath:
         # just a touch, so "REPLACE" metadata
@@ -190,7 +193,9 @@ class GSClient(Client):
 
     def _remove(self, cloud_path: GSPath) -> None:
         if self._is_file_or_dir(cloud_path) == "dir":
-            blobs = [b.blob for b in self._list_dir(cloud_path, recursive=True) if b.is_file()]
+            blobs = [
+                b.blob for b, is_dir in self._list_dir(cloud_path, recursive=True) if not is_dir
+            ]
             bucket = self.client.bucket(cloud_path.bucket)
             for blob in blobs:
                 bucket.get_blob(blob).delete()

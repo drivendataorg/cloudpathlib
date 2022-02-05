@@ -4,7 +4,7 @@ import os
 from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, List, Optional, Tuple, Union
 
 from ..client import Client
 from .localpath import LocalPath
@@ -67,14 +67,16 @@ class LocalClient(Client):
     def _is_file(self, cloud_path: "LocalPath") -> bool:
         return self._cloud_path_to_local(cloud_path).is_file()
 
-    def _list_dir(self, cloud_path: "LocalPath", recursive=False) -> Iterable["LocalPath"]:
+    def _list_dir(
+        self, cloud_path: "LocalPath", recursive=False
+    ) -> Iterable[Tuple["LocalPath", bool]]:
         if recursive:
             return (
-                self._local_to_cloud_path(obj)
+                (self._local_to_cloud_path(obj), obj.is_dir())
                 for obj in self._cloud_path_to_local(cloud_path).glob("**/*")
             )
         return (
-            self._local_to_cloud_path(obj)
+            (self._local_to_cloud_path(obj), obj.is_dir())
             for obj in self._cloud_path_to_local(cloud_path).iterdir()
         )
 

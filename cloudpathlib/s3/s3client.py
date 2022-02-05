@@ -1,6 +1,6 @@
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, Optional, Union
+from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
 
 from ..client import Client, register_client_class
@@ -164,7 +164,7 @@ class S3Client(Client):
                 None,
             )
 
-    def _list_dir(self, cloud_path: S3Path, recursive=False) -> Iterable[S3Path]:
+    def _list_dir(self, cloud_path: S3Path, recursive=False) -> Iterable[Tuple[S3Path, bool]]:
         bucket = self.s3.Bucket(cloud_path.bucket)
 
         prefix = cloud_path.key
@@ -179,10 +179,10 @@ class S3Client(Client):
                 for parent in PurePosixPath(o.key[len(prefix) :]).parents:
                     # if we haven't surfaced their directory already
                     if parent not in yielded_dirs and str(parent) != ".":
-                        yield self.CloudPath(f"s3://{cloud_path.bucket}/{prefix}{parent}")
+                        yield (self.CloudPath(f"s3://{cloud_path.bucket}/{prefix}{parent}"), True)
                         yielded_dirs.add(parent)
 
-                yield self.CloudPath(f"s3://{o.bucket_name}/{o.key}")
+                yield (self.CloudPath(f"s3://{o.bucket_name}/{o.key}"), False)
         else:
             # non recursive is best done with old client API rather than resource
             paginator = self.client.get_paginator("list_objects")
@@ -190,14 +190,19 @@ class S3Client(Client):
             for result in paginator.paginate(
                 Bucket=cloud_path.bucket, Prefix=prefix, Delimiter="/"
             ):
-
                 # sub directory names
                 for result_prefix in result.get("CommonPrefixes", []):
-                    yield self.CloudPath(f"s3://{cloud_path.bucket}/{result_prefix.get('Prefix')}")
+                    yield (
+                        self.CloudPath(f"s3://{cloud_path.bucket}/{result_prefix.get('Prefix')}"),
+                        True,
+                    )
 
                 # files in the directory
                 for result_key in result.get("Contents", []):
-                    yield self.CloudPath(f"s3://{cloud_path.bucket}/{result_key.get('Key')}")
+                    yield (
+                        self.CloudPath(f"s3://{cloud_path.bucket}/{result_key.get('Key')}"),
+                        False,
+                    )
 
     def _move_file(self, src: S3Path, dst: S3Path, remove_src: bool = True) -> S3Path:
         # just a touch, so "REPLACE" metadata
