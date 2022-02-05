@@ -71,7 +71,6 @@ def glob_test_dirs(rig, tmp_path):
         (root / "dirC" / "dirD").mkdir()
         (root / "dirC" / "dirD" / "fileD").write_text("fileD")
         (root / "dirC" / "fileC").write_text("fileC")
-        (root / "dirE").mkdir()
         (root / "fileA").write_text("fileA")
 
     cloud_root = rig.create_cloud_path("glob-tests")
@@ -92,11 +91,36 @@ def glob_test_dirs(rig, tmp_path):
 
 def _assert_glob_results_match(cloud_results, local_results, cloud_root, local_root):
     def _lstrip_path_root(path, root):
-        return str(path)[len(str(root)) :]
+        rel_path = str(path)[len(str(root)) :]
+        return rel_path.rstrip("/")  # agnostic to trailing slash
 
-    local_results_no_root = {_lstrip_path_root(c, local_root) for c in local_results}
-    cloud_results_no_root = {_lstrip_path_root(c, cloud_root) for c in cloud_results}
-    assert local_results_no_root == cloud_results_no_root
+    local_results_no_root = [_lstrip_path_root(c, local_root) for c in local_results]
+    cloud_results_no_root = [_lstrip_path_root(c, cloud_root) for c in cloud_results]
+
+    # same number of items listed
+    assert len(cloud_results_no_root) == len(local_results_no_root)
+
+    # check that contents are the same regardless of order
+    assert set(local_results_no_root) == set(cloud_results_no_root)
+
+
+def test_iterdir(glob_test_dirs):
+    cloud_root, local_root = glob_test_dirs
+
+    # iterdir tests
+    _assert_glob_results_match(cloud_root.iterdir(), local_root.iterdir(), cloud_root, local_root)
+    _assert_glob_results_match(
+        (cloud_root / "dirC").iterdir(), (local_root / "dirC").iterdir(), cloud_root, local_root
+    )
+    _assert_glob_results_match(
+        (cloud_root / "dirB").iterdir(), (local_root / "dirB").iterdir(), cloud_root, local_root
+    )
+    _assert_glob_results_match(
+        (cloud_root / "dirC" / "dirD").iterdir(),
+        (local_root / "dirC" / "dirD").iterdir(),
+        cloud_root,
+        local_root,
+    )
 
 
 def test_glob(glob_test_dirs):
@@ -137,9 +161,12 @@ def test_glob(glob_test_dirs):
         dir_c_cloud.rglob("*/*"), dir_c_local.rglob("*/*"), dir_c_cloud, dir_c_local
     )
 
+
+def test_glob_many_open_files(rig):
     # test_glob_many_open_files
+    #  Adapted from: https://github.com/python/cpython/blob/7ffe7ba30fc051014977c6f393c51e57e71a6648/Lib/test/test_pathlib.py#L1697-L1712
     depth = 30
-    base = cloud_root / "deep"
+    base = rig.create_cloud_path("deep")
     p = base / "/".join(["d"] * depth)
     (p / "file.txt").write_text("hello")  # create file so parent dirs exist
     pattern = "/".join(["*"] * depth)
