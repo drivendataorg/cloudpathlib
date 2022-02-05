@@ -94,7 +94,7 @@ def _assert_glob_results_match(cloud_results, local_results, cloud_root, local_r
         rel_path = str(path)[len(str(root)) :]
         return rel_path.rstrip("/")  # agnostic to trailing slash
 
-    local_results_no_root = [_lstrip_path_root(c, local_root) for c in local_results]
+    local_results_no_root = [_lstrip_path_root(c.as_posix(), local_root) for c in local_results]
     cloud_results_no_root = [_lstrip_path_root(c, cloud_root) for c in cloud_results]
 
     # same number of items listed
