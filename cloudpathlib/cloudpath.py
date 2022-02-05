@@ -4,7 +4,7 @@ import collections.abc
 from contextlib import contextmanager
 import os
 from pathlib import Path, PosixPath, PurePosixPath, WindowsPath, _make_selector, _posix_flavour  # type: ignore
-from typing import Any, IO, Iterable, List, Optional, TYPE_CHECKING, Union
+from typing import Any, IO, Iterable, Dict, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -15,6 +15,7 @@ from .exceptions import (
     CloudPathFileExistsError,
     CloudPathIsADirectoryError,
     CloudPathNotADirectoryError,
+    CloudPathNotImplementedError,
     DirectoryNotEmptyError,
     IncompleteImplementationError,
     InvalidPrefixError,
@@ -306,14 +307,13 @@ class CloudPath(metaclass=CloudPathMeta):
         return self.__fspath__()
 
     def _glob_checks(self, pattern):
-        if self.is_file():
-            raise NotImplementedError("Cannot run glob with a file as the root.")
-
         if ".." in pattern:
-            raise NotImplementedError("Relative paths with '..' not supported in glob patterns.")
+            raise CloudPathNotImplementedError(
+                "Relative paths with '..' not supported in glob patterns."
+            )
 
         if pattern.startswith(self.cloud_prefix) or pattern.startswith("/"):
-            raise NotImplementedError("Non-relative patterns are unsupported")
+            raise CloudPathNotImplementedError("Non-relative patterns are unsupported")
 
     def _glob(self, selector):
         root = _CloudPathSelectable(
@@ -330,9 +330,6 @@ class CloudPath(metaclass=CloudPathMeta):
             yield self.client.CloudPath(f"{self.cloud_prefix}{self.drive}{p}")
 
     def glob(self, pattern):
-        """Iterate over this subtree and yield all existing files (of any
-        kind, including directories) matching the given relative pattern.
-        """
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
@@ -341,10 +338,6 @@ class CloudPath(metaclass=CloudPathMeta):
         yield from self._glob(selector)
 
     def rglob(self, pattern):
-        """Recursively yield all existing files (of any kind, including
-        directories) matching the given relative pattern, anywhere in
-        this subtree.
-        """
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
@@ -910,7 +903,11 @@ class _CloudPathSelectableAccessor:
 
 class _CloudPathSelectable:
     def __init__(
-        self, relative_cloud_path: PurePosixPath, children: List, is_dir: bool, exists: bool = True
+        self,
+        relative_cloud_path: PurePosixPath,
+        children: Dict[PurePosixPath, bool],
+        is_dir: bool,
+        exists: bool,
     ):
         self._path = relative_cloud_path
         self._all_children = children
@@ -939,11 +936,11 @@ class _CloudPathSelectable:
     @staticmethod
     @contextmanager
     def scandir(root):
-        results = []
-        for c, is_dir in root._all_children.items():
-            if c.parent == root._path:
-                results.append(root._make_child_relpath(c.name))
-        yield results
+        yield (
+            root._make_child_relpath(c.name)
+            for c, _ in root._all_children.items()
+            if c.parent == root._path
+        )
 
     def _filter_children(self, rel_to):
         return {

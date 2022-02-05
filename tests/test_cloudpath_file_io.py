@@ -6,7 +6,11 @@ from time import sleep
 
 import pytest
 
-from cloudpathlib.exceptions import CloudPathIsADirectoryError, DirectoryNotEmptyError
+from cloudpathlib.exceptions import (
+    CloudPathIsADirectoryError,
+    CloudPathNotImplementedError,
+    DirectoryNotEmptyError,
+)
 
 
 def test_file_discovery(rig):
@@ -186,32 +190,24 @@ def test_glob_exceptions(rig):
     cp = rig.create_cloud_path("dir_0/")
 
     # relative path with ..
-    with pytest.raises(NotImplementedError, match="Relative paths with"):
+    with pytest.raises(CloudPathNotImplementedError, match="Relative paths with"):
         list(cp.glob("../hello"))
 
-    with pytest.raises(NotImplementedError, match="Relative paths with"):
+    with pytest.raises(CloudPathNotImplementedError, match="Relative paths with"):
         list(cp.rglob("../hello"))
 
     # non-relative paths
-    with pytest.raises(NotImplementedError, match="Non-relative patterns"):
+    with pytest.raises(CloudPathNotImplementedError, match="Non-relative patterns"):
         list(cp.glob(f"{rig.path_class.cloud_prefix}bucket/path/**/*.jpg"))
 
-    with pytest.raises(NotImplementedError, match="Non-relative patterns"):
+    with pytest.raises(CloudPathNotImplementedError, match="Non-relative patterns"):
         list(cp.glob("/path/**/*.jpg"))
 
-    with pytest.raises(NotImplementedError, match="Non-relative patterns"):
+    with pytest.raises(CloudPathNotImplementedError, match="Non-relative patterns"):
         list(cp.rglob(f"{rig.path_class.cloud_prefix}bucket/path/**/*.jpg"))
 
-    with pytest.raises(NotImplementedError, match="Non-relative patterns"):
+    with pytest.raises(CloudPathNotImplementedError, match="Non-relative patterns"):
         list(cp.rglob("/path/**/*.jpg"))
-
-    # file is root of glob call
-    file = rig.create_cloud_path("dir_0/file0_0.txt")
-    with pytest.raises(NotImplementedError, match="file as the root"):
-        list(file.glob("*"))
-
-    with pytest.raises(NotImplementedError, match="file as the root"):
-        list(file.rglob("*"))
 
 
 def test_is_dir_is_file(rig, tmp_path):
