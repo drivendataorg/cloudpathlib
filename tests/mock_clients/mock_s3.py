@@ -206,6 +206,8 @@ class MockBoto3Paginator:
                 {"Prefix": str(_.relative_to(self.root).as_posix())} for _ in page if _.is_dir()
             ]
             files = [
-                {"Key": str(_.relative_to(self.root).as_posix()), "Size": os.stat(_).st_size } for _ in page if _.is_file()
+                {"Key": str(_.relative_to(self.root).as_posix()), "Size": os.stat(_).st_size}
+                for _ in page
+                if _.is_file()
             ]
             yield {"CommonPrefixes": dirs, "Contents": files}
