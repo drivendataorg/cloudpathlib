@@ -172,7 +172,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def __del__(self):
         # make sure that file handle to local path is closed
-        if self._handle is not None:
+        if hasattr(self, "_handle") and self._handle is not None:
             self._handle.close()
 
     @property
