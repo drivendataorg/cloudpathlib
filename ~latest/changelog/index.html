@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://cloudpathlib.drivendata.org/~latest/changelog/">
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.9">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.10">
     
     
       
@@ -21,7 +21,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.2b4465f4.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.d6be258b.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
@@ -352,6 +352,13 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v070-unreleased" class="md-nav__link">
+    v0.7.0 (Unreleased)
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#v065-2022-01-25" class="md-nav__link">
@@ -815,6 +822,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v070-unreleased" class="md-nav__link">
+    v0.7.0 (Unreleased)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v065-2022-01-25" class="md-nav__link">
     v0.6.5 (2022-01-25)
   </a>
@@ -937,6 +951,11 @@
 
 
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
+<h2 id="v070-unreleased">v0.7.0 (Unreleased)<a class="headerlink" href="#v070-unreleased" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Re-implemented <code>glob</code> and <code>rglob</code> functions to use pathlib's globbing logic rather than fnmatch; update <code>iterdir</code> to not include self. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/154">Issue #154</a>, <a href="https://github.com/drivendataorg/cloudpathlib/issues/15">Issue #15</a>)</li>
+<li>Drop support for Python 3.6 <a href="https://github.com/drivendataorg/cloudpathlib/issues/186">Issue #186</a></li>
+</ul>
 <h2 id="v065-2022-01-25">v0.6.5 (2022-01-25)<a class="headerlink" href="#v065-2022-01-25" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Fixed error when "directories" created on AWS S3 were reported as files. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/148">Issue #148</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/190">PR #190</a>)</li>
@@ -1086,10 +1105,10 @@
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.22074ed6.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.092fa1f6.min.js", "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.960e086b.min.js"></script>
+      <script src="../assets/javascripts/bundle.e3b2bf44.min.js"></script>
       
     
   </body>

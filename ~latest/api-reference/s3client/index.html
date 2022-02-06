@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://cloudpathlib.drivendata.org/~latest/api-reference/s3client/">
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.9">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.10">
     
     
       
@@ -21,7 +21,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.2b4465f4.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.d6be258b.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.e6a45f82.min.css">
@@ -972,7 +972,7 @@ for detailed authentication options.</p>
                 <span class="kc">None</span><span class="p">,</span>
             <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">S3Path</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">S3Path</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
         <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
 
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span>
@@ -987,10 +987,10 @@ for detailed authentication options.</p>
                 <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">key</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:])</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
                     <span class="c1"># if we haven&#39;t surfaced their directory already</span>
                     <span class="k">if</span> <span class="n">parent</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">yielded_dirs</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
-                        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">parent</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">yield</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">parent</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span> <span class="kc">True</span><span class="p">)</span>
                         <span class="n">yielded_dirs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
 
-                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># non recursive is best done with old client API rather than resource</span>
             <span class="n">paginator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_paginator</span><span class="p">(</span><span class="s2">&quot;list_objects&quot;</span><span class="p">)</span>
@@ -998,14 +998,19 @@ for detailed authentication options.</p>
             <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">paginator</span><span class="o">.</span><span class="n">paginate</span><span class="p">(</span>
                 <span class="n">Bucket</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span> <span class="n">Delimiter</span><span class="o">=</span><span class="s2">&quot;/&quot;</span>
             <span class="p">):</span>
-
                 <span class="c1"># sub directory names</span>
                 <span class="k">for</span> <span class="n">result_prefix</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CommonPrefixes&quot;</span><span class="p">,</span> <span class="p">[]):</span>
-                    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">result_prefix</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Prefix&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">yield</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">result_prefix</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Prefix&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                        <span class="kc">True</span><span class="p">,</span>
+                    <span class="p">)</span>
 
                 <span class="c1"># files in the directory</span>
                 <span class="k">for</span> <span class="n">result_key</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Contents&quot;</span><span class="p">,</span> <span class="p">[]):</span>
-                    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">result_key</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Key&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">yield</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">result_key</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Key&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                        <span class="kc">False</span><span class="p">,</span>
+                    <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_move_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">remove_src</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">S3Path</span><span class="p">:</span>
         <span class="c1"># just a touch, so &quot;REPLACE&quot; metadata</span>
@@ -1409,10 +1414,10 @@ instances for this cloud without a client specified.</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.22074ed6.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.092fa1f6.min.js", "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.960e086b.min.js"></script>
+      <script src="../../assets/javascripts/bundle.e3b2bf44.min.js"></script>
       
     
   </body>

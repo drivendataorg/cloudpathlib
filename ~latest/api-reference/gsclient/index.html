@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://cloudpathlib.drivendata.org/~latest/api-reference/gsclient/">
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.9">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-8.1.10">
     
     
       
@@ -21,7 +21,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.2b4465f4.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.d6be258b.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.e6a45f82.min.css">
@@ -939,7 +939,7 @@ options.</p>
     <span class="k">def</span> <span class="nf">_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="s2">&quot;dir&quot;</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">GSPath</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">GSPath</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
         <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
 
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span>
@@ -961,14 +961,17 @@ options.</p>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">recursive</span> <span class="ow">and</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">parent</span><span class="p">):</span>
                         <span class="k">continue</span>
 
-                    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;gs://</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">parent</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">yield</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;gs://</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">parent</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                        <span class="kc">True</span><span class="p">,</span>  <span class="c1"># is a directory</span>
+                    <span class="p">)</span>
                     <span class="n">yielded_dirs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
 
             <span class="c1"># skip file if not recursive and this is beyond our depth</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">recursive</span> <span class="ow">and</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:]:</span>
                 <span class="k">continue</span>
 
-            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;gs://</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;gs://</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>  <span class="c1"># is a file</span>
 
     <span class="k">def</span> <span class="nf">_move_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">,</span> <span class="n">remove_src</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GSPath</span><span class="p">:</span>
         <span class="c1"># just a touch, so &quot;REPLACE&quot; metadata</span>
@@ -997,7 +1000,9 @@ options.</p>
 
     <span class="k">def</span> <span class="nf">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;dir&quot;</span><span class="p">:</span>
-            <span class="n">blobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="o">.</span><span class="n">blob</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">is_file</span><span class="p">()]</span>
+            <span class="n">blobs</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">b</span><span class="o">.</span><span class="n">blob</span> <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">is_dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">is_dir</span>
+            <span class="p">]</span>
             <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">blob</span> <span class="ow">in</span> <span class="n">blobs</span><span class="p">:</span>
                 <span class="n">bucket</span><span class="o">.</span><span class="n">get_blob</span><span class="p">(</span><span class="n">blob</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
@@ -1327,10 +1332,10 @@ instances for this cloud without a client specified.</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.22074ed6.min.js", "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.092fa1f6.min.js", "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.960e086b.min.js"></script>
+      <script src="../../assets/javascripts/bundle.e3b2bf44.min.js"></script>
       
     
   </body>
