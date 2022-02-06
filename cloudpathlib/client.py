@@ -2,7 +2,7 @@ import abc
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Generic, Callable, Iterable, Optional, TypeVar, Union
+from typing import Generic, Callable, Iterable, Optional, Tuple, TypeVar, Union
 
 from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 
@@ -70,7 +70,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     @abc.abstractmethod
     def _list_dir(
         self, cloud_path: BoundedCloudPath, recursive: bool
-    ) -> Iterable[BoundedCloudPath]:
+    ) -> Iterable[Tuple[BoundedCloudPath, bool]]:
         """List all the files and folders in a directory.
 
         Parameters
@@ -79,6 +79,11 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
             The folder to start from.
         recursive : bool
             Whether or not to list recursively.
+
+        Returns
+        -------
+        contents : Iterable[Tuple]
+            Of the form [(CloudPath, is_dir), ...] for every child of the dir.
         """
         pass
 

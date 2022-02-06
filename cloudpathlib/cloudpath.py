@@ -1,10 +1,10 @@
 import abc
 from collections import defaultdict
 import collections.abc
-import fnmatch
+from contextlib import contextmanager
 import os
-from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
-from typing import Any, IO, Iterable, Optional, TYPE_CHECKING, Union
+from pathlib import Path, PosixPath, PurePosixPath, WindowsPath, _make_selector, _posix_flavour  # type: ignore
+from typing import Any, IO, Iterable, Dict, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -15,6 +15,7 @@ from .exceptions import (
     CloudPathFileExistsError,
     CloudPathIsADirectoryError,
     CloudPathNotADirectoryError,
+    CloudPathNotImplementedError,
     DirectoryNotEmptyError,
     IncompleteImplementationError,
     InvalidPrefixError,
@@ -305,28 +306,49 @@ class CloudPath(metaclass=CloudPathMeta):
     def fspath(self) -> str:
         return self.__fspath__()
 
-    def glob(self, pattern: str) -> Iterable["CloudPath"]:
-        # strip cloud prefix from pattern if it is included
-        if pattern.startswith(self.cloud_prefix):
-            pattern = pattern[len(self.cloud_prefix) :]
+    def _glob_checks(self, pattern):
+        if ".." in pattern:
+            raise CloudPathNotImplementedError(
+                "Relative paths with '..' not supported in glob patterns."
+            )
 
-        # strip "drive" from pattern if it is included
-        if pattern.startswith(self.drive + "/"):
-            pattern = pattern[len(self.drive + "/") :]
+        if pattern.startswith(self.cloud_prefix) or pattern.startswith("/"):
+            raise CloudPathNotImplementedError("Non-relative patterns are unsupported")
 
-        # identify if pattern is recursive or not
-        recursive = False
-        if pattern.startswith("**/"):
-            pattern = pattern.split("/", 1)[-1]
-            recursive = True
+    def _glob(self, selector):
+        root = _CloudPathSelectable(
+            PurePosixPath(self._no_prefix_no_drive),
+            {
+                PurePosixPath(c._no_prefix_no_drive): is_dir
+                for c, is_dir in self.client._list_dir(self, recursive=True)
+            },
+            is_dir=True,
+            exists=True,
+        )
 
-        for f in self.client._list_dir(self, recursive=recursive):
-            if fnmatch.fnmatch(f._no_prefix_no_drive, pattern):
-                yield f
+        for p in selector.select_from(root):
+            yield self.client.CloudPath(f"{self.cloud_prefix}{self.drive}{p}")
+
+    def glob(self, pattern):
+        self._glob_checks(pattern)
+
+        pattern_parts = PurePosixPath(pattern).parts
+        selector = _make_selector(tuple(pattern_parts), _posix_flavour)
+
+        yield from self._glob(selector)
+
+    def rglob(self, pattern):
+        self._glob_checks(pattern)
+
+        pattern_parts = PurePosixPath(pattern).parts
+        selector = _make_selector(("**",) + tuple(pattern_parts), _posix_flavour)
+
+        yield from self._glob(selector)
 
     def iterdir(self) -> Iterable["CloudPath"]:
-        for f in self.client._list_dir(self, recursive=False):
-            yield f
+        for f, _ in self.client._list_dir(self, recursive=False):
+            if f != self:  # iterdir does not include itself in pathlib
+                yield f
 
     def open(
         self,
@@ -410,9 +432,6 @@ class CloudPath(metaclass=CloudPathMeta):
         # for cloud services replace == rename since we don't just rename,
         # we actually move files
         return self.replace(target)
-
-    def rglob(self, pattern: str) -> Iterable["CloudPath"]:
-        return self.glob("**/" + pattern)
 
     def rmdir(self):
         if self.is_file():
@@ -866,3 +885,85 @@ def _resolve(path: PurePosixPath) -> str:
         newpath = newpath + sep + name
 
     return newpath or sep
+
+
+# These objects are used to wrap CloudPaths in a context where we can use
+# the python pathlib implementations for `glob` and `rglob`, which depend
+# on the Selector created by the `_make_selector` method being passed
+# an object like the below when `select_from` is called. We implement these methods
+# in a simple wrapper to use the same glob recursion and pattern logic without
+# rolling our own.
+#
+# Designed to be compatible when used by these selector implementations from pathlib:
+# https://github.com/python/cpython/blob/3.10/Lib/pathlib.py#L385-L500
+class _CloudPathSelectableAccessor:
+    def __init__(self, scandir_func):
+        self.scandir = scandir_func
+
+
+class _CloudPathSelectable:
+    def __init__(
+        self,
+        relative_cloud_path: PurePosixPath,
+        children: Dict[PurePosixPath, bool],
+        is_dir: bool,
+        exists: bool,
+    ):
+        self._path = relative_cloud_path
+        self._all_children = children
+
+        self._accessor = _CloudPathSelectableAccessor(self.scandir)
+
+        self._is_dir = is_dir
+        self._exists = exists
+
+    def __repr__(self):
+        return str(self._path)
+
+    def is_dir(self):
+        return self._is_dir
+
+    def exists(self):
+        return self._exists
+
+    def is_symlink(self):
+        return False
+
+    @property
+    def name(self):
+        return self._path.name
+
+    @staticmethod
+    @contextmanager
+    def scandir(root):
+        yield (
+            root._make_child_relpath(c.name)
+            for c, _ in root._all_children.items()
+            if c.parent == root._path
+        )
+
+    def _filter_children(self, rel_to):
+        return {
+            c: is_dir
+            for c, is_dir in self._all_children.items()
+            if self._is_relative_to(c, rel_to)
+        }
+
+    @staticmethod
+    def _is_relative_to(maybe_child, maybe_parent):
+        try:
+            maybe_child.relative_to(maybe_parent)
+            return True
+        except ValueError:
+            return False
+
+    def _make_child_relpath(self, part):
+        child = self._path / part
+        filtered_children = self._filter_children(child)
+
+        return _CloudPathSelectable(
+            child,
+            filtered_children,
+            is_dir=self._all_children.get(child, False),
+            exists=child in self._all_children,
+        )
