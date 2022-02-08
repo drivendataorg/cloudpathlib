@@ -953,8 +953,11 @@
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
 <h2 id="v070-unreleased">v0.7.0 (Unreleased)<a class="headerlink" href="#v070-unreleased" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Re-implemented <code>glob</code> and <code>rglob</code> functions to use pathlib's globbing logic rather than fnmatch; update <code>iterdir</code> to not include self. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/154">Issue #154</a>, <a href="https://github.com/drivendataorg/cloudpathlib/issues/15">Issue #15</a>)</li>
-<li>Drop support for Python 3.6 <a href="https://github.com/drivendataorg/cloudpathlib/issues/186">Issue #186</a></li>
+<li>Fixed <code>glob</code> and <code>rglob</code> functions by using pathlib's globbing logic rather than fnmatch. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/154">Issue #154</a>)</li>
+<li>Fixed <code>iterdir</code> to not include self. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/15">Issue #15</a>)</li>
+<li>Fixed error when calling <code>suffix</code> and <code>suffixes</code> on a cloud path with no suffix. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/120">Issue #120</a>)</li>
+<li>Changed <code>parents</code> return type from list to tuple, to better match pathlib's tuple-like <code>_PathParents</code> return type.</li>
+<li>Remove support for Python 3.6. <a href="https://github.com/drivendataorg/cloudpathlib/issues/186">Issue #186</a></li>
 </ul>
 <h2 id="v065-2022-01-25">v0.6.5 (2022-01-25)<a class="headerlink" href="#v065-2022-01-25" title="Permanent link">&para;</a></h2>
 <ul>

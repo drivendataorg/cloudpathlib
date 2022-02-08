@@ -1752,14 +1752,21 @@ storage URI (e.g., <code>"s3://"</code>).</p>
             <span class="n">path_version</span> <span class="o">=</span> <span class="n">_resolve</span><span class="p">(</span><span class="n">path_version</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_cloudpath</span><span class="p">(</span><span class="n">path_version</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_version</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Sequence</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
-            <span class="n">path_version</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">PurePosixPath</span>
+        <span class="c1"># When sequence of PurePosixPath, we want to convert to sequence of CloudPaths</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_version</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Sequence</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_version</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_version</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">PurePosixPath</span><span class="p">)</span>
         <span class="p">):</span>
-            <span class="k">return</span> <span class="p">[</span>
+            <span class="n">sequence_class</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">type</span><span class="p">(</span><span class="n">path_version</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_version</span><span class="p">,</span> <span class="n">_PathParents</span><span class="p">)</span> <span class="k">else</span> <span class="nb">tuple</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">sequence_class</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_new_cloudpath</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">path_version</span> <span class="k">if</span> <span class="n">_resolve</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">!=</span> <span class="n">p</span><span class="o">.</span><span class="n">root</span>
-            <span class="p">]</span>
+            <span class="p">)</span>
 
-        <span class="c1"># when pathlib returns a string, etc. we probably just want that thing</span>
+        <span class="c1"># when pathlib something else, we probably just want that thing</span>
+        <span class="c1"># cases this should include: str, empty sequence, sequence of str, ...</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">path_version</span>
 
