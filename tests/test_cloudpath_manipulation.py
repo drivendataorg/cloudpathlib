@@ -34,13 +34,13 @@ def test_joins(rig):
     assert rig.create_cloud_path("a/b/c/d").anchor == rig.cloud_prefix
     assert rig.create_cloud_path("a/b/c/d").parent == rig.create_cloud_path("a/b/c")
 
-    assert rig.create_cloud_path("a/b/c/d").parents == [
+    assert rig.create_cloud_path("a/b/c/d").parents == (
         rig.create_cloud_path("a/b/c"),
         rig.create_cloud_path("a/b"),
         rig.create_cloud_path("a"),
         rig.path_class(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}"),
         rig.path_class(f"{rig.cloud_prefix}{rig.drive}"),
-    ]
+    )
 
     assert rig.create_cloud_path("a").joinpath("b", "c") == rig.create_cloud_path("a/b/c")
 

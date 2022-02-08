@@ -3,7 +3,15 @@ from collections import defaultdict
 import collections.abc
 from contextlib import contextmanager
 import os
-from pathlib import Path, PosixPath, PurePosixPath, WindowsPath, _make_selector, _posix_flavour  # type: ignore
+from pathlib import (  # type: ignore
+    Path,
+    PosixPath,
+    PurePosixPath,
+    WindowsPath,
+    _make_selector,
+    _posix_flavour,
+    _PathParents,
+)
 from typing import Any, IO, Iterable, Dict, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
@@ -507,7 +515,9 @@ class CloudPath(metaclass=CloudPathMeta):
             and len(path_version) > 0
             and isinstance(path_version[0], PurePosixPath)
         ):
-            sequence_class = type(path_version)
+            sequence_class = (
+                type(path_version) if not isinstance(path_version, _PathParents) else tuple
+            )
             return sequence_class(
                 self._new_cloudpath(_resolve(p)) for p in path_version if _resolve(p) != p.root
             )
