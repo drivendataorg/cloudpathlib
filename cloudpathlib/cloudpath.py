@@ -3,7 +3,15 @@ from collections import defaultdict
 import collections.abc
 from contextlib import contextmanager
 import os
-from pathlib import Path, PosixPath, PurePosixPath, WindowsPath, _make_selector, _posix_flavour  # type: ignore
+from pathlib import (  # type: ignore
+    Path,
+    PosixPath,
+    PurePosixPath,
+    WindowsPath,
+    _make_selector,
+    _posix_flavour,
+    _PathParents,
+)
 from typing import Any, IO, Iterable, Dict, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
@@ -501,14 +509,21 @@ class CloudPath(metaclass=CloudPathMeta):
             path_version = _resolve(path_version)
             return self._new_cloudpath(path_version)
 
-        if isinstance(path_version, collections.abc.Sequence) and isinstance(
-            path_version[0], PurePosixPath
+        # When sequence of PurePosixPath, we want to convert to sequence of CloudPaths
+        if (
+            isinstance(path_version, collections.abc.Sequence)
+            and len(path_version) > 0
+            and isinstance(path_version[0], PurePosixPath)
         ):
-            return [
+            sequence_class = (
+                type(path_version) if not isinstance(path_version, _PathParents) else tuple
+            )
+            return sequence_class(
                 self._new_cloudpath(_resolve(p)) for p in path_version if _resolve(p) != p.root
-            ]
+            )
 
-        # when pathlib returns a string, etc. we probably just want that thing
+        # when pathlib something else, we probably just want that thing
+        # cases this should include: str, empty sequence, sequence of str, ...
         else:
             return path_version
 
