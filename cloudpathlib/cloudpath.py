@@ -501,14 +501,19 @@ class CloudPath(metaclass=CloudPathMeta):
             path_version = _resolve(path_version)
             return self._new_cloudpath(path_version)
 
-        if isinstance(path_version, collections.abc.Sequence) and isinstance(
-            path_version[0], PurePosixPath
+        # When sequence of PurePosixPath, we want to convert to sequence of CloudPaths
+        if (
+            isinstance(path_version, collections.abc.Sequence)
+            and len(path_version) > 0
+            and isinstance(path_version[0], PurePosixPath)
         ):
-            return [
+            sequence_class = type(path_version)
+            return sequence_class(
                 self._new_cloudpath(_resolve(p)) for p in path_version if _resolve(p) != p.root
-            ]
+            )
 
-        # when pathlib returns a string, etc. we probably just want that thing
+        # when pathlib something else, we probably just want that thing
+        # cases this should include: str, empty sequence, sequence of str, ...
         else:
             return path_version
 

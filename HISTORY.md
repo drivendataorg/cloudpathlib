@@ -2,18 +2,21 @@
 
 ## v0.7.0 (Unreleased)
 
- - Re-implemented `glob` and `rglob` functions to use pathlib's globbing logic rather than fnmatch; update `iterdir` to not include self. ([Issue #154](https://github.com/drivendataorg/cloudpathlib/issues/154), [Issue #15](https://github.com/drivendataorg/cloudpathlib/issues/15))
- - Drop support for Python 3.6 [Issue #186](https://github.com/drivendataorg/cloudpathlib/issues/186)
+- Fixed `glob` and `rglob` functions by using pathlib's globbing logic rather than fnmatch. ([Issue #154](https://github.com/drivendataorg/cloudpathlib/issues/154))
+- Fixed `iterdir` to not include self. ([Issue #15](https://github.com/drivendataorg/cloudpathlib/issues/15))
+- Fixed error when calling `suffix` and `suffixes` on a cloud path with no suffix. ([Issue #120](https://github.com/drivendataorg/cloudpathlib/issues/120))
+- Remove support for Python 3.6. [Issue #186](https://github.com/drivendataorg/cloudpathlib/issues/186)
+
 
 ## v0.6.5 (2022-01-25)
 
- - Fixed error when "directories" created on AWS S3 were reported as files. ([Issue #148](https://github.com/drivendataorg/cloudpathlib/issues/148), [PR #190](https://github.com/drivendataorg/cloudpathlib/pull/190))
- - Fixed bug where GCE machines can instantiate default client, but we don't attempt it. ([Issue #191](https://github.com/drivendataorg/cloudpathlib/issues/191)
- - Support `AWS_ENDPOINT_URL` environment variable to set the `endpoint_url` for `S3Client`. ([PR #193](https://github.com/drivendataorg/cloudpathlib/pull/193))
+- Fixed error when "directories" created on AWS S3 were reported as files. ([Issue #148](https://github.com/drivendataorg/cloudpathlib/issues/148), [PR #190](https://github.com/drivendataorg/cloudpathlib/pull/190))
+- Fixed bug where GCE machines can instantiate default client, but we don't attempt it. ([Issue #191](https://github.com/drivendataorg/cloudpathlib/issues/191)
+- Support `AWS_ENDPOINT_URL` environment variable to set the `endpoint_url` for `S3Client`. ([PR #193](https://github.com/drivendataorg/cloudpathlib/pull/193))
 
 ## v0.6.4 (2021-12-29)
 
- - Fixed error where `BlobProperties` type hint causes import error if Azure dependencies not installed.
+- Fixed error where `BlobProperties` type hint causes import error if Azure dependencies not installed.
 
 ## v0.6.3 (2021-12-29)
 

@@ -1,17 +1,29 @@
 import pytest
 
 
-def test_joins(rig):
+def test_properties(rig):
     assert rig.create_cloud_path("a/b/c/d").name == "d"
     assert rig.create_cloud_path("a/b/c/d.file").name == "d.file"
+
+    assert rig.create_cloud_path("a/b/c/d").stem == "d"
     assert rig.create_cloud_path("a/b/c/d.file").stem == "d"
+
+    assert rig.create_cloud_path("a/b/c/d").suffix == ""
     assert rig.create_cloud_path("a/b/c/d.file").suffix == ".file"
+
+    assert rig.create_cloud_path("a/b/c/d").suffixes == []
+    assert rig.create_cloud_path("a/b/c/d.tar").suffixes == [".tar"]
     assert rig.create_cloud_path("a/b/c/d.tar.gz").suffixes == [".tar", ".gz"]
+
+
+def test_with_suffix(rig):
     assert (
         str(rig.create_cloud_path("a/b/c/d.file").with_suffix(".png"))
         == f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/a/b/c/d.png"
     )
 
+
+def test_joins(rig):
     assert rig.create_cloud_path("a") / "b" == rig.create_cloud_path("a/b")
     assert rig.create_cloud_path("a/b/c/d") / "../../b" == rig.create_cloud_path("a/b/b")
 
