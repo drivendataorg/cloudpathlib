@@ -12,7 +12,7 @@ from pathlib import (  # type: ignore
     _posix_flavour,
     _PathParents,
 )
-from typing import Any, IO, Iterable, Dict, Optional, TYPE_CHECKING, Union
+from typing import Any, IO, Iterable, Dict, Iterator, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -85,7 +85,7 @@ def register_path_class(key: str):
     return decorator
 
 
-class CloudPathMeta(abc.ABCMeta):
+class CloudPathMeta(type):
     def __call__(cls, cloud_path, *args, **kwargs):
         # cls is a class that is the instance of this metaclass, e.g., CloudPath
 
@@ -353,7 +353,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
         yield from self._glob(selector)
 
-    def iterdir(self) -> Iterable["CloudPath"]:
+    def iterdir(self) -> Iterator["CloudPath"]:
         for f, _ in self.client._list_dir(self, recursive=False):
             if f != self:  # iterdir does not include itself in pathlib
                 yield f
@@ -602,7 +602,6 @@ class CloudPath(metaclass=CloudPathMeta):
         else:
             return path_version
 
-    @property
     def stat(self):
         """Note: for many clients, we may want to override so we don't incur
         network costs since many of these properties are available as
