@@ -587,22 +587,21 @@ class CloudPath(metaclass=CloudPathMeta):
         return self._dispatch_to_local_cache_path("read_text")
 
     # ===========  public cloud methods, not in pathlib ===============
-    def download_to(self, destination: Union[str, os.PathLike]) -> Path:
+    def download_to(self, destination: Union[str, os.PathLike], parents=False) -> Path:
         destination = Path(destination)
         if self.is_file():
             if destination.is_dir():
                 destination = destination / self.name
             return self.client._download_file(self, destination)
         else:
-            destination.mkdir(parents=True, exist_ok=True)
+            destination.mkdir(parents=parents, exist_ok=True)
             for f in self.iterdir():
                 rel = str(self)
                 if not rel.endswith("/"):
                     rel = rel + "/"
 
                 rel_dest = str(f)[len(rel) :]
-                if rel_dest != "":
-                    f.download_to(destination / rel_dest)
+                f.download_to(destination / rel_dest)
 
             return destination
 
