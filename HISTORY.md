@@ -1,6 +1,6 @@
 # cloudpathlib Changelog
 
-## v0.7.0 (Unreleased)
+## v0.7.0 (2022-02-16)
 
 - Fixed `glob` and `rglob` functions by using pathlib's globbing logic rather than fnmatch. ([Issue #154](https://github.com/drivendataorg/cloudpathlib/issues/154))
 - Fixed `iterdir` to not include self. ([Issue #15](https://github.com/drivendataorg/cloudpathlib/issues/15))
