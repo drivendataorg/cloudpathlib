@@ -220,7 +220,7 @@ class AzureBlobClient(Client):
             container=cloud_path.container, blob=cloud_path.blob
         )
 
-        blob.upload_blob(Path(local_path).read_bytes(), overwrite=True)
+        blob.upload_blob(Path(local_path).read_bytes(), overwrite=True) # type: ignore
 
         return cloud_path
 
