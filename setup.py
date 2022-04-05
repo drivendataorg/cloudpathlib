@@ -3,7 +3,7 @@
 """The setup script."""
 
 from collections import defaultdict
-from setuptools import setup
+from setuptools import setup, find_packages
 from itertools import chain
 from pathlib import Path
 
@@ -53,7 +53,7 @@ setup(
     long_description_content_type="text/markdown",
     include_package_data=True,
     name="cloudpathlib",
-    packages=["cloudpathlib"],
+    packages=find_packages(exclude=["tests"]),
     project_urls={
         "Bug Tracker": "https://github.com/drivendataorg/cloudpathlib/issues",
         "Documentation": "https://cloudpathlib.drivendata.org/",
