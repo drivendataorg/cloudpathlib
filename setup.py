@@ -53,7 +53,7 @@ setup(
     long_description_content_type="text/markdown",
     include_package_data=True,
     name="cloudpathlib",
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests"]),
     project_urls={
         "Bug Tracker": "https://github.com/drivendataorg/cloudpathlib/issues",
         "Documentation": "https://cloudpathlib.drivendata.org/",
