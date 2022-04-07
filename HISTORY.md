@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## v0.7.1 (2022-04-06)
+
+- Fixed inadvertent inclusion of tests module in package. ([Issue #173](https://github.com/drivendataorg/cloudpathlib/issues/173), [PR #219](https://github.com/drivendataorg/cloudpathlib/pull/219))
+
 ## v0.7.0 (2022-02-16)
 
 - Fixed `glob` and `rglob` functions by using pathlib's globbing logic rather than fnmatch. ([Issue #154](https://github.com/drivendataorg/cloudpathlib/issues/154))
@@ -7,7 +11,6 @@
 - Fixed error when calling `suffix` and `suffixes` on a cloud path with no suffix. ([Issue #120](https://github.com/drivendataorg/cloudpathlib/issues/120))
 - Changed `parents` return type from list to tuple, to better match pathlib's tuple-like `_PathParents` return type.
 - Remove support for Python 3.6. [Issue #186](https://github.com/drivendataorg/cloudpathlib/issues/186)
-
 
 ## v0.6.5 (2022-01-25)
 

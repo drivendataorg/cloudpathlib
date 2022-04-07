@@ -35,7 +35,7 @@ readme = Path("README.md").read_text(encoding="UTF-8")
 setup(
     author="DrivenData",
     author_email="info@drivendata.org",
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
@@ -60,5 +60,5 @@ setup(
         "Source Code": "https://github.com/drivendataorg/cloudpathlib",
     },
     url="https://github.com/drivendataorg/cloudpathlib",
-    version="0.7.0",
+    version="0.7.1",
 )
