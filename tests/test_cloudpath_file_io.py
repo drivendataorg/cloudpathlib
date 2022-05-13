@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 from pathlib import PurePosixPath
+import pickle
 from shutil import rmtree
 from time import sleep
 
@@ -309,3 +310,21 @@ def test_os_open(rig):
     p = rig.create_cloud_path("dir_0/file0_0.txt")
     with open(p, "r") as f:
         assert f.readable()
+
+
+def test_pickle(rig, tmpdir):
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
+
+    with (tmpdir / "test.pkl").open("wb") as f:
+        pickle.dump(p, f)
+
+    with (tmpdir / "test.pkl").open("rb") as f:
+        pickled = pickle.load(f)
+
+    # test a call to the network
+    assert pickled.exists()
+
+    # check we unpickled, and that client is the default client
+    assert str(pickled) == str(p)
+    assert pickled.client == p.client
+    assert rig.client_class._default_client == pickled.client
