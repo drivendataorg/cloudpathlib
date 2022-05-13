@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## v0.7.2 (UNRELEASED)
+
+ - Fixed pickling of `CloudPath` objects not working. ([Issue #223](https://github.com/drivendataorg/cloudpathlib/issues/223), [PR #224](https://github.com/drivendataorg/cloudpathlib/pull/224))
+
 ## v0.7.1 (2022-04-06)
 
 - Fixed inadvertent inclusion of tests module in package. ([Issue #173](https://github.com/drivendataorg/cloudpathlib/issues/173), [PR #219](https://github.com/drivendataorg/cloudpathlib/pull/219))
