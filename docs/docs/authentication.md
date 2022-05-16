@@ -147,9 +147,9 @@ assert pickled2.exists()
 assert pickled2.client == client
 ```
 
-# Other `Client` settings
+## Other `Client` settings
 
-## Content type guessing (`content_type_method`)
+### Content type guessing (`content_type_method`)
 
 All of the clients support passing a `content_type_method` when they are instantiated.  
 This is a method that is used to guess the [MIME (media) type](https://en.wikipedia.org/wiki/Media_type)
