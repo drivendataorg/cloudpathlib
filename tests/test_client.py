@@ -5,6 +5,7 @@ import random
 import string
 
 from cloudpathlib import CloudPath
+from cloudpathlib.s3.s3client import S3Client
 
 
 def test_default_client_instantiation(rig):
@@ -97,7 +98,11 @@ def test_content_type_setting(rig, tmpdir):
     # see if testing custom s3 endpoint, make sure to pass the url to the constructor
     kwargs = {}
     custom_endpoint = os.getenv("CUSTOM_S3_ENDPOINT", "https://s3.us-west-1.drivendatabws.com")
-    if custom_endpoint in rig.create_cloud_path("").client.client._endpoint.host:
+    if (
+        rig.client_class is S3Client
+        and rig.live_server
+        and custom_endpoint in rig.create_cloud_path("").client.client._endpoint.host
+    ):
         kwargs["endpoint_url"] = custom_endpoint
 
     # set up default client to use content_type_method
