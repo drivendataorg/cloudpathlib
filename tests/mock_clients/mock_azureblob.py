@@ -89,6 +89,9 @@ class MockStorageStreamDownloader:
     def readall(self):
         return (self.root / self.key).read_bytes()
 
+    def content_as_bytes(self):
+        return self.readall()
+
 
 class MockContainerClient:
     def __init__(self, root):

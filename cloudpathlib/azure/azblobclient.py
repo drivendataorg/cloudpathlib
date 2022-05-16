@@ -109,7 +109,7 @@ class AzureBlobClient(Client):
 
         local_path.parent.mkdir(exist_ok=True, parents=True)
 
-        local_path.write_bytes(download_stream.readall())
+        local_path.write_bytes(download_stream.content_as_bytes())
 
         return local_path
 
