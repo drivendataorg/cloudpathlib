@@ -1,4 +1,5 @@
 import mimetypes
+import os
 from pathlib import Path
 import random
 import string
@@ -83,7 +84,7 @@ def test_content_type_setting(rig, tmpdir):
     for suffix, content_type in mimes:
         _test_write_content_type(suffix, content_type, rig, check=False)
 
-    # custom mimetype method
+    # custom mime type method
     def my_content_type(path):
         # do lookup for content types I define; fallback to
         # guess_type for anything else
@@ -93,8 +94,14 @@ def test_content_type_setting(rig, tmpdir):
 
     mimes.append((".potato", "application/potato"))
 
-    # update rig to use custom client
-    rig.client_class(content_type_method=my_content_type).set_as_default_client()
+    # see if testing custom s3 endpoint, make sure to pass the url to the constructor
+    kwargs = {}
+    custom_endpoint = os.getenv("CUSTOM_S3_ENDPOINT", "https://s3.us-west-1.drivendatabws.com")
+    if custom_endpoint in rig.create_cloud_path("").client.client._endpoint.host:
+        kwargs["endpoint_url"] = custom_endpoint
+
+    # set up default client to use content_type_method
+    rig.client_class(content_type_method=my_content_type, **kwargs).set_as_default_client()
 
     for suffix, content_type in mimes:
         _test_write_content_type(suffix, content_type, rig)
