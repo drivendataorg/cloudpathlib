@@ -1,5 +1,8 @@
 import mimetypes
 from pathlib import Path
+import random
+import string
+
 from cloudpathlib import CloudPath
 
 
@@ -46,6 +49,8 @@ def test_different_clients(rig):
 
 
 def test_content_type_setting(rig, tmpdir):
+    random.seed(1337)  # reproducible file names
+
     mimes = [
         (".css", "text/css"),
         (".html", "text/html"),
@@ -57,7 +62,7 @@ def test_content_type_setting(rig, tmpdir):
     ]
 
     def _test_write_content_type(suffix, expected, rig_ref, check=True):
-        filename = "test" + suffix
+        filename = "".join(random.choices(string.ascii_letters, k=8)) + suffix
         filepath = Path(tmpdir / filename)
         filepath.write_text("testing")
 
