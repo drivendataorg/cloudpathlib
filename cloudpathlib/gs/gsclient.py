@@ -1,7 +1,8 @@
 from datetime import datetime
+import mimetypes
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
@@ -34,6 +35,7 @@ class GSClient(Client):
         project: Optional[str] = None,
         storage_client: Optional["StorageClient"] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
+        content_type_method: Optional[Callable] = mimetypes.guess_type,
     ):
         """Class constructor. Sets up a [`Storage
         Client`](https://googleapis.dev/python/storage/latest/client.html).
@@ -81,6 +83,8 @@ class GSClient(Client):
             except DefaultCredentialsError:
                 self.client = StorageClient.create_anonymous_client()
 
+        self.content_type_method = content_type_method
+
         super().__init__(local_cache_dir=local_cache_dir)
 
     def _get_metadata(self, cloud_path: GSPath) -> Optional[Dict[str, Any]]:
@@ -94,6 +98,7 @@ class GSClient(Client):
                 "etag": blob.etag,
                 "size": blob.size,
                 "updated": blob.updated,
+                "content_type": blob.content_type,
             }
 
     def _download_file(self, cloud_path: GSPath, local_path: Union[str, os.PathLike]) -> Path:
@@ -207,7 +212,12 @@ class GSClient(Client):
         bucket = self.client.bucket(cloud_path.bucket)
         blob = bucket.blob(cloud_path.blob)
 
-        blob.upload_from_filename(str(local_path))
+        extra_args = {}
+        if self.content_type_method is not None:
+            content_type, _ = self.content_type_method(str(local_path))
+            extra_args["content_type"] = content_type
+
+        blob.upload_from_filename(str(local_path), **extra_args)
         return cloud_path
 
 

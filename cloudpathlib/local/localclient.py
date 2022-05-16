@@ -1,10 +1,11 @@
 import atexit
 from hashlib import md5
+import mimetypes
 import os
 from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from ..client import Client
 from .localpath import LocalPath
@@ -21,12 +22,15 @@ class LocalClient(Client):
         *args,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         local_storage_dir: Optional[Union[str, os.PathLike]] = None,
+        content_type_method: Optional[Callable] = mimetypes.guess_type,
         **kwargs,
     ):
         # setup caching and local versions of file. use default temp dir if not provided
         if local_storage_dir is None:
             local_storage_dir = self.get_default_storage_dir()
         self._local_storage_dir = Path(local_storage_dir)
+
+        self.content_type_method = content_type_method
 
         super().__init__(local_cache_dir=local_cache_dir)
 
@@ -131,6 +135,17 @@ class LocalClient(Client):
         dst.parent.mkdir(exist_ok=True, parents=True)
         shutil.copy(local_path, dst)
         return cloud_path
+
+    def _get_metadata(self, cloud_path: "LocalPath") -> Dict:
+        # content_type is the only metadata we test currently
+        if self.content_type_method is None:
+            content_type_method = lambda x: (None, None)
+        else:
+            content_type_method = self.content_type_method
+
+        return {
+            "content_type": content_type_method(str(self._cloud_path_to_local(cloud_path)))[0],
+        }
 
 
 _temp_dirs_to_clean: List[TemporaryDirectory] = []

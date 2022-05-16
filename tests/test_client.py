@@ -1,3 +1,5 @@
+import mimetypes
+from pathlib import Path
 from cloudpathlib import CloudPath
 
 
@@ -41,3 +43,53 @@ def test_different_clients(rig):
 
     assert p.client is not p2.client
     assert p._local is not p2._local
+
+
+def test_content_type_setting(rig, tmpdir):
+    mimes = [
+        (".css", "text/css"),
+        (".html", "text/html"),
+        (".js", "application/javascript"),
+        (".mp3", "audio/mpeg"),
+        (".mp4", "video/mp4"),
+        (".jpeg", "image/jpeg"),
+        (".png", "image/png"),
+    ]
+
+    def _test_write_content_type(suffix, expected, rig_ref, check=True):
+        filename = "test" + suffix
+        filepath = Path(tmpdir / filename)
+        filepath.write_text("testing")
+
+        cp = rig_ref.create_cloud_path(filename)
+        cp.upload_from(filepath)
+
+        meta = cp.client._get_metadata(cp)
+
+        if check:
+            assert meta["content_type"] == expected
+
+    # should guess by default
+    for suffix, content_type in mimes:
+        _test_write_content_type(suffix, content_type, rig)
+
+    # None does whatever library default is; not checked, just ensure
+    # we don't throw an error
+    for suffix, content_type in mimes:
+        _test_write_content_type(suffix, content_type, rig, check=False)
+
+    # custom mimetype method
+    def my_content_type(path):
+        # do lookup for content types I define; fallback to
+        # guess_type for anything else
+        return {
+            ".potato": ("application/potato", None),
+        }.get(Path(path).suffix, mimetypes.guess_type(path))
+
+    mimes.append((".potato", "application/potato"))
+
+    # update rig to use custom client
+    rig.client_class(content_type_method=my_content_type).set_as_default_client()
+
+    for suffix, content_type in mimes:
+        _test_write_content_type(suffix, content_type, rig)
