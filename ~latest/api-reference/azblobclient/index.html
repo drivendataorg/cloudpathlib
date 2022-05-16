@@ -920,7 +920,7 @@ authentication options.</p>
 
         <span class="n">local_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">local_path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">download_stream</span><span class="o">.</span><span class="n">readall</span><span class="p">())</span>
+        <span class="n">local_path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">download_stream</span><span class="o">.</span><span class="n">content_as_bytes</span><span class="p">())</span>
 
         <span class="k">return</span> <span class="n">local_path</span>
 
