@@ -184,6 +184,19 @@ class CloudPath(metaclass=CloudPathMeta):
         if self._handle is not None:
             self._handle.close()
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+
+        # don't pickle client
+        del state["client"]
+
+        return state
+
+    def __setstate__(self, state):
+        client = self._cloud_meta.client_class.get_default_client()
+        state["client"] = client
+        return self.__dict__.update(state)
+
     @property
     def _no_prefix(self) -> str:
         return self._str[len(self.cloud_prefix) :]
