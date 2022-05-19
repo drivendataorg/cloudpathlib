@@ -1,9 +1,9 @@
 # cloudpathlib Changelog
 
-## v0.7.2 (UNRELEASED)
+## v0.8.0 (UNRELEASED)
 
  - Fixed pickling of `CloudPath` objects not working. ([Issue #223](https://github.com/drivendataorg/cloudpathlib/issues/223), [PR #224](https://github.com/drivendataorg/cloudpathlib/pull/224))
- - Push the MIME (media) type to the content type property on cloud providers. ([Issue #222](https://github.com/drivendataorg/cloudpathlib/issues/222), [PR #226](https://github.com/drivendataorg/cloudpathlib/pull/226))
+ - Added functionality to [ush the MIME (media) type to the content type property on cloud providers by default. ([Issue #222](https://github.com/drivendataorg/cloudpathlib/issues/222), [PR #226](https://github.com/drivendataorg/cloudpathlib/pull/226))
 
 ## v0.7.1 (2022-04-06)
 
