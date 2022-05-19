@@ -67,6 +67,8 @@ class GSClient(Client):
                 https://googleapis.dev/python/storage/latest/client.html).
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory.
+            content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
+                writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (encoding, mimetype).
         """
         if application_credentials is None:
             application_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -83,9 +85,7 @@ class GSClient(Client):
             except DefaultCredentialsError:
                 self.client = StorageClient.create_anonymous_client()
 
-        self.content_type_method = content_type_method
-
-        super().__init__(local_cache_dir=local_cache_dir)
+        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
 
     def _get_metadata(self, cloud_path: GSPath) -> Optional[Dict[str, Any]]:
         bucket = self.client.bucket(cloud_path.bucket)

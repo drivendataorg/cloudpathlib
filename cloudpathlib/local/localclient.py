@@ -30,9 +30,7 @@ class LocalClient(Client):
             local_storage_dir = self.get_default_storage_dir()
         self._local_storage_dir = Path(local_storage_dir)
 
-        self.content_type_method = content_type_method
-
-        super().__init__(local_cache_dir=local_cache_dir)
+        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
 
     @classmethod
     def get_default_storage_dir(cls) -> Path:

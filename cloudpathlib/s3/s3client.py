@@ -65,6 +65,8 @@ class S3Client(Client):
                 Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.
             boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing s3 transfers.
                 (https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)
+            content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
+                writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (encoding, mimetype).
         """
         endpoint_url = endpoint_url or os.getenv("AWS_ENDPOINT_URL")
         if boto3_session is not None:
@@ -95,9 +97,7 @@ class S3Client(Client):
 
         self.boto3_transfer_config = boto3_transfer_config
 
-        self.content_type_method = content_type_method
-
-        super().__init__(local_cache_dir=local_cache_dir)
+        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
 
     def _get_metadata(self, cloud_path: S3Path) -> Dict[str, Any]:
         data = self.s3.ObjectSummary(cloud_path.bucket, cloud_path.key).get()

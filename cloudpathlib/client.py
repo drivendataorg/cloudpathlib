@@ -1,4 +1,5 @@
 import abc
+import mimetypes
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -25,7 +26,11 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     _cloud_meta: CloudImplementation
     _default_client = None
 
-    def __init__(self, local_cache_dir: Optional[Union[str, os.PathLike]] = None):
+    def __init__(
+        self,
+        local_cache_dir: Optional[Union[str, os.PathLike]] = None,
+        content_type_method: Optional[Callable] = mimetypes.guess_type,
+    ):
         self._cloud_meta.validate_completeness()
         # setup caching and local versions of file and track if it is a tmp dir
         self._cache_tmp_dir = None
@@ -34,6 +39,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
             local_cache_dir = self._cache_tmp_dir.name
 
         self._local_cache_dir = Path(local_cache_dir)
+        self.content_type_method = content_type_method
 
     def __del__(self) -> None:
         # make sure temp is cleaned up if we created it
