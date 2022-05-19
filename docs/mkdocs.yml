@@ -20,6 +20,7 @@ nav:
   - Authentication: "authentication.md"
   - Caching: "caching.ipynb"
   - AnyPath: "anypath-polymorphism.md"
+  - Other Client settings: "other_client_settings.md"
   - Testing code that uses cloudpathlib: "testing_mocked_cloudpathlib.ipynb"
   - Integrations: "integrations.md"
   - Changelog: "changelog.md"
