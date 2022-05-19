@@ -71,7 +71,7 @@ class AzureBlobClient(Client):
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
-                writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (encoding, mimetype).
+                writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
         """
         if connection_string is None:
             connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING", None)
