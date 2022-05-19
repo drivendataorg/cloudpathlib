@@ -10,14 +10,14 @@
       
       
       
-        <link rel="canonical" href="https://cloudpathlib.drivendata.org/~latest/anypath-polymorphism/">
+        <link rel="canonical" href="https://cloudpathlib.drivendata.org/~latest/other_client_settings/">
       
       <link rel="icon" href="../favicon.svg">
       <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-8.2.7">
     
     
       
-        <title>AnyPath - cloudpathlib</title>
+        <title>Other Client settings - cloudpathlib</title>
       
     
     
@@ -69,7 +69,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#anypath-polymorphic-class" class="md-skip">
+        <a href="#other-client-settings" class="md-skip">
           Skip to content
         </a>
       
@@ -107,7 +107,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              AnyPath
+              Other Client settings
             
           </span>
         </div>
@@ -274,6 +274,21 @@
 
   
   
+  
+    <li class="md-nav__item">
+      <a href="../anypath-polymorphism/" class="md-nav__link">
+        AnyPath
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
     
   
   
@@ -286,12 +301,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          AnyPath
+          Other Client settings
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        AnyPath
+        Other Client settings
       </a>
       
         
@@ -310,15 +325,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
-    Example
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    How It Works
+  <a href="#content-type-guessing-content_type_method" class="md-nav__link">
+    Content type guessing (content_type_method)
   </a>
   
 </li>
@@ -327,21 +335,6 @@
   
 </nav>
       
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../other_client_settings/" class="md-nav__link">
-        Other Client settings
-      </a>
     </li>
   
 
@@ -740,15 +733,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
-    Example
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    How It Works
+  <a href="#content-type-guessing-content_type_method" class="md-nav__link">
+    Content type guessing (content_type_method)
   </a>
   
 </li>
@@ -765,36 +751,55 @@
             <article class="md-content__inner md-typeset">
               
                 
-<a href="https://github.com/drivendataorg/cloudpathlib/edit/master/docs/anypath-polymorphism.md" title="Edit this page" class="md-content__button md-icon">
+<a href="https://github.com/drivendataorg/cloudpathlib/edit/master/docs/other_client_settings.md" title="Edit this page" class="md-content__button md-icon">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
 </a>
 
 
 
-<h1 id="anypath-polymorphic-class">AnyPath Polymorphic Class<a class="headerlink" href="#anypath-polymorphic-class" title="Permanent link">&para;</a></h1>
-<p><code>cloudpathlib</code> implements a special <code>AnyPath</code> polymorphic class. This class will automatically instantiate a cloud path instance or a <code>pathlib.Path</code> instance appropriately from your input. It's also a virtual superclass of <code>CloudPath</code> and <code>Path</code>, so <code>isinstance</code> and <code>issubclass</code> checks will work in the expected way.</p>
-<p>This functionality can be handy for situations when you want to support both local filepaths and cloud storage filepaths. If you use <code>AnyPath</code>, your code can switch between them seamlessly based on the contents of provided filepaths without the need of any <code>if</code>-<code>else</code> conditional blocks.</p>
-<h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">cloudpathlib</span> <span class="kn">import</span> <span class="n">AnyPath</span>
+<h1 id="other-client-settings">Other <code>Client</code> settings<a class="headerlink" href="#other-client-settings" title="Permanent link">&para;</a></h1>
+<h2 id="content-type-guessing-content_type_method">Content type guessing (<code>content_type_method</code>)<a class="headerlink" href="#content-type-guessing-content_type_method" title="Permanent link">&para;</a></h2>
+<p>All of the clients support passing a <code>content_type_method</code> when they are instantiated.<br />
+This is a method that is used to guess the <a href="https://en.wikipedia.org/wiki/Media_type">MIME (media) type</a>
+(often called the "content type") of the file and set that on the cloud provider.</p>
+<p>By default, <code>content_type_method</code> use the Python built-in 
+<a href="https://docs.python.org/3/library/mimetypes.html#mimetypes.guess_type"><code>guess_type</code></a>
+to set this content type. This guesses based on the file extension, and may not always get the correct type.
+In these cases, you can set <code>content_type_method</code> to your own function that gets the proper type; for example, by 
+reading the file content or by looking it up in a dictionary of filename-to-media-type mappings that you maintain.</p>
+<p>If you set a custom method, it should follow the signature of <code>guess_type</code> and return a tuple of the form: 
+<code>(content_type, content_encoding)</code>; for example, <code>("text/css", None)</code>.</p>
+<p>If you set <code>content_type_method</code> to None, it will do whatever the default of the cloud provider's SDK does. This
+varies from provider to provider.</p>
+<p>Here is an example of using a custom <code>content_type_method</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">mimetypes</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
-<span class="n">path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;mydir/myfile.txt&quot;</span><span class="p">)</span>
-<span class="n">path</span>
-<span class="c1">#&gt; PosixPath(&#39;mydir/myfile.txt&#39;)</span>
+<span class="kn">from</span> <span class="nn">cloudpathlib</span> <span class="kn">import</span> <span class="n">S3Client</span><span class="p">,</span> <span class="n">CloudPath</span>
 
-<span class="n">cloud_path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;s3://mybucket/myfile.txt&quot;</span><span class="p">)</span>
-<span class="n">cloud_path</span>
-<span class="c1">#&gt; S3Path(&#39;s3://mybucket/myfile.txt&#39;)</span>
+<span class="k">def</span> <span class="nf">my_content_type</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="c1"># do lookup for content types I define; fallback to</span>
+    <span class="c1"># guess_type for anything else</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;.potato&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;application/potato&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="p">,</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
 
-<span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">AnyPath</span><span class="p">)</span>
-<span class="c1">#&gt; True</span>
-<span class="nb">isinstance</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">AnyPath</span><span class="p">)</span>
-<span class="c1">#&gt; True</span>
+
+<span class="c1"># create a client with my custom content type</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">content_type_method</span><span class="o">=</span><span class="n">my_content_type</span><span class="p">)</span>
+
+<span class="c1"># To use this same method for every cloud path, set our client as the default.</span>
+<span class="c1"># This is optional, and you could use client.CloudPath to create paths instead.</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_as_default_client</span><span class="p">()</span>
+
+<span class="c1"># create a cloud path</span>
+<span class="n">cp1</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://cloudpathlib-test-bucket/i_am_a.potato&quot;</span><span class="p">)</span>
+<span class="n">cp1</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
+
+<span class="c1"># check content type with boto3</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span><span class="n">cp1</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">cp1</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">content_type</span><span class="p">)</span>
+<span class="c1">#&gt; application/potato</span>
 </code></pre></div>
-<h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
-<p>The constructor for <code>AnyPath</code> will first attempt to run the input through the <code>CloudPath</code> base class' constructor, which will validate the input against registered concrete <code>CloudPath</code> implementations. This will accept inputs that are already a cloud path class or a string with the appropriate URI scheme prefix (e.g., <code>s3://</code>). If no implementation validates successfully, it will then try to run the input through the <code>Path</code> constructor. If the <code>Path</code> constructor fails and raises a <code>TypeError</code>, then the <code>AnyPath</code> constructor will raise an <code>AnyPathTypeError</code> exception.</p>
-<p>The virtual superclass functionality with <code>isinstance</code> and <code>issubclass</code> with the <code>__instancecheck__</code> and <code>__subclasscheck__</code> special methods per <a href="https://www.python.org/dev/peps/pep-3119/#overloading-isinstance-and-issubclass">PEP 3119</a>'s specification.</p>
-<hr />
-<p><sup>Examples created with <a href="https://github.com/jayqi/reprexlite">reprexlite</a></sup></p>
 
               
             </article>
@@ -808,7 +813,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../caching/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Caching" rel="prev">
+        <a href="../anypath-polymorphism/" class="md-footer__link md-footer__link--prev" aria-label="Previous: AnyPath" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -817,20 +822,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Caching
+              AnyPath
             </div>
           </div>
         </a>
       
       
         
-        <a href="../other_client_settings/" class="md-footer__link md-footer__link--next" aria-label="Next: Other Client settings" rel="next">
+        <a href="../testing_mocked_cloudpathlib/" class="md-footer__link md-footer__link--next" aria-label="Next: Testing code that uses cloudpathlib" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Other Client settings
+              Testing code that uses cloudpathlib
             </div>
           </div>
           <div class="md-footer__button md-icon">
