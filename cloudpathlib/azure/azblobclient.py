@@ -1,7 +1,8 @@
 from datetime import datetime
+import mimetypes
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
 
 
 from ..client import Client, register_client_class
@@ -12,7 +13,7 @@ from .azblobpath import AzureBlobPath
 
 try:
     from azure.core.exceptions import ResourceNotFoundError
-    from azure.storage.blob import BlobServiceClient, BlobProperties
+    from azure.storage.blob import BlobServiceClient, BlobProperties, ContentSettings
 except ModuleNotFoundError:
     implementation_registry["azure"].dependencies_loaded = False
 
@@ -32,6 +33,7 @@ class AzureBlobClient(Client):
         connection_string: Optional[str] = None,
         blob_service_client: Optional["BlobServiceClient"] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
+        content_type_method: Optional[Callable] = mimetypes.guess_type,
     ):
         """Class constructor. Sets up a [`BlobServiceClient`](
         https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
@@ -68,6 +70,8 @@ class AzureBlobClient(Client):
                 https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory.
+            content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
+                writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
         """
         if connection_string is None:
             connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING", None)
@@ -86,13 +90,15 @@ class AzureBlobClient(Client):
                 "Credentials are required; see docs for options."
             )
 
-        super().__init__(local_cache_dir=local_cache_dir)
+        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
 
     def _get_metadata(self, cloud_path: AzureBlobPath) -> Union["BlobProperties", Dict[str, Any]]:
         blob = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
         properties = blob.get_blob_properties()
+
+        properties["content_type"] = properties.content_settings.content_type
 
         return properties
 
@@ -220,7 +226,18 @@ class AzureBlobClient(Client):
             container=cloud_path.container, blob=cloud_path.blob
         )
 
-        blob.upload_blob(Path(local_path).read_bytes(), overwrite=True)  # type: ignore
+        extra_args = {}
+        if self.content_type_method is not None:
+            content_type, content_encoding = self.content_type_method(str(local_path))
+
+            if content_type is not None:
+                extra_args["content_type"] = content_type
+            if content_encoding is not None:
+                extra_args["content_encoding"] = content_encoding
+
+        content_settings = ContentSettings(**extra_args)
+
+        blob.upload_blob(Path(local_path).read_bytes(), overwrite=True, content_settings=content_settings)  # type: ignore
 
         return cloud_path
 

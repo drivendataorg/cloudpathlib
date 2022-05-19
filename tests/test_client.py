@@ -1,4 +1,11 @@
+import mimetypes
+import os
+from pathlib import Path
+import random
+import string
+
 from cloudpathlib import CloudPath
+from cloudpathlib.s3.s3client import S3Client
 
 
 def test_default_client_instantiation(rig):
@@ -41,3 +48,65 @@ def test_different_clients(rig):
 
     assert p.client is not p2.client
     assert p._local is not p2._local
+
+
+def test_content_type_setting(rig, tmpdir):
+    random.seed(1337)  # reproducible file names
+
+    mimes = [
+        (".css", "text/css"),
+        (".html", "text/html"),
+        (".js", "application/javascript"),
+        (".mp3", "audio/mpeg"),
+        (".mp4", "video/mp4"),
+        (".jpeg", "image/jpeg"),
+        (".png", "image/png"),
+    ]
+
+    def _test_write_content_type(suffix, expected, rig_ref, check=True):
+        filename = "".join(random.choices(string.ascii_letters, k=8)) + suffix
+        filepath = Path(tmpdir / filename)
+        filepath.write_text("testing")
+
+        cp = rig_ref.create_cloud_path(filename)
+        cp.upload_from(filepath)
+
+        meta = cp.client._get_metadata(cp)
+
+        if check:
+            assert meta["content_type"] == expected
+
+    # should guess by default
+    for suffix, content_type in mimes:
+        _test_write_content_type(suffix, content_type, rig)
+
+    # None does whatever library default is; not checked, just ensure
+    # we don't throw an error
+    for suffix, content_type in mimes:
+        _test_write_content_type(suffix, content_type, rig, check=False)
+
+    # custom mime type method
+    def my_content_type(path):
+        # do lookup for content types I define; fallback to
+        # guess_type for anything else
+        return {
+            ".potato": ("application/potato", None),
+        }.get(Path(path).suffix, mimetypes.guess_type(path))
+
+    mimes.append((".potato", "application/potato"))
+
+    # see if testing custom s3 endpoint, make sure to pass the url to the constructor
+    kwargs = {}
+    custom_endpoint = os.getenv("CUSTOM_S3_ENDPOINT", "https://s3.us-west-1.drivendatabws.com")
+    if (
+        rig.client_class is S3Client
+        and rig.live_server
+        and custom_endpoint in rig.create_cloud_path("").client.client._endpoint.host
+    ):
+        kwargs["endpoint_url"] = custom_endpoint
+
+    # set up default client to use content_type_method
+    rig.client_class(content_type_method=my_content_type, **kwargs).set_as_default_client()
+
+    for suffix, content_type in mimes:
+        _test_write_content_type(suffix, content_type, rig)
