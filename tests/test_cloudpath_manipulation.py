@@ -1,3 +1,5 @@
+from pathlib import PurePosixPath
+
 import pytest
 
 
@@ -21,6 +23,21 @@ def test_with_suffix(rig):
         str(rig.create_cloud_path("a/b/c/d.file").with_suffix(".png"))
         == f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/a/b/c/d.png"
     )
+
+
+def test_nop_actions(rig):
+    path = rig.create_cloud_path("a/b/c/d.file")
+    assert path == path.absolute()
+    assert path == path.resolve()
+    assert path == path.resolve(strict=True)
+
+
+def test_relative_to(rig):
+    assert rig.create_cloud_path("a/b/c/d.file").relative_to(rig.create_cloud_path("a/b/")) == PurePosixPath('c/d.file')
+    with pytest.raises(ValueError):
+        assert rig.create_cloud_path("a/b/c/d.file").relative_to(rig.create_cloud_path("b/c"))
+    with pytest.raises(ValueError):
+        assert rig.create_cloud_path("a/b/c/d.file").relative_to(PurePosixPath("/a/b/c"))
 
 
 def test_joins(rig):

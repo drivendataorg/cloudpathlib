@@ -535,19 +535,32 @@ class CloudPath(metaclass=CloudPathMeta):
                 self._new_cloudpath(_resolve(p)) for p in path_version if _resolve(p) != p.root
             )
 
-        # when pathlib something else, we probably just want that thing
+        # when pathlib returns something else, we probably just want that thing
         # cases this should include: str, empty sequence, sequence of str, ...
         else:
             return path_version
 
     def __truediv__(self, other):
-        if not isinstance(other, (str,)):
+        if not isinstance(other, (str, PurePosixPath)):
             raise TypeError(f"Can only join path {repr(self)} with strings.")
 
         return self._dispatch_to_path("__truediv__", other)
 
     def joinpath(self, *args):
         return self._dispatch_to_path("joinpath", *args)
+
+    def absolute(self):
+        return self
+
+    def resolve(self, strict=False):
+        return self
+
+    def relative_to(self, other):
+        # We don't dispatch regularly since this never returns a cloud path (since it is relative, and cloud paths are
+        # absolute)
+        if not isinstance(other, CloudPath):
+            raise ValueError(f'{self} is a cloud path, but {other} is not')
+        return self._path.relative_to(other._path)
 
     @property
     def name(self):
