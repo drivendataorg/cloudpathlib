@@ -649,8 +649,8 @@ class CloudPath(metaclass=CloudPathMeta):
     def read_bytes(self):
         return self._dispatch_to_local_cache_path("read_bytes")
 
-    def read_text(self):
-        return self._dispatch_to_local_cache_path("read_text")
+    def read_text(self, *args, **kwargs):
+        return self._dispatch_to_local_cache_path("read_text", *args, **kwargs)
 
     # ===========  public cloud methods, not in pathlib ===============
     def download_to(self, destination: Union[str, os.PathLike]) -> Path:
