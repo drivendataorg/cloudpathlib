@@ -468,12 +468,13 @@ class CloudPath(metaclass=CloudPathMeta):
         # all cloud paths are absolute and the paths are used for hash
         return self == other_path
 
-    def unlink(self):
+    def unlink(self, missing_ok=True):
+        # Note: missing_ok defaults to False in pathlib, but changing the default now would be a breaking change.
         if self.is_dir():
             raise CloudPathIsADirectoryError(
                 f"Path {self} is a directory; call rmdir instead of unlink."
             )
-        self.client._remove(self)
+        self.client._remove(self, missing_ok)
 
     def write_bytes(self, data: bytes):
         """Open the file in bytes mode, write to it, and close the file.

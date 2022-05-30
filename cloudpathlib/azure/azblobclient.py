@@ -205,19 +205,24 @@ class AzureBlobClient(Client):
 
         return dst
 
-    def _remove(self, cloud_path: AzureBlobPath) -> None:
-        if self._is_file_or_dir(cloud_path) == "dir":
+    def _remove(self, cloud_path: AzureBlobPath, missing_ok: bool = True) -> None:
+        file_or_dir = self._is_file_or_dir(cloud_path)
+        if file_or_dir == "dir":
             blobs = [
                 b.blob for b, is_dir in self._list_dir(cloud_path, recursive=True) if not is_dir
             ]
             container_client = self.service_client.get_container_client(cloud_path.container)
             container_client.delete_blobs(*blobs)
-        elif self._is_file_or_dir(cloud_path) == "file":
+        elif file_or_dir == "file":
             blob = self.service_client.get_blob_client(
                 container=cloud_path.container, blob=cloud_path.blob
             )
 
             blob.delete_blob()
+        else:
+            # Does not exist
+            if not missing_ok:
+                raise FileNotFoundError(f'File does not exist: {cloud_path}')
 
     def _upload_file(
         self, local_path: Union[str, os.PathLike], cloud_path: AzureBlobPath

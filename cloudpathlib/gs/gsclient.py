@@ -196,17 +196,22 @@ class GSClient(Client):
 
         return dst
 
-    def _remove(self, cloud_path: GSPath) -> None:
-        if self._is_file_or_dir(cloud_path) == "dir":
+    def _remove(self, cloud_path: GSPath, missing_ok: bool = True) -> None:
+        file_or_dir = self._is_file_or_dir(cloud_path)
+        if file_or_dir == "dir":
             blobs = [
                 b.blob for b, is_dir in self._list_dir(cloud_path, recursive=True) if not is_dir
             ]
             bucket = self.client.bucket(cloud_path.bucket)
             for blob in blobs:
                 bucket.get_blob(blob).delete()
-        elif self._is_file_or_dir(cloud_path) == "file":
+        elif file_or_dir == "file":
             bucket = self.client.bucket(cloud_path.bucket)
             bucket.get_blob(cloud_path.blob).delete()
+        else:
+            # Does not exist
+            if not missing_ok:
+                raise FileNotFoundError(f'File does not exist: {cloud_path}')
 
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: GSPath) -> GSPath:
         bucket = self.client.bucket(cloud_path.bucket)

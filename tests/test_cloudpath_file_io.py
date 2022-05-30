@@ -25,7 +25,10 @@ def test_file_discovery(rig):
     p2.touch(exist_ok=True)
     with pytest.raises(FileExistsError):
         p2.touch(exist_ok=False)
-    p2.unlink()
+    p2.unlink(missing_ok=False)
+    p2.unlink(missing_ok=True)
+    with pytest.raises(FileNotFoundError):
+        p2.unlink(missing_ok=False)
 
     p3 = rig.create_cloud_path("dir_0/")
     assert p3.exists()
