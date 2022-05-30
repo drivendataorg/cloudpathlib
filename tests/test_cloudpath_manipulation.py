@@ -42,6 +42,7 @@ def test_relative_to(rig):
 
 def test_joins(rig):
     assert rig.create_cloud_path("a") / "b" == rig.create_cloud_path("a/b")
+    assert rig.create_cloud_path("a") / PurePosixPath("b") == rig.create_cloud_path("a/b")
     assert rig.create_cloud_path("a/b/c/d") / "../../b" == rig.create_cloud_path("a/b/b")
 
     assert rig.create_cloud_path("a/b/c/d").match("**/c/*")
@@ -60,6 +61,7 @@ def test_joins(rig):
     )
 
     assert rig.create_cloud_path("a").joinpath("b", "c") == rig.create_cloud_path("a/b/c")
+    assert rig.create_cloud_path("a").joinpath(PurePosixPath("b"), "c") == rig.create_cloud_path("a/b/c")
 
     assert rig.create_cloud_path("a/b/c").samefile(rig.create_cloud_path("a/b/c"))
 
