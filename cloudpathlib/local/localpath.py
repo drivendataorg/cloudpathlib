@@ -28,5 +28,5 @@ class LocalPath(CloudPath):
             )
         return meta
 
-    def touch(self):
-        self.client._touch(self)
+    def touch(self, exist_ok: bool = True):
+        self.client._touch(self, exist_ok)

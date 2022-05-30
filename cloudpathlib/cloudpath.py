@@ -298,7 +298,7 @@ class CloudPath(metaclass=CloudPathMeta):
         pass
 
     @abc.abstractmethod
-    def touch(self):
+    def touch(self, exist_ok: bool = True):
         """Should be implemented using the client API to create and update modified time"""
         pass
 

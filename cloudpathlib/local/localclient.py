@@ -121,8 +121,10 @@ class LocalClient(Client):
             )
         )
 
-    def _touch(self, cloud_path: "LocalPath") -> None:
+    def _touch(self, cloud_path: "LocalPath", exist_ok: bool = True) -> None:
         local_storage_path = self._cloud_path_to_local(cloud_path)
+        if local_storage_path.exists() and not exist_ok:
+            raise FileExistsError(f'File exists: {cloud_path}')
         local_storage_path.parent.mkdir(exist_ok=True, parents=True)
         local_storage_path.touch()
 
