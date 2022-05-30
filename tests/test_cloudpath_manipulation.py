@@ -30,6 +30,7 @@ def test_nop_actions(rig):
     assert path == path.absolute()
     assert path == path.resolve()
     assert path == path.resolve(strict=True)
+    assert path.is_absolute()
 
 
 def test_relative_to(rig):
@@ -38,6 +39,10 @@ def test_relative_to(rig):
         assert rig.create_cloud_path("a/b/c/d.file").relative_to(rig.create_cloud_path("b/c"))
     with pytest.raises(ValueError):
         assert rig.create_cloud_path("a/b/c/d.file").relative_to(PurePosixPath("/a/b/c"))
+
+    assert rig.create_cloud_path("a/b/c/d.file").is_relative_to(rig.create_cloud_path("a/b/"))
+    assert not rig.create_cloud_path("a/b/c/d.file").is_relative_to(rig.create_cloud_path("b/c"))
+    assert not rig.create_cloud_path("a/b/c/d.file").is_relative_to(PurePosixPath("/a/b/c"))
 
 
 def test_joins(rig):

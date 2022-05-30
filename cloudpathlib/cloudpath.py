@@ -254,7 +254,6 @@ class CloudPath(metaclass=CloudPathMeta):
         return self.parts >= other.parts
 
     # ====================== NOT IMPLEMENTED ======================
-    # absolute - no cloud equivalent; all cloud paths are absolute already
     # as_posix - no cloud equivalent; not needed since we assume url separator
     # chmod - permission changing should be explicitly done per client with methods
     #           that make sense for the client permission options
@@ -262,7 +261,6 @@ class CloudPath(metaclass=CloudPathMeta):
     # expanduser - no cloud equivalent
     # group - should be implemented with client-specific permissions
     # home - no cloud equivalent
-    # is_absolute - no cloud equivalent; all cloud paths are absolute already
     # is_block_device - no cloud equivalent
     # is_char_device - no cloud equivalent
     # is_fifo - no cloud equivalent
@@ -273,8 +271,6 @@ class CloudPath(metaclass=CloudPathMeta):
     # lchmod - no cloud equivalent
     # lstat - no cloud equivalent
     # owner - no cloud equivalent
-    # relative to - cloud paths are absolute
-    # resolve - all cloud paths are absolute, so no resolving
     # root - drive already has the bucket and anchor/prefix has the scheme, so nothing to store here
     # symlink_to - no cloud equivalent
 
@@ -552,6 +548,9 @@ class CloudPath(metaclass=CloudPathMeta):
     def absolute(self):
         return self
 
+    def is_absolute(self):
+        return True
+
     def resolve(self, strict=False):
         return self
 
@@ -561,6 +560,13 @@ class CloudPath(metaclass=CloudPathMeta):
         if not isinstance(other, CloudPath):
             raise ValueError(f'{self} is a cloud path, but {other} is not')
         return self._path.relative_to(other._path)
+
+    def is_relative_to(self, other):
+        try:
+            self.relative_to(other)
+            return True
+        except ValueError:
+            return False
 
     @property
     def name(self):
