@@ -38,7 +38,9 @@ def test_relative_to(rig):
         rig.create_cloud_path("a/b/")
     ) == PurePosixPath("c/d.file")
     with pytest.raises(ValueError):
-        assert rig.create_cloud_path("bucket/b/c/d.file").relative_to(rig.create_cloud_path("bucket/z"))
+        assert rig.create_cloud_path("bucket/b/c/d.file").relative_to(
+            rig.create_cloud_path("bucket/z")
+        )
     with pytest.raises(ValueError):
         assert rig.create_cloud_path("a/b/c/d.file").relative_to(PurePosixPath("/a/b/c"))
 
