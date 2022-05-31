@@ -211,7 +211,7 @@ class GSClient(Client):
         else:
             # Does not exist
             if not missing_ok:
-                raise FileNotFoundError(f'File does not exist: {cloud_path}')
+                raise FileNotFoundError(f"File does not exist: {cloud_path}")
 
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: GSPath) -> GSPath:
         bucket = self.client.bucket(cloud_path.bucket)

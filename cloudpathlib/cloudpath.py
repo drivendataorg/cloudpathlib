@@ -559,7 +559,7 @@ class CloudPath(metaclass=CloudPathMeta):
         # We don't dispatch regularly since this never returns a cloud path (since it is relative, and cloud paths are
         # absolute)
         if not isinstance(other, CloudPath):
-            raise ValueError(f'{self} is a cloud path, but {other} is not')
+            raise ValueError(f"{self} is a cloud path, but {other} is not")
         return self._path.relative_to(other._path)
 
     def is_relative_to(self, other):

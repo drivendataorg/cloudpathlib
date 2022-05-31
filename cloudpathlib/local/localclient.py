@@ -99,7 +99,7 @@ class LocalClient(Client):
     def _remove(self, cloud_path: "LocalPath", missing_ok: bool = True) -> None:
         local_storage_path = self._cloud_path_to_local(cloud_path)
         if not missing_ok and not local_storage_path.exists():
-            raise FileNotFoundError(f'File does not exist: {cloud_path}')
+            raise FileNotFoundError(f"File does not exist: {cloud_path}")
 
         if local_storage_path.is_file():
             local_storage_path.unlink()
@@ -127,7 +127,7 @@ class LocalClient(Client):
     def _touch(self, cloud_path: "LocalPath", exist_ok: bool = True) -> None:
         local_storage_path = self._cloud_path_to_local(cloud_path)
         if local_storage_path.exists() and not exist_ok:
-            raise FileExistsError(f'File exists: {cloud_path}')
+            raise FileExistsError(f"File exists: {cloud_path}")
         local_storage_path.parent.mkdir(exist_ok=True, parents=True)
         local_storage_path.touch()
 

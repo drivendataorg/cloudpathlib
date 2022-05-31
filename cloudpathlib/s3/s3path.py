@@ -45,7 +45,7 @@ class S3Path(CloudPath):
     def touch(self, exist_ok: bool = True):
         if self.exists():
             if not exist_ok:
-                raise FileExistsError(f'File exists: {self}')
+                raise FileExistsError(f"File exists: {self}")
             self.client._move_file(self, self)
         else:
             tf = TemporaryDirectory()

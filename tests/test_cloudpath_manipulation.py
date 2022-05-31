@@ -34,7 +34,9 @@ def test_nop_actions(rig):
 
 
 def test_relative_to(rig):
-    assert rig.create_cloud_path("a/b/c/d.file").relative_to(rig.create_cloud_path("a/b/")) == PurePosixPath('c/d.file')
+    assert rig.create_cloud_path("a/b/c/d.file").relative_to(
+        rig.create_cloud_path("a/b/")
+    ) == PurePosixPath("c/d.file")
     with pytest.raises(ValueError):
         assert rig.create_cloud_path("a/b/c/d.file").relative_to(rig.create_cloud_path("b/c"))
     with pytest.raises(ValueError):
@@ -66,7 +68,9 @@ def test_joins(rig):
     )
 
     assert rig.create_cloud_path("a").joinpath("b", "c") == rig.create_cloud_path("a/b/c")
-    assert rig.create_cloud_path("a").joinpath(PurePosixPath("b"), "c") == rig.create_cloud_path("a/b/c")
+    assert rig.create_cloud_path("a").joinpath(PurePosixPath("b"), "c") == rig.create_cloud_path(
+        "a/b/c"
+    )
 
     assert rig.create_cloud_path("a/b/c").samefile(rig.create_cloud_path("a/b/c"))
 

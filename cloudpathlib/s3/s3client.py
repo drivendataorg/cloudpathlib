@@ -252,7 +252,7 @@ class S3Client(Client):
                 assert resp[0].get("ResponseMetadata").get("HTTPStatusCode") == 200
             else:
                 if not missing_ok:
-                    raise FileNotFoundError(f'File does not exist: {cloud_path}')
+                    raise FileNotFoundError(f"File does not exist: {cloud_path}")
 
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: S3Path) -> S3Path:
         obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
