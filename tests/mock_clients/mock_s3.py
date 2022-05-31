@@ -179,10 +179,15 @@ class MockCollection:
         return self.s3_obj_paths[:n]
 
     def delete(self):
+        any_deleted = False
         for p in self.full_paths:
+            if Path(p).exists():
+                any_deleted = True
             Path(p).unlink()
             delete_empty_parents_up_to_root(Path(p), self.root)
 
+        if not any_deleted:
+            return []
         return [{"ResponseMetadata": {"HTTPStatusCode": 200}}]
 
 

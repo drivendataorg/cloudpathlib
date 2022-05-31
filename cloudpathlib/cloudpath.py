@@ -254,7 +254,6 @@ class CloudPath(metaclass=CloudPathMeta):
         return self.parts >= other.parts
 
     # ====================== NOT IMPLEMENTED ======================
-    # absolute - no cloud equivalent; all cloud paths are absolute already
     # as_posix - no cloud equivalent; not needed since we assume url separator
     # chmod - permission changing should be explicitly done per client with methods
     #           that make sense for the client permission options
@@ -262,7 +261,6 @@ class CloudPath(metaclass=CloudPathMeta):
     # expanduser - no cloud equivalent
     # group - should be implemented with client-specific permissions
     # home - no cloud equivalent
-    # is_absolute - no cloud equivalent; all cloud paths are absolute already
     # is_block_device - no cloud equivalent
     # is_char_device - no cloud equivalent
     # is_fifo - no cloud equivalent
@@ -273,8 +271,6 @@ class CloudPath(metaclass=CloudPathMeta):
     # lchmod - no cloud equivalent
     # lstat - no cloud equivalent
     # owner - no cloud equivalent
-    # relative to - cloud paths are absolute
-    # resolve - all cloud paths are absolute, so no resolving
     # root - drive already has the bucket and anchor/prefix has the scheme, so nothing to store here
     # symlink_to - no cloud equivalent
 
@@ -302,7 +298,7 @@ class CloudPath(metaclass=CloudPathMeta):
         pass
 
     @abc.abstractmethod
-    def touch(self):
+    def touch(self, exist_ok: bool = True):
         """Should be implemented using the client API to create and update modified time"""
         pass
 
@@ -472,12 +468,13 @@ class CloudPath(metaclass=CloudPathMeta):
         # all cloud paths are absolute and the paths are used for hash
         return self == other_path
 
-    def unlink(self):
+    def unlink(self, missing_ok=True):
+        # Note: missing_ok defaults to False in pathlib, but changing the default now would be a breaking change.
         if self.is_dir():
             raise CloudPathIsADirectoryError(
                 f"Path {self} is a directory; call rmdir instead of unlink."
             )
-        self.client._remove(self)
+        self.client._remove(self, missing_ok)
 
     def write_bytes(self, data: bytes):
         """Open the file in bytes mode, write to it, and close the file.
@@ -535,19 +532,46 @@ class CloudPath(metaclass=CloudPathMeta):
                 self._new_cloudpath(_resolve(p)) for p in path_version if _resolve(p) != p.root
             )
 
-        # when pathlib something else, we probably just want that thing
+        # when pathlib returns something else, we probably just want that thing
         # cases this should include: str, empty sequence, sequence of str, ...
         else:
             return path_version
 
     def __truediv__(self, other):
-        if not isinstance(other, (str,)):
-            raise TypeError(f"Can only join path {repr(self)} with strings.")
+        if not isinstance(other, (str, PurePosixPath)):
+            raise TypeError(f"Can only join path {repr(self)} with strings or posix paths.")
 
         return self._dispatch_to_path("__truediv__", other)
 
     def joinpath(self, *args):
         return self._dispatch_to_path("joinpath", *args)
+
+    def absolute(self):
+        return self
+
+    def is_absolute(self):
+        return True
+
+    def resolve(self, strict=False):
+        return self
+
+    def relative_to(self, other):
+        # We don't dispatch regularly since this never returns a cloud path (since it is relative, and cloud paths are
+        # absolute)
+        if not isinstance(other, CloudPath):
+            raise ValueError(f"{self} is a cloud path, but {other} is not")
+        if self.cloud_prefix != other.cloud_prefix:
+            raise ValueError(
+                f"{self} is a {self.cloud_prefix} path, but {other} is a {other.cloud_prefix} path"
+            )
+        return self._path.relative_to(other._path)
+
+    def is_relative_to(self, other):
+        try:
+            self.relative_to(other)
+            return True
+        except ValueError:
+            return False
 
     @property
     def name(self):
@@ -630,8 +654,8 @@ class CloudPath(metaclass=CloudPathMeta):
     def read_bytes(self):
         return self._dispatch_to_local_cache_path("read_bytes")
 
-    def read_text(self):
-        return self._dispatch_to_local_cache_path("read_text")
+    def read_text(self, *args, **kwargs):
+        return self._dispatch_to_local_cache_path("read_text", *args, **kwargs)
 
     # ===========  public cloud methods, not in pathlib ===============
     def download_to(self, destination: Union[str, os.PathLike]) -> Path:

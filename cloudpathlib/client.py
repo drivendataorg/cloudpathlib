@@ -100,7 +100,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         pass
 
     @abc.abstractmethod
-    def _remove(self, path: BoundedCloudPath) -> None:
+    def _remove(self, path: BoundedCloudPath, missing_ok: bool = True) -> None:
         """Remove a file or folder from the server.
 
         Parameters
