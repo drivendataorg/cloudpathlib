@@ -119,13 +119,16 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 
 | Methods + properties   | `AzureBlobPath`   | `S3Path`   | `GSPath`   |
 |:-----------------------|:------------------|:-----------|:-----------|
+| `absolute`             | ✅                | ✅         | ✅         |
 | `anchor`               | ✅                | ✅         | ✅         |
 | `as_uri`               | ✅                | ✅         | ✅         |
 | `drive`                | ✅                | ✅         | ✅         |
 | `exists`               | ✅                | ✅         | ✅         |
 | `glob`                 | ✅                | ✅         | ✅         |
+| `is_absolute`          | ✅                | ✅         | ✅         |
 | `is_dir`               | ✅                | ✅         | ✅         |
 | `is_file`              | ✅                | ✅         | ✅         |
+| `is_relative_to`       | ✅                | ✅         | ✅         |
 | `iterdir`              | ✅                | ✅         | ✅         |
 | `joinpath`             | ✅                | ✅         | ✅         |
 | `match`                | ✅                | ✅         | ✅         |
@@ -137,8 +140,10 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `parts`                | ✅                | ✅         | ✅         |
 | `read_bytes`           | ✅                | ✅         | ✅         |
 | `read_text`            | ✅                | ✅         | ✅         |
+| `relative_to`          | ✅                | ✅         | ✅         |
 | `rename`               | ✅                | ✅         | ✅         |
 | `replace`              | ✅                | ✅         | ✅         |
+| `resolve`              | ✅                | ✅         | ✅         |
 | `rglob`                | ✅                | ✅         | ✅         |
 | `rmdir`                | ✅                | ✅         | ✅         |
 | `samefile`             | ✅                | ✅         | ✅         |
@@ -152,11 +157,6 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `with_suffix`          | ✅                | ✅         | ✅         |
 | `write_bytes`          | ✅                | ✅         | ✅         |
 | `write_text`           | ✅                | ✅         | ✅         |
-| `absolute`             | ✅                | ✅         | ✅         |
-| `resolve`              | ✅                | ✅         | ✅         |
-| `relative_to`          | ✅                | ✅         | ✅         |
-| `is_absolute`          | ✅                | ✅         | ✅         |
-| `is_relative_to`       | ✅                | ✅         | ✅         |
 | `as_posix`             | ❌                | ❌         | ❌         |
 | `chmod`                | ❌                | ❌         | ❌         |
 | `cwd`                  | ❌                | ❌         | ❌         |
