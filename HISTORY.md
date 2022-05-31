@@ -1,5 +1,8 @@
 # cloudpathlib Changelog
 
+## v0.8.1 (UNRELEASED)
+ - Implemented some simple methods trivially to make paths from unknown sources more usable ([Issue #149](https://github.com/drivendataorg/cloudpathlib/issues/149), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+
 ## v0.8.0 (2022-05-19)
 
  - Fixed pickling of `CloudPath` objects not working. ([Issue #223](https://github.com/drivendataorg/cloudpathlib/issues/223), [PR #224](https://github.com/drivendataorg/cloudpathlib/pull/224))
