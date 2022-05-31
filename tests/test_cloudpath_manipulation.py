@@ -2,6 +2,8 @@ from pathlib import PurePosixPath
 
 import pytest
 
+from cloudpathlib import CloudPath
+
 
 def test_properties(rig):
     assert rig.create_cloud_path("a/b/c/d").name == "d"
@@ -44,8 +46,8 @@ def test_relative_to(rig, azure_rig, gs_rig):
     with pytest.raises(ValueError):
         assert rig.create_cloud_path("a/b/c/d.file").relative_to(PurePosixPath("/a/b/c"))
     other_rig = azure_rig if rig.cloud_prefix != azure_rig.cloud_prefix else gs_rig
-    path = rig.create_cloud_path("bucket/path/to/file.txt")
-    other_cloud_path = other_rig.create_cloud_path("bucket/path")
+    path = CloudPath(f"{rig.cloud_prefix}bucket/path/to/file.txt")
+    other_cloud_path = CloudPath(f"{other_rig.cloud_prefix}bucket/path")
     with pytest.raises(ValueError):
         assert path.relative_to(other_cloud_path)
 
