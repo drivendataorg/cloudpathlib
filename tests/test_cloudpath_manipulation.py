@@ -2,8 +2,6 @@ from pathlib import PurePosixPath
 
 import pytest
 
-from cloudpathlib import CloudPath
-
 
 def test_properties(rig):
     assert rig.create_cloud_path("a/b/c/d").name == "d"
