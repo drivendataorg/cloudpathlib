@@ -25,7 +25,7 @@ def test_with_suffix(rig):
     )
 
 
-def test_nop_actions(rig):
+def test_no_op_actions(rig):
     path = rig.create_cloud_path("a/b/c/d.file")
     assert path == path.absolute()
     assert path == path.resolve()
@@ -38,7 +38,7 @@ def test_relative_to(rig):
         rig.create_cloud_path("a/b/")
     ) == PurePosixPath("c/d.file")
     with pytest.raises(ValueError):
-        assert rig.create_cloud_path("a/b/c/d.file").relative_to(rig.create_cloud_path("b/c"))
+        assert rig.create_cloud_path("bucket/b/c/d.file").relative_to(rig.create_cloud_path("bucket/z"))
     with pytest.raises(ValueError):
         assert rig.create_cloud_path("a/b/c/d.file").relative_to(PurePosixPath("/a/b/c"))
 

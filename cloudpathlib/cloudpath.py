@@ -539,7 +539,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def __truediv__(self, other):
         if not isinstance(other, (str, PurePosixPath)):
-            raise TypeError(f"Can only join path {repr(self)} with strings.")
+            raise TypeError(f"Can only join path {repr(self)} with strings or posix paths.")
 
         return self._dispatch_to_path("__truediv__", other)
 
@@ -560,6 +560,10 @@ class CloudPath(metaclass=CloudPathMeta):
         # absolute)
         if not isinstance(other, CloudPath):
             raise ValueError(f"{self} is a cloud path, but {other} is not")
+        if self.cloud_prefix != other.cloud_prefix:
+            raise ValueError(
+                f"{self} is a {self.cloud_prefix} path, but {other} is a {other.cloud_prefix} path"
+            )
         return self._path.relative_to(other._path)
 
     def is_relative_to(self, other):
