@@ -2,6 +2,8 @@ from pathlib import PurePosixPath
 
 import pytest
 
+from cloudpathlib import CloudPath
+
 
 def test_properties(rig):
     assert rig.create_cloud_path("a/b/c/d").name == "d"
@@ -33,20 +35,26 @@ def test_no_op_actions(rig):
     assert path.is_absolute()
 
 
-def test_relative_to(rig):
-    assert rig.create_cloud_path("a/b/c/d.file").relative_to(
-        rig.create_cloud_path("a/b/")
-    ) == PurePosixPath("c/d.file")
+def test_relative_to(rig, azure_rig, gs_rig):
+    assert rig.create_cloud_path("bucket/path/to/file.txt").relative_to(
+        rig.create_cloud_path("bucket/path")
+    ) == PurePosixPath("to/file.txt")
     with pytest.raises(ValueError):
         assert rig.create_cloud_path("bucket/b/c/d.file").relative_to(
             rig.create_cloud_path("bucket/z")
         )
     with pytest.raises(ValueError):
         assert rig.create_cloud_path("a/b/c/d.file").relative_to(PurePosixPath("/a/b/c"))
+    other_rig = azure_rig if rig.cloud_prefix != azure_rig.cloud_prefix else gs_rig
+    path = rig.create_cloud_path("bucket/path/to/file.txt")
+    other_cloud_path = other_rig.create_cloud_path("bucket/path")
+    with pytest.raises(ValueError):
+        assert path.relative_to(other_cloud_path)
 
     assert rig.create_cloud_path("a/b/c/d.file").is_relative_to(rig.create_cloud_path("a/b/"))
     assert not rig.create_cloud_path("a/b/c/d.file").is_relative_to(rig.create_cloud_path("b/c"))
     assert not rig.create_cloud_path("a/b/c/d.file").is_relative_to(PurePosixPath("/a/b/c"))
+    assert not path.is_relative_to(other_cloud_path)
 
 
 def test_joins(rig):
