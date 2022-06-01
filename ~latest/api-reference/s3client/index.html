@@ -532,37 +532,57 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cloudpathlib.s3.s3client.S3Client-methods" class="md-nav__link">
-    Methods
+  <a href="#cloudpathlib.s3.s3client.S3Client-attributes" class="md-nav__link">
+    Attributes
   </a>
   
-    <nav class="md-nav" aria-label="Methods">
+    <nav class="md-nav" aria-label="Attributes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cloudpathlib.s3.s3client.S3Client.CloudPath" class="md-nav__link">
-    CloudPath()
+  <a href="#cloudpathlib.s3.s3client.S3Client.boto3_transfer_config" class="md-nav__link">
+    boto3_transfer_config
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#cloudpathlib.s3.s3client.S3Client.S3Path" class="md-nav__link">
-    S3Path()
+  <a href="#cloudpathlib.s3.s3client.S3Client.client" class="md-nav__link">
+    client
   </a>
   
 </li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3client.S3Client.s3" class="md-nav__link">
+    s3
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3client.S3Client.sess" class="md-nav__link">
+    sess
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3client.S3Client-functions" class="md-nav__link">
+    Functions
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#cloudpathlib.s3.s3client.S3Client.__init__" class="md-nav__link">
     __init__()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#cloudpathlib.s3.s3client.S3Client.set_as_default_client" class="md-nav__link">
-    set_as_default_client()
   </a>
   
 </li>
@@ -771,37 +791,57 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cloudpathlib.s3.s3client.S3Client-methods" class="md-nav__link">
-    Methods
+  <a href="#cloudpathlib.s3.s3client.S3Client-attributes" class="md-nav__link">
+    Attributes
   </a>
   
-    <nav class="md-nav" aria-label="Methods">
+    <nav class="md-nav" aria-label="Attributes">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cloudpathlib.s3.s3client.S3Client.CloudPath" class="md-nav__link">
-    CloudPath()
+  <a href="#cloudpathlib.s3.s3client.S3Client.boto3_transfer_config" class="md-nav__link">
+    boto3_transfer_config
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#cloudpathlib.s3.s3client.S3Client.S3Path" class="md-nav__link">
-    S3Path()
+  <a href="#cloudpathlib.s3.s3client.S3Client.client" class="md-nav__link">
+    client
   </a>
   
 </li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3client.S3Client.s3" class="md-nav__link">
+    s3
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3client.S3Client.sess" class="md-nav__link">
+    sess
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.s3.s3client.S3Client-functions" class="md-nav__link">
+    Functions
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#cloudpathlib.s3.s3client.S3Client.__init__" class="md-nav__link">
     __init__()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#cloudpathlib.s3.s3client.S3Client.set_as_default_client" class="md-nav__link">
-    set_as_default_client()
   </a>
   
 </li>
@@ -832,18 +872,273 @@
 <h1 id="cloudpathlibs3client">cloudpathlib.S3Client<a class="headerlink" href="#cloudpathlibs3client" title="Permanent link">&para;</a></h1>
 
 
-  <div class="doc doc-object doc-class">
+<div class="doc doc-object doc-class">
 
 
-    <div class="doc doc-contents first">
 
+  <div class="doc doc-contents first">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.client.Client" href="../client/#cloudpathlib.client.Client">Client</a></code></p>
+
+  
       <p>Client class for AWS S3 which handles authentication with AWS for <a href="../s3path/"><code>S3Path</code></a>
 instances. See documentation for the <a class="autorefs autorefs-internal" href="#cloudpathlib.s3.s3client.S3Client.__init__"><code>__init__</code> method</a>
 for detailed authentication options.</p>
 
+
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/s3/s3client.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">S3Client</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
+          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 21</span>
+<span class="normal"> 22</span>
+<span class="normal"> 23</span>
+<span class="normal"> 24</span>
+<span class="normal"> 25</span>
+<span class="normal"> 26</span>
+<span class="normal"> 27</span>
+<span class="normal"> 28</span>
+<span class="normal"> 29</span>
+<span class="normal"> 30</span>
+<span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span>
+<span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">S3Client</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Client class for AWS S3 which handles authentication with AWS for [`S3Path`](../s3path/)</span>
 <span class="sd">    instances. See documentation for the [`__init__` method][cloudpathlib.s3.s3client.S3Client.__init__]</span>
 <span class="sd">    for detailed authentication options.&quot;&quot;&quot;</span>
@@ -1050,7 +1345,7 @@ for detailed authentication options.</p>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_remove</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dst</span>
 
-    <span class="k">def</span> <span class="nf">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
 
@@ -1074,6 +1369,9 @@ for detailed authentication options.</p>
             <span class="c1"># resp will be [], so no need to check success</span>
             <span class="k">if</span> <span class="n">resp</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="n">resp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ResponseMetadata&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;HTTPStatusCode&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">200</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_ok</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File does not exist: </span><span class="si">{</span><span class="n">cloud_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_upload_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">S3Path</span><span class="p">:</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
@@ -1089,10 +1387,10 @@ for detailed authentication options.</p>
 
         <span class="n">obj</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">local_path</span><span class="p">),</span> <span class="n">Config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_transfer_config</span><span class="p">,</span> <span class="n">ExtraArgs</span><span class="o">=</span><span class="n">extra_args</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cloud_path</span>
-</code></pre></div>
+</code></pre></div></td></tr></table></div>
         </details>
 
-
+  
 
   <div class="doc doc-children">
 
@@ -1100,174 +1398,312 @@ for detailed authentication options.</p>
 
 
 
+<h2 id="cloudpathlib.s3.s3client.S3Client-attributes">Attributes<a class="headerlink" href="#cloudpathlib.s3.s3client.S3Client-attributes" title="Permanent link">&para;</a></h2>
 
-
-<h2 id="cloudpathlib.s3.s3client.S3Client-methods">Methods<a class="headerlink" href="#cloudpathlib.s3.s3client.S3Client-methods" title="Permanent link">&para;</a></h2>
-
-  <div class="doc doc-object doc-method">
+<div class="doc doc-object doc-attribute">
 
 
 
-<h3 class="doc doc-heading" id="cloudpathlib.s3.s3client.S3Client.CloudPath">
-<code class="highlight language-python"><span class="n">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">~</span><span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="o">~</span><span class="n">BoundedCloudPath</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
+<h3 class="doc doc-heading" id="cloudpathlib.s3.s3client.S3Client.boto3_transfer_config">
+<code class="highlight language-python"><span class="n">boto3_transfer_config</span> <span class="o">=</span> <span class="n">boto3_transfer_config</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.s3.s3client.S3Client.CloudPath" title="Permanent link">&para;</a></h3>
-
-    <div class="doc doc-contents ">
+<a class="headerlink" href="#cloudpathlib.s3.s3client.S3Client.boto3_transfer_config" title="Permanent link">&para;</a></h3>
 
 
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/s3/s3client.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BoundedCloudPath</span><span class="p">:</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">path_class</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">=</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-</code></pre></div>
-        </details>
-    </div>
-
+  <div class="doc doc-contents ">
   </div>
 
+</div>
+
+<div class="doc doc-object doc-attribute">
 
 
-  <div class="doc doc-object doc-method">
+
+<h3 class="doc doc-heading" id="cloudpathlib.s3.s3client.S3Client.client">
+<code class="highlight language-python"><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sess</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">,</span> <span class="n">endpoint_url</span><span class="o">=</span><span class="n">endpoint_url</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">Config</span><span class="p">(</span><span class="n">signature_version</span><span class="o">=</span><span class="n">botocore</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">UNSIGNED</span><span class="p">))</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a class="headerlink" href="#cloudpathlib.s3.s3client.S3Client.client" title="Permanent link">&para;</a></h3>
 
 
-
-<h3 class="doc doc-heading" id="cloudpathlib.s3.s3client.S3Client.S3Path">
-<code class="highlight language-python"><span class="n">S3Path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">~</span><span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="o">~</span><span class="n">BoundedCloudPath</span></code>
-
-
-<a class="headerlink" href="#cloudpathlib.s3.s3client.S3Client.S3Path" title="Permanent link">&para;</a></h3>
-
-    <div class="doc doc-contents ">
-
-
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/s3/s3client.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">BoundedCloudPath</span><span class="p">:</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">path_class</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">=</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-</code></pre></div>
-        </details>
-    </div>
-
+  <div class="doc doc-contents ">
   </div>
 
+</div>
+
+<div class="doc doc-object doc-attribute">
 
 
-  <div class="doc doc-object doc-method">
+
+<h3 class="doc doc-heading" id="cloudpathlib.s3.s3client.S3Client.s3">
+<code class="highlight language-python"><span class="n">s3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sess</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">,</span> <span class="n">endpoint_url</span><span class="o">=</span><span class="n">endpoint_url</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">Config</span><span class="p">(</span><span class="n">signature_version</span><span class="o">=</span><span class="n">botocore</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">UNSIGNED</span><span class="p">))</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a class="headerlink" href="#cloudpathlib.s3.s3client.S3Client.s3" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 class="doc doc-heading" id="cloudpathlib.s3.s3client.S3Client.sess">
+<code class="highlight language-python"><span class="n">sess</span> <span class="o">=</span> <span class="n">boto3_session</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a class="headerlink" href="#cloudpathlib.s3.s3client.S3Client.sess" title="Permanent link">&para;</a></h3>
+
+
+  <div class="doc doc-contents ">
+  </div>
+
+</div>
+
+<h2 id="cloudpathlib.s3.s3client.S3Client-functions">Functions<a class="headerlink" href="#cloudpathlib.s3.s3client.S3Client-functions" title="Permanent link">&para;</a></h2>
+
+<div class="doc doc-object doc-function">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.s3.s3client.S3Client.__init__">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aws_access_key_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aws_secret_access_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aws_session_token</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">no_sign_request</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">botocore_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">botocore</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boto3_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">endpoint_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boto3_transfer_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TransferConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7f0005de1200</span><span class="o">&gt;</span><span class="p">)</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-special"><code>special</code></small>
-  </span>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">aws_access_key_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aws_secret_access_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aws_session_token</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">no_sign_request</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">botocore_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">botocore</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boto3_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">endpoint_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boto3_transfer_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TransferConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">)</span></code>
 
 <a class="headerlink" href="#cloudpathlib.s3.s3client.S3Client.__init__" title="Permanent link">&para;</a></h3>
 
-    <div class="doc doc-contents ">
 
+  <div class="doc doc-contents ">
+  
       <p>Class constructor. Sets up a boto3 <a href="https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html"><code>Session</code></a>.
 Directly supports the same authentication interface, as well as the same environment
 variables supported by boto3. See <a href="https://boto3.amazonaws.com/v1/documentation/api/latest/guide/session.html">boto3 Session documentation</a>.</p>
 <p>If no authentication arguments or environment variables are provided, then the client will
 be instantiated as anonymous, which will only have access to public buckets.</p>
 
-<p><strong>Parameters:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
       <tr>
-        <td><code>aws_access_key_id</code></td>
-        <td><code>Optional[str]</code></td>
-        <td><p>AWS access key ID.</p></td>
-        <td><code>None</code></td>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
       </tr>
-      <tr>
-        <td><code>aws_secret_access_key</code></td>
-        <td><code>Optional[str]</code></td>
-        <td><p>AWS secret access key.</p></td>
-        <td><code>None</code></td>
-      </tr>
-      <tr>
-        <td><code>aws_session_token</code></td>
-        <td><code>Optional[str]</code></td>
-        <td><p>Session key for your AWS account. This is only
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>aws_access_key_id</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>AWS access key ID.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>aws_secret_access_key</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>AWS secret access key.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>aws_session_token</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Session key for your AWS account. This is only
 needed when you are using temporarycredentials.</p></td>
-        <td><code>None</code></td>
-      </tr>
-      <tr>
-        <td><code>no_sign_request</code></td>
-        <td><code>Optional[bool]</code></td>
-        <td><p>(Optional[bool]): If <code>True</code>, credentials are not looked for and we use unsigned
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>no_sign_request</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[bool]</code>
+          </td>
+          <td><p>(Optional[bool]): If <code>True</code>, credentials are not looked for and we use unsigned
 requests to fetch resources. This will only allow access to public resources. This is equivalent
 to <code>--no-sign-request</code> in the AWS CLI (https://docs.aws.amazon.com/cli/latest/reference/).</p></td>
-        <td><code>False</code></td>
-      </tr>
-      <tr>
-        <td><code>botocore_session</code></td>
-        <td><code>Optional[botocore.session.Session]</code></td>
-        <td><p>An already instantiated botocore
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>botocore_session</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="botocore.session">botocore</span>.<span title="botocore.session.session">session</span>.<span title="botocore.session.Session">Session</span>]</code>
+          </td>
+          <td><p>An already instantiated botocore
 Session.</p></td>
-        <td><code>None</code></td>
-      </tr>
-      <tr>
-        <td><code>profile_name</code></td>
-        <td><code>Optional[str]</code></td>
-        <td><p>Profile name of a profile in a shared credentials file.</p></td>
-        <td><code>None</code></td>
-      </tr>
-      <tr>
-        <td><code>boto3_session</code></td>
-        <td><code>Optional[Session]</code></td>
-        <td><p>An already instantiated boto3 Session.</p></td>
-        <td><code>None</code></td>
-      </tr>
-      <tr>
-        <td><code>local_cache_dir</code></td>
-        <td><code>Optional[Union[str, os.PathLike]]</code></td>
-        <td><p>Path to directory to use as cache
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>profile_name</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Profile name of a profile in a shared credentials file.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>boto3_session</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="boto3.session.Session">Session</span>]</code>
+          </td>
+          <td><p>An already instantiated boto3 Session.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>local_cache_dir</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>]]</code>
+          </td>
+          <td><p>Path to directory to use as cache
 for downloaded files. If None, will use a temporary directory.</p></td>
-        <td><code>None</code></td>
-      </tr>
-      <tr>
-        <td><code>endpoint_url</code></td>
-        <td><code>Optional[str]</code></td>
-        <td><p>S3 server endpoint URL to use for the constructed boto3 S3 resource and client.
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>endpoint_url</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>S3 server endpoint URL to use for the constructed boto3 S3 resource and client.
 Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.</p></td>
-        <td><code>None</code></td>
-      </tr>
-      <tr>
-        <td><code>boto3_transfer_config</code></td>
-        <td><code>Optional[dict]</code></td>
-        <td><p>Instantiated TransferConfig for managing s3 transfers.
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>boto3_transfer_config</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[dict]</code>
+          </td>
+          <td><p>Instantiated TransferConfig for managing s3 transfers.
 (https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)</p></td>
-        <td><code>None</code></td>
-      </tr>
-      <tr>
-        <td><code>content_type_method</code></td>
-        <td><code>Optional[Callable]</code></td>
-        <td><p>Function to call to guess media type (mimetype) when
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>content_type_method</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>Function to call to guess media type (mimetype) when
 writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must return a tuple (content type, content encoding).</p></td>
-        <td><code>&lt;function guess_type at 0x7f0005de1200&gt;</code></td>
-      </tr>
-  </tbody>
-</table>
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/s3/s3client.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+          <td>
+                <code>mimetypes.guess_type</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>cloudpathlib/s3/s3client.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 27</span>
+<span class="normal"> 28</span>
+<span class="normal"> 29</span>
+<span class="normal"> 30</span>
+<span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">aws_access_key_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">aws_secret_access_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1341,53 +1777,19 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
     <span class="bp">self</span><span class="o">.</span><span class="n">boto3_transfer_config</span> <span class="o">=</span> <span class="n">boto3_transfer_config</span>
 
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span> <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">)</span>
-</code></pre></div>
-        </details>
-    </div>
-
+</code></pre></div></td></tr></table></div>
+      </details>
   </div>
 
-
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h3 class="doc doc-heading" id="cloudpathlib.s3.s3client.S3Client.set_as_default_client">
-<code class="highlight language-python"><span class="n">set_as_default_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-inherited"><code>inherited</code></small>
-  </span>
-
-<a class="headerlink" href="#cloudpathlib.s3.s3client.S3Client.set_as_default_client" title="Permanent link">&para;</a></h3>
-
-    <div class="doc doc-contents ">
-
-      <p>Set this client instance as the default one used when instantiating cloud path
-instances for this cloud without a client specified.</p>
-
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/s3/s3client.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">set_as_default_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Set this client instance as the default one used when instantiating cloud path</span>
-<span class="sd">    instances for this cloud without a client specified.&quot;&quot;&quot;</span>
-    <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_default_client</span> <span class="o">=</span> <span class="bp">self</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
+</div>
 
 
 
   </div>
 
-    </div>
-
   </div>
+
+</div>
 
               
             </article>

@@ -370,6 +370,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v090-unreleased" class="md-nav__link">
+    v0.9.0 (UNRELEASED)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v080-2022-05-19" class="md-nav__link">
     v0.8.0 (2022-05-19)
   </a>
@@ -852,6 +859,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v090-unreleased" class="md-nav__link">
+    v0.9.0 (UNRELEASED)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v080-2022-05-19" class="md-nav__link">
     v0.8.0 (2022-05-19)
   </a>
@@ -996,6 +1010,17 @@
 
 
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
+<h2 id="v090-unreleased">v0.9.0 (UNRELEASED)<a class="headerlink" href="#v090-unreleased" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Added <code>absolute</code> to <code>CloudPath</code> (does nothing as <code>CloudPath</code> is always absolute) (<a href="https://github.com/drivendataorg/cloudpathlib/pull/230">PR #230</a>)</li>
+<li>Added <code>resolve</code> to <code>CloudPath</code> (does nothing as <code>CloudPath</code> is resolved in advance) (<a href="https://github.com/drivendataorg/cloudpathlib/issues/151">Issue #151</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/230">PR #230</a>)</li>
+<li>Added <code>relative_to</code> to <code>CloudPath</code> which returns a PosixPath (<a href="https://github.com/drivendataorg/cloudpathlib/issues/149">Issue #149</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/230">PR #230</a>)</li>
+<li>Added <code>is_relative_to</code> to <code>CloudPath</code> (<a href="https://github.com/drivendataorg/cloudpathlib/issues/149">Issue #149</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/230">PR #230</a>)</li>
+<li>Added <code>is_absolute</code> to <code>CloudPath</code> (always true as <code>CloudPath</code> is always absolute) (<a href="https://github.com/drivendataorg/cloudpathlib/pull/230">PR #230</a>)</li>
+<li>Accept and delegate <code>read_text</code> parameters to cached file (<a href="https://github.com/drivendataorg/cloudpathlib/pull/230">PR #230</a>)</li>
+<li>Add <code>exist_ok</code> parameter to <code>touch</code> (<a href="https://github.com/drivendataorg/cloudpathlib/pull/230">PR #230</a>)</li>
+<li>Add <code>missing_ok</code> parameter to <code>unlink</code>, which defaults to True. This diverges from pathlib to maintain backward compatibility (<a href="https://github.com/drivendataorg/cloudpathlib/pull/230">PR #230</a>)</li>
+</ul>
 <h2 id="v080-2022-05-19">v0.8.0 (2022-05-19)<a class="headerlink" href="#v080-2022-05-19" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Fixed pickling of <code>CloudPath</code> objects not working. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/223">Issue #223</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/224">PR #224</a>)</li>
