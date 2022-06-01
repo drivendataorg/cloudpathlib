@@ -3,7 +3,7 @@
 ## v0.9.0 (UNRELEASED)
  - Added `absolute` to `CloudPath` (does nothing as `CloudPath` is always absolute) ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
  - Added `resolve` to `CloudPath` (does nothing as `CloudPath` is resolved in advance) ([Issue #151](https://github.com/drivendataorg/cloudpathlib/issues/151), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
- - Added `relative_to` to `CloudPath` which returns a PosixPath ([Issue #149](https://github.com/drivendataorg/cloudpathlib/issues/149), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `relative_to` to `CloudPath` which returns a `PurePosixPath` ([Issue #149](https://github.com/drivendataorg/cloudpathlib/issues/149), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
  - Added `is_relative_to` to `CloudPath` ([Issue #149](https://github.com/drivendataorg/cloudpathlib/issues/149), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
  - Added `is_absolute` to `CloudPath` (always true as `CloudPath` is always absolute) ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
  - Accept and delegate `read_text` parameters to cached file ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
