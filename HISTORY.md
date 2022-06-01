@@ -1,5 +1,15 @@
 # cloudpathlib Changelog
 
+## v0.9.0 (UNRELEASED)
+ - Added `absolute` to `CloudPath` (does nothing as `CloudPath` is always absolute) ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `resolve` to `CloudPath` (does nothing as `CloudPath` is resolved in advance) ([Issue #151](https://github.com/drivendataorg/cloudpathlib/issues/151), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `relative_to` to `CloudPath` which returns a PosixPath ([Issue #149](https://github.com/drivendataorg/cloudpathlib/issues/149), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `is_relative_to` to `CloudPath` ([Issue #149](https://github.com/drivendataorg/cloudpathlib/issues/149), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `is_absolute` to `CloudPath` (always true as `CloudPath` is always absolute) ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Accept and delegate `read_text` parameters to cached file ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Add `exist_ok` parameter to `touch` ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Add `missing_ok` parameter to `unlink`, which defaults to True. This diverges from pathlib to maintain backward compatibility ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+
 ## v0.8.0 (2022-05-19)
 
  - Fixed pickling of `CloudPath` objects not working. ([Issue #223](https://github.com/drivendataorg/cloudpathlib/issues/223), [PR #224](https://github.com/drivendataorg/cloudpathlib/pull/224))

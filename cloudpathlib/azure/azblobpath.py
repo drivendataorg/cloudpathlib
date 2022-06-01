@@ -47,8 +47,10 @@ class AzureBlobPath(CloudPath):
         # not possible to make empty directory on blob storage
         pass
 
-    def touch(self):
+    def touch(self, exist_ok: bool = True):
         if self.exists():
+            if not exist_ok:
+                raise FileExistsError(f"File exists: {self}")
             self.client._move_file(self, self)
         else:
             tf = TemporaryDirectory()

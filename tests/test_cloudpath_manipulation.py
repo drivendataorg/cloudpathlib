@@ -1,4 +1,8 @@
+from pathlib import PurePosixPath
+
 import pytest
+
+from cloudpathlib import CloudPath
 
 
 def test_properties(rig):
@@ -23,8 +27,39 @@ def test_with_suffix(rig):
     )
 
 
+def test_no_op_actions(rig):
+    path = rig.create_cloud_path("a/b/c/d.file")
+    assert path == path.absolute()
+    assert path == path.resolve()
+    assert path == path.resolve(strict=True)
+    assert path.is_absolute()
+
+
+def test_relative_to(rig, azure_rig, gs_rig):
+    assert rig.create_cloud_path("bucket/path/to/file.txt").relative_to(
+        rig.create_cloud_path("bucket/path")
+    ) == PurePosixPath("to/file.txt")
+    with pytest.raises(ValueError):
+        assert rig.create_cloud_path("bucket/b/c/d.file").relative_to(
+            rig.create_cloud_path("bucket/z")
+        )
+    with pytest.raises(ValueError):
+        assert rig.create_cloud_path("a/b/c/d.file").relative_to(PurePosixPath("/a/b/c"))
+    other_rig = azure_rig if rig.cloud_prefix != azure_rig.cloud_prefix else gs_rig
+    path = CloudPath(f"{rig.cloud_prefix}bucket/path/to/file.txt")
+    other_cloud_path = CloudPath(f"{other_rig.cloud_prefix}bucket/path")
+    with pytest.raises(ValueError):
+        assert path.relative_to(other_cloud_path)
+
+    assert rig.create_cloud_path("a/b/c/d.file").is_relative_to(rig.create_cloud_path("a/b/"))
+    assert not rig.create_cloud_path("a/b/c/d.file").is_relative_to(rig.create_cloud_path("b/c"))
+    assert not rig.create_cloud_path("a/b/c/d.file").is_relative_to(PurePosixPath("/a/b/c"))
+    assert not path.is_relative_to(other_cloud_path)
+
+
 def test_joins(rig):
     assert rig.create_cloud_path("a") / "b" == rig.create_cloud_path("a/b")
+    assert rig.create_cloud_path("a") / PurePosixPath("b") == rig.create_cloud_path("a/b")
     assert rig.create_cloud_path("a/b/c/d") / "../../b" == rig.create_cloud_path("a/b/b")
 
     assert rig.create_cloud_path("a/b/c/d").match("**/c/*")
@@ -43,6 +78,9 @@ def test_joins(rig):
     )
 
     assert rig.create_cloud_path("a").joinpath("b", "c") == rig.create_cloud_path("a/b/c")
+    assert rig.create_cloud_path("a").joinpath(PurePosixPath("b"), "c") == rig.create_cloud_path(
+        "a/b/c"
+    )
 
     assert rig.create_cloud_path("a/b/c").samefile(rig.create_cloud_path("a/b/c"))
 
