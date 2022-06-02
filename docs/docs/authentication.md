@@ -82,3 +82,67 @@ cp2 = CloudPath("s3://cloudpathlib-test-bucket/", client=client)
 client.set_as_default_client()
 cp3 = CloudPath("s3://cloudpathlib-test-bucket/")
 ```
+
+## Pickling `CloudPath` objects
+
+You can pickle and unpickle `CloudPath` objects normally, for example:
+
+```python
+from pathlib import Path
+import pickle
+
+from cloudpathlib import CloudPath
+
+
+with Path("cloud_path.pkl").open("wb") as f:
+    pickle.dump(CloudPath("s3://my-awesome-bucket/cool-file.txt"), f)
+
+with Path("cloud_path.pkl").open("rb") as f:
+    pickled = pickle.load(f)
+
+assert pickled.bucket == "my-awesome-bucket"
+```
+
+The associated `client`, however, is not pickled. When a `CloudPath` is 
+unpickled, the client on the unpickled object will be set to the default 
+client for that class.
+
+For example, this **will not work**:
+
+```python
+from pathlib import Path
+import pickle
+
+from cloudpathlib import S3Client, CloudPath
+
+
+# create a custom client pointing to the endpoint
+client = S3Client(endpoint_url="http://my.s3.server:1234")
+
+# use that client when creating a cloud path
+p = CloudPath("s3://cloudpathlib-test-bucket/cool_file.txt", client=client)
+p.write_text("hello!")
+
+with Path("cloud_path.pkl").open("wb") as f:
+    pickle.dump(p, f)
+
+with Path("cloud_path.pkl").open("rb") as f:
+    pickled = pickle.load(f)
+
+# this will be False, because it will use the default `S3Client`
+assert pickled.exists() == False
+```
+
+To get this to work, you need to set the custom `client` to the default
+before unpickling:
+
+```python
+# set the custom client as the default before unpickling
+client.set_as_default_client()
+
+with ("cloud_path.pkl").open("rb") as f:
+    pickled2 = pickle.load(f)
+
+assert pickled2.exists()
+assert pickled2.client == client
+```

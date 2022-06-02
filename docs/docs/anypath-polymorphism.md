@@ -2,7 +2,7 @@
 
 `cloudpathlib` implements a special `AnyPath` polymorphic class. This class will automatically instantiate a cloud path instance or a `pathlib.Path` instance appropriately from your input. It's also a virtual superclass of `CloudPath` and `Path`, so `isinstance` and `issubclass` checks will work in the expected way.
 
-This functionality can be handy for situations when you want to support both local filepaths and cloud storage filepaths. If you use `AnyPath`, your code can switch between them seamlessly based on the contents of provided filepaths with needing any `if`-`else` conditional blocks.
+This functionality can be handy for situations when you want to support both local filepaths and cloud storage filepaths. If you use `AnyPath`, your code can switch between them seamlessly based on the contents of provided filepaths without the need of any `if`-`else` conditional blocks.
 
 ## Example
 

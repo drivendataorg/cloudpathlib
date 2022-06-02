@@ -20,6 +20,8 @@ def mocked_client_class_factory(test_dir: str):
             self.tmp_path = Path(self.tmp.name) / "test_case_copy"
             shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
 
+            self.metadata_cache = {}
+
         @classmethod
         def from_connection_string(cls, *args, **kwargs):
             return cls()
@@ -28,7 +30,7 @@ def mocked_client_class_factory(test_dir: str):
             self.tmp.cleanup()
 
         def get_blob_client(self, container, blob):
-            return MockBlobClient(self.tmp_path, blob)
+            return MockBlobClient(self.tmp_path, blob, service_client=self)
 
         def get_container_client(self, container):
             return MockContainerClient(self.tmp_path)
@@ -37,9 +39,11 @@ def mocked_client_class_factory(test_dir: str):
 
 
 class MockBlobClient:
-    def __init__(self, root, key):
+    def __init__(self, root, key, service_client=None):
         self.root = root
         self.key = key
+
+        self.service_client = service_client
 
     @property
     def url(self):
@@ -53,6 +57,9 @@ class MockBlobClient:
                     "name": self.key,
                     "Last-Modified": datetime.fromtimestamp(path.stat().st_mtime),
                     "ETag": "etag",
+                    "content_type": self.service_client.metadata_cache.get(
+                        self.root / self.key, None
+                    ),
                 }
             )
         else:
@@ -75,10 +82,15 @@ class MockBlobClient:
         path.unlink()
         delete_empty_parents_up_to_root(path=path, root=self.root)
 
-    def upload_blob(self, data, overwrite):
+    def upload_blob(self, data, overwrite, content_settings=None):
         path = self.root / self.key
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
+
+        if content_settings is not None:
+            self.service_client.metadata_cache[
+                self.root / self.key
+            ] = content_settings.content_type
 
 
 class MockStorageStreamDownloader:
@@ -88,6 +100,9 @@ class MockStorageStreamDownloader:
 
     def readall(self):
         return (self.root / self.key).read_bytes()
+
+    def content_as_bytes(self):
+        return self.readall()
 
 
 class MockContainerClient:

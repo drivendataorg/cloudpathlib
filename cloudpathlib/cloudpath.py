@@ -1,10 +1,18 @@
 import abc
 from collections import defaultdict
 import collections.abc
-import fnmatch
+from contextlib import contextmanager
 import os
-from pathlib import Path, PosixPath, PurePosixPath, WindowsPath
-from typing import Any, IO, Iterable, Optional, TYPE_CHECKING, Union
+from pathlib import (  # type: ignore
+    Path,
+    PosixPath,
+    PurePosixPath,
+    WindowsPath,
+    _make_selector,
+    _posix_flavour,
+    _PathParents,
+)
+from typing import Any, IO, Iterable, Dict, Optional, TYPE_CHECKING, Union
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -15,6 +23,7 @@ from .exceptions import (
     CloudPathFileExistsError,
     CloudPathIsADirectoryError,
     CloudPathNotADirectoryError,
+    CloudPathNotImplementedError,
     DirectoryNotEmptyError,
     IncompleteImplementationError,
     InvalidPrefixError,
@@ -175,6 +184,19 @@ class CloudPath(metaclass=CloudPathMeta):
         if self._handle is not None:
             self._handle.close()
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+
+        # don't pickle client
+        del state["client"]
+
+        return state
+
+    def __setstate__(self, state):
+        client = self._cloud_meta.client_class.get_default_client()
+        state["client"] = client
+        return self.__dict__.update(state)
+
     @property
     def _no_prefix(self) -> str:
         return self._str[len(self.cloud_prefix) :]
@@ -232,7 +254,6 @@ class CloudPath(metaclass=CloudPathMeta):
         return self.parts >= other.parts
 
     # ====================== NOT IMPLEMENTED ======================
-    # absolute - no cloud equivalent; all cloud paths are absolute already
     # as_posix - no cloud equivalent; not needed since we assume url separator
     # chmod - permission changing should be explicitly done per client with methods
     #           that make sense for the client permission options
@@ -240,7 +261,6 @@ class CloudPath(metaclass=CloudPathMeta):
     # expanduser - no cloud equivalent
     # group - should be implemented with client-specific permissions
     # home - no cloud equivalent
-    # is_absolute - no cloud equivalent; all cloud paths are absolute already
     # is_block_device - no cloud equivalent
     # is_char_device - no cloud equivalent
     # is_fifo - no cloud equivalent
@@ -251,8 +271,6 @@ class CloudPath(metaclass=CloudPathMeta):
     # lchmod - no cloud equivalent
     # lstat - no cloud equivalent
     # owner - no cloud equivalent
-    # relative to - cloud paths are absolute
-    # resolve - all cloud paths are absolute, so no resolving
     # root - drive already has the bucket and anchor/prefix has the scheme, so nothing to store here
     # symlink_to - no cloud equivalent
 
@@ -280,7 +298,7 @@ class CloudPath(metaclass=CloudPathMeta):
         pass
 
     @abc.abstractmethod
-    def touch(self):
+    def touch(self, exist_ok: bool = True):
         """Should be implemented using the client API to create and update modified time"""
         pass
 
@@ -305,28 +323,49 @@ class CloudPath(metaclass=CloudPathMeta):
     def fspath(self) -> str:
         return self.__fspath__()
 
-    def glob(self, pattern: str) -> Iterable["CloudPath"]:
-        # strip cloud prefix from pattern if it is included
-        if pattern.startswith(self.cloud_prefix):
-            pattern = pattern[len(self.cloud_prefix) :]
+    def _glob_checks(self, pattern):
+        if ".." in pattern:
+            raise CloudPathNotImplementedError(
+                "Relative paths with '..' not supported in glob patterns."
+            )
 
-        # strip "drive" from pattern if it is included
-        if pattern.startswith(self.drive + "/"):
-            pattern = pattern[len(self.drive + "/") :]
+        if pattern.startswith(self.cloud_prefix) or pattern.startswith("/"):
+            raise CloudPathNotImplementedError("Non-relative patterns are unsupported")
 
-        # identify if pattern is recursive or not
-        recursive = False
-        if pattern.startswith("**/"):
-            pattern = pattern.split("/", 1)[-1]
-            recursive = True
+    def _glob(self, selector):
+        root = _CloudPathSelectable(
+            PurePosixPath(self._no_prefix_no_drive),
+            {
+                PurePosixPath(c._no_prefix_no_drive): is_dir
+                for c, is_dir in self.client._list_dir(self, recursive=True)
+            },
+            is_dir=True,
+            exists=True,
+        )
 
-        for f in self.client._list_dir(self, recursive=recursive):
-            if fnmatch.fnmatch(f._no_prefix_no_drive, pattern):
-                yield f
+        for p in selector.select_from(root):
+            yield self.client.CloudPath(f"{self.cloud_prefix}{self.drive}{p}")
+
+    def glob(self, pattern):
+        self._glob_checks(pattern)
+
+        pattern_parts = PurePosixPath(pattern).parts
+        selector = _make_selector(tuple(pattern_parts), _posix_flavour)
+
+        yield from self._glob(selector)
+
+    def rglob(self, pattern):
+        self._glob_checks(pattern)
+
+        pattern_parts = PurePosixPath(pattern).parts
+        selector = _make_selector(("**",) + tuple(pattern_parts), _posix_flavour)
+
+        yield from self._glob(selector)
 
     def iterdir(self) -> Iterable["CloudPath"]:
-        for f in self.client._list_dir(self, recursive=False):
-            yield f
+        for f, _ in self.client._list_dir(self, recursive=False):
+            if f != self:  # iterdir does not include itself in pathlib
+                yield f
 
     def open(
         self,
@@ -411,9 +450,6 @@ class CloudPath(metaclass=CloudPathMeta):
         # we actually move files
         return self.replace(target)
 
-    def rglob(self, pattern: str) -> Iterable["CloudPath"]:
-        return self.glob("**/" + pattern)
-
     def rmdir(self):
         if self.is_file():
             raise CloudPathNotADirectoryError(
@@ -432,12 +468,13 @@ class CloudPath(metaclass=CloudPathMeta):
         # all cloud paths are absolute and the paths are used for hash
         return self == other_path
 
-    def unlink(self):
+    def unlink(self, missing_ok=True):
+        # Note: missing_ok defaults to False in pathlib, but changing the default now would be a breaking change.
         if self.is_dir():
             raise CloudPathIsADirectoryError(
                 f"Path {self} is a directory; call rmdir instead of unlink."
             )
-        self.client._remove(self)
+        self.client._remove(self, missing_ok)
 
     def write_bytes(self, data: bytes):
         """Open the file in bytes mode, write to it, and close the file.
@@ -482,25 +519,59 @@ class CloudPath(metaclass=CloudPathMeta):
             path_version = _resolve(path_version)
             return self._new_cloudpath(path_version)
 
-        if isinstance(path_version, collections.abc.Sequence) and isinstance(
-            path_version[0], PurePosixPath
+        # When sequence of PurePosixPath, we want to convert to sequence of CloudPaths
+        if (
+            isinstance(path_version, collections.abc.Sequence)
+            and len(path_version) > 0
+            and isinstance(path_version[0], PurePosixPath)
         ):
-            return [
+            sequence_class = (
+                type(path_version) if not isinstance(path_version, _PathParents) else tuple
+            )
+            return sequence_class(
                 self._new_cloudpath(_resolve(p)) for p in path_version if _resolve(p) != p.root
-            ]
+            )
 
-        # when pathlib returns a string, etc. we probably just want that thing
+        # when pathlib returns something else, we probably just want that thing
+        # cases this should include: str, empty sequence, sequence of str, ...
         else:
             return path_version
 
     def __truediv__(self, other):
-        if not isinstance(other, (str,)):
-            raise TypeError(f"Can only join path {repr(self)} with strings.")
+        if not isinstance(other, (str, PurePosixPath)):
+            raise TypeError(f"Can only join path {repr(self)} with strings or posix paths.")
 
         return self._dispatch_to_path("__truediv__", other)
 
     def joinpath(self, *args):
         return self._dispatch_to_path("joinpath", *args)
+
+    def absolute(self):
+        return self
+
+    def is_absolute(self):
+        return True
+
+    def resolve(self, strict=False):
+        return self
+
+    def relative_to(self, other):
+        # We don't dispatch regularly since this never returns a cloud path (since it is relative, and cloud paths are
+        # absolute)
+        if not isinstance(other, CloudPath):
+            raise ValueError(f"{self} is a cloud path, but {other} is not")
+        if self.cloud_prefix != other.cloud_prefix:
+            raise ValueError(
+                f"{self} is a {self.cloud_prefix} path, but {other} is a {other.cloud_prefix} path"
+            )
+        return self._path.relative_to(other._path)
+
+    def is_relative_to(self, other):
+        try:
+            self.relative_to(other)
+            return True
+        except ValueError:
+            return False
 
     @property
     def name(self):
@@ -583,8 +654,8 @@ class CloudPath(metaclass=CloudPathMeta):
     def read_bytes(self):
         return self._dispatch_to_local_cache_path("read_bytes")
 
-    def read_text(self):
-        return self._dispatch_to_local_cache_path("read_text")
+    def read_text(self, *args, **kwargs):
+        return self._dispatch_to_local_cache_path("read_text", *args, **kwargs)
 
     # ===========  public cloud methods, not in pathlib ===============
     def download_to(self, destination: Union[str, os.PathLike]) -> Path:
@@ -866,3 +937,85 @@ def _resolve(path: PurePosixPath) -> str:
         newpath = newpath + sep + name
 
     return newpath or sep
+
+
+# These objects are used to wrap CloudPaths in a context where we can use
+# the python pathlib implementations for `glob` and `rglob`, which depend
+# on the Selector created by the `_make_selector` method being passed
+# an object like the below when `select_from` is called. We implement these methods
+# in a simple wrapper to use the same glob recursion and pattern logic without
+# rolling our own.
+#
+# Designed to be compatible when used by these selector implementations from pathlib:
+# https://github.com/python/cpython/blob/3.10/Lib/pathlib.py#L385-L500
+class _CloudPathSelectableAccessor:
+    def __init__(self, scandir_func):
+        self.scandir = scandir_func
+
+
+class _CloudPathSelectable:
+    def __init__(
+        self,
+        relative_cloud_path: PurePosixPath,
+        children: Dict[PurePosixPath, bool],
+        is_dir: bool,
+        exists: bool,
+    ):
+        self._path = relative_cloud_path
+        self._all_children = children
+
+        self._accessor = _CloudPathSelectableAccessor(self.scandir)
+
+        self._is_dir = is_dir
+        self._exists = exists
+
+    def __repr__(self):
+        return str(self._path)
+
+    def is_dir(self):
+        return self._is_dir
+
+    def exists(self):
+        return self._exists
+
+    def is_symlink(self):
+        return False
+
+    @property
+    def name(self):
+        return self._path.name
+
+    @staticmethod
+    @contextmanager
+    def scandir(root):
+        yield (
+            root._make_child_relpath(c.name)
+            for c, _ in root._all_children.items()
+            if c.parent == root._path
+        )
+
+    def _filter_children(self, rel_to):
+        return {
+            c: is_dir
+            for c, is_dir in self._all_children.items()
+            if self._is_relative_to(c, rel_to)
+        }
+
+    @staticmethod
+    def _is_relative_to(maybe_child, maybe_parent):
+        try:
+            maybe_child.relative_to(maybe_parent)
+            return True
+        except ValueError:
+            return False
+
+    def _make_child_relpath(self, part):
+        child = self._path / part
+        filtered_children = self._filter_children(child)
+
+        return _CloudPathSelectable(
+            child,
+            filtered_children,
+            is_dir=self._all_children.get(child, False),
+            exists=child in self._all_children,
+        )

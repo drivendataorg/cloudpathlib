@@ -1,6 +1,7 @@
+import mimetypes
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, Optional, Union
+from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
 
 
 from ..client import Client, register_client_class
@@ -35,6 +36,7 @@ class S3Client(Client):
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         endpoint_url: Optional[str] = None,
         boto3_transfer_config: Optional["TransferConfig"] = None,
+        content_type_method: Optional[Callable] = mimetypes.guess_type,
     ):
         """Class constructor. Sets up a boto3 [`Session`](
         https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html).
@@ -63,6 +65,8 @@ class S3Client(Client):
                 Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.
             boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing s3 transfers.
                 (https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)
+            content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
+                writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
         """
         endpoint_url = endpoint_url or os.getenv("AWS_ENDPOINT_URL")
         if boto3_session is not None:
@@ -93,7 +97,7 @@ class S3Client(Client):
 
         self.boto3_transfer_config = boto3_transfer_config
 
-        super().__init__(local_cache_dir=local_cache_dir)
+        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
 
     def _get_metadata(self, cloud_path: S3Path) -> Dict[str, Any]:
         data = self.s3.ObjectSummary(cloud_path.bucket, cloud_path.key).get()
@@ -102,7 +106,7 @@ class S3Client(Client):
             "last_modified": data["LastModified"],
             "size": data["ContentLength"],
             "etag": data["ETag"],
-            "mime": data["ContentType"],
+            "content_type": data["ContentType"],
             "extra": data["Metadata"],
         }
 
@@ -164,7 +168,7 @@ class S3Client(Client):
                 None,
             )
 
-    def _list_dir(self, cloud_path: S3Path, recursive=False) -> Iterable[S3Path]:
+    def _list_dir(self, cloud_path: S3Path, recursive=False) -> Iterable[Tuple[S3Path, bool]]:
         bucket = self.s3.Bucket(cloud_path.bucket)
 
         prefix = cloud_path.key
@@ -179,10 +183,10 @@ class S3Client(Client):
                 for parent in PurePosixPath(o.key[len(prefix) :]).parents:
                     # if we haven't surfaced their directory already
                     if parent not in yielded_dirs and str(parent) != ".":
-                        yield self.CloudPath(f"s3://{cloud_path.bucket}/{prefix}{parent}")
+                        yield (self.CloudPath(f"s3://{cloud_path.bucket}/{prefix}{parent}"), True)
                         yielded_dirs.add(parent)
 
-                yield self.CloudPath(f"s3://{o.bucket_name}/{o.key}")
+                yield (self.CloudPath(f"s3://{o.bucket_name}/{o.key}"), False)
         else:
             # non recursive is best done with old client API rather than resource
             paginator = self.client.get_paginator("list_objects")
@@ -190,14 +194,19 @@ class S3Client(Client):
             for result in paginator.paginate(
                 Bucket=cloud_path.bucket, Prefix=prefix, Delimiter="/"
             ):
-
                 # sub directory names
                 for result_prefix in result.get("CommonPrefixes", []):
-                    yield self.CloudPath(f"s3://{cloud_path.bucket}/{result_prefix.get('Prefix')}")
+                    yield (
+                        self.CloudPath(f"s3://{cloud_path.bucket}/{result_prefix.get('Prefix')}"),
+                        True,
+                    )
 
                 # files in the directory
                 for result_key in result.get("Contents", []):
-                    yield self.CloudPath(f"s3://{cloud_path.bucket}/{result_key.get('Key')}")
+                    yield (
+                        self.CloudPath(f"s3://{cloud_path.bucket}/{result_key.get('Key')}"),
+                        False,
+                    )
 
     def _move_file(self, src: S3Path, dst: S3Path, remove_src: bool = True) -> S3Path:
         # just a touch, so "REPLACE" metadata
@@ -217,7 +226,7 @@ class S3Client(Client):
                 self._remove(src)
         return dst
 
-    def _remove(self, cloud_path: S3Path) -> None:
+    def _remove(self, cloud_path: S3Path, missing_ok: bool = True) -> None:
         try:
             obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
@@ -241,11 +250,23 @@ class S3Client(Client):
             # resp will be [], so no need to check success
             if resp:
                 assert resp[0].get("ResponseMetadata").get("HTTPStatusCode") == 200
+            else:
+                if not missing_ok:
+                    raise FileNotFoundError(f"File does not exist: {cloud_path}")
 
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: S3Path) -> S3Path:
         obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
-        obj.upload_file(str(local_path), Config=self.boto3_transfer_config)
+        extra_args = {}
+
+        if self.content_type_method is not None:
+            content_type, content_encoding = self.content_type_method(str(local_path))
+            if content_type is not None:
+                extra_args["ContentType"] = content_type
+            if content_encoding is not None:
+                extra_args["ContentEncoding"] = content_encoding
+
+        obj.upload_file(str(local_path), Config=self.boto3_transfer_config, ExtraArgs=extra_args)
         return cloud_path
 
 

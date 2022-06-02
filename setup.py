@@ -35,15 +35,16 @@ readme = Path("README.md").read_text(encoding="UTF-8")
 setup(
     author="DrivenData",
     author_email="info@drivendata.org",
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
     description=("pathlib-style classes for cloud storage services"),
     extras_require=extra_reqs,
@@ -52,12 +53,12 @@ setup(
     long_description_content_type="text/markdown",
     include_package_data=True,
     name="cloudpathlib",
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests"]),
     project_urls={
         "Bug Tracker": "https://github.com/drivendataorg/cloudpathlib/issues",
         "Documentation": "https://cloudpathlib.drivendata.org/",
         "Source Code": "https://github.com/drivendataorg/cloudpathlib",
     },
     url="https://github.com/drivendataorg/cloudpathlib",
-    version="0.6.4",
+    version="0.9.0",
 )

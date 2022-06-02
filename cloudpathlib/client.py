@@ -1,8 +1,9 @@
 import abc
+import mimetypes
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Generic, Callable, Iterable, Optional, TypeVar, Union
+from typing import Generic, Callable, Iterable, Optional, Tuple, TypeVar, Union
 
 from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 
@@ -25,7 +26,11 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     _cloud_meta: CloudImplementation
     _default_client = None
 
-    def __init__(self, local_cache_dir: Optional[Union[str, os.PathLike]] = None):
+    def __init__(
+        self,
+        local_cache_dir: Optional[Union[str, os.PathLike]] = None,
+        content_type_method: Optional[Callable] = mimetypes.guess_type,
+    ):
         self._cloud_meta.validate_completeness()
         # setup caching and local versions of file and track if it is a tmp dir
         self._cache_tmp_dir = None
@@ -34,6 +39,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
             local_cache_dir = self._cache_tmp_dir.name
 
         self._local_cache_dir = Path(local_cache_dir)
+        self.content_type_method = content_type_method
 
     def __del__(self) -> None:
         # make sure temp is cleaned up if we created it
@@ -70,7 +76,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     @abc.abstractmethod
     def _list_dir(
         self, cloud_path: BoundedCloudPath, recursive: bool
-    ) -> Iterable[BoundedCloudPath]:
+    ) -> Iterable[Tuple[BoundedCloudPath, bool]]:
         """List all the files and folders in a directory.
 
         Parameters
@@ -79,6 +85,11 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
             The folder to start from.
         recursive : bool
             Whether or not to list recursively.
+
+        Returns
+        -------
+        contents : Iterable[Tuple]
+            Of the form [(CloudPath, is_dir), ...] for every child of the dir.
         """
         pass
 
@@ -89,7 +100,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         pass
 
     @abc.abstractmethod
-    def _remove(self, path: BoundedCloudPath) -> None:
+    def _remove(self, path: BoundedCloudPath, missing_ok: bool = True) -> None:
         """Remove a file or folder from the server.
 
         Parameters

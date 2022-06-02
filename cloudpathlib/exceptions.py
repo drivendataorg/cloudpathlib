@@ -28,6 +28,10 @@ class CloudPathNotADirectoryError(CloudPathException, NotADirectoryError):
     pass
 
 
+class CloudPathNotImplementedError(CloudPathException, NotImplementedError):
+    pass
+
+
 class DirectoryNotEmptyError(CloudPathException):
     pass
 

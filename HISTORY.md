@@ -1,13 +1,41 @@
 # cloudpathlib Changelog
 
-## Unreleased (2022-01-05)
+## v0.9.0 (UNRELEASED)
+ - Added `absolute` to `CloudPath` (does nothing as `CloudPath` is always absolute) ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `resolve` to `CloudPath` (does nothing as `CloudPath` is resolved in advance) ([Issue #151](https://github.com/drivendataorg/cloudpathlib/issues/151), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `relative_to` to `CloudPath` which returns a `PurePosixPath` ([Issue #149](https://github.com/drivendataorg/cloudpathlib/issues/149), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `is_relative_to` to `CloudPath` ([Issue #149](https://github.com/drivendataorg/cloudpathlib/issues/149), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `is_absolute` to `CloudPath` (always true as `CloudPath` is always absolute) ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Accept and delegate `read_text` parameters to cached file ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Add `exist_ok` parameter to `touch` ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Add `missing_ok` parameter to `unlink`, which defaults to True. This diverges from pathlib to maintain backward compatibility ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
 
- - Fixed error when "directories" created on AWS S3 were reported as files. ([Issue #148](https://github.com/drivendataorg/cloudpathlib/issues/148), [PR #190](https://github.com/drivendataorg/cloudpathlib/pull/190))
- - Fixed bug where GCE machines can instantiate default client, but we don't attempt it. ([Issue #191](https://github.com/drivendataorg/cloudpathlib/issues/191)
+## v0.8.0 (2022-05-19)
+
+ - Fixed pickling of `CloudPath` objects not working. ([Issue #223](https://github.com/drivendataorg/cloudpathlib/issues/223), [PR #224](https://github.com/drivendataorg/cloudpathlib/pull/224))
+ - Added functionality to [push the MIME (media) type to the content type property on cloud providers by default. ([Issue #222](https://github.com/drivendataorg/cloudpathlib/issues/222), [PR #226](https://github.com/drivendataorg/cloudpathlib/pull/226))
+
+## v0.7.1 (2022-04-06)
+
+- Fixed inadvertent inclusion of tests module in package. ([Issue #173](https://github.com/drivendataorg/cloudpathlib/issues/173), [PR #219](https://github.com/drivendataorg/cloudpathlib/pull/219))
+
+## v0.7.0 (2022-02-16)
+
+- Fixed `glob` and `rglob` functions by using pathlib's globbing logic rather than fnmatch. ([Issue #154](https://github.com/drivendataorg/cloudpathlib/issues/154))
+- Fixed `iterdir` to not include self. ([Issue #15](https://github.com/drivendataorg/cloudpathlib/issues/15))
+- Fixed error when calling `suffix` and `suffixes` on a cloud path with no suffix. ([Issue #120](https://github.com/drivendataorg/cloudpathlib/issues/120))
+- Changed `parents` return type from list to tuple, to better match pathlib's tuple-like `_PathParents` return type.
+- Remove support for Python 3.6. [Issue #186](https://github.com/drivendataorg/cloudpathlib/issues/186)
+
+## v0.6.5 (2022-01-25)
+
+- Fixed error when "directories" created on AWS S3 were reported as files. ([Issue #148](https://github.com/drivendataorg/cloudpathlib/issues/148), [PR #190](https://github.com/drivendataorg/cloudpathlib/pull/190))
+- Fixed bug where GCE machines can instantiate default client, but we don't attempt it. ([Issue #191](https://github.com/drivendataorg/cloudpathlib/issues/191)
+- Support `AWS_ENDPOINT_URL` environment variable to set the `endpoint_url` for `S3Client`. ([PR #193](https://github.com/drivendataorg/cloudpathlib/pull/193))
 
 ## v0.6.4 (2021-12-29)
 
- - Fixed error where `BlobProperties` type hint causes import error if Azure dependencies not installed.
+- Fixed error where `BlobProperties` type hint causes import error if Azure dependencies not installed.
 
 ## v0.6.3 (2021-12-29)
 

@@ -1,7 +1,8 @@
 from datetime import datetime
+import mimetypes
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, Optional, TYPE_CHECKING, Union
+from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
@@ -34,6 +35,7 @@ class GSClient(Client):
         project: Optional[str] = None,
         storage_client: Optional["StorageClient"] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
+        content_type_method: Optional[Callable] = mimetypes.guess_type,
     ):
         """Class constructor. Sets up a [`Storage
         Client`](https://googleapis.dev/python/storage/latest/client.html).
@@ -65,6 +67,8 @@ class GSClient(Client):
                 https://googleapis.dev/python/storage/latest/client.html).
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory.
+            content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
+                writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
         """
         if application_credentials is None:
             application_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -81,7 +85,7 @@ class GSClient(Client):
             except DefaultCredentialsError:
                 self.client = StorageClient.create_anonymous_client()
 
-        super().__init__(local_cache_dir=local_cache_dir)
+        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
 
     def _get_metadata(self, cloud_path: GSPath) -> Optional[Dict[str, Any]]:
         bucket = self.client.bucket(cloud_path.bucket)
@@ -94,6 +98,7 @@ class GSClient(Client):
                 "etag": blob.etag,
                 "size": blob.size,
                 "updated": blob.updated,
+                "content_type": blob.content_type,
             }
 
     def _download_file(self, cloud_path: GSPath, local_path: Union[str, os.PathLike]) -> Path:
@@ -132,7 +137,7 @@ class GSClient(Client):
     def _exists(self, cloud_path: GSPath) -> bool:
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
-    def _list_dir(self, cloud_path: GSPath, recursive=False) -> Iterable[GSPath]:
+    def _list_dir(self, cloud_path: GSPath, recursive=False) -> Iterable[Tuple[GSPath, bool]]:
         bucket = self.client.bucket(cloud_path.bucket)
 
         prefix = cloud_path.blob
@@ -154,14 +159,17 @@ class GSClient(Client):
                     if not recursive and "/" in str(parent):
                         continue
 
-                    yield self.CloudPath(f"gs://{cloud_path.bucket}/{prefix}{parent}")
+                    yield (
+                        self.CloudPath(f"gs://{cloud_path.bucket}/{prefix}{parent}"),
+                        True,  # is a directory
+                    )
                     yielded_dirs.add(parent)
 
             # skip file if not recursive and this is beyond our depth
             if not recursive and "/" in o.name[len(prefix) :]:
                 continue
 
-            yield self.CloudPath(f"gs://{cloud_path.bucket}/{o.name}")
+            yield (self.CloudPath(f"gs://{cloud_path.bucket}/{o.name}"), False)  # is a file
 
     def _move_file(self, src: GSPath, dst: GSPath, remove_src: bool = True) -> GSPath:
         # just a touch, so "REPLACE" metadata
@@ -188,21 +196,33 @@ class GSClient(Client):
 
         return dst
 
-    def _remove(self, cloud_path: GSPath) -> None:
-        if self._is_file_or_dir(cloud_path) == "dir":
-            blobs = [b.blob for b in self._list_dir(cloud_path, recursive=True) if b.is_file()]
+    def _remove(self, cloud_path: GSPath, missing_ok: bool = True) -> None:
+        file_or_dir = self._is_file_or_dir(cloud_path)
+        if file_or_dir == "dir":
+            blobs = [
+                b.blob for b, is_dir in self._list_dir(cloud_path, recursive=True) if not is_dir
+            ]
             bucket = self.client.bucket(cloud_path.bucket)
             for blob in blobs:
                 bucket.get_blob(blob).delete()
-        elif self._is_file_or_dir(cloud_path) == "file":
+        elif file_or_dir == "file":
             bucket = self.client.bucket(cloud_path.bucket)
             bucket.get_blob(cloud_path.blob).delete()
+        else:
+            # Does not exist
+            if not missing_ok:
+                raise FileNotFoundError(f"File does not exist: {cloud_path}")
 
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: GSPath) -> GSPath:
         bucket = self.client.bucket(cloud_path.bucket)
         blob = bucket.blob(cloud_path.blob)
 
-        blob.upload_from_filename(str(local_path))
+        extra_args = {}
+        if self.content_type_method is not None:
+            content_type, _ = self.content_type_method(str(local_path))
+            extra_args["content_type"] = content_type
+
+        blob.upload_from_filename(str(local_path), **extra_args)
         return cloud_path
 
 

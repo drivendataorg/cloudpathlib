@@ -1,10 +1,11 @@
 import atexit
 from hashlib import md5
+import mimetypes
 import os
 from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
-from typing import Iterable, List, Optional, Union
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from ..client import Client
 from .localpath import LocalPath
@@ -21,6 +22,7 @@ class LocalClient(Client):
         *args,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         local_storage_dir: Optional[Union[str, os.PathLike]] = None,
+        content_type_method: Optional[Callable] = mimetypes.guess_type,
         **kwargs,
     ):
         # setup caching and local versions of file. use default temp dir if not provided
@@ -28,7 +30,7 @@ class LocalClient(Client):
             local_storage_dir = self.get_default_storage_dir()
         self._local_storage_dir = Path(local_storage_dir)
 
-        super().__init__(local_cache_dir=local_cache_dir)
+        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
 
     @classmethod
     def get_default_storage_dir(cls) -> Path:
@@ -67,14 +69,16 @@ class LocalClient(Client):
     def _is_file(self, cloud_path: "LocalPath") -> bool:
         return self._cloud_path_to_local(cloud_path).is_file()
 
-    def _list_dir(self, cloud_path: "LocalPath", recursive=False) -> Iterable["LocalPath"]:
+    def _list_dir(
+        self, cloud_path: "LocalPath", recursive=False
+    ) -> Iterable[Tuple["LocalPath", bool]]:
         if recursive:
             return (
-                self._local_to_cloud_path(obj)
+                (self._local_to_cloud_path(obj), obj.is_dir())
                 for obj in self._cloud_path_to_local(cloud_path).glob("**/*")
             )
         return (
-            self._local_to_cloud_path(obj)
+            (self._local_to_cloud_path(obj), obj.is_dir())
             for obj in self._cloud_path_to_local(cloud_path).iterdir()
         )
 
@@ -92,8 +96,11 @@ class LocalClient(Client):
             shutil.copy(self._cloud_path_to_local(src), self._cloud_path_to_local(dst))
         return dst
 
-    def _remove(self, cloud_path: "LocalPath") -> None:
+    def _remove(self, cloud_path: "LocalPath", missing_ok: bool = True) -> None:
         local_storage_path = self._cloud_path_to_local(cloud_path)
+        if not missing_ok and not local_storage_path.exists():
+            raise FileNotFoundError(f"File does not exist: {cloud_path}")
+
         if local_storage_path.is_file():
             local_storage_path.unlink()
         elif local_storage_path.is_dir():
@@ -117,8 +124,10 @@ class LocalClient(Client):
             )
         )
 
-    def _touch(self, cloud_path: "LocalPath") -> None:
+    def _touch(self, cloud_path: "LocalPath", exist_ok: bool = True) -> None:
         local_storage_path = self._cloud_path_to_local(cloud_path)
+        if local_storage_path.exists() and not exist_ok:
+            raise FileExistsError(f"File exists: {cloud_path}")
         local_storage_path.parent.mkdir(exist_ok=True, parents=True)
         local_storage_path.touch()
 
@@ -129,6 +138,17 @@ class LocalClient(Client):
         dst.parent.mkdir(exist_ok=True, parents=True)
         shutil.copy(local_path, dst)
         return cloud_path
+
+    def _get_metadata(self, cloud_path: "LocalPath") -> Dict:
+        # content_type is the only metadata we test currently
+        if self.content_type_method is None:
+            content_type_method = lambda x: (None, None)
+        else:
+            content_type_method = self.content_type_method
+
+        return {
+            "content_type": content_type_method(str(self._cloud_path_to_local(cloud_path)))[0],
+        }
 
 
 _temp_dirs_to_clean: List[TemporaryDirectory] = []

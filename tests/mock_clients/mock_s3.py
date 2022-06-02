@@ -27,29 +27,32 @@ def mocked_session_class_factory(test_dir: str):
             self.tmp_path = Path(self.tmp.name) / "test_case_copy"
             shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
 
+            self.metadata_cache = {}
+
         def __del__(self):
             self.tmp.cleanup()
 
         def resource(self, item, endpoint_url, config=None):
-            return MockBoto3Resource(self.tmp_path)
+            return MockBoto3Resource(self.tmp_path, session=self)
 
         def client(self, item, endpoint_url, config=None):
-            return MockBoto3Client(self.tmp_path)
+            return MockBoto3Client(self.tmp_path, session=self)
 
     return MockBoto3Session
 
 
 class MockBoto3Resource:
-    def __init__(self, root):
+    def __init__(self, root, session=None):
         self.root = root
         self.download_config = None
         self.upload_config = None
+        self.session = session
 
     def Bucket(self, bucket):
-        return MockBoto3Bucket(self.root)
+        return MockBoto3Bucket(self.root, session=self.session)
 
     def ObjectSummary(self, bucket, key):
-        return MockBoto3ObjectSummary(self.root, key)
+        return MockBoto3ObjectSummary(self.root, key, session=self.session)
 
     def Object(self, bucket, key):
         return MockBoto3Object(self.root, key, self)
@@ -90,10 +93,13 @@ class MockBoto3Object:
         # track config to make sure it's used in tests
         self.resource.download_config = Config
 
-    def upload_file(self, from_path, Config=None):
+    def upload_file(self, from_path, Config=None, ExtraArgs=None):
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_bytes(Path(from_path).read_bytes())
         self.resource.upload_config = Config
+
+        if ExtraArgs is not None:
+            self.resource.session.metadata_cache[self.path] = ExtraArgs.pop("ContentType", None)
 
     def delete(self):
         self.path.unlink()
@@ -109,8 +115,9 @@ class MockBoto3Object:
 
 
 class MockBoto3ObjectSummary:
-    def __init__(self, root, path):
+    def __init__(self, root, path, session=None):
         self.path = root / path
+        self.session = session
 
     def get(self):
         if not self.path.exists() or self.path.is_dir():
@@ -120,41 +127,44 @@ class MockBoto3ObjectSummary:
                 "LastModified": datetime.fromtimestamp(self.path.stat().st_mtime),
                 "ContentLength": None,
                 "ETag": hash(str(self.path)),
-                "ContentType": None,
+                "ContentType": self.session.metadata_cache.get(self.path, None),
                 "Metadata": {},
             }
 
 
 class MockBoto3Bucket:
-    def __init__(self, root):
+    def __init__(self, root, session=None):
         self.root = root
+        self.session = session
 
     @property
     def objects(self):
-        return MockObjects(self.root)
+        return MockObjects(self.root, session=self.session)
 
 
 class MockObjects:
-    def __init__(self, root):
+    def __init__(self, root, session=None):
         self.root = root
+        self.session = session
 
     def filter(self, Prefix=""):
         path = self.root / Prefix
 
         if path.is_file():
-            return MockCollection([PurePosixPath(path)], self.root)
+            return MockCollection([PurePosixPath(path)], self.root, session=self.session)
 
         items = [
             PurePosixPath(f)
             for f in path.glob("**/*")
             if f.is_file() and not f.name.startswith(".")
         ]
-        return MockCollection(items, self.root)
+        return MockCollection(items, self.root, session=self.session)
 
 
 class MockCollection:
-    def __init__(self, items, root):
+    def __init__(self, items, root, session=None):
         self.root = root
+        self.session = session
         s3_obj = collections.namedtuple("s3_obj", "key bucket_name")
 
         self.full_paths = items
@@ -169,19 +179,25 @@ class MockCollection:
         return self.s3_obj_paths[:n]
 
     def delete(self):
+        any_deleted = False
         for p in self.full_paths:
+            if Path(p).exists():
+                any_deleted = True
             Path(p).unlink()
             delete_empty_parents_up_to_root(Path(p), self.root)
 
+        if not any_deleted:
+            return []
         return [{"ResponseMetadata": {"HTTPStatusCode": 200}}]
 
 
 class MockBoto3Client:
-    def __init__(self, root):
+    def __init__(self, root, session=None):
         self.root = root
+        self.session = session
 
     def get_paginator(self, api):
-        return MockBoto3Paginator(self.root)
+        return MockBoto3Paginator(self.root, session=self.session)
 
     @property
     def exceptions(self):
@@ -190,9 +206,10 @@ class MockBoto3Client:
 
 
 class MockBoto3Paginator:
-    def __init__(self, root, per_page=2):
+    def __init__(self, root, per_page=2, session=None):
         self.root = root
         self.per_page = per_page
+        self.session = session
 
     def paginate(self, Bucket=None, Prefix="", Delimiter=None):
         new_dir = self.root / Prefix
