@@ -255,7 +255,7 @@ class AzureBlobClient(Client):
             permission=BlobSasPermissions(read=True),
             expiry=datetime.utcnow() + timedelta(seconds=expire_seconds)
         )
-        url = f"https://{az_client.account_name}.blob.core.windows.net/{self.container}/{object_key}?{sas_token}"
+        url = f"https://{self.service_client.account_name}.blob.core.windows.net/{cloud_path.container}/{cloud_path.blob}?{sas_token}"
         return url
 
 
