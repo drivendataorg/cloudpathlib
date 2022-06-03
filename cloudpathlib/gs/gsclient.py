@@ -226,14 +226,11 @@ class GSClient(Client):
         return cloud_path
 
     def _generate_presigned_url(self, cloud_path: GSPath, expire_seconds: int = 60 * 60) -> str:
-        creds = self.client.credentials
         bucket = self.client.get_bucket(cloud_path.bucket)
         blob = bucket.blob(cloud_path.blob)
         url = blob.generate_signed_url(
             version="v4",
             expiration=timedelta(seconds=expire_seconds),
-            service_account_email=creds.service_account_email,
-            access_token=creds.token,
             method="GET"
         )
         return url
