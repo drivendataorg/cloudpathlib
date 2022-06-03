@@ -668,6 +668,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#cloudpathlib.exceptions" class="md-nav__link">
+    cloudpathlib.exceptions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cloudpathlib.exceptions-classes" class="md-nav__link">
     Classes
   </a>
@@ -855,6 +862,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#cloudpathlib.exceptions" class="md-nav__link">
+    cloudpathlib.exceptions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cloudpathlib.exceptions-classes" class="md-nav__link">
     Classes
   </a>
@@ -1000,17 +1014,16 @@
 <h1 id="cloudpathlibexceptions">cloudpathlib.exceptions<a class="headerlink" href="#cloudpathlibexceptions" title="Permanent link">&para;</a></h1>
 
 
-<div class="doc doc-object doc-module">
+  <div class="doc doc-object doc-module">
 
+<a id="cloudpathlib.exceptions"></a>
+    <div class="doc doc-contents first">
 
-
-  <div class="doc doc-contents first">
-  
       <p>This module contains all custom exceptions in the <code>cloudpathlib</code> library. All exceptions
 subclass the <a class="autorefs autorefs-internal" href="#cloudpathlib.exceptions.CloudPathException"><code>CloudPathException</code> base exception</a> to
 facilitate catching any exception from this library.</p>
 
-  
+
 
   <div class="doc doc-children">
 
@@ -1018,493 +1031,504 @@ facilitate catching any exception from this library.</p>
 
 
 
-
 <h2 id="cloudpathlib.exceptions-classes">Classes<a class="headerlink" href="#cloudpathlib.exceptions-classes" title="Permanent link">&para;</a></h2>
 
-<div class="doc doc-object doc-class">
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.AnyPathTypeError">
-        <code>AnyPathTypeError</code>
+        <code>
+AnyPathTypeError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>, <span title="TypeError">TypeError</span>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.AnyPathTypeError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code>, <code>TypeError</code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">11</span>
-<span class="normal">12</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">AnyPathTypeError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">AnyPathTypeError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.ClientMismatchError">
-        <code>ClientMismatchError</code>
+        <code>
+ClientMismatchError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>, <span title="ValueError">ValueError</span>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.ClientMismatchError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code>, <code>ValueError</code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">15</span>
-<span class="normal">16</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">ClientMismatchError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">ClientMismatchError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.CloudPathException">
-        <code>CloudPathException</code>
+        <code>
+CloudPathException            (<span title="Exception">Exception</span>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.CloudPathException" title="Permanent link">&para;</a></h3>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code>Exception</code></p>
-
-  
       <p>Base exception for all cloudpathlib custom exceptions.</p>
-
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">7</span>
-<span class="normal">8</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CloudPathException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">CloudPathException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Base exception for all cloudpathlib custom exceptions.&quot;&quot;&quot;</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.CloudPathFileExistsError">
-        <code>CloudPathFileExistsError</code>
+        <code>
+CloudPathFileExistsError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>, <span title="FileExistsError">FileExistsError</span>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.CloudPathFileExistsError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code>, <code>FileExistsError</code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">19</span>
-<span class="normal">20</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CloudPathFileExistsError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">FileExistsError</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">CloudPathFileExistsError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">FileExistsError</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.CloudPathIsADirectoryError">
-        <code>CloudPathIsADirectoryError</code>
+        <code>
+CloudPathIsADirectoryError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>, <span title="IsADirectoryError">IsADirectoryError</span>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.CloudPathIsADirectoryError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code>, <code>IsADirectoryError</code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">23</span>
-<span class="normal">24</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CloudPathIsADirectoryError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">IsADirectoryError</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">CloudPathIsADirectoryError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">IsADirectoryError</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.CloudPathNotADirectoryError">
-        <code>CloudPathNotADirectoryError</code>
+        <code>
+CloudPathNotADirectoryError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>, <span title="NotADirectoryError">NotADirectoryError</span>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.CloudPathNotADirectoryError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code>, <code>NotADirectoryError</code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">27</span>
-<span class="normal">28</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CloudPathNotADirectoryError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">NotADirectoryError</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">CloudPathNotADirectoryError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">NotADirectoryError</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.CloudPathNotImplementedError">
-        <code>CloudPathNotImplementedError</code>
+        <code>
+CloudPathNotImplementedError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>, <span title="NotImplementedError">NotImplementedError</span>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.CloudPathNotImplementedError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code>, <code>NotImplementedError</code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">31</span>
-<span class="normal">32</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">CloudPathNotImplementedError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">NotImplementedError</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">CloudPathNotImplementedError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">NotImplementedError</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.DirectoryNotEmptyError">
-        <code>DirectoryNotEmptyError</code>
+        <code>
+DirectoryNotEmptyError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.DirectoryNotEmptyError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">35</span>
-<span class="normal">36</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">DirectoryNotEmptyError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">DirectoryNotEmptyError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.IncompleteImplementationError">
-        <code>IncompleteImplementationError</code>
+        <code>
+IncompleteImplementationError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>, <span title="NotImplementedError">NotImplementedError</span>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.IncompleteImplementationError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code>, <code>NotImplementedError</code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">39</span>
-<span class="normal">40</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">IncompleteImplementationError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">NotImplementedError</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">IncompleteImplementationError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">NotImplementedError</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.InvalidPrefixError">
-        <code>InvalidPrefixError</code>
+        <code>
+InvalidPrefixError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>, <span title="ValueError">ValueError</span>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.InvalidPrefixError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code>, <code>ValueError</code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">43</span>
-<span class="normal">44</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">InvalidPrefixError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">InvalidPrefixError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.MissingCredentialsError">
-        <code>MissingCredentialsError</code>
+        <code>
+MissingCredentialsError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.MissingCredentialsError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">47</span>
-<span class="normal">48</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">MissingCredentialsError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">MissingCredentialsError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.MissingDependenciesError">
-        <code>MissingDependenciesError</code>
+        <code>
+MissingDependenciesError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>, <span title="ModuleNotFoundError">ModuleNotFoundError</span>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.MissingDependenciesError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code>, <code>ModuleNotFoundError</code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">51</span>
-<span class="normal">52</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">MissingDependenciesError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">ModuleNotFoundError</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">MissingDependenciesError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">,</span> <span class="ne">ModuleNotFoundError</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.NoStatError">
-        <code>NoStatError</code>
+        <code>
+NoStatError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.NoStatError" title="Permanent link">&para;</a></h3>
 
+    <div class="doc doc-contents ">
 
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code></p>
-
-  
       <p>Used if stats cannot be retrieved; e.g., file does not exist
 or for some backends path is a directory (which doesn't have
 stats available).</p>
 
-
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">55</span>
-<span class="normal">56</span>
-<span class="normal">57</span>
-<span class="normal">58</span>
-<span class="normal">59</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">NoStatError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">NoStatError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Used if stats cannot be retrieved; e.g., file does not exist</span>
 <span class="sd">    or for some backends path is a directory (which doesn&#39;t have</span>
 <span class="sd">    stats available).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.OverwriteDirtyFileError">
-        <code>OverwriteDirtyFileError</code>
+        <code>
+OverwriteDirtyFileError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.OverwriteDirtyFileError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">62</span>
-<span class="normal">63</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">OverwriteDirtyFileError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">OverwriteDirtyFileError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.OverwriteNewerCloudError">
-        <code>OverwriteNewerCloudError</code>
+        <code>
+OverwriteNewerCloudError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.OverwriteNewerCloudError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">66</span>
-<span class="normal">67</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">OverwriteNewerCloudError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">OverwriteNewerCloudError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
+
+
+    </div>
 
   </div>
 
-</div>
 
-<div class="doc doc-object doc-class">
+
+  <div class="doc doc-object doc-class">
 
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.exceptions.OverwriteNewerLocalError">
-        <code>OverwriteNewerLocalError</code>
+        <code>
+OverwriteNewerLocalError            (<a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a>)
+        </code>
+
 
 
 <a class="headerlink" href="#cloudpathlib.exceptions.OverwriteNewerLocalError" title="Permanent link">&para;</a></h3>
 
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="cloudpathlib.exceptions.CloudPathException" href="#cloudpathlib.exceptions.CloudPathException">CloudPathException</a></code></p>
-
+    <div class="doc doc-contents ">
 
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/exceptions.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">70</span>
-<span class="normal">71</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">OverwriteNewerLocalError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">OverwriteNewerLocalError</span><span class="p">(</span><span class="n">CloudPathException</span><span class="p">):</span>
     <span class="k">pass</span>
-</code></pre></div></td></tr></table></div>
+</code></pre></div>
         </details>
 
-  </div>
 
-</div>
-
-
-
+    </div>
 
   </div>
 
+
+
+
+
+
+
   </div>
 
-</div>
+    </div>
+
+  </div>
 
               
             </article>
