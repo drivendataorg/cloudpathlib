@@ -7,8 +7,9 @@
  - Added `is_relative_to` to `CloudPath` ([Issue #149](https://github.com/drivendataorg/cloudpathlib/issues/149), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
  - Added `is_absolute` to `CloudPath` (always true as `CloudPath` is always absolute) ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
  - Accept and delegate `read_text` parameters to cached file ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
- - Add `exist_ok` parameter to `touch` ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
- - Add `missing_ok` parameter to `unlink`, which defaults to True. This diverges from pathlib to maintain backward compatibility ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `exist_ok` parameter to `touch` ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `missing_ok` parameter to `unlink`, which defaults to True. This diverges from pathlib to maintain backward compatibility ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Fixed missing root object entries in documentation's Intersphinx inventory ([Issue #211](https://github.com/drivendataorg/cloudpathlib/issues/211), [PR #237](https://github.com/drivendataorg/cloudpathlib/pull/237))
 
 ## v0.8.0 (2022-05-19)
 
