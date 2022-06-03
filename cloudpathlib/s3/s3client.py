@@ -269,5 +269,14 @@ class S3Client(Client):
         obj.upload_file(str(local_path), Config=self.boto3_transfer_config, ExtraArgs=extra_args)
         return cloud_path
 
+    def _generate_presigned_url(self, cloud_path: S3Path, expire_seconds: int = 60 * 60) -> str:
+        object_key = "/".join(list(cloud_path.parts)[2:]) # Everything after the bucket name
+        url: str = self.client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": cloud_path.bucket, "Key": object_key},
+            ExpiresIn=expire_seconds,
+        )
+        return url
+
 
 S3Client.S3Path = S3Client.CloudPath  # type: ignore

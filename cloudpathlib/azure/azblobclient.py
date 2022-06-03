@@ -246,5 +246,8 @@ class AzureBlobClient(Client):
 
         return cloud_path
 
+    def _generate_presigned_url(self, cloud_path: AzureBlobPath, expire_seconds: int = 60 * 60) -> str:
+
+
 
 AzureBlobClient.AzureBlobPath = AzureBlobClient.CloudPath  # type: ignore

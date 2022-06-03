@@ -302,6 +302,11 @@ class CloudPath(metaclass=CloudPathMeta):
         """Should be implemented using the client API to create and update modified time"""
         pass
 
+    @abc.abstractmethod
+    def as_url(self, presign: bool = False, expire_seconds: int = 60 * 60):
+        """Should be implemented using the client API to create and update modified time"""
+        pass
+
     # ====================== IMPLEMENTED FROM SCRATCH ======================
     # Methods with their own implementations that work generically
     def __rtruediv__(self, other):
