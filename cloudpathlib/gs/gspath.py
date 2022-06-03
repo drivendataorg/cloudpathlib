@@ -60,7 +60,7 @@ class GSPath(CloudPath):
         if presign:
             url = self.client._generate_presigned_url(self, expire_seconds=expire_seconds)
         else:
-            url = self.as_uri()
+            url = f"https://storage.googleapis.com/storage/v1/{self.bucket}/{self.blob}"
         return url
 
     def stat(self):
