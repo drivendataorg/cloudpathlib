@@ -164,6 +164,36 @@ def test_fake_directories(s3_like_rig):
         assert not test_case.is_file()
 
 
+def test_directories(s3_like_rig):
+    """Fixing bug that marks as directories prefixes of existing paths
+
+    Ref: https://github.com/drivendataorg/cloudpathlib/issues/208
+    """
+    boto3_s3_client = s3_like_rig.client_class._default_client.client
+    if not s3_like_rig.live_server:
+        pytest.skip("This test only runs against live servers.")
+
+    response = boto3_s3_client.put_object(
+        Bucket=f"{s3_like_rig.drive}",
+        Body="123",
+        Key=f"{s3_like_rig.test_dir}/superfile",
+    )
+
+    assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+
+    super_path = s3_like_rig.create_cloud_path("superfile")
+    assert super_path.exists()
+    assert not super_path.is_dir()
+
+    super_path = s3_like_rig.create_cloud_path("super2")
+    assert not super_path.exists()
+    assert not super_path.is_dir()
+
+    super_path = s3_like_rig.create_cloud_path("super")
+    assert not super_path.exists()
+    assert not super_path.is_dir()
+
+
 def test_no_sign_request(s3_rig, tmp_path):
     """Tests that we can pass no_sign_request to the S3Client and we will
     be able to access public resources but not private ones.
