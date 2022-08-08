@@ -402,3 +402,13 @@ s3_like_rig = fixture_union(
         custom_s3_rig,
     ],
 )
+
+# use all available s3 implementations (include mocked local one)
+s3_like_rig_all = fixture_union(
+    "s3_like_rig_all",
+    [
+        s3_rig,
+        custom_s3_rig,
+        local_s3_rig,
+    ],
+)
