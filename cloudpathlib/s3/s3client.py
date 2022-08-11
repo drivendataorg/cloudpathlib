@@ -156,13 +156,13 @@ class S3Client(Client):
 
         # else, confirm it is a dir by filtering to the first item under the prefix
         except ClientError:
+            key = cloud_path.key.rstrip("/") + "/"
+
             return next(
                 (
                     obj
                     for obj in (
-                        self.s3.Bucket(cloud_path.bucket)
-                        .objects.filter(Prefix=cloud_path.key)
-                        .limit(1)
+                        self.s3.Bucket(cloud_path.bucket).objects.filter(Prefix=key).limit(1)
                     )
                 ),
                 None,

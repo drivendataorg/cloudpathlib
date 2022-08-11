@@ -164,6 +164,24 @@ def test_fake_directories(s3_like_rig):
         assert not test_case.is_file()
 
 
+def test_directories(s3_like_rig):
+    """Fixing bug that marks as directories prefixes of existing paths
+
+    Ref: https://github.com/drivendataorg/cloudpathlib/issues/208
+    """
+    super_path = s3_like_rig.create_cloud_path("dir_0/file0_0.txt")
+    assert super_path.exists()
+    assert not super_path.is_dir()
+
+    super_path = s3_like_rig.create_cloud_path("dir_0")
+    assert super_path.exists()
+    assert super_path.is_dir()
+
+    super_path = s3_like_rig.create_cloud_path("dir_0/file0")
+    assert not super_path.exists()
+    assert not super_path.is_dir()
+
+
 def test_no_sign_request(s3_rig, tmp_path):
     """Tests that we can pass no_sign_request to the S3Client and we will
     be able to access public resources but not private ones.
