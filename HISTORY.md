@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## v0.9.1 (UNRELEASED)
+
+ - Fixed S3Path.exists() returns True on partial matches. ([Issue #208](https://github.com/drivendataorg/cloudpathlib/issues/208), [PR #244](https://github.com/drivendataorg/cloudpathlib/pull/244))
+
 ## v0.9.0 (2022-06-03)
  - Added `absolute` to `CloudPath` (does nothing as `CloudPath` is always absolute) ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
  - Added `resolve` to `CloudPath` (does nothing as `CloudPath` is resolved in advance) ([Issue #151](https://github.com/drivendataorg/cloudpathlib/issues/151), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
