@@ -12,10 +12,11 @@ class AnyPathMeta(type):
     [PEP 3119](https://www.python.org/dev/peps/pep-3119/#overloading-isinstance-and-issubclass)."""
 
     def __instancecheck__(cls, inst):
-        return isinstance(inst, CloudPath) or isinstance(inst, Path)
+        return any(cls.__subclasscheck__(c) for c in {type(inst), inst.__class__})
 
     def __subclasscheck__(cls, sub):
-        return issubclass(sub, CloudPath) or issubclass(sub, Path)
+        candidates = cls.__dict__.get("__subclass__", set()) | {cls}
+        return any(c in candidates for c in sub.mro())
 
 
 class AnyPath(metaclass=AnyPathMeta):
@@ -27,6 +28,8 @@ class AnyPath(metaclass=AnyPathMeta):
     BaseModel, the Pydantic validation process will appropriately run inputs through this class'
     constructor and dispatch to CloudPath or Path.
     """
+
+    __subclass__ = {CloudPath, Path}
 
     def __new__(cls, *args, **kwargs) -> Union[CloudPath, Path]:  # type: ignore
         try:
