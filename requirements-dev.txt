@@ -16,7 +16,7 @@ pandas
 pillow
 psutil
 pydantic
-pytest<7.0
+pytest
 pytest-cases
 pytest-cov
 python-dotenv
