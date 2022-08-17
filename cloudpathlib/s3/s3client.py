@@ -1,7 +1,7 @@
 import mimetypes
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union, Final
 
 
 from ..client import Client, register_client_class
@@ -36,6 +36,7 @@ class S3Client(Client):
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         endpoint_url: Optional[str] = None,
         boto3_transfer_config: Optional["TransferConfig"] = None,
+        boto3_upload_extra_args: Optional[Dict[str, str]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
     ):
         """Class constructor. Sets up a boto3 [`Session`](
@@ -65,6 +66,8 @@ class S3Client(Client):
                 Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.
             boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing s3 transfers.
                 (https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)
+            boto3_upload_extra_args (Optional[dict]): extra arguments for managing uploading objects to s3.
+                (https://boto3.amazonaws.com/v1/documentation/api/1.9.46/reference/services/s3.html#S3.Object.upload_file)
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
         """
@@ -96,6 +99,7 @@ class S3Client(Client):
             self.client = self.sess.client("s3", endpoint_url=endpoint_url)
 
         self.boto3_transfer_config = boto3_transfer_config
+        self.boto3_upload_extra_args: Final[Dict[str, str]] = (boto3_upload_extra_args or {}).copy()
 
         super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
 
@@ -257,7 +261,7 @@ class S3Client(Client):
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: S3Path) -> S3Path:
         obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
-        extra_args = {}
+        extra_args = self.boto3_upload_extra_args.copy()
 
         if self.content_type_method is not None:
             content_type, content_encoding = self.content_type_method(str(local_path))
