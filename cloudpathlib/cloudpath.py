@@ -639,7 +639,6 @@ class CloudPath(metaclass=CloudPathMeta):
         else:
             return path_version
 
-    @property
     def stat(self):
         """Note: for many clients, we may want to override so we don't incur
         network costs since many of these properties are available as
