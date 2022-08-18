@@ -1,8 +1,12 @@
 # cloudpathlib Changelog
 
-## v0.9.1 (UNRELEASED)
+## v0.10.0 (2022-08-18)
 
- - Fixed S3Path.exists() returns True on partial matches. ([Issue #208](https://github.com/drivendataorg/cloudpathlib/issues/208), [PR #244](https://github.com/drivendataorg/cloudpathlib/pull/244))
+ - API change: Make `stat` on base class method instead of property to follow `pathlib` ([Issue #234](https://github.com/drivendataorg/cloudpathlib/issues/234), [PR #250](https://github.com/drivendataorg/cloudpathlib/pull/250))
+ - Fixed "S3Path.exists() returns True on partial matches." ([Issue #208](https://github.com/drivendataorg/cloudpathlib/issues/208), [PR #244](https://github.com/drivendataorg/cloudpathlib/pull/244))
+ - Make `AnyPath` subclass of `AnyPath` ([Issue #246](https://github.com/drivendataorg/cloudpathlib/issues/246), [PR #251](https://github.com/drivendataorg/cloudpathlib/pull/251))
+ - Skip docstrings if not present to avoid failing under `-00` ([Issue #238](https://github.com/drivendataorg/cloudpathlib/issues/238), [PR #249](https://github.com/drivendataorg/cloudpathlib/pull/249))
+ - Add `py.typed` file so mypy runs ([Issue #243](https://github.com/drivendataorg/cloudpathlib/issues/243), [PR #248](https://github.com/drivendataorg/cloudpathlib/pull/248))
 
 ## v0.9.0 (2022-06-03)
  - Added `absolute` to `CloudPath` (does nothing as `CloudPath` is always absolute) ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
