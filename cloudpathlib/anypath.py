@@ -1,4 +1,5 @@
 import os
+from abc import ABC
 from pathlib import Path
 from typing import Union
 
@@ -6,19 +7,7 @@ from .cloudpath import InvalidPrefixError, CloudPath
 from .exceptions import AnyPathTypeError
 
 
-class AnyPathMeta(type):
-    """Metaclass for AnyPath that implements special methods so that AnyPath works as a virtual
-    superclass when using isinstance or issubclass checks on CloudPath or Path inputs. See
-    [PEP 3119](https://www.python.org/dev/peps/pep-3119/#overloading-isinstance-and-issubclass)."""
-
-    def __instancecheck__(cls, inst):
-        return isinstance(inst, CloudPath) or isinstance(inst, Path)
-
-    def __subclasscheck__(cls, sub):
-        return issubclass(sub, CloudPath) or issubclass(sub, Path)
-
-
-class AnyPath(metaclass=AnyPathMeta):
+class AnyPath(ABC):
     """Polymorphic virtual superclass for CloudPath and pathlib.Path. Constructing an instance will
     automatically dispatch to CloudPath or Path based on the input. It also supports both
     isinstance and issubclass checks.
@@ -53,6 +42,10 @@ class AnyPath(metaclass=AnyPathMeta):
         https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
         # Note __new__ is static method and not a class method
         return cls.__new__(cls, value)
+
+
+AnyPath.register(CloudPath)  # type: ignore
+AnyPath.register(Path)
 
 
 def to_anypath(s: Union[str, os.PathLike]) -> Union[CloudPath, Path]:
