@@ -44,7 +44,7 @@ class AnyPath(ABC):
         return cls.__new__(cls, value)
 
 
-AnyPath.register(CloudPath)
+AnyPath.register(CloudPath)  # type: ignore
 AnyPath.register(Path)
 
 
