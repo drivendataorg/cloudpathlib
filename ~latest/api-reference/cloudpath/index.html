@@ -479,13 +479,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cloudpathlib.cloudpath.CloudPath.stat" class="md-nav__link">
-    stat
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#cloudpathlib.cloudpath.CloudPath.stem" class="md-nav__link">
     stem
   </a>
@@ -711,6 +704,13 @@
           <li class="md-nav__item">
   <a href="#cloudpathlib.cloudpath.CloudPath.samefile" class="md-nav__link">
     samefile()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.cloudpath.CloudPath.stat" class="md-nav__link">
+    stat()
   </a>
   
 </li>
@@ -1147,13 +1147,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cloudpathlib.cloudpath.CloudPath.stat" class="md-nav__link">
-    stat
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#cloudpathlib.cloudpath.CloudPath.stem" class="md-nav__link">
     stem
   </a>
@@ -1379,6 +1372,13 @@
           <li class="md-nav__item">
   <a href="#cloudpathlib.cloudpath.CloudPath.samefile" class="md-nav__link">
     samefile()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.cloudpath.CloudPath.stat" class="md-nav__link">
+    stat()
   </a>
   
 </li>
@@ -1983,7 +1983,6 @@ storage URI (e.g., <code>"s3://"</code>).</p>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">path_version</span>
 
-    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Note: for many clients, we may want to override so we don&#39;t incur</span>
 <span class="sd">        network costs since many of these properties are available as</span>
@@ -2423,31 +2422,6 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
       <p>An object providing sequence-like access to the
 components in the filesystem path. <em>(Docstring copied from pathlib.Path)</em></p>
-    </div>
-
-  </div>
-
-
-
-  <div class="doc doc-object doc-attribute">
-
-
-
-<h3 class="doc doc-heading" id="cloudpathlib.cloudpath.CloudPath.stat">
-<code class="highlight language-python"><span class="n">stat</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-property"><code>property</code></small>
-      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
-  </span>
-
-<a class="headerlink" href="#cloudpathlib.cloudpath.CloudPath.stat" title="Permanent link">&para;</a></h3>
-
-    <div class="doc doc-contents ">
-
-      <p>Return the result of the stat() system call on this path, like
-os.stat() does.
- <em>(Docstring copied from pathlib.Path)</em></p>
     </div>
 
   </div>
@@ -3537,6 +3511,42 @@ this subtree.
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">samefile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other_path</span><span class="p">:</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="c1"># all cloud paths are absolute and the paths are used for hash</span>
     <span class="k">return</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other_path</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 class="doc doc-heading" id="cloudpathlib.cloudpath.CloudPath.stat">
+<code class="highlight language-python"><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+<a class="headerlink" href="#cloudpathlib.cloudpath.CloudPath.stat" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Return the result of the stat() system call on this path, like
+os.stat() does.
+ <em>(Docstring copied from pathlib.Path)</em></p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Note: for many clients, we may want to override so we don&#39;t incur</span>
+<span class="sd">    network costs since many of these properties are available as</span>
+<span class="sd">    API calls.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">warn</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;stat not implemented as API call for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s2"> so file must be downloaded to &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;calculate stats; this may take a long time depending on filesize&quot;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;stat&quot;</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
