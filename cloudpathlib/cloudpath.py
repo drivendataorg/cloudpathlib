@@ -122,8 +122,7 @@ class CloudPathMeta(abc.ABCMeta):
             if (
                 not attr.startswith("_")
                 and hasattr(Path, attr)
-                and hasattr(getattr(Path, attr), "__doc__")
-                and getattr(getattr(Path, attr), "__doc__") is not None
+                and getattr(getattr(Path, attr), "__doc__", None)
             ):
                 docstring = getattr(Path, attr).__doc__ + " _(Docstring copied from pathlib.Path)_"
                 getattr(cls, attr).__doc__ = docstring
