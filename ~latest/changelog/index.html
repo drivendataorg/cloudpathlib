@@ -370,8 +370,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#v091-unreleased" class="md-nav__link">
-    v0.9.1 (UNRELEASED)
+  <a href="#v0100-2022-08-18" class="md-nav__link">
+    v0.10.0 (2022-08-18)
   </a>
   
 </li>
@@ -866,8 +866,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#v091-unreleased" class="md-nav__link">
-    v0.9.1 (UNRELEASED)
+  <a href="#v0100-2022-08-18" class="md-nav__link">
+    v0.10.0 (2022-08-18)
   </a>
   
 </li>
@@ -1024,9 +1024,13 @@
 
 
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
-<h2 id="v091-unreleased">v0.9.1 (UNRELEASED)<a class="headerlink" href="#v091-unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="v0100-2022-08-18">v0.10.0 (2022-08-18)<a class="headerlink" href="#v0100-2022-08-18" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Fixed S3Path.exists() returns True on partial matches. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/208">Issue #208</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/244">PR #244</a>)</li>
+<li>API change: Make <code>stat</code> on base class method instead of property to follow <code>pathlib</code> (<a href="https://github.com/drivendataorg/cloudpathlib/issues/234">Issue #234</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/250">PR #250</a>)</li>
+<li>Fixed "S3Path.exists() returns True on partial matches." (<a href="https://github.com/drivendataorg/cloudpathlib/issues/208">Issue #208</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/244">PR #244</a>)</li>
+<li>Make <code>AnyPath</code> subclass of <code>AnyPath</code> (<a href="https://github.com/drivendataorg/cloudpathlib/issues/246">Issue #246</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/251">PR #251</a>)</li>
+<li>Skip docstrings if not present to avoid failing under <code>-00</code> (<a href="https://github.com/drivendataorg/cloudpathlib/issues/238">Issue #238</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/249">PR #249</a>)</li>
+<li>Add <code>py.typed</code> file so mypy runs (<a href="https://github.com/drivendataorg/cloudpathlib/issues/243">Issue #243</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/248">PR #248</a>)</li>
 </ul>
 <h2 id="v090-2022-06-03">v0.9.0 (2022-06-03)<a class="headerlink" href="#v090-2022-06-03" title="Permanent link">&para;</a></h2>
 <ul>
