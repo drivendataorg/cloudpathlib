@@ -54,6 +54,7 @@ setup(
     include_package_data=True,
     name="cloudpathlib",
     packages=find_packages(exclude=["tests"]),
+    package_data={"cloudpathlib": ["py.typed"]},
     project_urls={
         "Bug Tracker": "https://github.com/drivendataorg/cloudpathlib/issues",
         "Documentation": "https://cloudpathlib.drivendata.org/",
