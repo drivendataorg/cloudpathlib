@@ -323,7 +323,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def fspath(self) -> str:
         return self.__fspath__()
 
-    def _glob_checks(self, pattern):
+    def _glob_checks(self, pattern: str):
         if ".." in pattern:
             raise CloudPathNotImplementedError(
                 "Relative paths with '..' not supported in glob patterns."
@@ -346,7 +346,7 @@ class CloudPath(metaclass=CloudPathMeta):
         for p in selector.select_from(root):
             yield self.client.CloudPath(f"{self.cloud_prefix}{self.drive}{p}")
 
-    def glob(self, pattern):
+    def glob(self, pattern: str):
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
@@ -354,7 +354,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
         yield from self._glob(selector)
 
-    def rglob(self, pattern):
+    def rglob(self, pattern: str):
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
@@ -566,7 +566,7 @@ class CloudPath(metaclass=CloudPathMeta):
             )
         return self._path.relative_to(other._path)
 
-    def is_relative_to(self, other):
+    def is_relative_to(self, other) -> bool:
         try:
             self.relative_to(other)
             return True
@@ -612,10 +612,10 @@ class CloudPath(metaclass=CloudPathMeta):
     def suffixes(self):
         return self._dispatch_to_path("suffixes")
 
-    def with_name(self, name):
+    def with_name(self, name: str):
         return self._dispatch_to_path("with_name", name)
 
-    def with_suffix(self, suffix):
+    def with_suffix(self, suffix: str):
         return self._dispatch_to_path("with_suffix", suffix)
 
     # ====================== DISPATCHED TO LOCAL CACHE FOR CONCRETE PATHS ======================
@@ -1001,7 +1001,7 @@ class _CloudPathSelectable:
         }
 
     @staticmethod
-    def _is_relative_to(maybe_child, maybe_parent):
+    def _is_relative_to(maybe_child, maybe_parent) -> bool:
         try:
             maybe_child.relative_to(maybe_parent)
             return True
