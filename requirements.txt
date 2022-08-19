@@ -1,6 +1,6 @@
 # Base requirements for library
 importlib_metadata ; python_version < "3.8"
-
+smart_open >=6
 ## extras: azure
 azure-storage-blob>=12
 

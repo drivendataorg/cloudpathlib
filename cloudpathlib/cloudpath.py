@@ -3,6 +3,7 @@ from collections import defaultdict
 import collections.abc
 from contextlib import contextmanager
 import os
+import smart_open
 from pathlib import (  # type: ignore
     Path,
     PosixPath,
@@ -368,70 +369,74 @@ class CloudPath(metaclass=CloudPathMeta):
                 yield f
 
     def open(
-        self,
-        mode="r",
-        buffering=-1,
-        encoding=None,
-        errors=None,
-        newline=None,
-        force_overwrite_from_cloud=False,  # extra kwarg not in pathlib
-        force_overwrite_to_cloud=False,  # extra kwarg not in pathlib
-    ) -> IO:
-        # if trying to call open on a directory that exists
-        if self.exists() and not self.is_file():
-            raise CloudPathIsADirectoryError(
-                f"Cannot open directory, only files. Tried to open ({self})"
+            self,
+            mode="r",
+            buffering=-1,
+            encoding=None,
+            errors=None,
+            newline=None,
+            closefd=True,
+            opener=None,
+            ignore_ext=False,
+            compression=None,
+            api_kwargs: dict = None, # type: ignore
+        ):
+            """
+            Open S3Path as a file-liked object.
+            :return: a file-like object.
+            See https://github.com/RaRe-Technologies/smart_open for more info.
+            """
+            
+            kwargs = dict(
+                uri=self.as_uri(),
+                mode=mode,
+                buffering=buffering,
+                encoding=encoding,
+                errors=errors,
+                newline=newline,
+                closefd=closefd,
+                opener=opener,
+                transport_params={"client": self.client.client}
             )
 
-        if mode == "x" and self.exists():
-            raise CloudPathFileExistsError(f"Cannot open existing file ({self}) for creation.")
+            return smart_open.open(**kwargs)
 
-        # TODO: consider streaming from client rather than DLing entire file to cache
-        self._refresh_cache(force_overwrite_from_cloud=force_overwrite_from_cloud)
+    def read_text(
+        self,
+        encoding="utf-8",
+        errors=None,
+    ) -> str:
+        with self.open(
+            mode="r",
+            encoding=encoding,
+            errors=errors,
 
-        # create any directories that may be needed if the file is new
-        if not self._local.exists():
-            self._local.parent.mkdir(parents=True, exist_ok=True)
-            original_mtime = 0
-        else:
-            original_mtime = self._local.stat().st_mtime
+        ) as f:
+            return f.read()
 
-        buffer = self._local.open(
-            mode=mode,
-            buffering=buffering,
+    def read_bytes(self, ) -> bytes:
+        with self.open(mode="rb") as f:
+            return f.read()
+
+    def write_text(
+        self,
+        data: str,
+        encoding="utf-8",
+        errors=None,
+        newline=None,
+
+    ):
+        with self.open(
+            mode="w",
             encoding=encoding,
             errors=errors,
             newline=newline,
-        )
+        ) as f:
+            f.write(data)
 
-        # write modes need special on closing the buffer
-        if any(m in mode for m in ("w", "+", "x", "a")):
-            # dirty, handle, patch close
-            original_close = buffer.close
-
-            # since we are pretending this is a cloud file, upload it to the cloud
-            # when the buffer is closed
-            def _patched_close(*args, **kwargs):
-                original_close(*args, **kwargs)
-
-                # original mtime should match what was in the cloud; because of system clocks or rounding
-                # by the cloud provider, the new version in our cache is "older" than the original version;
-                # explicitly set the new modified time to be after the original modified time.
-                if self._local.stat().st_mtime < original_mtime:
-                    new_mtime = original_mtime + 1
-                    os.utime(self._local, times=(new_mtime, new_mtime))
-
-                self._upload_local_to_cloud(force_overwrite_to_cloud=force_overwrite_to_cloud)
-
-            buffer.close = _patched_close
-
-            # keep reference in case we need to close when __del__ is called on this object
-            self._handle = buffer
-
-            # opened for write, so mark dirty
-            self._dirty = True
-
-        return buffer
+    def write_bytes(self, data: bytes):
+        with self.open(mode="wb") as f:
+            f.write(data)
 
     def replace(self, target: "CloudPath") -> "CloudPath":
         if type(self) != type(target):
@@ -476,27 +481,6 @@ class CloudPath(metaclass=CloudPathMeta):
             )
         self.client._remove(self, missing_ok)
 
-    def write_bytes(self, data: bytes):
-        """Open the file in bytes mode, write to it, and close the file.
-
-        NOTE: vendored from pathlib since we override open
-        https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1235-L1242
-        """
-        # type-check for the buffer interface before truncating the file
-        view = memoryview(data)
-        with self.open(mode="wb") as f:
-            return f.write(view)
-
-    def write_text(self, data: str, encoding=None, errors=None):
-        """Open the file in text mode, write to it, and close the file.
-
-        NOTE: vendored from pathlib since we override open
-        https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1244-L1252
-        """
-        if not isinstance(data, str):
-            raise TypeError("data must be str, not %s" % data.__class__.__name__)
-        with self.open(mode="w", encoding=encoding, errors=errors) as f:
-            return f.write(data)
 
     # ====================== DISPATCHED TO POSIXPATH FOR PURE PATHS ======================
     # Methods that are dispatched to exactly how pathlib.PurePosixPath would calculate it on
@@ -650,11 +634,7 @@ class CloudPath(metaclass=CloudPathMeta):
         )
         return self._dispatch_to_local_cache_path("stat")
 
-    def read_bytes(self):
-        return self._dispatch_to_local_cache_path("read_bytes")
 
-    def read_text(self, *args, **kwargs):
-        return self._dispatch_to_local_cache_path("read_text", *args, **kwargs)
 
     # ===========  public cloud methods, not in pathlib ===============
     def download_to(self, destination: Union[str, os.PathLike]) -> Path:
