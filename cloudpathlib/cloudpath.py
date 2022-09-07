@@ -12,7 +12,7 @@ from pathlib import (  # type: ignore
     _posix_flavour,
     _PathParents,
 )
-from typing import Any, IO, Iterable, Dict, Optional, TYPE_CHECKING, Union
+from typing import Any, IO, Iterable, Dict, Optional, Type, TYPE_CHECKING, TypeVar, Union
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -74,7 +74,9 @@ implementation_registry: defaultdict = defaultdict(CloudImplementation)
 
 
 def register_path_class(key: str):
-    def decorator(cls: type):
+    T = TypeVar("T", bound=Type[CloudPath])
+
+    def decorator(cls: Type[T]) -> Type[T]:
         if not issubclass(cls, CloudPath):
             raise TypeError("Only subclasses of CloudPath can be registered.")
         global implementation_registry
