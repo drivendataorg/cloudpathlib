@@ -12,7 +12,19 @@ from pathlib import (  # type: ignore
     _posix_flavour,
     _PathParents,
 )
-from typing import Any, IO, Iterable, Dict, Optional, Type, TYPE_CHECKING, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    IO,
+    Iterable,
+    Dict,
+    List,
+    Optional,
+    Type,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
+)
 from urllib.parse import urlparse
 from warnings import warn
 
@@ -757,6 +769,13 @@ class CloudPath(metaclass=CloudPathMeta):
         self,
         destination: Union[str, os.PathLike, "CloudPath"],
         force_overwrite_to_cloud: bool = False,
+        ignore: Callable[
+            [
+                Union[str, os.PathLike, "CloudPath"],
+                List[Union[str, os.PathLike, "CloudPath"]],
+            ],
+            collections.abc.Iterable,
+        ] = None,
     ) -> Union[Path, "CloudPath"]:
         """Copy self to a directory, if self is a directory."""
         if not self.is_dir():
@@ -773,16 +792,27 @@ class CloudPath(metaclass=CloudPathMeta):
                 "Destination path {destination} of copytree must be a directory."
             )
 
+        contents = list(self.iterdir())
+
+        if ignore is not None:
+            ignored_names = ignore(self._no_prefix_no_drive, [x.name for x in contents])
+        else:
+            ignored_names = set()
+
         destination.mkdir(parents=True, exist_ok=True)
 
-        for subpath in self.iterdir():
+        for subpath in contents:
+            if subpath.name in ignored_names:
+                continue
             if subpath.is_file():
                 subpath.copy(
                     destination / subpath.name, force_overwrite_to_cloud=force_overwrite_to_cloud
                 )
             elif subpath.is_dir():
                 subpath.copytree(
-                    destination / subpath.name, force_overwrite_to_cloud=force_overwrite_to_cloud
+                    destination / subpath.name,
+                    force_overwrite_to_cloud=force_overwrite_to_cloud,
+                    ignore=ignore,
                 )
 
         return destination
