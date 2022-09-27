@@ -2099,6 +2099,13 @@ storage URI (e.g., <code>"s3://"</code>).</p>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span>
         <span class="n">force_overwrite_to_cloud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">ignore</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span>
+            <span class="p">[</span>
+                <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span>
+                <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">]],</span>
+            <span class="p">],</span>
+            <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Iterable</span><span class="p">,</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Copy self to a directory, if self is a directory.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
@@ -2115,16 +2122,27 @@ storage URI (e.g., <code>"s3://"</code>).</p>
                 <span class="s2">&quot;Destination path </span><span class="si">{destination}</span><span class="s2"> of copytree must be a directory.&quot;</span>
             <span class="p">)</span>
 
+        <span class="n">contents</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">ignore</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ignored_names</span> <span class="o">=</span> <span class="n">ignore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_no_prefix_no_drive</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ignored_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
         <span class="n">destination</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">subpath</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">subpath</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">subpath</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">ignored_names</span><span class="p">:</span>
+                <span class="k">continue</span>
             <span class="k">if</span> <span class="n">subpath</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
                 <span class="n">subpath</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
                     <span class="n">destination</span> <span class="o">/</span> <span class="n">subpath</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="n">subpath</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
                 <span class="n">subpath</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span>
-                    <span class="n">destination</span> <span class="o">/</span> <span class="n">subpath</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span>
+                    <span class="n">destination</span> <span class="o">/</span> <span class="n">subpath</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span><span class="p">,</span>
+                    <span class="n">ignore</span><span class="o">=</span><span class="n">ignore</span><span class="p">,</span>
                 <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">destination</span>
@@ -2687,7 +2705,7 @@ Use resolve() to get the canonical path to a file.
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.cloudpath.CloudPath.copytree">
-<code class="highlight language-python"><span class="n">copytree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">],</span> <span class="n">force_overwrite_to_cloud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">copytree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">],</span> <span class="n">force_overwrite_to_cloud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">ignore</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">]]],</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">]</span></code>
 
 
 <a class="headerlink" href="#cloudpathlib.cloudpath.CloudPath.copytree" title="Permanent link">&para;</a></h3>
@@ -2702,6 +2720,13 @@ Use resolve() to get the canonical path to a file.
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span>
     <span class="n">force_overwrite_to_cloud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">ignore</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span>
+        <span class="p">[</span>
+            <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span>
+            <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">]],</span>
+        <span class="p">],</span>
+        <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Iterable</span><span class="p">,</span>
+    <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Copy self to a directory, if self is a directory.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
@@ -2718,16 +2743,27 @@ Use resolve() to get the canonical path to a file.
             <span class="s2">&quot;Destination path </span><span class="si">{destination}</span><span class="s2"> of copytree must be a directory.&quot;</span>
         <span class="p">)</span>
 
+    <span class="n">contents</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">ignore</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ignored_names</span> <span class="o">=</span> <span class="n">ignore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_no_prefix_no_drive</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ignored_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
     <span class="n">destination</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">subpath</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">subpath</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">subpath</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">ignored_names</span><span class="p">:</span>
+            <span class="k">continue</span>
         <span class="k">if</span> <span class="n">subpath</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="n">subpath</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
                 <span class="n">destination</span> <span class="o">/</span> <span class="n">subpath</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="n">subpath</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
             <span class="n">subpath</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span>
-                <span class="n">destination</span> <span class="o">/</span> <span class="n">subpath</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span>
+                <span class="n">destination</span> <span class="o">/</span> <span class="n">subpath</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span><span class="p">,</span>
+                <span class="n">ignore</span><span class="o">=</span><span class="n">ignore</span><span class="p">,</span>
             <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">destination</span>
