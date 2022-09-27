@@ -1,5 +1,10 @@
 # cloudpathlib Changelog
 
+## v0.11.0 (UNRELEASED)
+
+ - API change: Add `ignore` parameter to `CloudPath.copytree` in order to match `shutil` API. ([Issue #145](https://github.com/drivendataorg/cloudpathlib/issues/234), [PR #272](https://github.com/drivendataorg/cloudpathlib/pull/250))
+
+
 ## v0.10.0 (2022-08-18)
 
  - API change: Make `stat` on base class method instead of property to follow `pathlib` ([Issue #234](https://github.com/drivendataorg/cloudpathlib/issues/234), [PR #250](https://github.com/drivendataorg/cloudpathlib/pull/250))
