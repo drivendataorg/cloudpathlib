@@ -361,6 +361,12 @@ class CloudPath(metaclass=CloudPathMeta):
             yield self.client.CloudPath(f"{self.cloud_prefix}{self.drive}{p}")
 
     def glob(self, pattern):
+        if pattern == "*":
+            yield from (path for path, is_file in self.client._list_dir(self, recursive=False))
+            return
+        if pattern == "**/*":
+            yield from (path for path, is_file in self.client._list_dir(self, recursive=True))
+            return
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
@@ -369,6 +375,9 @@ class CloudPath(metaclass=CloudPathMeta):
         yield from self._glob(selector)
 
     def rglob(self, pattern):
+        if pattern == "*":
+            yield from (path for path, is_file in self.client._list_dir(self, recursive=True))
+            return
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
