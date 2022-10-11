@@ -45,8 +45,6 @@ class GSClient(Client):
     options.
     """
 
-    client: StorageClient
-
     def __init__(
         self,
         application_credentials: Optional[Union[str, os.PathLike]] = None,
