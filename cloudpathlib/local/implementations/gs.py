@@ -14,6 +14,9 @@ class LocalGSClient(LocalClient):
 
     _cloud_meta = local_gs_implementation
 
+    def clear_metadata_cache(self):
+        pass
+
 
 LocalGSClient.GSPath = LocalGSClient.CloudPath  # type: ignore
 
