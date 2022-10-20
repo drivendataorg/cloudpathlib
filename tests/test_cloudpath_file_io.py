@@ -38,6 +38,9 @@ def test_file_discovery(rig):
     with pytest.raises(CloudPathIsADirectoryError):
         p3.unlink()
 
+    with pytest.raises(CloudPathIsADirectoryError):
+        p3.rename(rig.create_cloud_path("dir_2/"))
+
     with pytest.raises(DirectoryNotEmptyError):
         p3.rmdir()
     p3.rmtree()
@@ -275,8 +278,13 @@ def test_file_read_writes(rig, tmp_path):
     assert not dest.exists()
     p.rename(dest)
     assert dest.exists()
-
     assert not p.exists()
+
+    dest_duplicate = rig.create_cloud_path("dir2/new_file0_0.txt")
+    assert dest == dest_duplicate
+    dest.rename(dest_duplicate)
+    assert dest.exists()
+
     p.touch()
     dest.replace(p)
     assert p.exists()
