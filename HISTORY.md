@@ -2,7 +2,8 @@
 
 ## v0.11.0 (UNRELEASED)
 
- - API change: Add `ignore` parameter to `CloudPath.copytree` in order to match `shutil` API. ([Issue #145](https://github.com/drivendataorg/cloudpathlib/issues/234), [PR #272](https://github.com/drivendataorg/cloudpathlib/pull/250))
+ - API change: Add `ignore` parameter to `CloudPath.copytree` in order to match `shutil` API. ([Issue #145](https://github.com/drivendataorg/cloudpathlib/issues/145), [PR #272](https://github.com/drivendataorg/cloudpathlib/pull/272))
+ - Prevent data loss when renaming by skipping files that would be renamed to the same thing. ([Issue #277](https://github.com/drivendataorg/cloudpathlib/issues/277), [PR #278](https://github.com/drivendataorg/cloudpathlib/pull/278))
 
 
 ## v0.10.0 (2022-08-18)
