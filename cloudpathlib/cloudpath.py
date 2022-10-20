@@ -453,6 +453,15 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"The target based to rename must be an instantiated class of type: {type(self)}"
             )
 
+        if self.is_dir():
+            raise CloudPathIsADirectoryError(
+                f"Path {self} is a directory; rename/replace the files recursively."
+            )
+
+        if target == self:
+            # Request is to replace/rename this with the same path - nothing to do
+            return self
+
         if target.exists():
             target.unlink()
 
