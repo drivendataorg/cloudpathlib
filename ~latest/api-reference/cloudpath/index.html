@@ -1783,6 +1783,15 @@ storage URI (e.g., <code>"s3://"</code>).</p>
                 <span class="sa">f</span><span class="s2">&quot;The target based to rename must be an instantiated class of type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">CloudPathIsADirectoryError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2"> is a directory; rename/replace the files recursively.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">target</span> <span class="o">==</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="c1"># Request is to replace/rename this with the same path - nothing to do</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
         <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">target</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
 
@@ -3380,6 +3389,15 @@ destination if it exists.
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;The target based to rename must be an instantiated class of type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">CloudPathIsADirectoryError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2"> is a directory; rename/replace the files recursively.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">target</span> <span class="o">==</span> <span class="bp">self</span><span class="p">:</span>
+        <span class="c1"># Request is to replace/rename this with the same path - nothing to do</span>
+        <span class="k">return</span> <span class="bp">self</span>
 
     <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="n">target</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
