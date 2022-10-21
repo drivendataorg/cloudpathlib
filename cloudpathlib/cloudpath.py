@@ -785,6 +785,7 @@ class CloudPath(metaclass=CloudPathMeta):
             ],
             collections.abc.Iterable,
         ] = None,
+        dirs_exist_ok: bool = False,
     ) -> Union[Path, "CloudPath"]:
         """Copy self to a directory, if self is a directory."""
         if not self.is_dir():
@@ -798,7 +799,11 @@ class CloudPath(metaclass=CloudPathMeta):
 
         if destination.exists() and destination.is_file():
             raise CloudPathFileExistsError(
-                "Destination path {destination} of copytree must be a directory."
+                f"Destination path {destination} of copytree must be a directory."
+            )
+        if destination.exists() and not dirs_exist_ok:
+            raise CloudPathFileExistsError(
+                f"Destination directory {destination} already exists and dirs_exist_ok is False."
             )
 
         contents = list(self.iterdir())
