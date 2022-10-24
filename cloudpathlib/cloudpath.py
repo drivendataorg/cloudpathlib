@@ -813,7 +813,7 @@ class CloudPath(metaclass=CloudPathMeta):
         else:
             ignored_names = set()
 
-        destination.mkdir(parents=True, exist_ok=True)
+        destination.mkdir(parents=True, exist_ok=dirs_exist_ok)
 
         for subpath in contents:
             if subpath.name in ignored_names:
@@ -826,6 +826,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 subpath.copytree(
                     destination / subpath.name,
                     force_overwrite_to_cloud=force_overwrite_to_cloud,
+                    dirs_exist_ok=dirs_exist_ok,
                     ignore=ignore,
                 )
 
