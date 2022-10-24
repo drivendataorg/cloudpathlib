@@ -214,13 +214,17 @@ def test_copytree(rig, tmpdir):
     # cloud dir to local dir that exists
     p = rig.create_cloud_path("dir_1")
     local_out = Path(tmpdir.mkdir("copytree_from_cloud"))
-    p.copytree(local_out)
+    p.copytree(local_out, dirs_exist_ok=True)
     assert assert_mirrored(p, local_out)
 
     # str version of path
     local_out = Path(tmpdir.mkdir("copytree_to_str_path"))
-    p.copytree(str(local_out))
+    p.copytree(str(local_out), dirs_exist_ok=True)
     assert assert_mirrored(p, local_out)
+
+    # test dirs_exist_ok
+    with pytest.raises(CloudPathFileExistsError):
+        p.copytree(str(local_out), dirs_exist_ok=False)
 
     # cloud dir to local dir that does not exist
     local_out = local_out / "new_folder"
@@ -235,14 +239,18 @@ def test_copytree(rig, tmpdir):
     # cloud dir to cloud dir that exists
     p2 = rig.create_cloud_path("new_dir2")
     (p2 / "existing_file.txt").write_text("asdf")  # ensures p2 exists
-    p.copytree(p2)
+    p.copytree(p2, dirs_exist_ok=True)
     assert assert_mirrored(p2, p, check_no_extra=False)
+
+    # test dirs_exist_ok
+    with pytest.raises(CloudPathFileExistsError):
+        p.copytree(p2, dirs_exist_ok=False)
 
     (p / "new_file.txt").write_text("hello!")  # add file so we can assert mirror
     with pytest.raises(OverwriteNewerCloudError):
-        p.copytree(p2)
+        p.copytree(p2, dirs_exist_ok=True)
 
-    p.copytree(p2, force_overwrite_to_cloud=True)
+    p.copytree(p2, force_overwrite_to_cloud=True, dirs_exist_ok=True)
     assert assert_mirrored(p2, p, check_no_extra=False)
 
     # additional files that will be ignored using the ignore argument
