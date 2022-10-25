@@ -863,6 +863,9 @@
 <p>To install a cloud service's SDK dependency when installing <code>cloudpathlib</code>, you need to specify it using pip's <a href="https://packaging.python.org/tutorials/installing-packages/#installing-setuptools-extras">"extras"</a> specification. For example:</p>
 <div class="highlight"><pre><span></span><code>pip install cloudpathlib<span class="o">[</span>s3,gs,azure<span class="o">]</span>
 </code></pre></div>
+<p>With some shells, you may need to use quotes:</p>
+<div class="highlight"><pre><span></span><code>pip install <span class="s2">&quot;cloudpathlib[s3,gs,azure]&quot;</span>
+</code></pre></div>
 <p>Currently supported cloud storage services are: <code>azure</code>, <code>gs</code>, <code>s3</code>. You can also use <code>all</code> to install all available services' dependencies.</p>
 <p>If you do not specify any extras or separately install any cloud SDKs, you will only be able to develop with the base classes for rolling your own cloud path class.</p>
 <h3 id="conda">conda<a class="headerlink" href="#conda" title="Permanent link">&para;</a></h3>
