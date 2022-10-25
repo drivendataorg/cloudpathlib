@@ -38,6 +38,12 @@ To install a cloud service's SDK dependency when installing `cloudpathlib`, you 
 pip install cloudpathlib[s3,gs,azure]
 ```
 
+With some shells, you may need to use quotes:
+
+```bash
+pip install "cloudpathlib[s3,gs,azure]"
+```
+
 Currently supported cloud storage services are: `azure`, `gs`, `s3`. You can also use `all` to install all available services' dependencies.
 
 If you do not specify any extras or separately install any cloud SDKs, you will only be able to develop with the base classes for rolling your own cloud path class.
