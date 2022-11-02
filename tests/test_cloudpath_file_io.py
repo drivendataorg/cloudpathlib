@@ -152,6 +152,8 @@ def test_glob(glob_test_dirs):
         )
 
     # glob_common
+    _check_glob("**/*", "glob")
+    _check_glob("*", "glob")
     _check_glob("fileA", "glob")
     _check_glob("fileB", "glob")
     _check_glob("dir*/file*", "glob")
@@ -160,6 +162,7 @@ def test_glob(glob_test_dirs):
     _check_glob("*/fileB", "glob")
 
     # rglob_common
+    _check_glob("*", "rglob")
     _check_glob("fileA", "rglob")
     _check_glob("fileB", "rglob")
     _check_glob("*/fileA", "rglob")
