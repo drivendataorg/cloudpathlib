@@ -1691,6 +1691,12 @@ storage URI (e.g., <code>"s3://"</code>).</p>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">drive</span><span class="si">}{</span><span class="n">p</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">glob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">pattern</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">is_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">pattern</span> <span class="o">==</span> <span class="s2">&quot;**/*&quot;</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">is_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_glob_checks</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
 
         <span class="n">pattern_parts</span> <span class="o">=</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span>
@@ -1699,6 +1705,9 @@ storage URI (e.g., <code>"s3://"</code>).</p>
         <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glob</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">rglob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">pattern</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">is_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_glob_checks</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
 
         <span class="n">pattern_parts</span> <span class="o">=</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span>
@@ -2870,6 +2879,12 @@ kind, including directories) matching the given relative pattern.
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">glob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">pattern</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+        <span class="k">yield from</span> <span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">is_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">pattern</span> <span class="o">==</span> <span class="s2">&quot;**/*&quot;</span><span class="p">:</span>
+        <span class="k">yield from</span> <span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">is_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">return</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_glob_checks</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
 
     <span class="n">pattern_parts</span> <span class="o">=</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span>
@@ -3461,6 +3476,9 @@ this subtree.
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">rglob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">pattern</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+        <span class="k">yield from</span> <span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">is_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">return</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_glob_checks</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
 
     <span class="n">pattern_parts</span> <span class="o">=</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span>
