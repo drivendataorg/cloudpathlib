@@ -787,12 +787,14 @@ class CloudPath(metaclass=CloudPathMeta):
         self,
         destination: Union[str, os.PathLike, "CloudPath"],
         force_overwrite_to_cloud: bool = False,
-        ignore: Callable[
-            [
-                Union[str, os.PathLike, "CloudPath"],
-                List[Union[str, os.PathLike, "CloudPath"]],
-            ],
-            collections.abc.Iterable,
+        ignore: Optional[
+            Callable[
+                [
+                    Union[str, os.PathLike, "CloudPath"],
+                    List[Union[str, os.PathLike, "CloudPath"]],
+                ],
+                collections.abc.Iterable,
+            ]
         ] = None,
     ) -> Union[Path, "CloudPath"]:
         """Copy self to a directory, if self is a directory."""
