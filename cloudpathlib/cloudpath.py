@@ -759,6 +759,9 @@ class CloudPath(metaclass=CloudPathMeta):
     def suffixes(self) -> List[str]:
         return self._dispatch_to_path("suffixes")
 
+    def with_stem(self, stem: str) -> Self:
+        return self._dispatch_to_path("with_stem", stem)
+
     def with_name(self, name: str) -> Self:
         return self._dispatch_to_path("with_name", name)
 
