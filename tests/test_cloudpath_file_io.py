@@ -6,6 +6,7 @@ from shutil import rmtree
 from time import sleep
 
 import pytest
+from cloudpathlib import CloudPath
 
 from cloudpathlib.exceptions import (
     CloudPathIsADirectoryError,
@@ -345,3 +346,12 @@ def test_pickle(rig, tmpdir):
     assert str(pickled) == str(p)
     assert pickled.client == p.client
     assert rig.client_class._default_client == pickled.client
+
+
+def test_drive_exists(rig):
+    """Tests the exists call for top level bucket/container"""
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
+
+    assert CloudPath(f"{rig.cloud_prefix}{p.drive}").exists()
+
+    assert not CloudPath(f"{rig.cloud_prefix}totally-fake-not-existing-bucket-for-tests").exists()

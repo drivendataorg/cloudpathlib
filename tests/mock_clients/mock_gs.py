@@ -3,6 +3,8 @@ from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
 
+from google.api_core.exceptions import NotFound
+
 from .utils import delete_empty_parents_up_to_root
 
 TEST_ASSETS = Path(__file__).parent.parent / "assets"
@@ -30,7 +32,7 @@ def mocked_client_class_factory(test_dir: str):
             self.tmp.cleanup()
 
         def bucket(self, bucket):
-            return MockBucket(self.tmp_path, client=self)
+            return MockBucket(self.tmp_path, bucket, client=self)
 
     return MockClient
 
@@ -87,8 +89,9 @@ class MockBlob:
 
 
 class MockBucket:
-    def __init__(self, name, client=None):
+    def __init__(self, name, bucket_name, client=None):
         self.name = name
+        self.bucket_name = bucket_name
         self.client = client
 
     def blob(self, blob):
@@ -113,7 +116,14 @@ class MockBucket:
             for f in path.glob("**/*")
             if f.is_file() and not f.name.startswith(".")
         ]
-        return MockHTTPIterator(items, max_results)
+
+        # bucket name for passing tests
+        if self.bucket_name == "bucket":
+            return iter(MockHTTPIterator(items, max_results))
+        else:
+            raise NotFound(
+                f"Bucket {self.name} not expected as mock bucket; only 'bucket' exists."
+            )
 
 
 class MockHTTPIterator:

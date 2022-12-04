@@ -199,6 +199,19 @@ class MockBoto3Client:
     def get_paginator(self, api):
         return MockBoto3Paginator(self.root, session=self.session)
 
+    def head_bucket(self, Bucket):
+        if Bucket == "bucket":  # used in passing tests
+            return {"Bucket": Bucket}
+        else:
+            raise ClientError(
+                {
+                    "Error": {
+                        "Message": f"Bucket {Bucket} not expected as mock bucket; only 'bucket' exists."
+                    }
+                },
+                {},
+            )
+
     @property
     def exceptions(self):
         Ex = collections.namedtuple("Ex", "NoSuchKey")

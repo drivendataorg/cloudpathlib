@@ -33,7 +33,7 @@ def mocked_client_class_factory(test_dir: str):
             return MockBlobClient(self.tmp_path, blob, service_client=self)
 
         def get_container_client(self, container):
-            return MockContainerClient(self.tmp_path)
+            return MockContainerClient(self.tmp_path, container_name=container)
 
     return MockBlobServiceClient
 
@@ -106,8 +106,15 @@ class MockStorageStreamDownloader:
 
 
 class MockContainerClient:
-    def __init__(self, root):
+    def __init__(self, root, container_name):
         self.root = root
+        self.container_name = container_name
+
+    def exists(self):
+        if self.container_name == "container":  # name used by passing tests
+            return True
+        else:
+            return False
 
     def list_blobs(self, name_starts_with=None):
         return mock_item_paged(self.root, name_starts_with)

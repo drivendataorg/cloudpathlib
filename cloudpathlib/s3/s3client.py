@@ -143,12 +143,19 @@ class S3Client(Client):
             return "dir"
 
     def _exists(self, cloud_path: S3Path) -> bool:
+        # check if this is a bucket
+        if not cloud_path.key:
+            try:
+                self.client.head_bucket(Bucket=cloud_path.bucket)
+                return True
+            except ClientError:
+                return False
+
         return self._s3_file_query(cloud_path) is not None
 
     def _s3_file_query(self, cloud_path: S3Path):
         """Boto3 query used for quick checks of existence and if path is file/dir"""
-        # first check if this is an object that we can access directly
-
+        # check if this is an object that we can access directly
         try:
             obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
             obj.load()
