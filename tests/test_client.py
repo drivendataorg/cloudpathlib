@@ -56,7 +56,10 @@ def test_content_type_setting(rig, tmpdir):
     mimes = [
         (".css", "text/css"),
         (".html", "text/html"),
-        (".js", "application/javascript"),
+        (
+            ".js",
+            ["application/javascript", "text/javascript"],
+        ),  # JS type can be different on different platforms
         (".mp3", "audio/mpeg"),
         (".mp4", "video/mp4"),
         (".jpeg", "image/jpeg"),
@@ -74,7 +77,10 @@ def test_content_type_setting(rig, tmpdir):
         meta = cp.client._get_metadata(cp)
 
         if check:
-            assert meta["content_type"] == expected
+            if isinstance(expected, list):
+                assert meta["content_type"] in expected
+            else:
+                assert meta["content_type"] == expected
 
     # should guess by default
     for suffix, content_type in mimes:
