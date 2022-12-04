@@ -180,13 +180,23 @@ class S3Client(Client):
         if recursive:
             for o in bucket.objects.filter(Prefix=prefix):
                 # get directory from this path
-                for parent in PurePosixPath(o.key[len(prefix) :]).parents:
+                o_relative_path = o.key[len(prefix) :]
+                for parent in PurePosixPath(o_relative_path).parents:
                     # if we haven't surfaced their directory already
                     if parent not in yielded_dirs and str(parent) != ".":
+                        print("as parent", o, parent)
                         yield (self.CloudPath(f"s3://{cloud_path.bucket}/{prefix}{parent}"), True)
-                        yielded_dirs.add(parent)
+                        yielded_dirs.add(str(parent).rstrip("/"))
 
-                yield (self.CloudPath(f"s3://{o.bucket_name}/{o.key}"), False)
+                if o.size == 0 and o.key.endswith("/") and o_relative_path.rstrip("/") not in yielded_dirs:
+                    print("as object", o)
+                    yield (self.CloudPath(f"s3://{o.bucket_name}/{o.key}"), True)
+                    yielded_dirs.add(o_relative_path.rstrip("/"))  # store slash-agnostic version
+
+                else:
+                    yield (self.CloudPath(f"s3://{o.bucket_name}/{o.key}"), False)
+                
+
         else:
             # non recursive is best done with old client API rather than resource
             paginator = self.client.get_paginator("list_objects")

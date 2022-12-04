@@ -77,5 +77,8 @@ reqs:
 test: ## run tests with mocked cloud SDKs
 	python -m pytest -vv
 
+test-debug:
+	python -m pytest -n=0 -vv --lf --pdb
+
 test-live-cloud:  ## run tests on live cloud backends
 	USE_LIVE_CLOUD=1 python -m pytest -vv

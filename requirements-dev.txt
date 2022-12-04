@@ -19,6 +19,7 @@ pydantic
 pytest
 pytest-cases
 pytest-cov
+pytest-xdist
 python-dotenv
 pywin32; sys_platform == 'win32'
 shortuuid
