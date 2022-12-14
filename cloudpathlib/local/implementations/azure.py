@@ -77,5 +77,6 @@ class LocalAzureBlobPath(LocalPath):
 
 LocalAzureBlobPath.__name__ = "AzureBlobPath"
 
+local_azure_blob_implementation.name = "azure"
 local_azure_blob_implementation._client_class = LocalAzureBlobClient
 local_azure_blob_implementation._path_class = LocalAzureBlobPath
