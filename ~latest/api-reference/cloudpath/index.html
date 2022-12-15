@@ -1496,6 +1496,11 @@ storage URI (e.g., <code>"s3://"</code>).</p>
     <span class="n">cloud_prefix</span><span class="p">:</span> <span class="nb">str</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span> <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Client&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+
+        <span class="c1"># handle if local file gets opened. must be set at the top of the method in case any code</span>
+        <span class="c1"># below raises an exception, this prevents __del__ from raising an AttributeError</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="o">=</span> <span class="kc">None</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">is_valid_cloudpath</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">raise_on_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># versions of the raw string that provide useful methods</span>
@@ -1519,9 +1524,6 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
         <span class="c1"># track if local has been written to, if so it may need to be uploaded</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="c1"># handle if local file gets opened</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># make sure that file handle to local path is closed</span>
@@ -2561,6 +2563,11 @@ components in the filesystem path. <em>(Docstring copied from pathlib.Path)</em>
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span> <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Client&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+
+    <span class="c1"># handle if local file gets opened. must be set at the top of the method in case any code</span>
+    <span class="c1"># below raises an exception, this prevents __del__ from raising an AttributeError</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="o">=</span> <span class="kc">None</span>
+
     <span class="bp">self</span><span class="o">.</span><span class="n">is_valid_cloudpath</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">raise_on_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># versions of the raw string that provide useful methods</span>
@@ -2584,9 +2591,6 @@ components in the filesystem path. <em>(Docstring copied from pathlib.Path)</em>
 
     <span class="c1"># track if local has been written to, if so it may need to be uploaded</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">False</span>
-
-    <span class="c1"># handle if local file gets opened</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="o">=</span> <span class="kc">None</span>
 </code></pre></div>
         </details>
     </div>
