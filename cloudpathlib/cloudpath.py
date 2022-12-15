@@ -166,6 +166,11 @@ class CloudPath(metaclass=CloudPathMeta):
     cloud_prefix: str
 
     def __init__(self, cloud_path: Union[str, "CloudPath"], client: Optional["Client"] = None):
+        
+        # handle if local file gets opened. must be set at the top of the method in case any code
+        # below raises an exception, this prevents __del__ from raising an AttributeError
+        self._handle = None
+
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
 
         # versions of the raw string that provide useful methods
@@ -189,9 +194,6 @@ class CloudPath(metaclass=CloudPathMeta):
 
         # track if local has been written to, if so it may need to be uploaded
         self._dirty = False
-
-        # handle if local file gets opened
-        self._handle = None
 
     def __del__(self):
         # make sure that file handle to local path is closed
