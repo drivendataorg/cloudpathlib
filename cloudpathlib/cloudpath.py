@@ -13,8 +13,11 @@ from pathlib import (  # type: ignore
     _PathParents,
 )
 from typing import (
+    overload,
     Any,
     Callable,
+    Container,
+    Iterable,
     IO,
     Dict,
     Generator,
@@ -169,8 +172,8 @@ class CloudPath(metaclass=CloudPathMeta):
     cloud_prefix: str
 
     def __init__(
-        self,
-        cloud_path: Union[str, "CloudPath"],
+        self: DerivedCloudPath,
+        cloud_path: Union[str, DerivedCloudPath],
         client: Optional["Client"] = None,
     ) -> None:
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
@@ -751,11 +754,31 @@ class CloudPath(metaclass=CloudPathMeta):
 
             return dst
 
+    @overload
     def copy(
         self,
-        destination: Union[str, os.PathLike, "CloudPath"],
+        destination: DerivedCloudPath,
+        force_overwrite_to_cloud: bool = False,
+    ) -> DerivedCloudPath:
+        ...
+
+    @overload
+    def copy(
+        self,
+        destination: Path,
+        force_overwrite_to_cloud: bool = False,
+    ) -> Path:
+        ...
+
+    @overload
+    def copy(
+        self,
+        destination: str,
         force_overwrite_to_cloud: bool = False,
     ) -> Union[Path, "CloudPath"]:
+        ...
+
+    def copy(self, destination, force_overwrite_to_cloud=False):
         """Copy self to destination folder of file, if self is a file."""
         if not self.exists() or not self.is_file():
             raise ValueError(
@@ -797,20 +820,34 @@ class CloudPath(metaclass=CloudPathMeta):
                     self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
                 )
 
+    @overload
     def copytree(
         self,
-        destination: Union[str, os.PathLike, "CloudPath"],
+        destination: DerivedCloudPath,
         force_overwrite_to_cloud: bool = False,
-        ignore: Optional[
-            Callable[
-                [
-                    Union[str, os.PathLike, "CloudPath"],
-                    List[Union[str, os.PathLike, "CloudPath"]],
-                ],
-                collections.abc.Iterable,
-            ]
-        ] = None,
+        ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
+    ) -> DerivedCloudPath:
+        ...
+
+    @overload
+    def copytree(
+        self,
+        destination: Path,
+        force_overwrite_to_cloud: bool = False,
+        ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
+    ) -> Path:
+        ...
+
+    @overload
+    def copytree(
+        self,
+        destination: str,
+        force_overwrite_to_cloud: bool = False,
+        ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
     ) -> Union[Path, "CloudPath"]:
+        ...
+
+    def copytree(self, destination, force_overwrite_to_cloud=False, ignore=None):
         """Copy self to a directory, if self is a directory."""
         if not self.is_dir():
             raise CloudPathNotADirectoryError(
