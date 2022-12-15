@@ -166,7 +166,7 @@ class CloudPath(metaclass=CloudPathMeta):
     cloud_prefix: str
 
     def __init__(self, cloud_path: Union[str, "CloudPath"], client: Optional["Client"] = None):
-        
+
         # handle if local file gets opened. must be set at the top of the method in case any code
         # below raises an exception, this prevents __del__ from raising an AttributeError
         self._handle = None
