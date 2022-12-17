@@ -82,3 +82,6 @@ test-debug:
 
 test-live-cloud:  ## run tests on live cloud backends
 	USE_LIVE_CLOUD=1 python -m pytest -vv
+
+perf:
+	python tests/performance/cli.py s3 --save-csv=perf-results.csv
