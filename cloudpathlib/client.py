@@ -31,9 +31,9 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
     ):
+        self._cache_tmp_dir = None
         self._cloud_meta.validate_completeness()
         # setup caching and local versions of file and track if it is a tmp dir
-        self._cache_tmp_dir = None
         if local_cache_dir is None:
             self._cache_tmp_dir = TemporaryDirectory()
             local_cache_dir = self._cache_tmp_dir.name
