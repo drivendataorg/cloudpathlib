@@ -227,7 +227,10 @@ class MockBoto3Paginator:
     def paginate(self, Bucket=None, Prefix="", Delimiter=None):
         new_dir = self.root / Prefix
 
-        items = [f for f in new_dir.iterdir() if not f.name.startswith(".")]
+        if Delimiter == "/":
+            items = [f for f in new_dir.iterdir() if not f.name.startswith(".")]
+        else:
+            items = [f for f in new_dir.rglob("*") if not f.name.startswith(".")]
 
         for ix in range(0, len(items), self.per_page):
             page = items[ix : ix + self.per_page]
