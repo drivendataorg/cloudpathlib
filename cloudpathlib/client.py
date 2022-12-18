@@ -61,7 +61,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         self.__class__._default_client = self
 
     def CloudPath(self, cloud_path: Union[str, BoundedCloudPath]) -> BoundedCloudPath:
-        return self._cloud_meta.path_class(cloud_path=cloud_path, client=self)
+        return self._cloud_meta.path_class(cloud_path=cloud_path, client=self)  # type: ignore
 
     @abc.abstractmethod
     def _download_file(
