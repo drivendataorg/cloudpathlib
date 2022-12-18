@@ -384,13 +384,13 @@ def local_s3_rig(request, monkeypatch, assets_dir):
 rig = fixture_union(
     "rig",
     [
-        # azure_rig,
-        # gs_rig,
+        azure_rig,
+        gs_rig,
         s3_rig,
-        # custom_s3_rig,
-        # local_azure_rig,
-        # local_s3_rig,
-        # local_gs_rig,
+        custom_s3_rig,
+        local_azure_rig,
+        local_s3_rig,
+        local_gs_rig,
     ],
 )
 
