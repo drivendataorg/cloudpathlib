@@ -12,6 +12,9 @@ from .utils import delete_empty_parents_up_to_root
 TEST_ASSETS = Path(__file__).parent.parent / "assets"
 
 
+DEFAULT_CONTAINER_NAME = "container"
+
+
 def mocked_client_class_factory(test_dir: str):
     class MockBlobServiceClient:
         def __init__(self, *args, **kwargs):
@@ -111,7 +114,7 @@ class MockContainerClient:
         self.container_name = container_name
 
     def exists(self):
-        if self.container_name == "container":  # name used by passing tests
+        if self.container_name == DEFAULT_CONTAINER_NAME:  # name used by passing tests
             return True
         else:
             return False

@@ -8,6 +8,7 @@ from google.api_core.exceptions import NotFound
 from .utils import delete_empty_parents_up_to_root
 
 TEST_ASSETS = Path(__file__).parent.parent / "assets"
+DEFAULT_GS_BUCKET_NAME = "bucket"
 
 
 def mocked_client_class_factory(test_dir: str):
@@ -118,11 +119,11 @@ class MockBucket:
         ]
 
         # bucket name for passing tests
-        if self.bucket_name == "bucket":
+        if self.bucket_name == DEFAULT_GS_BUCKET_NAME:
             return iter(MockHTTPIterator(items, max_results))
         else:
             raise NotFound(
-                f"Bucket {self.name} not expected as mock bucket; only 'bucket' exists."
+                f"Bucket {self.name} not expected as mock bucket; only '{DEFAULT_GS_BUCKET_NAME}' exists."
             )
 
 

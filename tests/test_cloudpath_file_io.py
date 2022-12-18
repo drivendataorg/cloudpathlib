@@ -212,13 +212,13 @@ def test_glob_exceptions(rig):
 
     # non-relative paths
     with pytest.raises(CloudPathNotImplementedError, match="Non-relative patterns"):
-        list(cp.glob(f"{rig.path_class.cloud_prefix}bucket/path/**/*.jpg"))
+        list(cp.glob(f"{rig.path_class.cloud_prefix}{rig.drive}/path/**/*.jpg"))
 
     with pytest.raises(CloudPathNotImplementedError, match="Non-relative patterns"):
         list(cp.glob("/path/**/*.jpg"))
 
     with pytest.raises(CloudPathNotImplementedError, match="Non-relative patterns"):
-        list(cp.rglob(f"{rig.path_class.cloud_prefix}bucket/path/**/*.jpg"))
+        list(cp.rglob(f"{rig.path_class.cloud_prefix}{rig.drive}/path/**/*.jpg"))
 
     with pytest.raises(CloudPathNotImplementedError, match="Non-relative patterns"):
         list(cp.rglob("/path/**/*.jpg"))

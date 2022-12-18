@@ -10,6 +10,7 @@ from botocore.exceptions import ClientError
 from .utils import delete_empty_parents_up_to_root
 
 TEST_ASSETS = Path(__file__).parent.parent / "assets"
+DEFAULT_S3_BUCKET_NAME = "bucket"
 
 # Since we don't contol exactly when the filesystem finishes writing a file
 # and the test files are super small, we can end up with race conditions in
@@ -169,7 +170,8 @@ class MockCollection:
 
         self.full_paths = items
         self.s3_obj_paths = [
-            s3_obj(bucket_name="bucket", key=str(i.relative_to(self.root))) for i in items
+            s3_obj(bucket_name=DEFAULT_S3_BUCKET_NAME, key=str(i.relative_to(self.root)))
+            for i in items
         ]
 
     def __iter__(self):
@@ -200,13 +202,13 @@ class MockBoto3Client:
         return MockBoto3Paginator(self.root, session=self.session)
 
     def head_bucket(self, Bucket):
-        if Bucket == "bucket":  # used in passing tests
+        if Bucket == DEFAULT_S3_BUCKET_NAME:  # used in passing tests
             return {"Bucket": Bucket}
         else:
             raise ClientError(
                 {
                     "Error": {
-                        "Message": f"Bucket {Bucket} not expected as mock bucket; only 'bucket' exists."
+                        "Message": f"Bucket {Bucket} not expected as mock bucket; only '{DEFAULT_S3_BUCKET_NAME}' exists."
                     }
                 },
                 {},
