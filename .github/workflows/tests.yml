@@ -38,8 +38,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # os: [ubuntu-latest, macos-latest, windows-latest]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: [3.7, 3.8, 3.9, "3.10"]
 
     steps:
@@ -159,13 +158,11 @@ jobs:
       - name: Install cloudpathlib[${{ matrix.extra }}]
         run: |
           source ${{ matrix.extra }}-env/bin/activate
-          echo $(which pip)
           pip install "$(find dist -name 'cloudpathlib*.whl')[${{ matrix.extra }}]"
 
       - name: Test ${{ matrix.extra }} usage
         run: |
           source ${{ matrix.extra }}-env/bin/activate
-          echo $(which python)
           python -c 'from cloudpathlib import CloudPath; CloudPath("${{ matrix.prefix }}://bucket/test")'
         env:
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
