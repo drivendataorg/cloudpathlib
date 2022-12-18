@@ -167,6 +167,8 @@ jobs:
           source ${{ matrix.extra }}-env/bin/activate
           echo $(which python)
           python -c 'from cloudpathlib import CloudPath; CloudPath("${{ matrix.prefix }}://bucket/test")'
+        env:
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
 
   notify:
     name: Notify failed build
