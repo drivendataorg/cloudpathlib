@@ -51,7 +51,7 @@ docs: clean-docs docs-setup ## build the static version of the docs
 docs-serve: clean-docs docs-setup ## serve documentation to livereload while you work
 	cd docs && mkdocs serve
 
-format:  ## run blank for format codebase
+format:  ## run black to format codebase
 	black cloudpathlib tests docs
 
 help:
