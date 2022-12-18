@@ -56,5 +56,6 @@ class LocalS3Path(LocalPath):
 
 LocalS3Path.__name__ = "S3Path"
 
+local_s3_implementation.name = "s3"
 local_s3_implementation._client_class = LocalS3Client
 local_s3_implementation._path_class = LocalS3Path
