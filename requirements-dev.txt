@@ -5,6 +5,7 @@ flake8
 ipytest
 ipython
 jupyter
+loguru
 matplotlib
 mike
 mkdocs>=1.2.2
@@ -19,8 +20,12 @@ pydantic
 pytest
 pytest-cases
 pytest-cov
+pytest-xdist
 python-dotenv
 pywin32; sys_platform == 'win32'
+rich
 shortuuid
 tabulate
+tqdm
+typer
 wheel

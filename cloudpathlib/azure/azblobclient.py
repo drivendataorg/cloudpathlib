@@ -142,6 +142,10 @@ class AzureBlobClient(Client):
                 return None
 
     def _exists(self, cloud_path: AzureBlobPath) -> bool:
+        # short circuit when only the container
+        if not cloud_path.blob:
+            return self.service_client.get_container_client(cloud_path.container).exists()
+
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
     def _list_dir(
