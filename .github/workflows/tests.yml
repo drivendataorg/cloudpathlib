@@ -156,10 +156,12 @@ jobs:
           python -m venv ${{ matrix.extra }}-env
 
       - name: Install cloudpathlib[${{ matrix.extra }}]
+        run: |
           source ${{ matrix.extra }}-env/bin/activate
           pip install "$(find dist -name 'cloudpathlib*.whl')[${{ matrix.extra }}]"
 
       - name: Test ${{ matrix.extra }} usage
+        run: |
           python -c 'from cloudpathlib import CloudPath; CloudPath("${{ matrix.prefix }}://bucket/test")'
 
   notify:
