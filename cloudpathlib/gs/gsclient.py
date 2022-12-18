@@ -4,7 +4,6 @@ import os
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union
 
-from google.api_core.exceptions import NotFound
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
@@ -14,6 +13,7 @@ try:
     if TYPE_CHECKING:
         from google.auth.credentials import Credentials
 
+    from google.api_core.exceptions import NotFound
     from google.auth.exceptions import DefaultCredentialsError
     from google.cloud.storage import Client as StorageClient
 
