@@ -25,9 +25,12 @@ from cloudpathlib.local import (
 )
 import cloudpathlib.azure.azblobclient
 import cloudpathlib.s3.s3client
-from .mock_clients.mock_azureblob import mocked_client_class_factory
-from .mock_clients.mock_gs import mocked_client_class_factory as mocked_gsclient_class_factory
-from .mock_clients.mock_s3 import mocked_session_class_factory
+from .mock_clients.mock_azureblob import mocked_client_class_factory, DEFAULT_CONTAINER_NAME
+from .mock_clients.mock_gs import (
+    mocked_client_class_factory as mocked_gsclient_class_factory,
+    DEFAULT_GS_BUCKET_NAME,
+)
+from .mock_clients.mock_s3 import mocked_session_class_factory, DEFAULT_S3_BUCKET_NAME
 
 
 if os.getenv("USE_LIVE_CLOUD") == "1":
@@ -93,7 +96,7 @@ def create_test_dir_name(request) -> str:
 
 @fixture()
 def azure_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_AZURE_CONTAINER", "container")
+    drive = os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
     test_dir = create_test_dir_name(request)
 
     live_server = os.getenv("USE_LIVE_CLOUD") == "1"
@@ -144,7 +147,7 @@ def azure_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def gs_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_GS_BUCKET", "bucket")
+    drive = os.getenv("LIVE_GS_BUCKET", DEFAULT_GS_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
 
     live_server = os.getenv("USE_LIVE_CLOUD") == "1"
@@ -191,7 +194,7 @@ def gs_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def s3_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_S3_BUCKET", "bucket")
+    drive = os.getenv("LIVE_S3_BUCKET", DEFAULT_S3_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
 
     live_server = os.getenv("USE_LIVE_CLOUD") == "1"
@@ -243,7 +246,7 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
         - CEPH  (https://ceph.io/ceph-storage/object-storage/)
         - others
     """
-    drive = os.getenv("CUSTOM_S3_BUCKET", "bucket")
+    drive = os.getenv("CUSTOM_S3_BUCKET", DEFAULT_S3_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
     custom_endpoint_url = os.getenv("CUSTOM_S3_ENDPOINT", "https://s3.us-west-1.drivendatabws.com")
 
@@ -307,7 +310,7 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def local_azure_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_AZURE_CONTAINER", "container")
+    drive = os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
     test_dir = create_test_dir_name(request)
 
     # copy test assets
@@ -333,7 +336,7 @@ def local_azure_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def local_gs_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_GS_BUCKET", "bucket")
+    drive = os.getenv("LIVE_GS_BUCKET", DEFAULT_GS_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
 
     # copy test assets
@@ -358,7 +361,7 @@ def local_gs_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def local_s3_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_S3_BUCKET", "bucket")
+    drive = os.getenv("LIVE_S3_BUCKET", DEFAULT_S3_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
 
     # copy test assets

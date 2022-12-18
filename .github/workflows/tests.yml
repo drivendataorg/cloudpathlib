@@ -18,9 +18,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
+          cache: 'pip' # caching pip dependencies
 
       - name: Install dependencies
         run: |
@@ -44,9 +45,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip' # caching pip dependencies
 
       - name: Install dependencies
         run: |
@@ -82,9 +84,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
+          cache: 'pip' # caching pip dependencies
 
       - name: Install dependencies
         run: |
@@ -119,9 +122,54 @@ jobs:
           file: ./coverage.xml
           fail_ci_if_error: true
 
+  extras-test:
+    name: Test independent installs of clients
+    needs: tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        extra: ["s3", "azure", "gs"]
+        include:
+          - prefix: "s3"
+            extra: "s3"
+          - prefix: "az"
+            extra: "azure"
+          - prefix: "gs"
+            extra: "gs"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+          cache: "pip"
+
+      - name: Build cloudpathlib
+        run: |
+          pip install --upgrade pip wheel setuptools
+          make dist  # build cloudpathlib wheel
+
+      - name: Create empty venv 
+        run: |
+          python -m venv ${{ matrix.extra }}-env
+
+      - name: Install cloudpathlib[${{ matrix.extra }}]
+        run: |
+          source ${{ matrix.extra }}-env/bin/activate
+          pip install "$(find dist -name 'cloudpathlib*.whl')[${{ matrix.extra }}]"
+
+      - name: Test ${{ matrix.extra }} usage
+        run: |
+          source ${{ matrix.extra }}-env/bin/activate
+          python -c 'from cloudpathlib import CloudPath; CloudPath("${{ matrix.prefix }}://bucket/test")'
+        env:
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+
   notify:
     name: Notify failed build
-    needs: [code-quality, tests, live-tests]
+    needs: [code-quality, tests, live-tests, extras-test]
     if: failure() && github.event.pull_request == null
     runs-on: ubuntu-latest
     steps:

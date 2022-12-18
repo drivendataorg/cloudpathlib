@@ -4,6 +4,9 @@ docs/docs/command-reference/*.md
 docs/docs/index.md
 docs/docs/changelog.md
 
+# perf output
+perf-results.csv
+
 ## GitHub Python .gitignore ##
 # https://github.com/github/gitignore/blob/master/Python.gitignore
 
@@ -76,6 +79,7 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+scratchpad.ipynb
 
 # pyenv
 .python-version
@@ -88,6 +92,7 @@ celerybeat-schedule
 
 # dotenv
 .env
+.gscreds.json
 
 # virtualenv
 .venv
