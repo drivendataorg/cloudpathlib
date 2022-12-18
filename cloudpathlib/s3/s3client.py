@@ -185,11 +185,11 @@ class S3Client(Client):
         paginator = self.client.get_paginator("list_objects_v2")
 
         for result in paginator.paginate(
-            Bucket=cloud_path.bucket, Prefix=prefix, Delimiter=("" if recursive else "/") 
+            Bucket=cloud_path.bucket, Prefix=prefix, Delimiter=("" if recursive else "/")
         ):
             # yield everything in common prefixes as directories
             for result_prefix in result.get("CommonPrefixes", []):
-                canonical = result_prefix.get('Prefix').rstrip("/")  # keep a canonical form
+                canonical = result_prefix.get("Prefix").rstrip("/")  # keep a canonical form
                 if canonical not in yielded_dirs:
                     yield (
                         self.CloudPath(f"s3://{cloud_path.bucket}/{result_prefix.get('Prefix')}"),
@@ -199,17 +199,21 @@ class S3Client(Client):
 
             # check all the keys
             for result_key in result.get("Contents", []):
-                canonical = result_key.get('Key').rstrip("/")
+                canonical = result_key.get("Key").rstrip("/")
 
                 # yield all the parents of any key that have not been yielded already
-                o_relative_path = result_key.get('Key')[len(prefix) :]
+                o_relative_path = result_key.get("Key")[len(prefix) :]
                 for parent in PurePosixPath(o_relative_path).parents:
                     if str(parent).rstrip("/") not in yielded_dirs and str(parent) != ".":
                         yield (self.CloudPath(f"s3://{cloud_path.bucket}/{prefix}{parent}"), True)
                         yielded_dirs.add(str(parent).rstrip("/"))
 
                 # s3 fake directories have 0 size and end with "/"
-                if result_key.get('Key').endswith("/") and result_key.get("Size") == 0 and canonical not in yielded_dirs:
+                if (
+                    result_key.get("Key").endswith("/")
+                    and result_key.get("Size") == 0
+                    and canonical not in yielded_dirs
+                ):
                     yield (
                         self.CloudPath(f"s3://{cloud_path.bucket}/{result_key.get('Key')}"),
                         True,
