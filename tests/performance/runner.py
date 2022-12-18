@@ -7,7 +7,6 @@ from typing import Callable, Dict, List
 from statistics import mean, stdev
 
 
-from dotenv import find_dotenv, load_dotenv
 from tqdm import tqdm
 from tqdm.contrib.concurrent import thread_map
 from loguru import logger
@@ -21,9 +20,6 @@ from perf_file_listing import folder_list
 # make loguru and tqdm play nicely together
 logger.remove()
 logger.add(lambda msg: tqdm.write(msg, end=""), colorize=True)
-
-# get environement variables
-load_dotenv(find_dotenv())
 
 
 def construct_tree(folder_depth, sub_folders, items_per_folder):
