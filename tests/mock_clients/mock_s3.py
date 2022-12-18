@@ -253,7 +253,7 @@ class MockBoto3Paginator:
             if dirs:
                 fake_dir = dirs.pop(-1)
                 fake_dir["Size"] = 0
-                fake_dir["Key"] = fake_dir["Prefix"]
+                fake_dir["Key"] = fake_dir.pop("Prefix") + "/"  # fake dirs have '/' appended
                 files.append(fake_dir)
 
             yield {"CommonPrefixes": dirs, "Contents": files}
