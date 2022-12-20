@@ -7,6 +7,6 @@ def folder_list(folder, recursive):
 
 def glob(folder, recursive):
     if recursive:
-        return {"n_items": len(list(folder.rglob("*")))}
+        return {"n_items": len(list(folder.rglob("*.item")))}
     else:
-        return {"n_items": len(list(folder.glob("*")))}
+        return {"n_items": len(list(folder.glob("*.item")))}
