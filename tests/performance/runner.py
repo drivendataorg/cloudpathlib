@@ -14,7 +14,7 @@ from loguru import logger
 from cloudpathlib import CloudPath
 
 
-from perf_file_listing import folder_list
+from perf_file_listing import folder_list, glob
 
 
 # make loguru and tqdm play nicely together
@@ -123,6 +123,18 @@ def main(root, iterations, burn_in):
                 PerfRunConfig(name="List normal non-recursive", args=[normal, False], kwargs={}),
                 PerfRunConfig(name="List deep recursive", args=[deep, True], kwargs={}),
                 PerfRunConfig(name="List deep non-recursive", args=[deep, False], kwargs={}),
+            ],
+        ),
+        (
+            "Glob scenarios",
+            glob,
+            [
+                PerfRunConfig(name="Glob shallow recursive", args=[shallow, True], kwargs={}),
+                PerfRunConfig(name="Glob shallow non-recursive", args=[shallow, False], kwargs={}),
+                PerfRunConfig(name="Glob normal recursive", args=[normal, True], kwargs={}),
+                PerfRunConfig(name="Glob normal non-recursive", args=[normal, False], kwargs={}),
+                PerfRunConfig(name="Glob deep recursive", args=[deep, True], kwargs={}),
+                PerfRunConfig(name="Glob deep non-recursive", args=[deep, False], kwargs={}),
             ],
         ),
     ]
