@@ -2,7 +2,7 @@
 
 ## v0.11.1 (UNRELEASED)
 
- - Speed up glob! ([Issue #274](https://github.com/drivendataorg/cloudpathlib/issues/274), [PR #303](https://github.com/drivendataorg/cloudpathlib/pull/303))
+ - Speed up glob! ([Issue #274](https://github.com/drivendataorg/cloudpathlib/issues/274), [PR #304](https://github.com/drivendataorg/cloudpathlib/pull/304))
 
 ## v0.11.0 (2022-12-18)
 
