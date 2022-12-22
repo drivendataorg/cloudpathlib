@@ -363,29 +363,28 @@ class CloudPath(metaclass=CloudPathMeta):
         # build a tree structure for all files out of default dicts
         Tree: Callable = lambda: defaultdict(Tree)
 
+        def _build_tree(trunk, branch, nodes, is_dir):
+            """Utility to build a tree from nested defaultdicts with a generator
+            of nodes (parts) of a path."""
+            next_branch = next(nodes, None)
+
+            if next_branch is None:
+                trunk[branch] = Tree() if is_dir else None  # leaf node
+
+            else:
+                _build_tree(trunk[branch], next_branch, nodes, is_dir)
+
         file_tree = Tree()
 
         for f, is_dir in self.client._list_dir(self, recursive=recursive):
             parts = str(f.relative_to(self)).split("/")
 
-            if len(parts) == 1:
-                # skip self
-                if parts[0] == ".":
-                    continue
+            # skip self
+            if len(parts) == 1 and parts[0] == ".":
+                continue
 
-                file_tree[parts[0]] = Tree() if is_dir else None
-
-            else:
-                # put top-level folder in file tree
-                node = file_tree[parts[0]]
-
-                # add remaining folders
-                for part in parts[1:-1]:
-                    node = node[part]
-
-                # add last item pointing at empty Tree if it is a folder
-                # else pointing at nothing if it is a file
-                node[parts[-1]] = Tree() if is_dir else None
+            nodes = (p for p in parts)
+            _build_tree(file_tree, next(nodes, None), nodes, is_dir)
 
         file_tree = dict(file_tree)  # freeze as normal dict before passing in
 
