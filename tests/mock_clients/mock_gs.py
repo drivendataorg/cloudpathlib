@@ -35,6 +35,9 @@ def mocked_client_class_factory(test_dir: str):
         def bucket(self, bucket):
             return MockBucket(self.tmp_path, bucket, client=self)
 
+        def list_buckets(self):
+            return [DEFAULT_GS_BUCKET_NAME]
+
     return MockClient
 
 

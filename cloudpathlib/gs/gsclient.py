@@ -148,6 +148,18 @@ class GSClient(Client):
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
     def _list_dir(self, cloud_path: GSPath, recursive=False) -> Iterable[Tuple[GSPath, bool]]:
+        # shortcut if listing all available buckets
+        if not cloud_path.bucket:
+            if recursive:
+                raise NotImplementedError(
+                    "Cannot recursively list all buckets and contents; you can get all the buckets then recursively list each separately."
+                )
+
+            yield from (
+                (self.CloudPath(f"gs://{str(b)}"), True) for b in self.client.list_buckets()
+            )
+            return
+
         bucket = self.client.bucket(cloud_path.bucket)
 
         prefix = cloud_path.blob
