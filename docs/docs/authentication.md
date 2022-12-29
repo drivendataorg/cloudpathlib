@@ -60,6 +60,134 @@ S3Client.get_default_client()
 #> <cloudpathlib.s3.s3client.S3Client at 0x7feac3d1fb90>
 ```
 
+
+## Accessing public S3 buckets without credentials
+
+For most operations, you will need to have your S3 credentials configured. However, for buckets that provide public access, you can use `cloudpathlib` without credentials. To do so, you need to instantiate a client and pass the kwarg `no_sign_request=True`. Failure to do so will result in a `NoCredentialsError` being thrown.
+
+```python
+from cloudpathlib import CloudPath
+
+# this file deinitely exists, but credentials are not configured
+CloudPath("s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg").exists()
+
+#> NoCredentialsError
+```
+
+Instead, you must either configure credentials or instantiate a client object using `no_sign_request=True`:
+
+```python
+from cloudpathlib import S3Client
+
+c = S3Client(no_sign_request=True)
+
+# use this client object to create the CloudPath
+c.CloudPath("s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg").exists()
+#> True
+```
+
+**Note:** Many public buckets _do not_ allow listing of the bucket contents by anonymous users. If this is the case, any listing operation on a directory will fail with an error like `ClientError: An error occurred (AccessDenied) when calling the ListObjectsV2 operation: Access Denied` when you try to do an operation, even with `no_sign_request=True`. In this case, you can generally only work with `CloudPath` objects that refer to the files themselves (instead of directories). You can contact the bucket owner to request that they allow listing, or write your code in a way that only references files you know will exist.
+
+As noted above, you can also call `.set_as_default_client()` on the client object that you create and then it will be used by default without your having to explicitly use the client object that you created.
+
+
+## Requester Pays buckets on S3
+
+S3 supports [Requester Pays](https://docs.aws.amazon.com/AmazonS3/latest/userguide/RequesterPaysBuckets.html) buckets where you must have credentials to access the bucket and any costs are passed on to you rather than the owner of the bucket.
+
+For a requester pays bucket, you need to pass extras telling cloudpathlib you will pay for any operations.
+
+For example, on the requester pays bucket `arxiv`, just trying to list the contents will result in a `ClientError`:
+
+```python
+from cloudpathlib import CloudPath
+
+tars = list(CloudPath("s3://arxiv/src/").iterdir())
+print(tars)
+
+#> ClientError: An error occurred (AccessDenied) ...
+```
+
+To indicate that the request payer will be the "requester," pass the extra args to an `S3Client` and use that client to instantiate paths:
+
+```python
+from cloudpathlib import S3Client
+
+c = S3Client(extra_args={"RequestPayer": "requester"})
+
+# use the client we created to build the path
+tars = list(c.CloudPath("s3://arxiv/src/").iterdir())
+print(tars)
+```
+
+As noted above, you can also call `.set_as_default_client()` on the client object that you create and then it will be used by default without your having to explicitly use the client object that you created.
+
+
+## Other S3 `ExtraArgs` in `boto3`
+
+The S3 SDK, `boto3` supports a set of `ExtraArgs` for uploads, downloads, and listing operations. When you instatiate a client, you can pass the `extra_args` keyword argument with any of those extra args that you want to set. We will pass these on to the upload, download, and list methods insofar as those methods support the specific args.
+
+The args supported for uploads are the same as `boto3.s3.transfer.S3Transfer.ALLOWED_UPLOAD_ARGS`, see the [`boto3` documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer) for the latest, but as of the time of writing, these are:
+
+ - `ACL`
+ - `CacheControl`
+ - `ChecksumAlgorithm`
+ - `ContentDisposition`
+ - `ContentEncoding`
+ - `ContentLanguage`
+ - `ContentType`
+ - `ExpectedBucketOwner`
+ - `Expires`
+ - `GrantFullControl`
+ - `GrantRead`
+ - `GrantReadACP`
+ - `GrantWriteACP`
+ - `Metadata`
+ - `ObjectLockLegalHoldStatus`
+ - `ObjectLockMode`
+ - `ObjectLockRetainUntilDate`
+ - `RequestPayer`
+ - `ServerSideEncryption`
+ - `StorageClass`
+ - `SSECustomerAlgorithm`
+ - `SSECustomerKey`
+ - `SSECustomerKeyMD5`
+ - `SSEKMSKeyId`
+ - `SSEKMSEncryptionContext`
+ - `Tagging`
+ - `WebsiteRedirectLocation`
+
+The args supported for downloads are the same as `boto3.s3.transfer.S3Transfer.ALLOWED_DOWNLOAD_ARGS`, see the [`boto3` documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer) for the latest, but as of the time of writing, these are:
+
+ - `ChecksumMode`
+ - `VersionId`
+ - `SSECustomerAlgorithm`
+ - `SSECustomerKey`
+ - `SSECustomerKeyMD5`
+ - `RequestPayer`
+ - `ExpectedBucketOwner`
+
+To use any of these extra args, pass them as a dict to `extra_args` when instantiating and `S3Client`.
+
+```python
+from cloudpathlib import S3Client
+
+c = S3Client(extra_args={
+    "ChecksumMode": "ENABLED",  # download extra arg, only used when downloading
+    "ACL": "public-read",       # upload extra arg, only used when uploading
+})
+
+# use these extras for all CloudPaths
+c.set_as_default_client()
+```
+
+**Note:** The `extra_args` kwargs accepts the union of upload and download args, and will only pass on the relevant subset to the `boto3` method that is called by the internals of `S3Client`.
+
+**Note:** The ExtraArgs on the client will be used for every call that client makes. If you need to set different `ExtraArgs` in different code paths, we recommend creating separate explicit client objects and using those to create and manage the CloudPath objects with different needs.
+
+**Note:** To explicitly set the `ContentType` and `ContentEncoding`, we recommend using the `content_type_method` kwarg when instantiating the client. If instead you want to set this for all uploads via the extras, you must additionally pass `content_type_method=None` to the `S3Client` so we don't try to guess these automatically.
+
+
 ## Accessing custom S3-compatible object stores
 It might happen so that you need to access a customly deployed S3 object store ([MinIO](https://min.io/), [Ceph](https://ceph.io/ceph-storage/object-storage/) or any other).
 In such cases, the service endpoint will be different from the AWS object store endpoints (used by default).
