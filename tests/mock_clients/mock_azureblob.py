@@ -1,3 +1,4 @@
+from collections import namedtuple
 from datetime import datetime
 from pathlib import Path, PurePosixPath
 import shutil
@@ -37,6 +38,10 @@ def mocked_client_class_factory(test_dir: str):
 
         def get_container_client(self, container):
             return MockContainerClient(self.tmp_path, container_name=container)
+
+        def list_containers(self):
+            Container = namedtuple("Container", "name")
+            return [Container(name=DEFAULT_CONTAINER_NAME)]
 
     return MockBlobServiceClient
 

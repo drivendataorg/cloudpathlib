@@ -138,6 +138,17 @@ def test_iterdir(glob_test_dirs):
     )
 
 
+def test_list_buckets(rig):
+    # test we can list buckets
+    buckets = list(rig.path_class(f"{rig.path_class.cloud_prefix}").iterdir())
+    assert len(buckets) > 0
+
+    for b in buckets:
+        assert isinstance(b, rig.path_class)
+        assert b.drive != ""
+        assert b._no_prefix_no_drive == ""
+
+
 def test_glob(glob_test_dirs):
     cloud_root, local_root = glob_test_dirs
 

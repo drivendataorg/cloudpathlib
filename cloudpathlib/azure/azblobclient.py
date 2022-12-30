@@ -73,6 +73,8 @@ class AzureBlobClient(Client):
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
         """
+        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
+
         if connection_string is None:
             connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING", None)
 
@@ -89,8 +91,6 @@ class AzureBlobClient(Client):
                 "AzureBlobClient does not support anonymous instantiation. "
                 "Credentials are required; see docs for options."
             )
-
-        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
 
     def _get_metadata(self, cloud_path: AzureBlobPath) -> Union["BlobProperties", Dict[str, Any]]:
         blob = self.service_client.get_blob_client(
@@ -151,6 +151,19 @@ class AzureBlobClient(Client):
     def _list_dir(
         self, cloud_path: AzureBlobPath, recursive: bool = False
     ) -> Iterable[Tuple[AzureBlobPath, bool]]:
+        # shortcut if listing all available containers
+        if not cloud_path.container:
+            if recursive:
+                raise NotImplementedError(
+                    "Cannot recursively list all containers and contents; you can get all the containers then recursively list each separately."
+                )
+
+            yield from (
+                (self.CloudPath(f"az://{c.name}"), True)
+                for c in self.service_client.list_containers()
+            )
+            return
+
         container_client = self.service_client.get_container_client(cloud_path.container)
 
         prefix = cloud_path.blob

@@ -88,11 +88,12 @@ class MockBoto3Object:
         else:
             self.path.write_bytes((self.root / Path(CopySource["Key"])).read_bytes())
 
-    def download_file(self, to_path, Config=None):
+    def download_file(self, to_path, Config=None, ExtraArgs=None):
         to_path = Path(to_path)
         to_path.write_bytes(self.path.read_bytes())
         # track config to make sure it's used in tests
         self.resource.download_config = Config
+        self.resource.download_extra_args = ExtraArgs
 
     def upload_file(self, from_path, Config=None, ExtraArgs=None):
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -107,7 +108,7 @@ class MockBoto3Object:
         delete_empty_parents_up_to_root(self.path, self.root)
         return {"ResponseMetadata": {"HTTPStatusCode": 204}}
 
-    def copy(self, source):
+    def copy(self, source, ExtraArgs=None, Config=None):
         # boto3 is more like "copy from"
         source = self.root / source["Key"]
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -213,6 +214,19 @@ class MockBoto3Client:
                 },
                 {},
             )
+
+    def list_buckets(self):
+        return {"Buckets": [{"Name": DEFAULT_S3_BUCKET_NAME}]}
+
+    def head_object(self, Bucket, Key, **kwargs):
+        if (
+            not (self.root / Key).exists()
+            or (self.root / Key).is_dir()
+            or Bucket != DEFAULT_S3_BUCKET_NAME
+        ):
+            raise ClientError({}, {})
+        else:
+            return {"key": Key}
 
     @property
     def exceptions(self):

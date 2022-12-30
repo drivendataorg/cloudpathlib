@@ -1,7 +1,6 @@
 -e .[all]
 
 black
-coverage<7
 flake8
 ipytest
 ipython
