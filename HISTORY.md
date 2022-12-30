@@ -1,8 +1,12 @@
 # cloudpathlib Changelog
 
-## v0.11.1 (UNRELEASED)
+## v0.12.0 (2022-12-30)
 
+ - API Change: `S3Client` supports an `extra_args` kwarg now to pass extra args down to `boto3` functions; this enables Requester Pays bucket access and bucket encryption. (Issues [#254](https://github.com/drivendataorg/cloudpathlib/issues/254), [#180](https://github.com/drivendataorg/cloudpathlib/issues/180); [PR #307](https://github.com/drivendataorg/cloudpathlib/pull/307))
  - Speed up glob! ([Issue #274](https://github.com/drivendataorg/cloudpathlib/issues/274), [PR #304](https://github.com/drivendataorg/cloudpathlib/pull/304))
+ - Ability to list buckets/containers a user has access to. ([Issue #48](https://github.com/drivendataorg/cloudpathlib/issues/48), [PR #307](https://github.com/drivendataorg/cloudpathlib/pull/307))
+ - Remove overly specific status check and assert in production code on remove. ([Issue #212](https://github.com/drivendataorg/cloudpathlib/issues/212), [PR #307](https://github.com/drivendataorg/cloudpathlib/pull/307))
+ - Update docs, including accessing public buckets. ([Issue #271](https://github.com/drivendataorg/cloudpathlib/issues/271), [PR #307](https://github.com/drivendataorg/cloudpathlib/pull/307))
 
 ## v0.11.0 (2022-12-18)
 
