@@ -1681,44 +1681,66 @@ storage URI (e.g., <code>"s3://"</code>).</p>
         <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pattern</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="n">CloudPathNotImplementedError</span><span class="p">(</span><span class="s2">&quot;Non-relative patterns are unsupported&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_glob</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="n">selector</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_glob</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="n">selector</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="c1"># build a tree structure for all files out of default dicts</span>
+        <span class="n">Tree</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">Tree</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_build_tree</span><span class="p">(</span><span class="n">trunk</span><span class="p">,</span> <span class="n">branch</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">is_dir</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Utility to build a tree from nested defaultdicts with a generator</span>
+<span class="sd">            of nodes (parts) of a path.&quot;&quot;&quot;</span>
+            <span class="n">next_branch</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">next_branch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">trunk</span><span class="p">[</span><span class="n">branch</span><span class="p">]</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">()</span> <span class="k">if</span> <span class="n">is_dir</span> <span class="k">else</span> <span class="kc">None</span>  <span class="c1"># leaf node</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_build_tree</span><span class="p">(</span><span class="n">trunk</span><span class="p">[</span><span class="n">branch</span><span class="p">],</span> <span class="n">next_branch</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">is_dir</span><span class="p">)</span>
+
+        <span class="n">file_tree</span> <span class="o">=</span> <span class="n">Tree</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">is_dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">):</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+            <span class="c1"># skip self</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">nodes</span> <span class="o">=</span> <span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">)</span>
+            <span class="n">_build_tree</span><span class="p">(</span><span class="n">file_tree</span><span class="p">,</span> <span class="nb">next</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">is_dir</span><span class="p">)</span>
+
+        <span class="n">file_tree</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">file_tree</span><span class="p">)</span>  <span class="c1"># freeze as normal dict before passing in</span>
+
         <span class="n">root</span> <span class="o">=</span> <span class="n">_CloudPathSelectable</span><span class="p">(</span>
-            <span class="n">PurePosixPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_no_prefix_no_drive</span><span class="p">),</span>
-            <span class="p">{</span>
-                <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">_no_prefix_no_drive</span><span class="p">):</span> <span class="n">is_dir</span>
-                <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">is_dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="p">},</span>
-            <span class="n">is_dir</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parents</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>  <span class="c1"># all parents except bucket/container</span>
+            <span class="n">file_tree</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">selector</span><span class="o">.</span><span class="n">select_from</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">drive</span><span class="si">}{</span><span class="n">p</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="bp">self</span><span class="o">.</span><span class="n">drive</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">glob</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="n">pattern</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
-            <span class="k">yield from</span> <span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">is_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-            <span class="k">return</span>
-        <span class="k">if</span> <span class="n">pattern</span> <span class="o">==</span> <span class="s2">&quot;**/*&quot;</span><span class="p">:</span>
-            <span class="k">yield from</span> <span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">is_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-            <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_glob_checks</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
 
         <span class="n">pattern_parts</span> <span class="o">=</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span>
         <span class="n">selector</span> <span class="o">=</span> <span class="n">_make_selector</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">pattern_parts</span><span class="p">),</span> <span class="n">_posix_flavour</span><span class="p">)</span>
 
-        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glob</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span>
+        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glob</span><span class="p">(</span>
+            <span class="n">selector</span><span class="p">,</span>
+            <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">pattern</span>
+            <span class="ow">or</span> <span class="s2">&quot;**&quot;</span>
+            <span class="ow">in</span> <span class="n">pattern</span><span class="p">,</span>  <span class="c1"># recursive listing needed if explicit ** or any sub folder in pattern</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">rglob</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="n">pattern</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
-            <span class="k">yield from</span> <span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">is_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-            <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_glob_checks</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
 
         <span class="n">pattern_parts</span> <span class="o">=</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span>
         <span class="n">selector</span> <span class="o">=</span> <span class="n">_make_selector</span><span class="p">((</span><span class="s2">&quot;**&quot;</span><span class="p">,)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pattern_parts</span><span class="p">),</span> <span class="n">_posix_flavour</span><span class="p">)</span>
 
-        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glob</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span>
+        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glob</span><span class="p">(</span><span class="n">selector</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">iterdir</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">DerivedCloudPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -2926,18 +2948,17 @@ kind, including directories) matching the given relative pattern.
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">glob</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
-    <span class="k">if</span> <span class="n">pattern</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
-        <span class="k">yield from</span> <span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">is_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-        <span class="k">return</span>
-    <span class="k">if</span> <span class="n">pattern</span> <span class="o">==</span> <span class="s2">&quot;**/*&quot;</span><span class="p">:</span>
-        <span class="k">yield from</span> <span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">is_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-        <span class="k">return</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_glob_checks</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
 
     <span class="n">pattern_parts</span> <span class="o">=</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span>
     <span class="n">selector</span> <span class="o">=</span> <span class="n">_make_selector</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">pattern_parts</span><span class="p">),</span> <span class="n">_posix_flavour</span><span class="p">)</span>
 
-    <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glob</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span>
+    <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glob</span><span class="p">(</span>
+        <span class="n">selector</span><span class="p">,</span>
+        <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">pattern</span>
+        <span class="ow">or</span> <span class="s2">&quot;**&quot;</span>
+        <span class="ow">in</span> <span class="n">pattern</span><span class="p">,</span>  <span class="c1"># recursive listing needed if explicit ** or any sub folder in pattern</span>
+    <span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -3523,15 +3544,12 @@ this subtree.
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">rglob</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">DerivedCloudPath</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
-    <span class="k">if</span> <span class="n">pattern</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
-        <span class="k">yield from</span> <span class="p">(</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">is_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-        <span class="k">return</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_glob_checks</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
 
     <span class="n">pattern_parts</span> <span class="o">=</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span><span class="o">.</span><span class="n">parts</span>
     <span class="n">selector</span> <span class="o">=</span> <span class="n">_make_selector</span><span class="p">((</span><span class="s2">&quot;**&quot;</span><span class="p">,)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pattern_parts</span><span class="p">),</span> <span class="n">_posix_flavour</span><span class="p">)</span>
 
-    <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glob</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span>
+    <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_glob</span><span class="p">(</span><span class="n">selector</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
