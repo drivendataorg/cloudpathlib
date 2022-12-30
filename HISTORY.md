@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## v0.11.1 (UNRELEASED)
+
+ - Speed up glob! ([Issue #274](https://github.com/drivendataorg/cloudpathlib/issues/274), [PR #304](https://github.com/drivendataorg/cloudpathlib/pull/304))
+
 ## v0.11.0 (2022-12-18)
 
  - API change: Add `ignore` parameter to `CloudPath.copytree` in order to match `shutil` API. ([Issue #145](https://github.com/drivendataorg/cloudpathlib/issues/145), [PR #272](https://github.com/drivendataorg/cloudpathlib/pull/272))

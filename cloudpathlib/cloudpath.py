@@ -357,44 +357,66 @@ class CloudPath(metaclass=CloudPathMeta):
         if pattern.startswith(self.cloud_prefix) or pattern.startswith("/"):
             raise CloudPathNotImplementedError("Non-relative patterns are unsupported")
 
-    def _glob(self: DerivedCloudPath, selector) -> Generator[DerivedCloudPath, None, None]:
+    def _glob(
+        self: DerivedCloudPath, selector, recursive: bool
+    ) -> Generator[DerivedCloudPath, None, None]:
+        # build a tree structure for all files out of default dicts
+        Tree: Callable = lambda: defaultdict(Tree)
+
+        def _build_tree(trunk, branch, nodes, is_dir):
+            """Utility to build a tree from nested defaultdicts with a generator
+            of nodes (parts) of a path."""
+            next_branch = next(nodes, None)
+
+            if next_branch is None:
+                trunk[branch] = Tree() if is_dir else None  # leaf node
+
+            else:
+                _build_tree(trunk[branch], next_branch, nodes, is_dir)
+
+        file_tree = Tree()
+
+        for f, is_dir in self.client._list_dir(self, recursive=recursive):
+            parts = str(f.relative_to(self)).split("/")
+
+            # skip self
+            if len(parts) == 1 and parts[0] == ".":
+                continue
+
+            nodes = (p for p in parts)
+            _build_tree(file_tree, next(nodes, None), nodes, is_dir)
+
+        file_tree = dict(file_tree)  # freeze as normal dict before passing in
+
         root = _CloudPathSelectable(
-            PurePosixPath(self._no_prefix_no_drive),
-            {
-                PurePosixPath(c._no_prefix_no_drive): is_dir
-                for c, is_dir in self.client._list_dir(self, recursive=True)
-            },
-            is_dir=True,
-            exists=True,
+            self.name,
+            [p.name for p in self.parents[:-1]],  # all parents except bucket/container
+            file_tree,
         )
 
         for p in selector.select_from(root):
-            yield self.client.CloudPath(f"{self.cloud_prefix}{self.drive}{p}")
+            yield self.client.CloudPath(f"{self.cloud_prefix}{self.drive}/{p}")
 
     def glob(self: DerivedCloudPath, pattern: str) -> Generator[DerivedCloudPath, None, None]:
-        if pattern == "*":
-            yield from (path for path, is_file in self.client._list_dir(self, recursive=False))
-            return
-        if pattern == "**/*":
-            yield from (path for path, is_file in self.client._list_dir(self, recursive=True))
-            return
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
         selector = _make_selector(tuple(pattern_parts), _posix_flavour)
 
-        yield from self._glob(selector)
+        yield from self._glob(
+            selector,
+            "/" in pattern
+            or "**"
+            in pattern,  # recursive listing needed if explicit ** or any sub folder in pattern
+        )
 
     def rglob(self: DerivedCloudPath, pattern: str) -> Generator[DerivedCloudPath, None, None]:
-        if pattern == "*":
-            yield from (path for path, is_file in self.client._list_dir(self, recursive=True))
-            return
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
         selector = _make_selector(("**",) + tuple(pattern_parts), _posix_flavour)
 
-        yield from self._glob(selector)
+        yield from self._glob(selector, True)
 
     def iterdir(self: DerivedCloudPath) -> Generator[DerivedCloudPath, None, None]:
         for f, _ in self.client._list_dir(self, recursive=False):
@@ -1068,24 +1090,23 @@ class _CloudPathSelectableAccessor:
 class _CloudPathSelectable:
     def __init__(
         self,
-        relative_cloud_path: PurePosixPath,
-        children: Dict[PurePosixPath, bool],
-        is_dir: bool,
-        exists: bool,
+        name: str,
+        parents: List[str],
+        children: Any,  # Nested dictionaries as tree
+        exists: bool = True,
     ) -> None:
-        self._path = relative_cloud_path
+        self._name = name
         self._all_children = children
+        self._parents = parents
+        self._exists = exists
 
         self._accessor = _CloudPathSelectableAccessor(self.scandir)
 
-        self._is_dir = is_dir
-        self._exists = exists
-
     def __repr__(self) -> str:
-        return str(self._path)
+        return "/".join(self._parents + [self.name])
 
     def is_dir(self) -> bool:
-        return self._is_dir
+        return self._all_children is not None
 
     def exists(self) -> bool:
         return self._exists
@@ -1095,7 +1116,16 @@ class _CloudPathSelectable:
 
     @property
     def name(self) -> str:
-        return self._path.name
+        return self._name
+
+    def _make_child_relpath(self, part):
+        # pathlib internals shortcut; makes a relative path, even if it doesn't actually exist
+        return _CloudPathSelectable(
+            part,
+            self._parents + [self.name],
+            self._all_children.get(part, None),
+            exists=part in self._all_children,
+        )
 
     @staticmethod
     @contextmanager
@@ -1103,33 +1133,6 @@ class _CloudPathSelectable:
         root: "_CloudPathSelectable",
     ) -> Generator[Generator["_CloudPathSelectable", None, None], None, None]:
         yield (
-            root._make_child_relpath(c.name)
-            for c, _ in root._all_children.items()
-            if c.parent == root._path
-        )
-
-    def _filter_children(self, rel_to: PurePosixPath) -> Dict[PurePosixPath, bool]:
-        return {
-            c: is_dir
-            for c, is_dir in self._all_children.items()
-            if self._is_relative_to(c, rel_to)
-        }
-
-    @staticmethod
-    def _is_relative_to(maybe_child: PurePosixPath, maybe_parent: PurePosixPath):
-        try:
-            maybe_child.relative_to(maybe_parent)
-            return True
-        except ValueError:
-            return False
-
-    def _make_child_relpath(self, part: Union[str, os.PathLike]) -> "_CloudPathSelectable":
-        child = self._path / part
-        filtered_children = self._filter_children(child)
-
-        return _CloudPathSelectable(
-            child,
-            filtered_children,
-            is_dir=self._all_children.get(child, False),
-            exists=child in self._all_children,
+            _CloudPathSelectable(child, root._parents + [root._name], grand_children)
+            for child, grand_children in root._all_children.items()
         )
