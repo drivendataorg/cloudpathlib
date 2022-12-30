@@ -287,6 +287,27 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#accessing-public-s3-buckets-without-credentials" class="md-nav__link">
+    Accessing public S3 buckets without credentials
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requester-pays-buckets-on-s3" class="md-nav__link">
+    Requester Pays buckets on S3
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-s3-extraargs-in-boto3" class="md-nav__link">
+    Other S3 ExtraArgs in boto3
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#accessing-custom-s3-compatible-object-stores" class="md-nav__link">
     Accessing custom S3-compatible object stores
   </a>
@@ -754,6 +775,27 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#accessing-public-s3-buckets-without-credentials" class="md-nav__link">
+    Accessing public S3 buckets without credentials
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requester-pays-buckets-on-s3" class="md-nav__link">
+    Requester Pays buckets on S3
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-s3-extraargs-in-boto3" class="md-nav__link">
+    Other S3 ExtraArgs in boto3
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#accessing-custom-s3-compatible-object-stores" class="md-nav__link">
     Accessing custom S3-compatible object stores
   </a>
@@ -869,6 +911,103 @@
 <div class="highlight"><pre><span></span><code><span class="n">S3Client</span><span class="o">.</span><span class="n">get_default_client</span><span class="p">()</span>
 <span class="c1">#&gt; &lt;cloudpathlib.s3.s3client.S3Client at 0x7feac3d1fb90&gt;</span>
 </code></pre></div>
+<h2 id="accessing-public-s3-buckets-without-credentials">Accessing public S3 buckets without credentials<a class="headerlink" href="#accessing-public-s3-buckets-without-credentials" title="Permanent link">&para;</a></h2>
+<p>For most operations, you will need to have your S3 credentials configured. However, for buckets that provide public access, you can use <code>cloudpathlib</code> without credentials. To do so, you need to instantiate a client and pass the kwarg <code>no_sign_request=True</code>. Failure to do so will result in a <code>NoCredentialsError</code> being thrown.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">cloudpathlib</span> <span class="kn">import</span> <span class="n">CloudPath</span>
+
+<span class="c1"># this file deinitely exists, but credentials are not configured</span>
+<span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+
+<span class="c1">#&gt; NoCredentialsError</span>
+</code></pre></div>
+<p>Instead, you must either configure credentials or instantiate a client object using <code>no_sign_request=True</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">cloudpathlib</span> <span class="kn">import</span> <span class="n">S3Client</span>
+
+<span class="n">c</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">no_sign_request</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># use this client object to create the CloudPath</span>
+<span class="n">c</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+<span class="c1">#&gt; True</span>
+</code></pre></div>
+<p><strong>Note:</strong> Many public buckets <em>do not</em> allow listing of the bucket contents by anonymous users. If this is the case, any listing operation on a directory will fail with an error like <code>ClientError: An error occurred (AccessDenied) when calling the ListObjectsV2 operation: Access Denied</code> when you try to do an operation, even with <code>no_sign_request=True</code>. In this case, you can generally only work with <code>CloudPath</code> objects that refer to the files themselves (instead of directories). You can contact the bucket owner to request that they allow listing, or write your code in a way that only references files you know will exist.</p>
+<p>As noted above, you can also call <code>.set_as_default_client()</code> on the client object that you create and then it will be used by default without your having to explicitly use the client object that you created.</p>
+<h2 id="requester-pays-buckets-on-s3">Requester Pays buckets on S3<a class="headerlink" href="#requester-pays-buckets-on-s3" title="Permanent link">&para;</a></h2>
+<p>S3 supports <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/RequesterPaysBuckets.html">Requester Pays</a> buckets where you must have credentials to access the bucket and any costs are passed on to you rather than the owner of the bucket.</p>
+<p>For a requester pays bucket, you need to pass extras telling cloudpathlib you will pay for any operations.</p>
+<p>For example, on the requester pays bucket <code>arxiv</code>, just trying to list the contents will result in a <code>ClientError</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">cloudpathlib</span> <span class="kn">import</span> <span class="n">CloudPath</span>
+
+<span class="n">tars</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://arxiv/src/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tars</span><span class="p">)</span>
+
+<span class="c1">#&gt; ClientError: An error occurred (AccessDenied) ...</span>
+</code></pre></div>
+<p>To indicate that the request payer will be the "requester," pass the extra args to an <code>S3Client</code> and use that client to instantiate paths:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">cloudpathlib</span> <span class="kn">import</span> <span class="n">S3Client</span>
+
+<span class="n">c</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">extra_args</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;RequestPayer&quot;</span><span class="p">:</span> <span class="s2">&quot;requester&quot;</span><span class="p">})</span>
+
+<span class="c1"># use the client we created to build the path</span>
+<span class="n">tars</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://arxiv/src/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tars</span><span class="p">)</span>
+</code></pre></div>
+<p>As noted above, you can also call <code>.set_as_default_client()</code> on the client object that you create and then it will be used by default without your having to explicitly use the client object that you created.</p>
+<h2 id="other-s3-extraargs-in-boto3">Other S3 <code>ExtraArgs</code> in <code>boto3</code><a class="headerlink" href="#other-s3-extraargs-in-boto3" title="Permanent link">&para;</a></h2>
+<p>The S3 SDK, <code>boto3</code> supports a set of <code>ExtraArgs</code> for uploads, downloads, and listing operations. When you instatiate a client, you can pass the <code>extra_args</code> keyword argument with any of those extra args that you want to set. We will pass these on to the upload, download, and list methods insofar as those methods support the specific args.</p>
+<p>The args supported for uploads are the same as <code>boto3.s3.transfer.S3Transfer.ALLOWED_UPLOAD_ARGS</code>, see the <a href="https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer"><code>boto3</code> documentation</a> for the latest, but as of the time of writing, these are:</p>
+<ul>
+<li><code>ACL</code></li>
+<li><code>CacheControl</code></li>
+<li><code>ChecksumAlgorithm</code></li>
+<li><code>ContentDisposition</code></li>
+<li><code>ContentEncoding</code></li>
+<li><code>ContentLanguage</code></li>
+<li><code>ContentType</code></li>
+<li><code>ExpectedBucketOwner</code></li>
+<li><code>Expires</code></li>
+<li><code>GrantFullControl</code></li>
+<li><code>GrantRead</code></li>
+<li><code>GrantReadACP</code></li>
+<li><code>GrantWriteACP</code></li>
+<li><code>Metadata</code></li>
+<li><code>ObjectLockLegalHoldStatus</code></li>
+<li><code>ObjectLockMode</code></li>
+<li><code>ObjectLockRetainUntilDate</code></li>
+<li><code>RequestPayer</code></li>
+<li><code>ServerSideEncryption</code></li>
+<li><code>StorageClass</code></li>
+<li><code>SSECustomerAlgorithm</code></li>
+<li><code>SSECustomerKey</code></li>
+<li><code>SSECustomerKeyMD5</code></li>
+<li><code>SSEKMSKeyId</code></li>
+<li><code>SSEKMSEncryptionContext</code></li>
+<li><code>Tagging</code></li>
+<li><code>WebsiteRedirectLocation</code></li>
+</ul>
+<p>The args supported for downloads are the same as <code>boto3.s3.transfer.S3Transfer.ALLOWED_DOWNLOAD_ARGS</code>, see the <a href="https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer"><code>boto3</code> documentation</a> for the latest, but as of the time of writing, these are:</p>
+<ul>
+<li><code>ChecksumMode</code></li>
+<li><code>VersionId</code></li>
+<li><code>SSECustomerAlgorithm</code></li>
+<li><code>SSECustomerKey</code></li>
+<li><code>SSECustomerKeyMD5</code></li>
+<li><code>RequestPayer</code></li>
+<li><code>ExpectedBucketOwner</code></li>
+</ul>
+<p>To use any of these extra args, pass them as a dict to <code>extra_args</code> when instantiating and <code>S3Client</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">cloudpathlib</span> <span class="kn">import</span> <span class="n">S3Client</span>
+
+<span class="n">c</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">extra_args</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">&quot;ChecksumMode&quot;</span><span class="p">:</span> <span class="s2">&quot;ENABLED&quot;</span><span class="p">,</span>  <span class="c1"># download extra arg, only used when downloading</span>
+    <span class="s2">&quot;ACL&quot;</span><span class="p">:</span> <span class="s2">&quot;public-read&quot;</span><span class="p">,</span>       <span class="c1"># upload extra arg, only used when uploading</span>
+<span class="p">})</span>
+
+<span class="c1"># use these extras for all CloudPaths</span>
+<span class="n">c</span><span class="o">.</span><span class="n">set_as_default_client</span><span class="p">()</span>
+</code></pre></div>
+<p><strong>Note:</strong> The <code>extra_args</code> kwargs accepts the union of upload and download args, and will only pass on the relevant subset to the <code>boto3</code> method that is called by the internals of <code>S3Client</code>.</p>
+<p><strong>Note:</strong> The ExtraArgs on the client will be used for every call that client makes. If you need to set different <code>ExtraArgs</code> in different code paths, we recommend creating separate explicit client objects and using those to create and manage the CloudPath objects with different needs.</p>
+<p><strong>Note:</strong> To explicitly set the <code>ContentType</code> and <code>ContentEncoding</code>, we recommend using the <code>content_type_method</code> kwarg when instantiating the client. If instead you want to set this for all uploads via the extras, you must additionally pass <code>content_type_method=None</code> to the <code>S3Client</code> so we don't try to guess these automatically.</p>
 <h2 id="accessing-custom-s3-compatible-object-stores">Accessing custom S3-compatible object stores<a class="headerlink" href="#accessing-custom-s3-compatible-object-stores" title="Permanent link">&para;</a></h2>
 <p>It might happen so that you need to access a customly deployed S3 object store (<a href="https://min.io/">MinIO</a>, <a href="https://ceph.io/ceph-storage/object-storage/">Ceph</a> or any other).
 In such cases, the service endpoint will be different from the AWS object store endpoints (used by default).

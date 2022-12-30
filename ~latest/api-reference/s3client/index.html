@@ -847,6 +847,7 @@ for detailed authentication options.</p>
         <span class="n">endpoint_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">boto3_transfer_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TransferConfig&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">,</span>
+        <span class="n">extra_args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Class constructor. Sets up a boto3 [`Session`](</span>
 <span class="sd">        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html).</span>
@@ -862,9 +863,9 @@ for detailed authentication options.</p>
 <span class="sd">            aws_secret_access_key (Optional[str]): AWS secret access key.</span>
 <span class="sd">            aws_session_token (Optional[str]): Session key for your AWS account. This is only</span>
 <span class="sd">                needed when you are using temporarycredentials.</span>
-<span class="sd">            no_sign_request: (Optional[bool]): If `True`, credentials are not looked for and we use unsigned</span>
+<span class="sd">            no_sign_request (Optional[bool]): If `True`, credentials are not looked for and we use unsigned</span>
 <span class="sd">                requests to fetch resources. This will only allow access to public resources. This is equivalent</span>
-<span class="sd">                to `--no-sign-request` in the AWS CLI (https://docs.aws.amazon.com/cli/latest/reference/).</span>
+<span class="sd">                to `--no-sign-request` in the [AWS CLI](https://docs.aws.amazon.com/cli/latest/reference/).</span>
 <span class="sd">            botocore_session (Optional[botocore.session.Session]): An already instantiated botocore</span>
 <span class="sd">                Session.</span>
 <span class="sd">            profile_name (Optional[str]): Profile name of a profile in a shared credentials file.</span>
@@ -873,10 +874,14 @@ for detailed authentication options.</p>
 <span class="sd">                for downloaded files. If None, will use a temporary directory.</span>
 <span class="sd">            endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.</span>
 <span class="sd">                Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.</span>
-<span class="sd">            boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing s3 transfers.</span>
-<span class="sd">                (https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)</span>
+<span class="sd">            boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing</span>
+<span class="sd">                [s3 transfers](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)</span>
 <span class="sd">            content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when</span>
 <span class="sd">                writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).</span>
+<span class="sd">            extra_args (Optional[dict]): A dictionary of extra args passed to download, upload, and list functions as relevant. You</span>
+<span class="sd">                can include any keys supported by upload or download, and we will pass on only the relevant args. To see the extra</span>
+<span class="sd">                args that are supported look at the upload and download lists in the</span>
+<span class="sd">                [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">endpoint_url</span> <span class="o">=</span> <span class="n">endpoint_url</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;AWS_ENDPOINT_URL&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">boto3_session</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -907,10 +912,32 @@ for detailed authentication options.</p>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">boto3_transfer_config</span> <span class="o">=</span> <span class="n">boto3_transfer_config</span>
 
+        <span class="k">if</span> <span class="n">extra_args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_extra_args</span> <span class="o">=</span> <span class="n">extra_args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boto3_dl_extra_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">extra_args</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">S3Transfer</span><span class="o">.</span><span class="n">ALLOWED_DOWNLOAD_ARGS</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boto3_ul_extra_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">extra_args</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">S3Transfer</span><span class="o">.</span><span class="n">ALLOWED_UPLOAD_ARGS</span>
+        <span class="p">}</span>
+
+        <span class="c1"># listing ops (list_objects_v2, filter, delete) only accept these extras:</span>
+        <span class="c1"># https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boto3_list_extra_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extra_args</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;RequestPayer&quot;</span><span class="p">,</span> <span class="s2">&quot;ExpectedBucketOwner&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extra_args</span>
+        <span class="p">}</span>
+
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span> <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">ObjectSummary</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="c1"># get accepts all download extra args</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">ObjectSummary</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_dl_extra_args</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;last_modified&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;LastModified&quot;</span><span class="p">],</span>
@@ -924,7 +951,9 @@ for detailed authentication options.</p>
         <span class="n">local_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
 
-        <span class="n">obj</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">local_path</span><span class="p">),</span> <span class="n">Config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_transfer_config</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">download_file</span><span class="p">(</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">local_path</span><span class="p">),</span> <span class="n">Config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_transfer_config</span><span class="p">,</span> <span class="n">ExtraArgs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_dl_extra_args</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">local_path</span>
 
     <span class="k">def</span> <span class="nf">_is_file_or_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -933,30 +962,17 @@ for detailed authentication options.</p>
             <span class="k">return</span> <span class="s2">&quot;dir&quot;</span>
 
         <span class="c1"># get first item by listing at least one key</span>
-        <span class="n">s3_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_s3_file_query</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">s3_obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-
-        <span class="c1"># since S3 only returns files when filtering objects:</span>
-        <span class="c1"># if the first item key is equal to the path key, this is a file</span>
-        <span class="k">if</span> <span class="n">s3_obj</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="p">:</span>
-
-            <span class="c1"># &quot;fake&quot; directories on S3 can be created in the console UI</span>
-            <span class="c1"># these are 0-size keys that end in `/`</span>
-            <span class="c1">#  Ref: https://github.com/boto/boto3/issues/377</span>
-            <span class="k">if</span> <span class="n">s3_obj</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">s3_obj</span><span class="o">.</span><span class="n">content_length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">return</span> <span class="s2">&quot;dir&quot;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="s2">&quot;file&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;dir&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_s3_file_query</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="c1"># check if this is a bucket</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="p">:</span>
+            <span class="n">extra</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extra_args</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ExpectedBucketOwner&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extra_args</span>
+            <span class="p">}</span>
+
             <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">head_bucket</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">head_bucket</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="o">**</span><span class="n">extra</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">True</span>
             <span class="k">except</span> <span class="n">ClientError</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
@@ -967,25 +983,44 @@ for detailed authentication options.</p>
         <span class="sd">&quot;&quot;&quot;Boto3 query used for quick checks of existence and if path is file/dir&quot;&quot;&quot;</span>
         <span class="c1"># check if this is an object that we can access directly</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
-            <span class="n">obj</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-            <span class="k">return</span> <span class="n">obj</span>
+            <span class="c1"># head_object accepts all download extra args (note: Object.load does not accept extra args so we do not use it for this check)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">head_object</span><span class="p">(</span>
+                <span class="n">Bucket</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span>
+                <span class="n">Key</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">),</span>
+                <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_dl_extra_args</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;file&quot;</span>
 
-        <span class="c1"># else, confirm it is a dir by filtering to the first item under the prefix</span>
-        <span class="k">except</span> <span class="n">ClientError</span><span class="p">:</span>
+        <span class="c1"># else, confirm it is a dir by filtering to the first item under the prefix plus a &quot;/&quot;</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">ClientError</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">NoSuchKey</span><span class="p">):</span>
             <span class="n">key</span> <span class="o">=</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
 
             <span class="k">return</span> <span class="nb">next</span><span class="p">(</span>
                 <span class="p">(</span>
-                    <span class="n">obj</span>
+                    <span class="s2">&quot;dir&quot;</span>  <span class="c1"># always a dir if we find anything with this query</span>
                     <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Prefix</span><span class="o">=</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
+                        <span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Prefix</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_list_extra_args</span><span class="p">)</span>
+                        <span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
                     <span class="p">)</span>
                 <span class="p">),</span>
                 <span class="kc">None</span><span class="p">,</span>
             <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">S3Path</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
+        <span class="c1"># shortcut if listing all available buckets</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                    <span class="s2">&quot;Cannot recursively list all buckets and contents; you can get all the buckets then recursively list each separately.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">yield from</span> <span class="p">(</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3://</span><span class="si">{</span><span class="n">b</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">list_buckets</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Buckets&quot;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="p">)</span>
+            <span class="k">return</span>
+
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span>
         <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
             <span class="n">prefix</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
@@ -995,7 +1030,10 @@ for detailed authentication options.</p>
         <span class="n">paginator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_paginator</span><span class="p">(</span><span class="s2">&quot;list_objects_v2&quot;</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">paginator</span><span class="o">.</span><span class="n">paginate</span><span class="p">(</span>
-            <span class="n">Bucket</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span> <span class="n">Delimiter</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">recursive</span> <span class="k">else</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="n">Bucket</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span>
+            <span class="n">Prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+            <span class="n">Delimiter</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">recursive</span> <span class="k">else</span> <span class="s2">&quot;/&quot;</span><span class="p">),</span>
+            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_list_extra_args</span><span class="p">,</span>
         <span class="p">):</span>
             <span class="c1"># yield everything in common prefixes as directories</span>
             <span class="k">for</span> <span class="n">result_prefix</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CommonPrefixes&quot;</span><span class="p">,</span> <span class="p">[]):</span>
@@ -1048,27 +1086,33 @@ for detailed authentication options.</p>
                 <span class="n">CopySource</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Bucket&quot;</span><span class="p">:</span> <span class="n">src</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="s2">&quot;Key&quot;</span><span class="p">:</span> <span class="n">src</span><span class="o">.</span><span class="n">key</span><span class="p">},</span>
                 <span class="n">Metadata</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_metadata</span><span class="p">(</span><span class="n">src</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;extra&quot;</span><span class="p">,</span> <span class="p">{}),</span>
                 <span class="n">MetadataDirective</span><span class="o">=</span><span class="s2">&quot;REPLACE&quot;</span><span class="p">,</span>
+                <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_ul_extra_args</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span><span class="n">dst</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">dst</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
-            <span class="n">target</span><span class="o">.</span><span class="n">copy</span><span class="p">({</span><span class="s2">&quot;Bucket&quot;</span><span class="p">:</span> <span class="n">src</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="s2">&quot;Key&quot;</span><span class="p">:</span> <span class="n">src</span><span class="o">.</span><span class="n">key</span><span class="p">})</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;Bucket&quot;</span><span class="p">:</span> <span class="n">src</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="s2">&quot;Key&quot;</span><span class="p">:</span> <span class="n">src</span><span class="o">.</span><span class="n">key</span><span class="p">},</span>
+                <span class="n">ExtraArgs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_dl_extra_args</span><span class="p">,</span>
+                <span class="n">Config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_transfer_config</span><span class="p">,</span>
+            <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">remove_src</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_remove</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dst</span>
 
     <span class="k">def</span> <span class="nf">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">file_or_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">=</span><span class="n">cloud_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">file_or_dir</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span><span class="p">:</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+                <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_list_extra_args</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ResponseMetadata&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;HTTPStatusCode&quot;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">204</span><span class="p">,</span> <span class="mi">200</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">CloudPathException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Delete operation failed for </span><span class="si">{</span><span class="n">cloud_path</span><span class="si">}</span><span class="s2"> with response: </span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
 
-            <span class="c1"># will throw if not a file</span>
-            <span class="n">obj</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-
-            <span class="n">resp</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
-            <span class="k">assert</span> <span class="n">resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ResponseMetadata&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;HTTPStatusCode&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">204</span>
-
-        <span class="k">except</span> <span class="n">ClientError</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">file_or_dir</span> <span class="o">==</span> <span class="s2">&quot;dir&quot;</span><span class="p">:</span>
             <span class="c1"># try to delete as a direcotry instead</span>
             <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
 
@@ -1076,20 +1120,24 @@ for detailed authentication options.</p>
             <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
                 <span class="n">prefix</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
 
-            <span class="n">resp</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_list_extra_args</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+                <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">boto3_list_extra_args</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">resp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ResponseMetadata&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;HTTPStatusCode&quot;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">204</span><span class="p">,</span> <span class="mi">200</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">CloudPathException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Delete operation failed for </span><span class="si">{</span><span class="n">cloud_path</span><span class="si">}</span><span class="s2"> with response: </span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
 
-            <span class="c1"># ensure directory deleted; if cloud_path did not exist at all</span>
-            <span class="c1"># resp will be [], so no need to check success</span>
-            <span class="k">if</span> <span class="n">resp</span><span class="p">:</span>
-                <span class="k">assert</span> <span class="n">resp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ResponseMetadata&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;HTTPStatusCode&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">200</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_ok</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File does not exist: </span><span class="si">{</span><span class="n">cloud_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_ok</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Cannot delete file that does not exist: </span><span class="si">{</span><span class="n">cloud_path</span><span class="si">}</span><span class="s2"> (consider passing missing_ok=True)&quot;</span>
+                <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_upload_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">S3Path</span><span class="p">:</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s3</span><span class="o">.</span><span class="n">Object</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
 
-        <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">extra_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boto3_ul_extra_args</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">content_type</span><span class="p">,</span> <span class="n">content_encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type_method</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">local_path</span><span class="p">))</span>
@@ -1145,7 +1193,7 @@ for detailed authentication options.</p>
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.s3.s3client.S3Client.__init__">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aws_access_key_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aws_secret_access_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aws_session_token</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">no_sign_request</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">botocore_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">botocore</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boto3_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">endpoint_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boto3_transfer_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TransferConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7f760ecf8200</span><span class="o">&gt;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aws_access_key_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aws_secret_access_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aws_session_token</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">no_sign_request</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">botocore_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">botocore</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boto3_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">endpoint_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boto3_transfer_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TransferConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7fb2ca673170</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -1194,9 +1242,9 @@ needed when you are using temporarycredentials.</p></td>
       <tr>
         <td><code>no_sign_request</code></td>
         <td><code>Optional[bool]</code></td>
-        <td><p>(Optional[bool]): If <code>True</code>, credentials are not looked for and we use unsigned
+        <td><p>If <code>True</code>, credentials are not looked for and we use unsigned
 requests to fetch resources. This will only allow access to public resources. This is equivalent
-to <code>--no-sign-request</code> in the AWS CLI (https://docs.aws.amazon.com/cli/latest/reference/).</p></td>
+to <code>--no-sign-request</code> in the <a href="https://docs.aws.amazon.com/cli/latest/reference/">AWS CLI</a>.</p></td>
         <td><code>False</code></td>
       </tr>
       <tr>
@@ -1235,8 +1283,8 @@ Parameterize it to access a customly deployed S3-compatible object store such as
       <tr>
         <td><code>boto3_transfer_config</code></td>
         <td><code>Optional[dict]</code></td>
-        <td><p>Instantiated TransferConfig for managing s3 transfers.
-(https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)</p></td>
+        <td><p>Instantiated TransferConfig for managing
+<a href="https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig">s3 transfers</a></p></td>
         <td><code>None</code></td>
       </tr>
       <tr>
@@ -1244,7 +1292,16 @@ Parameterize it to access a customly deployed S3-compatible object store such as
         <td><code>Optional[Callable]</code></td>
         <td><p>Function to call to guess media type (mimetype) when
 writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must return a tuple (content type, content encoding).</p></td>
-        <td><code>&lt;function guess_type at 0x7f760ecf8200&gt;</code></td>
+        <td><code>&lt;function guess_type at 0x7fb2ca673170&gt;</code></td>
+      </tr>
+      <tr>
+        <td><code>extra_args</code></td>
+        <td><code>Optional[dict]</code></td>
+        <td><p>A dictionary of extra args passed to download, upload, and list functions as relevant. You
+can include any keys supported by upload or download, and we will pass on only the relevant args. To see the extra
+args that are supported look at the upload and download lists in the
+<a href="https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer">boto3 docs</a>.</p></td>
+        <td><code>None</code></td>
       </tr>
   </tbody>
 </table>
@@ -1263,6 +1320,7 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
     <span class="n">endpoint_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">boto3_transfer_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TransferConfig&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">,</span>
+    <span class="n">extra_args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Class constructor. Sets up a boto3 [`Session`](</span>
 <span class="sd">    https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html).</span>
@@ -1278,9 +1336,9 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
 <span class="sd">        aws_secret_access_key (Optional[str]): AWS secret access key.</span>
 <span class="sd">        aws_session_token (Optional[str]): Session key for your AWS account. This is only</span>
 <span class="sd">            needed when you are using temporarycredentials.</span>
-<span class="sd">        no_sign_request: (Optional[bool]): If `True`, credentials are not looked for and we use unsigned</span>
+<span class="sd">        no_sign_request (Optional[bool]): If `True`, credentials are not looked for and we use unsigned</span>
 <span class="sd">            requests to fetch resources. This will only allow access to public resources. This is equivalent</span>
-<span class="sd">            to `--no-sign-request` in the AWS CLI (https://docs.aws.amazon.com/cli/latest/reference/).</span>
+<span class="sd">            to `--no-sign-request` in the [AWS CLI](https://docs.aws.amazon.com/cli/latest/reference/).</span>
 <span class="sd">        botocore_session (Optional[botocore.session.Session]): An already instantiated botocore</span>
 <span class="sd">            Session.</span>
 <span class="sd">        profile_name (Optional[str]): Profile name of a profile in a shared credentials file.</span>
@@ -1289,10 +1347,14 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
 <span class="sd">            for downloaded files. If None, will use a temporary directory.</span>
 <span class="sd">        endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.</span>
 <span class="sd">            Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.</span>
-<span class="sd">        boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing s3 transfers.</span>
-<span class="sd">            (https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)</span>
+<span class="sd">        boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing</span>
+<span class="sd">            [s3 transfers](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)</span>
 <span class="sd">        content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when</span>
 <span class="sd">            writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).</span>
+<span class="sd">        extra_args (Optional[dict]): A dictionary of extra args passed to download, upload, and list functions as relevant. You</span>
+<span class="sd">            can include any keys supported by upload or download, and we will pass on only the relevant args. To see the extra</span>
+<span class="sd">            args that are supported look at the upload and download lists in the</span>
+<span class="sd">            [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">endpoint_url</span> <span class="o">=</span> <span class="n">endpoint_url</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;AWS_ENDPOINT_URL&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">boto3_session</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1322,6 +1384,25 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
         <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sess</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">,</span> <span class="n">endpoint_url</span><span class="o">=</span><span class="n">endpoint_url</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">boto3_transfer_config</span> <span class="o">=</span> <span class="n">boto3_transfer_config</span>
+
+    <span class="k">if</span> <span class="n">extra_args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_extra_args</span> <span class="o">=</span> <span class="n">extra_args</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">boto3_dl_extra_args</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">extra_args</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">S3Transfer</span><span class="o">.</span><span class="n">ALLOWED_DOWNLOAD_ARGS</span>
+    <span class="p">}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">boto3_ul_extra_args</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">extra_args</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">S3Transfer</span><span class="o">.</span><span class="n">ALLOWED_UPLOAD_ARGS</span>
+    <span class="p">}</span>
+
+    <span class="c1"># listing ops (list_objects_v2, filter, delete) only accept these extras:</span>
+    <span class="c1"># https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">boto3_list_extra_args</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extra_args</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;RequestPayer&quot;</span><span class="p">,</span> <span class="s2">&quot;ExpectedBucketOwner&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extra_args</span>
+    <span class="p">}</span>
 
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span> <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">)</span>
 </code></pre></div>
