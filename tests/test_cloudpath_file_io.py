@@ -191,6 +191,25 @@ def test_glob(glob_test_dirs):
     )
 
 
+def test_glob_buckets(rig):
+    # CloudPath("s3://").glob("*") results in error
+    drive_level = rig.path_class(rig.path_class.cloud_prefix)
+
+    with pytest.raises(CloudPathNotImplementedError):
+        list(drive_level.glob("*"))
+
+    # CloudPath("s3://bucket").glob("*") should work
+    # bucket level glob returns correct results
+    # regression test for #311
+    bucket = rig.path_class(f"{rig.path_class.cloud_prefix}{rig.drive}")
+
+    first_result = next(bucket.glob("*"))
+
+    # assert all parts are unique
+    assert first_result.drive == rig.drive
+    assert len(first_result.parts) == len(set(first_result.parts))
+
+
 def test_glob_many_open_files(rig):
     # test_glob_many_open_files
     #  Adapted from: https://github.com/python/cpython/blob/7ffe7ba30fc051014977c6f393c51e57e71a6648/Lib/test/test_pathlib.py#L1697-L1712
