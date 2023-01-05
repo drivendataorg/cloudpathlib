@@ -864,21 +864,21 @@
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <p><code>cloudpathlib</code> depends on the cloud services' SDKs (e.g., <code>boto3</code>, <code>google-cloud-storage</code>, <code>azure-storage-blob</code>) to communicate with their respective storage service. If you try to use cloud paths for a cloud service for which you don't have dependencies installed, <code>cloudpathlib</code> will error and let you know what you need to install.</p>
 <p>To install a cloud service's SDK dependency when installing <code>cloudpathlib</code>, you need to specify it using pip's <a href="https://packaging.python.org/tutorials/installing-packages/#installing-setuptools-extras">"extras"</a> specification. For example:</p>
-<div class="highlight"><pre><span></span><code>pip install cloudpathlib<span class="o">[</span>s3,gs,azure<span class="o">]</span>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>cloudpathlib<span class="o">[</span>s3,gs,azure<span class="o">]</span>
 </code></pre></div>
 <p>With some shells, you may need to use quotes:</p>
-<div class="highlight"><pre><span></span><code>pip install <span class="s2">&quot;cloudpathlib[s3,gs,azure]&quot;</span>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;cloudpathlib[s3,gs,azure]&quot;</span>
 </code></pre></div>
 <p>Currently supported cloud storage services are: <code>azure</code>, <code>gs</code>, <code>s3</code>. You can also use <code>all</code> to install all available services' dependencies.</p>
 <p>If you do not specify any extras or separately install any cloud SDKs, you will only be able to develop with the base classes for rolling your own cloud path class.</p>
 <h3 id="conda">conda<a class="headerlink" href="#conda" title="Permanent link">&para;</a></h3>
 <p><code>cloudpathlib</code> is also available using <code>conda</code> from conda-forge. Note that to install the necessary cloud service SDK dependency, you should include the appropriate suffix in the package name. For example:</p>
-<div class="highlight"><pre><span></span><code>conda install cloudpathlib-s3 -c conda-forge
+<div class="highlight"><pre><span></span><code>conda<span class="w"> </span>install<span class="w"> </span>cloudpathlib-s3<span class="w"> </span>-c<span class="w"> </span>conda-forge
 </code></pre></div>
 <p>If no suffix is used, only the base classes will be usable. See the <a href="https://github.com/conda-forge/cloudpathlib-feedstock">conda-forge/cloudpathlib-feedstock</a> for all installation options.</p>
 <h3 id="development-version">Development version<a class="headerlink" href="#development-version" title="Permanent link">&para;</a></h3>
 <p>You can get latest development version from GitHub:</p>
-<div class="highlight"><pre><span></span><code>pip install https://github.com/drivendataorg/cloudpathlib.git#egg<span class="o">=</span>cloudpathlib<span class="o">[</span>all<span class="o">]</span>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>https://github.com/drivendataorg/cloudpathlib.git#egg<span class="o">=</span>cloudpathlib<span class="o">[</span>all<span class="o">]</span>
 </code></pre></div>
 <p>Note that you similarly need to specify cloud service dependencies, such as <code>all</code> in the above example command.</p>
 <h2 id="quick-usage">Quick usage<a class="headerlink" href="#quick-usage" title="Permanent link">&para;</a></h2>

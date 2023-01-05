@@ -2085,14 +2085,14 @@ ipytest.autoconfig()</div>
 
 
 <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">uri</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Function that uses S3Path.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function that uses S3Path.&quot;&quot;&quot;</span>
     <span class="n">cloud_path</span> <span class="o">=</span> <span class="n">cloudpathlib</span><span class="o">.</span><span class="n">S3Path</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
     <span class="n">cloud_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">&quot;cumulonimbus&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cloud_path</span>
 
 
 <span class="k">def</span> <span class="nf">test_write_monkeypatch</span><span class="p">(</span><span class="n">monkeypatch</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Testing function using S3Path, patching with LocalS3Path.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Testing function using S3Path, patching with LocalS3Path.&quot;&quot;&quot;</span>
 
     <span class="n">monkeypatch</span><span class="o">.</span><span class="n">setattr</span><span class="p">(</span><span class="n">cloudpathlib</span><span class="p">,</span> <span class="s2">&quot;S3Path&quot;</span><span class="p">,</span> <span class="n">LocalS3Path</span><span class="p">)</span>
 
@@ -2271,14 +2271,14 @@ implementation_registry</div>
 
 
 <span class="k">def</span> <span class="nf">write_with_dispatch</span><span class="p">(</span><span class="n">uri</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Function that uses CloudPath to dispatch to S3Path.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function that uses CloudPath to dispatch to S3Path.&quot;&quot;&quot;</span>
     <span class="n">cloud_path</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
     <span class="n">cloud_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">&quot;cirrocumulus&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cloud_path</span>
 
 
 <span class="k">def</span> <span class="nf">test_write_with_dispatch_monkeypatch</span><span class="p">(</span><span class="n">monkeypatch</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Testing function using CloudPath dispatch, patching registered implementation. Will pass.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Testing function using CloudPath dispatch, patching registered implementation. Will pass.&quot;&quot;&quot;</span>
 
     <span class="n">monkeypatch</span><span class="o">.</span><span class="n">setitem</span><span class="p">(</span><span class="n">implementation_registry</span><span class="p">,</span> <span class="s2">&quot;s3&quot;</span><span class="p">,</span> <span class="n">local_s3_implementation</span><span class="p">)</span>
 
@@ -2400,7 +2400,7 @@ def test_write_with_dispatch_monkeypatch(monkeypatch):
 
 <span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
 <span class="k">def</span> <span class="nf">cloud_asset_file</span><span class="p">(</span><span class="n">monkeypatch</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Fixture that patches CloudPath dispatch and also sets up test assets in LocalS3Client&#39;s</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fixture that patches CloudPath dispatch and also sets up test assets in LocalS3Client&#39;s</span>
 <span class="sd">    local storage directory.&quot;&quot;&quot;</span>
 
     <span class="n">monkeypatch</span><span class="o">.</span><span class="n">setitem</span><span class="p">(</span><span class="n">implementation_registry</span><span class="p">,</span> <span class="s2">&quot;s3&quot;</span><span class="p">,</span> <span class="n">local_s3_implementation</span><span class="p">)</span>
@@ -2422,7 +2422,7 @@ def test_write_with_dispatch_monkeypatch(monkeypatch):
 
 
 <span class="k">def</span> <span class="nf">test_with_assets</span><span class="p">(</span><span class="n">cloud_asset_file</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Testing that a patched CloudPath finds the test asset created in the fixture.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Testing that a patched CloudPath finds the test asset created in the fixture.&quot;&quot;&quot;</span>
 
     <span class="n">cloud_path_1</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://cloudpathlib-test-bucket/altostratus.txt&quot;</span><span class="p">)</span>
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cloud_path_1</span><span class="p">,</span> <span class="n">LocalS3Path</span><span class="p">)</span>

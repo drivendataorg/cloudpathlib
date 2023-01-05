@@ -1068,7 +1068,7 @@ substitute when writing tests.</p>
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/local/implementations/azure.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">LocalAzureBlobClient</span><span class="p">(</span><span class="n">LocalClient</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Replacement for AzureBlobClient that uses the local file system. Intended as a monkeypatch</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Replacement for AzureBlobClient that uses the local file system. Intended as a monkeypatch</span>
 <span class="sd">    substitute when writing tests.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1397,7 +1397,7 @@ substitutes for normal Client subclasses when writing tests.</p>
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/local/localclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">LocalClient</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Abstract client for accessing objects the local filesystem. Subclasses are as a monkeypatch</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract client for accessing objects the local filesystem. Subclasses are as a monkeypatch</span>
 <span class="sd">    substitutes for normal Client subclasses when writing tests.&quot;&quot;&quot;</span>
 
     <span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1554,7 +1554,7 @@ substitutes for normal Client subclasses when writing tests.</p>
 
 
 <h5 id="cloudpathlib.local.localclient.LocalClient.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7f814fe75790</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7f23b75bf820</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -1682,7 +1682,7 @@ substitute when writing tests.</p>
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/local/implementations/gs.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">LocalGSClient</span><span class="p">(</span><span class="n">LocalClient</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Replacement for GSClient that uses the local file system. Intended as a monkeypatch</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Replacement for GSClient that uses the local file system. Intended as a monkeypatch</span>
 <span class="sd">    substitute when writing tests.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1934,7 +1934,7 @@ monkeypatch substitutes for normal CloudPath subclasses when writing tests.</p>
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/local/localpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">LocalPath</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Abstract CloudPath for accessing objects the local filesystem. Subclasses are as a</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract CloudPath for accessing objects the local filesystem. Subclasses are as a</span>
 <span class="sd">    monkeypatch substitutes for normal CloudPath subclasses when writing tests.&quot;&quot;&quot;</span>
 
     <span class="n">client</span><span class="p">:</span> <span class="s2">&quot;LocalClient&quot;</span>
@@ -2118,7 +2118,7 @@ substitute when writing tests.</p>
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/local/implementations/s3.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">LocalS3Client</span><span class="p">(</span><span class="n">LocalClient</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Replacement for S3Client that uses the local file system. Intended as a monkeypatch</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Replacement for S3Client that uses the local file system. Intended as a monkeypatch</span>
 <span class="sd">    substitute when writing tests.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
