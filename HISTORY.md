@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## v0.12.1 (2023-01-04)
+
+ - Fix glob logic for buckets; add regression test; add error on globbing all buckets ([Issue #311](https://github.com/drivendataorg/cloudpathlib/issues/311), [PR #312](https://github.com/drivendataorg/cloudpathlib/pull/312))
+
 ## v0.12.0 (2022-12-30)
 
  - API Change: `S3Client` supports an `extra_args` kwarg now to pass extra args down to `boto3` functions; this enables Requester Pays bucket access and bucket encryption. (Issues [#254](https://github.com/drivendataorg/cloudpathlib/issues/254), [#180](https://github.com/drivendataorg/cloudpathlib/issues/180); [PR #307](https://github.com/drivendataorg/cloudpathlib/pull/307))
