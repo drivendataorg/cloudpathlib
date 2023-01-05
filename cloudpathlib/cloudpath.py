@@ -357,6 +357,11 @@ class CloudPath(metaclass=CloudPathMeta):
         if pattern.startswith(self.cloud_prefix) or pattern.startswith("/"):
             raise CloudPathNotImplementedError("Non-relative patterns are unsupported")
 
+        if self.drive == "":
+            raise CloudPathNotImplementedError(
+                ".glob is only supported within a bucket or container; you can use `.iterdir` to list buckets; for example, CloudPath('s3://').iterdir()"
+            )
+
     def _glob(
         self: DerivedCloudPath, selector, recursive: bool
     ) -> Generator[DerivedCloudPath, None, None]:
@@ -390,12 +395,13 @@ class CloudPath(metaclass=CloudPathMeta):
 
         root = _CloudPathSelectable(
             self.name,
-            [p.name for p in self.parents[:-1]],  # all parents except bucket/container
+            [],  # nothing above self will be returned, so initial parents is empty
             file_tree,
         )
 
         for p in selector.select_from(root):
-            yield self.client.CloudPath(f"{self.cloud_prefix}{self.drive}/{p}")
+            # select_from returns self.name/... so strip before joining
+            yield (self / str(p)[len(self.name) + 1 :])
 
     def glob(self: DerivedCloudPath, pattern: str) -> Generator[DerivedCloudPath, None, None]:
         self._glob_checks(pattern)
