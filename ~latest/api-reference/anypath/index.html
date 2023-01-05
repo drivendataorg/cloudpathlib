@@ -777,7 +777,7 @@ constructor and dispatch to CloudPath or Path.</p>
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/anypath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">AnyPath</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Polymorphic virtual superclass for CloudPath and pathlib.Path. Constructing an instance will</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Polymorphic virtual superclass for CloudPath and pathlib.Path. Constructing an instance will</span>
 <span class="sd">    automatically dispatch to CloudPath or Path based on the input. It also supports both</span>
 <span class="sd">    isinstance and issubclass checks.</span>
 
@@ -801,13 +801,13 @@ constructor and dispatch to CloudPath or Path.</p>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">__get_validators__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Pydantic special method. See</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic special method. See</span>
 <span class="sd">        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types&quot;&quot;&quot;</span>
         <span class="k">yield</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_validate</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">CloudPath</span><span class="p">,</span> <span class="n">Path</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Used as a Pydantic validator. See</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Used as a Pydantic validator. See</span>
 <span class="sd">        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types&quot;&quot;&quot;</span>
         <span class="c1"># Note __new__ is static method and not a class method</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
