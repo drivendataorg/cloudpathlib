@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## v0.13.0 (UNRLEASED)
+
+ - Implement `file_cache_mode`s to give users finer-grained control over when and how the cache is cleared. ([Issue #10](https://github.com/drivendataorg/cloudpathlib/issues/10), [PR #314](https://github.com/drivendataorg/cloudpathlib/pull/314))
+
 ## v0.12.1 (2023-01-04)
 
  - Fix glob logic for buckets; add regression test; add error on globbing all buckets ([Issue #311](https://github.com/drivendataorg/cloudpathlib/issues/311), [PR #312](https://github.com/drivendataorg/cloudpathlib/pull/312))
