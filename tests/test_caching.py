@@ -1,4 +1,5 @@
 import os
+from time import sleep
 
 import pytest
 
@@ -84,6 +85,7 @@ def test_close_file_mode(rig: CloudProviderTestRig):
         assert not cp._local.exists()
         method(*method_args)
         assert_cache(cloudpath=cp, exists=False, check_cloudpath=True, check_client_folder=False)
+        sleep(0.1)  # writing twice in a row too quickly can trigger `OverwriteNewerCloudError`
 
     cache_path = cp._local
     del cp
@@ -266,3 +268,47 @@ def test_environment_variable_instantiation(rig: CloudProviderTestRig, tmpdir):
 
     finally:
         os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = original_env_setting
+
+
+def test_manual_cache_clearning(rig: CloudProviderTestRig):
+    # use client that we can delete rather than default
+    client = rig.client_class(**rig.required_client_kwargs)
+
+    cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
+
+    # default should be tmp_dir
+    assert cp.client.file_cache_mode == FileCacheMode.tmp_dir
+
+    # download from cloud into the cache
+    with cp.open("r") as f:
+        _ = f.read()
+
+    assert_cache(cloudpath=cp, exists=True, check_cloudpath=True, check_client_folder=True)
+
+    # clears the file itself, but not the containg folder
+    cp.clear_cache()
+
+    assert_cache(cloudpath=cp, exists=False, check_cloudpath=True, check_client_folder=False)
+
+    # download from cloud into the cache
+    with cp.open("r") as f:
+        _ = f.read()
+
+    # clears the file itself, but containing folder still exists
+    client.clear_cache()
+
+    assert_cache(cloudpath=cp, exists=False, check_cloudpath=True, check_client_folder=False)
+
+    # also removes containing folder
+    local_cache_path = cp._local
+    client_cache_folder = client._local_cache_dir
+    del cp
+    del client
+
+    assert_cache(
+        path=local_cache_path,
+        client_path=client_cache_folder,
+        exists=False,
+        check_cloudpath=True,
+        check_client_folder=True,
+    )
