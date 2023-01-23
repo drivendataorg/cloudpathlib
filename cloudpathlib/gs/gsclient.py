@@ -4,9 +4,9 @@ import os
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union
 
-
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
+from ..enums import FileCacheMode
 from .gspath import GSPath
 
 try:
@@ -37,6 +37,7 @@ class GSClient(Client):
         project: Optional[str] = None,
         storage_client: Optional["StorageClient"] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
+        file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
     ):
         """Class constructor. Sets up a [`Storage
@@ -69,6 +70,9 @@ class GSClient(Client):
                 https://googleapis.dev/python/storage/latest/client.html).
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory.
+            file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see
+                [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information
+                about the options in cloudpathlib.eums.FileCacheMode.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
         """
@@ -87,7 +91,11 @@ class GSClient(Client):
             except DefaultCredentialsError:
                 self.client = StorageClient.create_anonymous_client()
 
-        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
+        super().__init__(
+            local_cache_dir=local_cache_dir,
+            content_type_method=content_type_method,
+            file_cache_mode=file_cache_mode,
+        )
 
     def _get_metadata(self, cloud_path: GSPath) -> Optional[Dict[str, Any]]:
         bucket = self.client.bucket(cloud_path.bucket)

@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
+from ..enums import FileCacheMode
 from ..exceptions import MissingCredentialsError
 from .azblobpath import AzureBlobPath
 
@@ -33,6 +34,7 @@ class AzureBlobClient(Client):
         connection_string: Optional[str] = None,
         blob_service_client: Optional["BlobServiceClient"] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
+        file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
     ):
         """Class constructor. Sets up a [`BlobServiceClient`](
@@ -70,10 +72,17 @@ class AzureBlobClient(Client):
                 https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory.
+            file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see
+                [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information
+                about the options in cloudpathlib.eums.FileCacheMode.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
         """
-        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
+        super().__init__(
+            local_cache_dir=local_cache_dir,
+            content_type_method=content_type_method,
+            file_cache_mode=file_cache_mode,
+        )
 
         if connection_string is None:
             connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING", None)

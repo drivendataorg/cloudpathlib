@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from ..client import Client
+from ..enums import FileCacheMode
 from .localpath import LocalPath
 
 
@@ -23,6 +24,7 @@ class LocalClient(Client):
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         local_storage_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
+        file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         **kwargs,
     ):
         # setup caching and local versions of file. use default temp dir if not provided
@@ -30,7 +32,11 @@ class LocalClient(Client):
             local_storage_dir = self.get_default_storage_dir()
         self._local_storage_dir = Path(local_storage_dir)
 
-        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
+        super().__init__(
+            local_cache_dir=local_cache_dir,
+            content_type_method=content_type_method,
+            file_cache_mode=file_cache_mode,
+        )
 
     @classmethod
     def get_default_storage_dir(cls) -> Path:
