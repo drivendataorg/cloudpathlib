@@ -8,30 +8,6 @@ from cloudpathlib.exceptions import InvalidConfigurationException
 from tests.conftest import CloudProviderTestRig
 
 
-def assert_cache(
-    cloudpath=None,
-    path=None,
-    client=None,
-    client_path=None,
-    exists=True,
-    check_cloudpath=True,
-    check_client_folder=True,
-):
-    if cloudpath:
-        path = cloudpath._local
-
-    if client:
-        client_path = client._local_cache_dir
-    elif cloudpath:
-        client_path = cloudpath.client._local_cache_dir
-
-    if check_cloudpath and path:
-        assert path.exists() == exists
-
-    if check_client_folder and client_path:
-        assert client_path.exists() == exists
-
-
 def test_defaults_work_as_expected(rig: CloudProviderTestRig):
     # use client that we can delete rather than default
     client = rig.client_class(**rig.required_client_kwargs)
@@ -45,16 +21,23 @@ def test_defaults_work_as_expected(rig: CloudProviderTestRig):
     with cp.open("r") as f:
         _ = f.read()
 
-    assert_cache(cloudpath=cp, exists=True, check_cloudpath=True, check_client_folder=True)
+    # both exist
+    assert cp._local.exists()
+    assert cp.client._local_cache_dir.exists()
 
     cache_path = cp._local
+    client_cache_dir = cp.client._local_cache_dir
     del cp
 
-    assert_cache(path=cache_path, exists=True, check_cloudpath=True, check_client_folder=True)
+    # both exist
+    assert cache_path.exists()
+    assert client_cache_dir.exists()
 
     del client
 
-    assert_cache(path=cache_path, exists=False, check_cloudpath=True, check_client_folder=True)
+    # cleaned up because client out of scope
+    assert not cache_path.exists()
+    assert not client_cache_dir.exists()
 
 
 def test_close_file_mode(rig: CloudProviderTestRig):
@@ -73,28 +56,27 @@ def test_close_file_mode(rig: CloudProviderTestRig):
     with cp.open("r") as f:
         _ = f.read()
 
-    assert_cache(cloudpath=cp, exists=False, check_cloudpath=True, check_client_folder=False)
+    # file cache does not exist, but client folder may still be around
+    assert not cp._local.exists()
+    assert cp.client._local_cache_dir.exists()
 
-    # download from cloud into the cache with different methods
-    for method, method_args in [
+    methods_to_test = [
         (cp.read_text, tuple()),
         (cp.read_bytes, tuple()),
         (cp.write_text, ("text",)),
         (cp.write_bytes, (b"bytes",)),
-    ]:
+    ]
+
+    # download from cloud into the cache with different methods
+    for method, method_args in methods_to_test:
         assert not cp._local.exists()
         method(*method_args)
-        assert_cache(cloudpath=cp, exists=False, check_cloudpath=True, check_client_folder=False)
+
+        # file cache does not exist, but client folder may still be around
+        assert not cp._local.exists()
+        assert cp.client._local_cache_dir.exists()
+
         sleep(0.1)  # writing twice in a row too quickly can trigger `OverwriteNewerCloudError`
-
-    cache_path = cp._local
-    del cp
-
-    assert_cache(path=cache_path, exists=False, check_cloudpath=True, check_client_folder=False)
-
-    del client
-
-    assert_cache(path=cache_path, exists=False, check_cloudpath=True, check_client_folder=True)
 
 
 def test_cloudpath_object_mode(rig: CloudProviderTestRig):
@@ -111,16 +93,21 @@ def test_cloudpath_object_mode(rig: CloudProviderTestRig):
     with cp.open("r") as f:
         _ = f.read()
 
-    assert_cache(cloudpath=cp, exists=True, check_cloudpath=True, check_client_folder=True)
+    # both exist
+    assert cp._local.exists()
+    assert cp.client._local_cache_dir.exists()
 
     cache_path = cp._local
+    client_cache_dir = cp.client._local_cache_dir
     del cp
 
-    assert_cache(path=cache_path, exists=False, check_cloudpath=True, check_client_folder=False)
+    assert not cache_path.exists()
+    assert client_cache_dir.exists()
 
     del client
 
-    assert_cache(path=cache_path, exists=False, check_cloudpath=True, check_client_folder=True)
+    assert not cache_path.exists()
+    assert not client_cache_dir.exists()
 
 
 def test_tmp_dir_mode(rig: CloudProviderTestRig):
@@ -136,16 +123,23 @@ def test_tmp_dir_mode(rig: CloudProviderTestRig):
     with cp.open("r") as f:
         _ = f.read()
 
-    assert_cache(cloudpath=cp, exists=True, check_cloudpath=True, check_client_folder=True)
+    # both exist
+    assert cp._local.exists()
+    assert cp.client._local_cache_dir.exists()
 
     cache_path = cp._local
+    client_cache_dir = cp.client._local_cache_dir
     del cp
 
-    assert_cache(path=cache_path, exists=True, check_cloudpath=True, check_client_folder=True)
+    # both exist
+    assert cache_path.exists()
+    assert client_cache_dir.exists()
 
     del client
 
-    assert_cache(path=cache_path, exists=False, check_cloudpath=True, check_client_folder=True)
+    # cleaned up because client out of scope
+    assert not cache_path.exists()
+    assert not client_cache_dir.exists()
 
 
 def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
@@ -163,16 +157,23 @@ def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
     with cp.open("r") as f:
         _ = f.read()
 
-    assert_cache(cloudpath=cp, exists=True, check_cloudpath=True, check_client_folder=True)
+    # both exist
+    assert cp._local.exists()
+    assert cp.client._local_cache_dir.exists()
 
     cache_path = cp._local
+    client_cache_dir = cp.client._local_cache_dir
     del cp
 
-    assert_cache(path=cache_path, exists=True, check_cloudpath=True, check_client_folder=True)
+    # both exist
+    assert cache_path.exists()
+    assert client_cache_dir.exists()
 
     del client
 
-    assert_cache(path=cache_path, exists=True, check_cloudpath=True, check_client_folder=True)
+    # both exist
+    assert cache_path.exists()
+    assert client_cache_dir.exists()
 
 
 def test_interaction_with_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
@@ -186,7 +187,7 @@ def test_interaction_with_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
     client = rig.client_class(local_cache_dir=tmpdir, **rig.required_client_kwargs)
     assert client.file_cache_mode == FileCacheMode.persistent
 
-    # setting close_file still works
+    # test setting close_file explicitly works
     client = rig.client_class(
         local_cache_dir=tmpdir,
         file_cache_mode=FileCacheMode.close_file,
@@ -200,7 +201,7 @@ def test_interaction_with_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
     with cp.open("r") as f:
         _ = f.read()
 
-    assert_cache(cloudpath=cp, exists=False, check_cloudpath=True, check_client_folder=False)
+    assert not cp._local.exists()
 
     # setting cloudpath_object still works
     client = rig.client_class(
@@ -215,12 +216,12 @@ def test_interaction_with_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
     with cp.open("r") as f:
         _ = f.read()
 
-    assert_cache(cloudpath=cp, exists=True, check_cloudpath=True, check_client_folder=True)
+    assert cp._local.exists()
 
     cache_path = cp._local
     del cp
 
-    assert_cache(path=cache_path, exists=False, check_cloudpath=True, check_client_folder=False)
+    assert not cache_path.exists()
 
     # setting tmp_dir still works
     client = rig.client_class(
@@ -233,16 +234,23 @@ def test_interaction_with_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
     with cp.open("r") as f:
         _ = f.read()
 
-    assert_cache(cloudpath=cp, exists=True, check_cloudpath=True, check_client_folder=True)
+    # both exist
+    assert cp._local.exists()
+    assert cp.client._local_cache_dir.exists()
 
     cache_path = cp._local
+    client_cache_dir = cp.client._local_cache_dir
     del cp
 
-    assert_cache(path=cache_path, exists=True, check_cloudpath=True, check_client_folder=True)
+    # both exist
+    assert cache_path.exists()
+    assert client_cache_dir.exists()
 
     del client
 
-    assert_cache(path=cache_path, exists=False, check_cloudpath=True, check_client_folder=True)
+    # cleaned up because client out of scope
+    assert not cache_path.exists()
+    assert not client_cache_dir.exists()
 
 
 def test_string_instantiation(rig: CloudProviderTestRig, tmpdir):
@@ -270,7 +278,7 @@ def test_environment_variable_instantiation(rig: CloudProviderTestRig, tmpdir):
         os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = original_env_setting
 
 
-def test_manual_cache_clearning(rig: CloudProviderTestRig):
+def test_manual_cache_clearing(rig: CloudProviderTestRig):
     # use client that we can delete rather than default
     client = rig.client_class(**rig.required_client_kwargs)
 
@@ -283,32 +291,73 @@ def test_manual_cache_clearning(rig: CloudProviderTestRig):
     with cp.open("r") as f:
         _ = f.read()
 
-    assert_cache(cloudpath=cp, exists=True, check_cloudpath=True, check_client_folder=True)
+    # both exist
+    assert cp._local.exists()
+    assert cp.client._local_cache_dir.exists()
 
     # clears the file itself, but not the containg folder
     cp.clear_cache()
 
-    assert_cache(cloudpath=cp, exists=False, check_cloudpath=True, check_client_folder=False)
+    assert not cp._local.exists()
+    assert cp.client._local_cache_dir.exists()
 
-    # download from cloud into the cache
-    with cp.open("r") as f:
-        _ = f.read()
+    # test removing parent directory
+    cp.fspath
+    assert cp._local.exists()
+    assert cp.parent._local.exists()
 
-    # clears the file itself, but containing folder still exists
+    cp.parent.clear_cache()
+
+    assert not cp._local.exists()
+    assert not cp.parent._local.exists()
+
+    # download two files from cloud into the cache
+    cp.fspath
+    rig.create_cloud_path("dir_0/file0_1.txt", client=client).fspath
+
+    # 2 files present in cache folder
+    assert len(list(filter(lambda x: x.is_file(), client._local_cache_dir.rglob("*")))) == 2
+
+    # clears all files inside the folder, but containing folder still exists
     client.clear_cache()
 
-    assert_cache(cloudpath=cp, exists=False, check_cloudpath=True, check_client_folder=False)
+    assert len(list(filter(lambda x: x.is_file(), client._local_cache_dir.rglob("*")))) == 0
 
-    # also removes containing folder
+    # also removes containing folder on client cleanted up
     local_cache_path = cp._local
     client_cache_folder = client._local_cache_dir
     del cp
     del client
 
-    assert_cache(
-        path=local_cache_path,
-        client_path=client_cache_folder,
-        exists=False,
-        check_cloudpath=True,
-        check_client_folder=True,
-    )
+    assert not local_cache_path.exists()
+    assert not client_cache_folder.exists()
+
+
+def test_reuse_cache_after_manual_cache_clear(rig: CloudProviderTestRig):
+    # use client that we can delete rather than default
+    client = rig.client_class(**rig.required_client_kwargs)
+
+    cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
+
+    # default should be tmp_dir
+    assert cp.client.file_cache_mode == FileCacheMode.tmp_dir
+
+    # download from cloud into the cache
+    with cp.open("r") as f:
+        _ = f.read()
+
+    cp.clear_cache()
+    assert not cp._local.exists()
+
+    # re-download from cloud into the cache
+    with cp.open("r") as f:
+        _ = f.read()
+
+    client.clear_cache()
+    assert not cp._local.exists()
+
+    # re-download from cloud into the cache, no error
+    with cp.open("r") as f:
+        _ = f.read()
+
+    assert cp._local.exists()
