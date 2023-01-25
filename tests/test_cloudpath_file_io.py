@@ -360,10 +360,11 @@ def test_close_file_idempotent(rig):
     # remove cache so we can be sure it can't be re-uploaded
     p._local.unlink()
 
-    # raises because cache is missing if not idempotent
+    # would raise trying to upload missing cache if we weren't idempotent
     f.close()
 
     # re-open and ensure things work
+    sleep(1)
     f = p.open("w")
     f.write("hello again!")
     f.close()
