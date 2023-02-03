@@ -7,5 +7,6 @@ extend-exclude = '''
     \.git
   | \.venv
   | \.ipynb_checkpoints
+  | docs/docs/script
 )/
 '''
