@@ -177,10 +177,8 @@ class AzureBlobClient(Client):
         for o in container_client.list_blobs(name_starts_with=prefix):
             # get directory from this path
             for parent in PurePosixPath(o.name[len(prefix) :]).parents:
-
                 # if we haven't surfaced this directory already
                 if parent not in yielded_dirs and str(parent) != ".":
-
                     # skip if not recursive and this is beyond our depth
                     if not recursive and "/" in str(parent):
                         continue
