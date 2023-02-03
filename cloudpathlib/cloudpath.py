@@ -1142,3 +1142,5 @@ class _CloudPathSelectable:
             _CloudPathSelectable(child, root._parents + [root._name], grand_children)
             for child, grand_children in root._all_children.items()
         )
+
+    _scandir = scandir  # Py 3.11 compatibility
