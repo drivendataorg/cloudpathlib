@@ -16,7 +16,7 @@
 # 
 # - Does the file exist in the cache already?
 # - If no, download it to the cache.
-# - If yes, does the cached version have the same modtime as the cloud version?
+# - If yes, does the cached version have the same modified time as the cloud version?
 # - If it is older, re-download the file and replace the old cached version with the updated version from the cloud.
 # - If the local one is newer, something is up! We don't want to overwrite your local changes with the version from the cloud. If we see this scenario, we'll raise an error and offer some options to resolve the versions.
 # 
@@ -31,7 +31,7 @@
 #     f.write("My new text!")
 # ```
 # 
-# This will download the file, write to the text to the local version in the cache, and when that file is closed we know to upload the changed version to the cloud.
+# This will download the file, write the text to the local version in the cache, and when that file is closed we know to upload the changed version to the cloud.
 # 
 # As an example, let's look at using the [Low Altitude Disaster Imagery](https://registry.opendata.aws/ladi/) open dataset on S3. We'll view one images available of a flooding incident available on S3.
 
@@ -51,7 +51,7 @@ for p in islice(ladi.iterdir(), 5):
 get_ipython().system('tree {ladi.fspath}')
 
 
-# Now let's look at just the first image from this dataset.
+# Now let's look at just the first image from this dataset, confirming that the file exists on S3.
 
 flood_image = ladi / "DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg"
 flood_image.exists()
@@ -81,9 +81,9 @@ get_ipython().run_cell_magic('time', '', 'with flood_image.open("rb") as f:\n   
 
 # ## Keeping the cache around
 # 
-# By default, the cache uses [`tempfile`](https://docs.python.org/3/library/tempfile.html) this means at some point either Python or your operating system will remove whatever files you have cached. This is helpful in that it means the downloaded files get cleaned up regularly and don't necessarily clutter up your local hard drive.
+# By default, the cache uses [`tempfile`](https://docs.python.org/3/library/tempfile.html) this means at some point either Python or your operating system will remove whatever files you have cached. This is helpful in that it means the downloaded files get cleaned up regularly and don't necessarily clutter up your local hard drive. If you want more control over how and when the cache is removed, see the [Clearing the file cache](#Clearing-the-file-cache) section.
 # 
-# However, sometimes I don't want to have to re-download files I know won't change. For example, in the LADI dataset, I may want to use the images in a Jupyter notebook and every time I restart the notebook I want to always have the downloaded files. I don't want to re-download since I know the LADI images won't be changing on S3.
+# However, sometimes I don't want to have to re-download files I know won't change. For example, in the LADI dataset, I may want to use the images in a Jupyter notebook and every time I restart the notebook I want to always have the downloaded files. I don't want to ever re-download since I know the LADI images won't be changing on S3. I want these to be there, even if I restart my whole machine.
 # 
 # We can do this just by using a `Client` that does all the downloading/uploading to a specfic folder on our local machine.
 
@@ -95,7 +95,7 @@ client = S3Client(local_cache_dir="data")
 ladi = client.CloudPath("s3://ladi/Images/FEMA_CAP/2020/70349")
 
 
-# Again, nothing in the cache yet, but we see it is all in the "data" folder
+# Again, nothing in the cache yet, but we the path is now in the "data" folder
 get_ipython().system('tree {ladi.fspath}')
 
 
@@ -124,7 +124,7 @@ get_ipython().system('rm -rf data')
 # 
 # **Warning:** Using the `.fspath` property will download the file from the cloud if it does not exist yet in the cache.
 # 
-# **Warning:** Since we are no longer in control of opening/closing the file, we cannot upload any changes when the file is closed. Therefore, you should treat any code where you use `fspath` as _read only_. Writes directly to `fspath` will not be uplaoded to the cloud.
+# **Warning:** Since we are no longer in control of opening/closing the file, we cannot upload any changes when the file is closed. Therefore, you should treat any code where you use `fspath` as _read only_. Writes directly to `fspath` will not be uploaded to the cloud.
 # 
 
 # ## Handling conflicts
@@ -145,7 +145,7 @@ get_ipython().system('rm -rf data')
 
 # # Clearing the file cache
 # 
-# There's no perfect strategy for when to clear the file cache, and different applications will have different requirements and preferences. `cloudpathlib` provides fine-grained control over when cloud files are removed from the local disk. The cache can be emptied both manually and automatically. Because `cloudpathlib` uploads any changed files opened with `CloudPath.open` to the cloud as soon as they are closed, it is safe to delete the cached version of the file at any point as long as the file is not opened for writing. If necessary, the file will be re-downloaded next time it is needed.
+# There's no perfect strategy for when to clear the file cache, and different applications will have different requirements and preferences. `cloudpathlib` provides fine-grained control over when cloud files are removed from the local disk. The cache can be emptied both manually and automatically. Because `cloudpathlib` uploads any changed files opened with `CloudPath.open` to the cloud as soon as they are closed, it is safe to delete the cached version of the file at any point as long as the file is not opened for writing at the time you are trying to remove it. If necessary, the file will be re-downloaded next time it is needed.
 # 
 # We provide a number of ways to clear the file cache that can be useful if you want to reclaim disk space or if you don't need to keep cached files around.
 # 
@@ -153,7 +153,7 @@ get_ipython().system('rm -rf data')
 # 
 # ## Manually
 # 
-# It is recommended you pick an automatic strategy that works for your application. However, if you need to, you can clear the cache manually in three different ways: for individual files, at the level of a `Client` instance, or at the operating system level. 
+# It is recommended you pick an automatic strategy that works for your application. However, if you need to, you can clear the cache manually in three different ways: for individual CloudPath files, at the level of a `Client` instance, or at the operating system level. 
 # 
 #  - `CloudPath.clear_cache()` - for an individual `CloudPath` remove the cached version of the file if it exists.
 #  - `*Client.clear_cache()` - All files downloaded by this specific client instance will be removed from the cache. If you didn't create a client instance yourself, you can get the one that is used by a cloudpath with `CloudPath.client` or get the default one for a particular provider with `get_default_client`, for example by calling `S3Client.get_default_client().clear_cache()`.
@@ -165,15 +165,16 @@ get_ipython().system('rm -rf data')
 # 
 # ## Automatically
 # 
-# We provide a number of different ways for the cache to get cleared automatically for you depending on your use case. These range from no cache clearning by `cloudpathlib` (`FileCacheMode.persistent`), to the most agressive (`close_file`), which deletes a file from the cache as soon as the file handle is closed and the file is uploaded to the cloud, if necessary).
+# We provide a number of different ways for the cache to get cleared automatically for you depending on your use case. These range from no cache clearing done by `cloudpathlib` (`FileCacheMode.persistent`), to the most agressive (`close_file`), which deletes a file from the cache as soon as the file handle is closed and the file is uploaded to the cloud, if it was changed).
 # 
 # Note: There is not currently a cache mode that _never_ writes a file to disk and only keeps it in memory.
 # 
 #  - `FileCacheMode.persistent` - `cloudpathlib` does not clear the cache at all. In this case, you must also pass a `local_cache_dir` when you instantiate the client.
-#  - `FileCacheMode.tmp_dir` (_default_) - Cached files are saved using Python's [`TemporaryDirectory`](https://docs.python.org/3/library/tempfile.html#tempfile.TemporaryDirectory). This provides three potential avenues for the cache to get cleared. First, cached files are removed by `cloudpathlib` when the `*Client` object is garbage collected. This happens on the next garbage collection run after the object leaves scope or `del` is called. Second, Python clears temporary directories if all references leave scope. Finally since the folder is in an operating system temp directory, it will be cleared by the OS (which, depending on the OS, may not happen until system restart).
+#  - `FileCacheMode.tmp_dir` (_default_) - Cached files are saved using Python's [`TemporaryDirectory`](https://docs.python.org/3/library/tempfile.html#tempfile.TemporaryDirectory). This provides three potential avenues for the cache to get cleared. First, cached files are removed by `cloudpathlib` when the `*Client` object is garbage collected. This happens on the next garbage collection run after the object leaves scope or `del` is called. Second, Python clears a temporary directory if all references to that directory leave scope. Finally since the folder is in an operating system temp directory, it will be cleared by the OS (which, depending on the OS, may not happen until system restart).
 #  - `FileCacheMode.cloudpath_object` - cached files are removed when the `CloudPath` object is garbage collected. This happens on the next garbage collection run after the object leaves scope or `del` is called.
 #  - `FileCacheMode.close_file` - since we only download a file to the cache on read/write, we can ensure the cache is empty by removing the cached file as soon as the read/write is finished. Reading/writing the same `CloudPath` multiple times will result in re-downloading the file from the cloud. Note: For this to work, `cloudpath` needs to be in control of the reading/writing of files. This means your code base should use the `CloudPath.write_*`, `CloudPath.read_*`, and `CloudPath.open` methods. Using `CloudPath.fspath` (or passing the `CloudPath` as a `PathLike` object to another library) will not clear the cache on file close since it was not opened by `cloudpathlib`.
 # 
+# Note: Although we use it in the examples below, for `cloudpath_object` and `tmp_dir` you normally shouldn't need to explicitly call `del`. Letting Python garbage collection run on its own once all references to the object leave scope should be sufficient. See details [in the Python docs](https://docs.python.org/3/reference/datamodel.html?highlight=__del__#object.__del__)).
 # 
 
 # 
@@ -185,7 +186,7 @@ get_ipython().system('rm -rf data')
 
 from cloudpathlib.enums import FileCacheMode
 
-print("\n".join(FileCacheMode.__members__.keys()))
+print("\n".join(FileCacheMode))
 
 
 # ## File cache mode: `close_file`
@@ -262,7 +263,7 @@ with flood_image.open("rb") as f:
 local_cached_file = flood_image._local
 print("Cache file exists after finished reading: ", local_cached_file.exists())
 
-# decrement reference count so garbage collector cleans up the file
+# decrement reference count so garbage collection runs
 del flood_image
 
 # file still exists
@@ -277,7 +278,7 @@ print("Cache file exists after Client is no longer referenced: ", local_cached_f
 
 # ## File cache mode: `persistent`
 # 
-# If `local_cache_dir` is specificed, but `file_cache_mode` is not, then the mode is set to `persistent`. If you want to set the mode to `persistent` explicitly, you must also pass `local_cache_dir` or the `Client` will raise `InvalidConfigurationException`.
+# If `local_cache_dir` is specificed, but `file_cache_mode` is not, then the mode is set to `persistent` automatically. Conversely, if you set the mode to `persistent` explicitly, you must also pass `local_cache_dir` or the `Client` will raise `InvalidConfigurationException`.
 # 
 # Local cache file exists after file is closed for reading.
 # 
@@ -303,7 +304,7 @@ with flood_image.open("rb") as f:
 local_cached_file = flood_image._local
 print("Cache file exists after finished reading: ", local_cached_file.exists())
 
-# decrement reference count so garbage collector cleans up the file
+# decrement reference count so garbage collection runs
 del flood_image
 
 # file still exists
@@ -327,6 +328,7 @@ shutil.rmtree(client_cache_dir)
 
 import os
 
+# set the mode here so that it will be used when we instantiate the client
 os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = "persistent"
 
 tmp_dir_client = S3Client()
@@ -334,7 +336,7 @@ tmp_dir_client = S3Client()
 
 # ## Caveats
 # 
-#  - Automatic cache clearning works in most contexts, but there can be rare cases where execution of a program is halted before `cloudpathlib`'s cache clearning code is able to run. It is a good practice to monitor your cache folders and, if using temporary directories, trigger your operating system's temp directoy clean up (which is OS dependent, but restarting is usually sufficient).
+#  - Automatic cache clearing works in most contexts, but there can be cases where execution of a program is halted before `cloudpathlib`'s cache clearing code is able to run. It is a good practice to monitor your cache folders and, if using temporary directories, trigger your operating system's temp directoy clean up (which is OS dependent, but restarting is usually sufficient).
 # 
 #  - Using `CloudPath.open` and a `with` statement to open files for read or write is the best way to ensure that automatic cache clearing happens consistently. The `close_file` cache clearning mode will not work as expected if you use another method to open files (e.g., calling the Python built-in `open`, using `CloudPath.fspath`, or where another library handles the opening/closing of the file).
 # 
