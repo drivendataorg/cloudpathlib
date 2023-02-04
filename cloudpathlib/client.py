@@ -32,9 +32,9 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
 
     def __init__(
         self,
+        file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
-        file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
     ):
         self.file_cache_mode = None
         self._cache_tmp_dir = None

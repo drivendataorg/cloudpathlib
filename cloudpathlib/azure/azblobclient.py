@@ -33,8 +33,8 @@ class AzureBlobClient(Client):
         credential: Optional[Any] = None,
         connection_string: Optional[str] = None,
         blob_service_client: Optional["BlobServiceClient"] = None,
-        local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
+        local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
     ):
         """Class constructor. Sets up a [`BlobServiceClient`](
@@ -70,11 +70,11 @@ class AzureBlobClient(Client):
                 https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).
             blob_service_client (Optional[BlobServiceClient]): Instantiated [`BlobServiceClient`](
                 https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
-            local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
-                for downloaded files. If None, will use a temporary directory.
             file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see
                 [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information
                 about the options in cloudpathlib.eums.FileCacheMode.
+            local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
+                for downloaded files. If None, will use a temporary directory.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
         """

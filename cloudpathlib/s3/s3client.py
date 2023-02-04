@@ -34,8 +34,8 @@ class S3Client(Client):
         botocore_session: Optional["botocore.session.Session"] = None,
         profile_name: Optional[str] = None,
         boto3_session: Optional["Session"] = None,
-        local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
+        local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         endpoint_url: Optional[str] = None,
         boto3_transfer_config: Optional["TransferConfig"] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
@@ -62,11 +62,11 @@ class S3Client(Client):
                 Session.
             profile_name (Optional[str]): Profile name of a profile in a shared credentials file.
             boto3_session (Optional[Session]): An already instantiated boto3 Session.
-            local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
-                for downloaded files. If None, will use a temporary directory.
             file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see
                 [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information
                 about the options in cloudpathlib.eums.FileCacheMode.
+            local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
+                for downloaded files. If None, will use a temporary directory.
             endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.
                 Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.
             boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing

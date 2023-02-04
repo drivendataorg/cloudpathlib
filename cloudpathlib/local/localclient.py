@@ -21,10 +21,10 @@ class LocalClient(Client):
     def __init__(
         self,
         *args,
-        local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         local_storage_dir: Optional[Union[str, os.PathLike]] = None,
-        content_type_method: Optional[Callable] = mimetypes.guess_type,
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
+        local_cache_dir: Optional[Union[str, os.PathLike]] = None,
+        content_type_method: Optional[Callable] = mimetypes.guess_type,
         **kwargs,
     ):
         # setup caching and local versions of file. use default temp dir if not provided
