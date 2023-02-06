@@ -179,17 +179,17 @@ class GSClient(Client):
                         yielded_dirs.add(parent)
                 yield (self.CloudPath(f"gs://{cloud_path.bucket}/{o.name}"), False)  # is a file
         else:
-            iterator = bucket.list_blobs(delimiter='/', prefix=prefix)
+            iterator = bucket.list_blobs(delimiter="/", prefix=prefix)
             for file in iterator:
                 yield (
-                            self.CloudPath(f"gs://{cloud_path.bucket}/{file.name}"),
-                            False,  # is a file
-                        )
+                    self.CloudPath(f"gs://{cloud_path.bucket}/{file.name}"),
+                    False,  # is a file
+                )
             for directory in iterator.prefixes:
                 yield (
-                            self.CloudPath(f"gs://{cloud_path.bucket}/{directory}"),
-                            True,  # is a directory
-                        )
+                    self.CloudPath(f"gs://{cloud_path.bucket}/{directory}"),
+                    True,  # is a directory
+                )
 
     def _move_file(self, src: GSPath, dst: GSPath, remove_src: bool = True) -> GSPath:
         # just a touch, so "REPLACE" metadata
