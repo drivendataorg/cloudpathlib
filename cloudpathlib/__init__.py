@@ -1,9 +1,11 @@
+import os
 import sys
 
 from .anypath import AnyPath
 from .azure.azblobclient import AzureBlobClient
 from .azure.azblobpath import AzureBlobPath
 from .cloudpath import CloudPath, implementation_registry
+from .patches import patch_open
 from .gs.gsclient import GSClient
 from .gs.gspath import GSPath
 from .http.httpclient import HttpClient, HttpsClient
@@ -33,6 +35,11 @@ __all__ = [
     "HttpsClient",
     "HttpPath",
     "HttpsPath",
+    "patch_open"
     "S3Client",
     "S3Path",
 ]
+
+
+if bool(os.environ.get("CLOUDPATHLIB_PATCH_OPEN", "")):
+    patch_open()
