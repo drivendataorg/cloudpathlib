@@ -702,6 +702,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../enums/" class="md-nav__link">
+        cloudpathlib.enums
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../exceptions/" class="md-nav__link">
         cloudpathlib.exceptions
       </a>
@@ -843,6 +857,7 @@ for detailed authentication options.</p>
         <span class="n">botocore_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;botocore.session.Session&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">boto3_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Session&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FileCacheMode</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">endpoint_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">boto3_transfer_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TransferConfig&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -870,6 +885,9 @@ for detailed authentication options.</p>
 <span class="sd">                Session.</span>
 <span class="sd">            profile_name (Optional[str]): Profile name of a profile in a shared credentials file.</span>
 <span class="sd">            boto3_session (Optional[Session]): An already instantiated boto3 Session.</span>
+<span class="sd">            file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see</span>
+<span class="sd">                [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information</span>
+<span class="sd">                about the options in cloudpathlib.eums.FileCacheMode.</span>
 <span class="sd">            local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache</span>
 <span class="sd">                for downloaded files. If None, will use a temporary directory.</span>
 <span class="sd">            endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.</span>
@@ -931,7 +949,11 @@ for detailed authentication options.</p>
             <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extra_args</span>
         <span class="p">}</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span> <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span>
+            <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">,</span>
+            <span class="n">file_cache_mode</span><span class="o">=</span><span class="n">file_cache_mode</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">S3Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="c1"># get accepts all download extra args</span>
@@ -1193,7 +1215,7 @@ for detailed authentication options.</p>
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.s3.s3client.S3Client.__init__">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aws_access_key_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aws_secret_access_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aws_session_token</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">no_sign_request</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">botocore_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">botocore</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boto3_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">endpoint_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boto3_transfer_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TransferConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7ff86dcfa200</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aws_access_key_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aws_secret_access_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">aws_session_token</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">no_sign_request</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">botocore_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">botocore</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boto3_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Session</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">cloudpathlib</span><span class="o">.</span><span class="n">enums</span><span class="o">.</span><span class="n">FileCacheMode</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">endpoint_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boto3_transfer_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TransferConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7fdd37e5a0e0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -1267,6 +1289,14 @@ Session.</p></td>
         <td><code>None</code></td>
       </tr>
       <tr>
+        <td><code>file_cache_mode</code></td>
+        <td><code>Optional[Union[str, FileCacheMode]]</code></td>
+        <td><p>How often to clear the file cache; see
+<a href="https://cloudpathlib.drivendata.org/stable/caching/">the caching docs</a> for more information
+about the options in cloudpathlib.eums.FileCacheMode.</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
         <td><code>local_cache_dir</code></td>
         <td><code>Optional[Union[str, os.PathLike]]</code></td>
         <td><p>Path to directory to use as cache
@@ -1292,7 +1322,7 @@ Parameterize it to access a customly deployed S3-compatible object store such as
         <td><code>Optional[Callable]</code></td>
         <td><p>Function to call to guess media type (mimetype) when
 writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must return a tuple (content type, content encoding).</p></td>
-        <td><code>&lt;function guess_type at 0x7ff86dcfa200&gt;</code></td>
+        <td><code>&lt;function guess_type at 0x7fdd37e5a0e0&gt;</code></td>
       </tr>
       <tr>
         <td><code>extra_args</code></td>
@@ -1316,6 +1346,7 @@ args that are supported look at the upload and download lists in the
     <span class="n">botocore_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;botocore.session.Session&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">profile_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">boto3_session</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Session&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FileCacheMode</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">endpoint_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">boto3_transfer_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TransferConfig&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1343,6 +1374,9 @@ args that are supported look at the upload and download lists in the
 <span class="sd">            Session.</span>
 <span class="sd">        profile_name (Optional[str]): Profile name of a profile in a shared credentials file.</span>
 <span class="sd">        boto3_session (Optional[Session]): An already instantiated boto3 Session.</span>
+<span class="sd">        file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see</span>
+<span class="sd">            [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information</span>
+<span class="sd">            about the options in cloudpathlib.eums.FileCacheMode.</span>
 <span class="sd">        local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache</span>
 <span class="sd">            for downloaded files. If None, will use a temporary directory.</span>
 <span class="sd">        endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.</span>
@@ -1404,7 +1438,11 @@ args that are supported look at the upload and download lists in the
         <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extra_args</span>
     <span class="p">}</span>
 
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span> <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span>
+        <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">,</span>
+        <span class="n">file_cache_mode</span><span class="o">=</span><span class="n">file_cache_mode</span><span class="p">,</span>
+    <span class="p">)</span>
 </code></pre></div>
         </details>
     </div>

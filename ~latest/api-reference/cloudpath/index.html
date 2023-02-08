@@ -534,6 +534,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#cloudpathlib.cloudpath.CloudPath.clear_cache" class="md-nav__link">
+    clear_cache()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#cloudpathlib.cloudpath.CloudPath.copy" class="md-nav__link">
     copy()
   </a>
@@ -1021,6 +1028,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../enums/" class="md-nav__link">
+        cloudpathlib.enums
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../exceptions/" class="md-nav__link">
         cloudpathlib.exceptions
       </a>
@@ -1197,6 +1218,13 @@
           <li class="md-nav__item">
   <a href="#cloudpathlib.cloudpath.CloudPath.as_uri" class="md-nav__link">
     as_uri()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.cloudpath.CloudPath.clear_cache" class="md-nav__link">
+    clear_cache()
   </a>
   
 </li>
@@ -1533,6 +1561,13 @@ storage URI (e.g., <code>"s3://"</code>).</p>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
+        <span class="c1"># ensure file removed from cache when cloudpath object deleted</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;client&quot;</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">file_cache_mode</span> <span class="o">==</span> <span class="n">FileCacheMode</span><span class="o">.</span><span class="n">cloudpath_object</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
+
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
@@ -1793,12 +1828,17 @@ storage URI (e.g., <code>"s3://"</code>).</p>
         <span class="c1"># write modes need special on closing the buffer</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)):</span>
             <span class="c1"># dirty, handle, patch close</span>
-            <span class="n">original_close</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">close</span>
+            <span class="n">wrapped_close</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">close</span>
 
             <span class="c1"># since we are pretending this is a cloud file, upload it to the cloud</span>
             <span class="c1"># when the buffer is closed</span>
-            <span class="k">def</span> <span class="nf">_patched_close</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">original_close</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">def</span> <span class="nf">_patched_close_upload</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">wrapped_close</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+                <span class="c1"># we should be idempotent and not upload again if</span>
+                <span class="c1"># we already ran our close method patch</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span><span class="p">:</span>
+                    <span class="k">return</span>
 
                 <span class="c1"># original mtime should match what was in the cloud; because of system clocks or rounding</span>
                 <span class="c1"># by the cloud provider, the new version in our cache is &quot;older&quot; than the original version;</span>
@@ -1808,14 +1848,30 @@ storage URI (e.g., <code>"s3://"</code>).</p>
                     <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">(</span><span class="n">new_mtime</span><span class="p">,</span> <span class="n">new_mtime</span><span class="p">))</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">_upload_local_to_cloud</span><span class="p">(</span><span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">False</span>
 
-            <span class="n">buffer</span><span class="o">.</span><span class="n">close</span> <span class="o">=</span> <span class="n">_patched_close</span>  <span class="c1"># type: ignore</span>
+            <span class="n">buffer</span><span class="o">.</span><span class="n">close</span> <span class="o">=</span> <span class="n">_patched_close_upload</span>  <span class="c1"># type: ignore</span>
 
             <span class="c1"># keep reference in case we need to close when __del__ is called on this object</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="o">=</span> <span class="n">buffer</span>
 
             <span class="c1"># opened for write, so mark dirty</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># if we don&#39;t want any cache around, remove the cache</span>
+        <span class="c1"># as soon as the file is closed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">file_cache_mode</span> <span class="o">==</span> <span class="n">FileCacheMode</span><span class="o">.</span><span class="n">close_file</span><span class="p">:</span>
+            <span class="c1"># this may be _patched_close_upload, in which case we need to</span>
+            <span class="c1"># make sure to call that first so the file gets uploaded</span>
+            <span class="n">wrapped_close_for_cache</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">close</span>
+
+            <span class="k">def</span> <span class="nf">_patched_close_empty_cache</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="n">wrapped_close_for_cache</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+                <span class="c1"># remove local file as last step on closing</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
+
+            <span class="n">buffer</span><span class="o">.</span><span class="n">close</span> <span class="o">=</span> <span class="n">_patched_close_empty_cache</span>  <span class="c1"># type: ignore</span>
 
         <span class="k">return</span> <span class="n">buffer</span>
 
@@ -1897,6 +1953,14 @@ storage URI (e.g., <code>"s3://"</code>).</p>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;data must be str, not </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">data</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">read_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
     <span class="c1"># ====================== DISPATCHED TO POSIXPATH FOR PURE PATHS ======================</span>
     <span class="c1"># Methods that are dispatched to exactly how pathlib.PurePosixPath would calculate it on</span>
@@ -2049,12 +2113,6 @@ storage URI (e.g., <code>"s3://"</code>).</p>
             <span class="sa">f</span><span class="s2">&quot;calculate stats; this may take a long time depending on filesize&quot;</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;stat&quot;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">read_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;read_bytes&quot;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;read_text&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
 
     <span class="c1"># ===========  public cloud methods, not in pathlib ===============</span>
     <span class="k">def</span> <span class="nf">download_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
@@ -2240,6 +2298,14 @@ storage URI (e.g., <code>"s3://"</code>).</p>
                 <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">destination</span>
+
+    <span class="k">def</span> <span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Removes cache if it exists&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">)</span>
 
     <span class="c1"># ===========  private cloud methods ===============</span>
     <span class="nd">@property</span>
@@ -2731,6 +2797,37 @@ Use resolve() to get the canonical path to a file.
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">as_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 class="doc doc-heading" id="cloudpathlib.cloudpath.CloudPath.clear_cache">
+<code class="highlight language-python"><span class="n">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
+
+
+<a class="headerlink" href="#cloudpathlib.cloudpath.CloudPath.clear_cache" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Removes cache if it exists</p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Removes cache if it exists&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -3302,12 +3399,17 @@ the built-in open() function does.
     <span class="c1"># write modes need special on closing the buffer</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)):</span>
         <span class="c1"># dirty, handle, patch close</span>
-        <span class="n">original_close</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">close</span>
+        <span class="n">wrapped_close</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">close</span>
 
         <span class="c1"># since we are pretending this is a cloud file, upload it to the cloud</span>
         <span class="c1"># when the buffer is closed</span>
-        <span class="k">def</span> <span class="nf">_patched_close</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">original_close</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">_patched_close_upload</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">wrapped_close</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="c1"># we should be idempotent and not upload again if</span>
+            <span class="c1"># we already ran our close method patch</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span><span class="p">:</span>
+                <span class="k">return</span>
 
             <span class="c1"># original mtime should match what was in the cloud; because of system clocks or rounding</span>
             <span class="c1"># by the cloud provider, the new version in our cache is &quot;older&quot; than the original version;</span>
@@ -3317,14 +3419,30 @@ the built-in open() function does.
                 <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">(</span><span class="n">new_mtime</span><span class="p">,</span> <span class="n">new_mtime</span><span class="p">))</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">_upload_local_to_cloud</span><span class="p">(</span><span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="n">force_overwrite_to_cloud</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="n">buffer</span><span class="o">.</span><span class="n">close</span> <span class="o">=</span> <span class="n">_patched_close</span>  <span class="c1"># type: ignore</span>
+        <span class="n">buffer</span><span class="o">.</span><span class="n">close</span> <span class="o">=</span> <span class="n">_patched_close_upload</span>  <span class="c1"># type: ignore</span>
 
         <span class="c1"># keep reference in case we need to close when __del__ is called on this object</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_handle</span> <span class="o">=</span> <span class="n">buffer</span>
 
         <span class="c1"># opened for write, so mark dirty</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dirty</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># if we don&#39;t want any cache around, remove the cache</span>
+    <span class="c1"># as soon as the file is closed</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">file_cache_mode</span> <span class="o">==</span> <span class="n">FileCacheMode</span><span class="o">.</span><span class="n">close_file</span><span class="p">:</span>
+        <span class="c1"># this may be _patched_close_upload, in which case we need to</span>
+        <span class="c1"># make sure to call that first so the file gets uploaded</span>
+        <span class="n">wrapped_close_for_cache</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">close</span>
+
+        <span class="k">def</span> <span class="nf">_patched_close_empty_cache</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">wrapped_close_for_cache</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="c1"># remove local file as last step on closing</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span>
+
+        <span class="n">buffer</span><span class="o">.</span><span class="n">close</span> <span class="o">=</span> <span class="n">_patched_close_empty_cache</span>  <span class="c1"># type: ignore</span>
 
     <span class="k">return</span> <span class="n">buffer</span>
 </code></pre></div>
@@ -3353,7 +3471,8 @@ the built-in open() function does.
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">read_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;read_bytes&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 </code></pre></div>
         </details>
     </div>
@@ -3380,7 +3499,8 @@ the built-in open() function does.
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;read_text&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
+    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 </code></pre></div>
         </details>
     </div>

@@ -711,6 +711,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../api-reference/enums/" class="md-nav__link">
+        cloudpathlib.enums
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../api-reference/exceptions/" class="md-nav__link">
         cloudpathlib.exceptions
       </a>
@@ -1955,9 +1969,9 @@ Licensed under the Apache License, Version 2.0.
                 </div>
             </clipboard-copy>
         </div>
-            <div class="highlight-ipynb hl-python"><pre><span></span><span class="nb">list</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">))</span>
+            <div class="highlight-ipynb hl-python"><pre><span></span><span class="nb">list</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">))</span>
 </pre></div>
-<div id="cell-2" class="clipboard-copy-txt">list(Path(".").glob('*'))</div>
+<div id="cell-2" class="clipboard-copy-txt">list(Path(".").glob("*"))</div>
     
         </div>
     </div>
@@ -2172,11 +2186,13 @@ Read_text:
             <div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># load environment variables from .env file;</span>
 <span class="c1"># not required, just where we keep our creds</span>
 <span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span><span class="p">,</span> <span class="n">find_dotenv</span>
+
 <span class="n">load_dotenv</span><span class="p">(</span><span class="n">find_dotenv</span><span class="p">())</span>
 </pre></div>
 <div id="cell-4" class="clipboard-copy-txt"># load environment variables from .env file;
 # not required, just where we keep our creds
 from dotenv import load_dotenv, find_dotenv
+
 load_dotenv(find_dotenv())</div>
     
         </div>
@@ -3209,7 +3225,7 @@ azp.name</div>
         </div>
             <div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span> <span class="nn">cloudpathlib</span> <span class="kn">import</span> <span class="n">CloudPath</span>
 
-<span class="n">cloud_directory</span>  <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://cloudpathlib-test-bucket/why_cloudpathlib/&quot;</span><span class="p">)</span>
+<span class="n">cloud_directory</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://cloudpathlib-test-bucket/why_cloudpathlib/&quot;</span><span class="p">)</span>
 
 <span class="n">upload</span> <span class="o">=</span> <span class="n">cloud_directory</span> <span class="o">/</span> <span class="s2">&quot;user_upload.txt&quot;</span>
 <span class="n">upload</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">&quot;A user made this file!&quot;</span><span class="p">)</span>
@@ -3220,7 +3236,7 @@ azp.name</div>
 </pre></div>
 <div id="cell-22" class="clipboard-copy-txt">from cloudpathlib import CloudPath
 
-cloud_directory  = CloudPath("s3://cloudpathlib-test-bucket/why_cloudpathlib/")
+cloud_directory = CloudPath("s3://cloudpathlib-test-bucket/why_cloudpathlib/")
 
 upload = cloud_directory / "user_upload.txt"
 upload.write_text("A user made this file!")

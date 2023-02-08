@@ -702,6 +702,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../enums/" class="md-nav__link">
+        cloudpathlib.enums
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../exceptions/" class="md-nav__link">
         cloudpathlib.exceptions
       </a>
@@ -843,6 +857,7 @@ options.</p>
         <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Credentials&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">project</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">storage_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;StorageClient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FileCacheMode</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">,</span>
     <span class="p">):</span>
@@ -874,6 +889,9 @@ options.</p>
 <span class="sd">                https://googleapis.dev/python/storage/latest/client.html).</span>
 <span class="sd">            storage_client (Optional[StorageClient]): Instantiated [`StorageClient`](</span>
 <span class="sd">                https://googleapis.dev/python/storage/latest/client.html).</span>
+<span class="sd">            file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see</span>
+<span class="sd">                [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information</span>
+<span class="sd">                about the options in cloudpathlib.eums.FileCacheMode.</span>
 <span class="sd">            local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache</span>
 <span class="sd">                for downloaded files. If None, will use a temporary directory.</span>
 <span class="sd">            content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when</span>
@@ -894,7 +912,11 @@ options.</p>
             <span class="k">except</span> <span class="n">DefaultCredentialsError</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">StorageClient</span><span class="o">.</span><span class="n">create_anonymous_client</span><span class="p">()</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span> <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span>
+            <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">,</span>
+            <span class="n">file_cache_mode</span><span class="o">=</span><span class="n">file_cache_mode</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
@@ -1096,7 +1118,7 @@ options.</p>
 
 
 <h3 class="doc doc-heading" id="cloudpathlib.gs.gsclient.GSClient.__init__">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application_credentials</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Credentials</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">storage_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">StorageClient</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7ff86dcfa200</span><span class="o">&gt;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application_credentials</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Credentials</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">storage_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">StorageClient</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">cloudpathlib</span><span class="o">.</span><span class="n">enums</span><span class="o">.</span><span class="n">FileCacheMode</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7fdd37e5a0e0</span><span class="o">&gt;</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -1162,6 +1184,14 @@ documentation for <a href="https://googleapis.dev/python/storage/latest/client.h
         <td><code>None</code></td>
       </tr>
       <tr>
+        <td><code>file_cache_mode</code></td>
+        <td><code>Optional[Union[str, FileCacheMode]]</code></td>
+        <td><p>How often to clear the file cache; see
+<a href="https://cloudpathlib.drivendata.org/stable/caching/">the caching docs</a> for more information
+about the options in cloudpathlib.eums.FileCacheMode.</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
         <td><code>local_cache_dir</code></td>
         <td><code>Optional[Union[str, os.PathLike]]</code></td>
         <td><p>Path to directory to use as cache
@@ -1173,7 +1203,7 @@ for downloaded files. If None, will use a temporary directory.</p></td>
         <td><code>Optional[Callable]</code></td>
         <td><p>Function to call to guess media type (mimetype) when
 writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must return a tuple (content type, content encoding).</p></td>
-        <td><code>&lt;function guess_type at 0x7ff86dcfa200&gt;</code></td>
+        <td><code>&lt;function guess_type at 0x7fdd37e5a0e0&gt;</code></td>
       </tr>
   </tbody>
 </table>
@@ -1185,6 +1215,7 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
     <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Credentials&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">project</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">storage_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;StorageClient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FileCacheMode</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">,</span>
 <span class="p">):</span>
@@ -1216,6 +1247,9 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
 <span class="sd">            https://googleapis.dev/python/storage/latest/client.html).</span>
 <span class="sd">        storage_client (Optional[StorageClient]): Instantiated [`StorageClient`](</span>
 <span class="sd">            https://googleapis.dev/python/storage/latest/client.html).</span>
+<span class="sd">        file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see</span>
+<span class="sd">            [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information</span>
+<span class="sd">            about the options in cloudpathlib.eums.FileCacheMode.</span>
 <span class="sd">        local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache</span>
 <span class="sd">            for downloaded files. If None, will use a temporary directory.</span>
 <span class="sd">        content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when</span>
@@ -1236,7 +1270,11 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
         <span class="k">except</span> <span class="n">DefaultCredentialsError</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">StorageClient</span><span class="o">.</span><span class="n">create_anonymous_client</span><span class="p">()</span>
 
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span> <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span>
+        <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">,</span>
+        <span class="n">file_cache_mode</span><span class="o">=</span><span class="n">file_cache_mode</span><span class="p">,</span>
+    <span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
