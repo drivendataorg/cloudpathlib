@@ -38,6 +38,7 @@ nav:
           - GSPath: "api-reference/gspath.md"
       - Submodules:
           - cloudpathlib.client: "api-reference/client.md"
+          - cloudpathlib.enums: "api-reference/enums.md"
           - cloudpathlib.exceptions: "api-reference/exceptions.md"
           - cloudpathlib.local: "api-reference/local.md"
 

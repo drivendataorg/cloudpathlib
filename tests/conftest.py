@@ -1,6 +1,7 @@
 import os
 from pathlib import Path, PurePosixPath
 import shutil
+from typing import Dict, Optional
 
 from azure.storage.blob import BlobServiceClient
 import boto3
@@ -61,6 +62,7 @@ class CloudProviderTestRig:
         drive: str = "drive",
         test_dir: str = "",
         live_server: bool = False,
+        required_client_kwargs: Optional[Dict] = None,
     ):
         """
         Args:
@@ -72,17 +74,28 @@ class CloudProviderTestRig:
         self.drive = drive
         self.test_dir = test_dir
         self.live_server = live_server  # if the server is a live server
+        self.required_client_kwargs = (
+            required_client_kwargs if required_client_kwargs is not None else {}
+        )
 
     @property
     def cloud_prefix(self):
         return self.path_class.cloud_prefix
 
-    def create_cloud_path(self, path: str):
+    def create_cloud_path(self, path: str, client=None):
         """CloudPath constructor that appends cloud prefix. Use this to instantiate
-        cloud path instances with generic paths. Includes drive and root test_dir already."""
-        return self.path_class(
-            cloud_path=f"{self.path_class.cloud_prefix}{self.drive}/{self.test_dir}/{path}"
-        )
+        cloud path instances with generic paths. Includes drive and root test_dir already.
+
+        If `client`, use that client to create the path.
+        """
+        if client:
+            return client.CloudPath(
+                cloud_path=f"{self.path_class.cloud_prefix}{self.drive}/{self.test_dir}/{path}"
+            )
+        else:
+            return self.path_class(
+                cloud_path=f"{self.path_class.cloud_prefix}{self.drive}/{self.test_dir}/{path}"
+            )
 
 
 def create_test_dir_name(request) -> str:
@@ -291,6 +304,7 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
+        required_client_kwargs=dict(endpoint_url=custom_endpoint_url),
     )
 
     rig.client_class(

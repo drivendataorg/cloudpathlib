@@ -341,6 +341,40 @@ def test_file_read_writes(rig, tmp_path):
     assert cloud_rel_paths == dled_rel_paths
 
 
+def test_dispatch_to_local_cache(rig):
+    p = rig.create_cloud_path("dir_0/file0_1.txt")
+    stat = p._dispatch_to_local_cache_path("stat")
+    assert stat
+
+
+def test_close_file_idempotent(rig):
+    p = rig.create_cloud_path("dir_0/file0_1.txt")
+
+    assert p.read_text() != "hello!"
+
+    f = p.open("w")
+    f.write("hello!")
+    f.close()
+    first_modified = p.stat().st_mtime
+
+    # remove cache so we can be sure it can't be re-uploaded
+    p._local.unlink()
+
+    # would raise trying to upload missing cache if we weren't idempotent
+    f.close()
+
+    # re-open and ensure things work
+    sleep(1)
+    f = p.open("w")
+    f.write("hello again!")
+    f.close()
+
+    # remove cache so we are sure stat is coming from the server
+    p._local.unlink()
+
+    assert p.stat().st_mtime > first_modified
+
+
 def test_cloud_path_download_to(rig, tmp_path):
     p = rig.create_cloud_path("dir_0/file0_0.txt")
     dl_dir = tmp_path

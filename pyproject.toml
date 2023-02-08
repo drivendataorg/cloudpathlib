@@ -1,11 +1,12 @@
 [tool.black]
 line-length = 99
-target-version = ['py36', 'py37', 'py38']
-include = '\.pyi?$'
-exclude = '''
+target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$|\.ipynb$'
+extend-exclude = '''
 /(
     \.git
   | \.venv
+  | \.ipynb_checkpoints
+  | docs/docs/script
 )/
-| cloudpathlib/_vendored.py
 '''

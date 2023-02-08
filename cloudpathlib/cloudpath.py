@@ -12,6 +12,7 @@ from pathlib import (  # type: ignore
     _posix_flavour,
     _PathParents,
 )
+import shutil
 from typing import (
     overload,
     Any,
@@ -32,6 +33,8 @@ from typing import (
 )
 from urllib.parse import urlparse
 from warnings import warn
+
+from cloudpathlib.enums import FileCacheMode
 
 from . import anypath
 
@@ -208,6 +211,13 @@ class CloudPath(metaclass=CloudPathMeta):
         # make sure that file handle to local path is closed
         if self._handle is not None:
             self._handle.close()
+
+        # ensure file removed from cache when cloudpath object deleted
+        if (
+            hasattr(self, "client")
+            and self.client.file_cache_mode == FileCacheMode.cloudpath_object
+        ):
+            self.clear_cache()
 
     def __getstate__(self) -> Dict[str, Any]:
         state = self.__dict__.copy()
@@ -469,12 +479,17 @@ class CloudPath(metaclass=CloudPathMeta):
         # write modes need special on closing the buffer
         if any(m in mode for m in ("w", "+", "x", "a")):
             # dirty, handle, patch close
-            original_close = buffer.close
+            wrapped_close = buffer.close
 
             # since we are pretending this is a cloud file, upload it to the cloud
             # when the buffer is closed
-            def _patched_close(*args, **kwargs) -> None:
-                original_close(*args, **kwargs)
+            def _patched_close_upload(*args, **kwargs) -> None:
+                wrapped_close(*args, **kwargs)
+
+                # we should be idempotent and not upload again if
+                # we already ran our close method patch
+                if not self._dirty:
+                    return
 
                 # original mtime should match what was in the cloud; because of system clocks or rounding
                 # by the cloud provider, the new version in our cache is "older" than the original version;
@@ -484,14 +499,30 @@ class CloudPath(metaclass=CloudPathMeta):
                     os.utime(self._local, times=(new_mtime, new_mtime))
 
                 self._upload_local_to_cloud(force_overwrite_to_cloud=force_overwrite_to_cloud)
+                self._dirty = False
 
-            buffer.close = _patched_close  # type: ignore
+            buffer.close = _patched_close_upload  # type: ignore
 
             # keep reference in case we need to close when __del__ is called on this object
             self._handle = buffer
 
             # opened for write, so mark dirty
             self._dirty = True
+
+        # if we don't want any cache around, remove the cache
+        # as soon as the file is closed
+        if self.client.file_cache_mode == FileCacheMode.close_file:
+            # this may be _patched_close_upload, in which case we need to
+            # make sure to call that first so the file gets uploaded
+            wrapped_close_for_cache = buffer.close
+
+            def _patched_close_empty_cache(*args, **kwargs):
+                wrapped_close_for_cache(*args, **kwargs)
+
+                # remove local file as last step on closing
+                self.clear_cache()
+
+            buffer.close = _patched_close_empty_cache  # type: ignore
 
         return buffer
 
@@ -573,6 +604,14 @@ class CloudPath(metaclass=CloudPathMeta):
             raise TypeError("data must be str, not %s" % data.__class__.__name__)
         with self.open(mode="w", encoding=encoding, errors=errors) as f:
             return f.write(data)
+
+    def read_bytes(self) -> bytes:
+        with self.open(mode="rb") as f:
+            return f.read()
+
+    def read_text(self, encoding: Optional[str] = None, errors: Optional[str] = None) -> str:
+        with self.open(mode="r", encoding=encoding, errors=errors) as f:
+            return f.read()
 
     # ====================== DISPATCHED TO POSIXPATH FOR PURE PATHS ======================
     # Methods that are dispatched to exactly how pathlib.PurePosixPath would calculate it on
@@ -725,12 +764,6 @@ class CloudPath(metaclass=CloudPathMeta):
             f"calculate stats; this may take a long time depending on filesize"
         )
         return self._dispatch_to_local_cache_path("stat")
-
-    def read_bytes(self) -> bytes:
-        return self._dispatch_to_local_cache_path("read_bytes")
-
-    def read_text(self, encoding: Optional[str] = None, errors: Optional[str] = None) -> str:
-        return self._dispatch_to_local_cache_path("read_text", encoding, errors)
 
     # ===========  public cloud methods, not in pathlib ===============
     def download_to(self, destination: Union[str, os.PathLike]) -> Path:
@@ -916,6 +949,14 @@ class CloudPath(metaclass=CloudPathMeta):
                 )
 
         return destination
+
+    def clear_cache(self):
+        """Removes cache if it exists"""
+        if self._local.exists():
+            if self._local.is_file():
+                self._local.unlink()
+            else:
+                shutil.rmtree(self._local)
 
     # ===========  private cloud methods ===============
     @property
