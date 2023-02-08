@@ -340,6 +340,6 @@ tmp_dir_client = S3Client()
 # 
 #  - Automatic cache clearing works in most contexts, but there can be cases where execution of a program is halted before `cloudpathlib`'s cache clearing code is able to run. It is a good practice to monitor your cache folders and, if using temporary directories, trigger your operating system's temp directory clean up (which is OS-dependent, but restarting is usually sufficient).
 # 
-#  - Using `with CloudPath.open()` as a context manager to open files for read or write is the best way to ensure that automatic cache clearing happens consistently. The `"close_file"` cache clearning mode will not work as expected if you use another method to open files (e.g., calling the Python built-in `open`, using `CloudPath.fspath`, or where another library handles the opening/closing of the file).
+#  - Using `with CloudPath.open()` as a context manager to open files for read or write is the best way to ensure that automatic cache clearing happens consistently. The `"close_file"` cache clearing mode will not work as expected if you use another method to open files (e.g., calling the Python built-in `open`, using `CloudPath.fspath`, or where another library handles the opening/closing of the file).
 # 
 #  - The `download_to` and `upload_from` methods do not cache the file, since we assume if you are downloading or uploading you explicitly want the file to be in a particular location or know where it is already.
