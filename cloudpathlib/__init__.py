@@ -5,7 +5,7 @@ from .anypath import AnyPath
 from .azure.azblobclient import AzureBlobClient
 from .azure.azblobpath import AzureBlobPath
 from .cloudpath import CloudPath, implementation_registry
-from .patches import patch_open
+from .patches import patch_open, patch_os_functions
 from .gs.gsclient import GSClient
 from .gs.gspath import GSPath
 from .http.httpclient import HttpClient, HttpsClient
@@ -36,6 +36,7 @@ __all__ = [
     "HttpPath",
     "HttpsPath",
     "patch_open"
+    "patch_os_functions",
     "S3Client",
     "S3Path",
 ]
