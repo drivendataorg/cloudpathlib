@@ -113,17 +113,19 @@ class MockBucket:
         else:
             return None
 
-    def list_blobs(self, max_results=None, prefix=None):
+    def list_blobs(self, max_results=None, prefix=None, delimiter=None):
         path = self.name if prefix is None else self.name / prefix
-        items = [
-            MockBlob(self.name, f.relative_to(self.name), client=self.client)
-            for f in path.glob("**/*")
-            if f.is_file() and not f.name.startswith(".")
-        ]
+        files = [f for f in path.glob("**/*") if f.is_file() and not f.name.startswith(".")]
+        sub_directories = [str(f.relative_to(self.name)) for f in path.glob("*") if f.is_dir()]
 
+        # filter blobs by delimiter
+        if delimiter == "/":
+            files = [file for file in files if len(file.relative_to(path).parents) == 1]
+
+        blobs = [MockBlob(self.name, f.relative_to(self.name), client=self.client) for f in files]
         # bucket name for passing tests
         if self.bucket_name == DEFAULT_GS_BUCKET_NAME:
-            return iter(MockHTTPIterator(items, max_results))
+            return MockHTTPIterator(blobs, sub_directories, max_results)
         else:
             raise NotFound(
                 f"Bucket {self.name} not expected as mock bucket; only '{DEFAULT_GS_BUCKET_NAME}' exists."
@@ -131,12 +133,29 @@ class MockBucket:
 
 
 class MockHTTPIterator:
-    def __init__(self, items, max_results):
-        self.items = items
+    def __init__(self, blobs, sub_directories, max_results):
+        self.blobs = blobs
         self.max_results = max_results
+        self.sub_directories = sub_directories
+        self.n = 0
+
+    def __next__(self):
+        if self.n == len(self.blobs) or (
+            self.max_results is not None and self.n == self.max_results
+        ):
+            raise StopIteration
+
+        if self.max_results is None:
+            blob = self.blobs[self.n]
+        else:
+            blob = self.blobs[: self.max_results][self.n]
+
+        self.n += 1
+        return blob
 
     def __iter__(self):
-        if self.max_results is None:
-            return iter(self.items)
-        else:
-            return iter(self.items[: self.max_results])
+        return self
+
+    @property
+    def prefixes(self):
+        return self.sub_directories

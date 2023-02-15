@@ -173,31 +173,31 @@ class GSClient(Client):
         prefix = cloud_path.blob
         if prefix and not prefix.endswith("/"):
             prefix += "/"
-
-        yielded_dirs = set()
-
-        # NOTE: Not recursive may be slower than necessary since it just filters
-        #   the recursive implementation
-        for o in bucket.list_blobs(prefix=prefix):
-            # get directory from this path
-            for parent in PurePosixPath(o.name[len(prefix) :]).parents:
-                # if we haven't surfaced thei directory already
-                if parent not in yielded_dirs and str(parent) != ".":
-                    # skip if not recursive and this is beyond our depth
-                    if not recursive and "/" in str(parent):
-                        continue
-
-                    yield (
-                        self.CloudPath(f"gs://{cloud_path.bucket}/{prefix}{parent}"),
-                        True,  # is a directory
-                    )
-                    yielded_dirs.add(parent)
-
-            # skip file if not recursive and this is beyond our depth
-            if not recursive and "/" in o.name[len(prefix) :]:
-                continue
-
-            yield (self.CloudPath(f"gs://{cloud_path.bucket}/{o.name}"), False)  # is a file
+        if recursive:
+            yielded_dirs = set()
+            for o in bucket.list_blobs(prefix=prefix):
+                # get directory from this path
+                for parent in PurePosixPath(o.name[len(prefix) :]).parents:
+                    # if we haven't surfaced their directory already
+                    if parent not in yielded_dirs and str(parent) != ".":
+                        yield (
+                            self.CloudPath(f"gs://{cloud_path.bucket}/{prefix}{parent}"),
+                            True,  # is a directory
+                        )
+                        yielded_dirs.add(parent)
+                yield (self.CloudPath(f"gs://{cloud_path.bucket}/{o.name}"), False)  # is a file
+        else:
+            iterator = bucket.list_blobs(delimiter="/", prefix=prefix)
+            for file in iterator:
+                yield (
+                    self.CloudPath(f"gs://{cloud_path.bucket}/{file.name}"),
+                    False,  # is a file
+                )
+            for directory in iterator.prefixes:
+                yield (
+                    self.CloudPath(f"gs://{cloud_path.bucket}/{directory}"),
+                    True,  # is a directory
+                )
 
     def _move_file(self, src: GSPath, dst: GSPath, remove_src: bool = True) -> GSPath:
         # just a touch, so "REPLACE" metadata
