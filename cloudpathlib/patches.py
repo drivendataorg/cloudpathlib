@@ -32,6 +32,7 @@ def patch_open():
         CloudPath.open,
     )
     builtins.open = patched
+    CloudPath.__fspath__ = lambda x: x  # turn off `fspath`
     return patched
 
 
