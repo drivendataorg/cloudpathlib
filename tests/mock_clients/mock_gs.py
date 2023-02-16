@@ -115,17 +115,20 @@ class MockBucket:
 
     def list_blobs(self, max_results=None, prefix=None, delimiter=None):
         path = self.name if prefix is None else self.name / prefix
-        files = [f for f in path.glob("**/*") if f.is_file() and not f.name.startswith(".")]
-        sub_directories = [str(f.relative_to(self.name)) for f in path.glob("*") if f.is_dir()]
+        pattern = "**/*" if delimiter is None else "*"
+        blobs, prefixes = [], []
+        for item in path.glob(pattern):
+            if not item.name.startswith("."):
+                if item.is_file():
+                    blobs.append(
+                        MockBlob(self.name, item.relative_to(self.name), client=self.client)
+                    )
+                else:
+                    prefixes.append(str(item.relative_to(self.name).as_posix()))
 
-        # filter blobs by delimiter
-        if delimiter == "/":
-            files = [file for file in files if len(file.relative_to(path).parents) == 1]
-
-        blobs = [MockBlob(self.name, f.relative_to(self.name), client=self.client) for f in files]
         # bucket name for passing tests
         if self.bucket_name == DEFAULT_GS_BUCKET_NAME:
-            return MockHTTPIterator(blobs, sub_directories, max_results)
+            return MockHTTPIterator(blobs, prefixes, max_results)
         else:
             raise NotFound(
                 f"Bucket {self.name} not expected as mock bucket; only '{DEFAULT_GS_BUCKET_NAME}' exists."
@@ -135,26 +138,17 @@ class MockBucket:
 class MockHTTPIterator:
     def __init__(self, blobs, sub_directories, max_results):
         self.blobs = blobs
-        self.max_results = max_results
         self.sub_directories = sub_directories
-        self.n = 0
-
-    def __next__(self):
-        if self.n == len(self.blobs) or (
-            self.max_results is not None and self.n == self.max_results
-        ):
-            raise StopIteration
-
-        if self.max_results is None:
-            blob = self.blobs[self.n]
-        else:
-            blob = self.blobs[: self.max_results][self.n]
-
-        self.n += 1
-        return blob
+        self.max_results = max_results
 
     def __iter__(self):
-        return self
+        if self.max_results is None:
+            return iter(self.blobs)
+        else:
+            return iter(self.blobs[: self.max_results])
+
+    def __next__(self):
+        yield from iter(self)
 
     @property
     def prefixes(self):

@@ -178,7 +178,7 @@ class GSClient(Client):
             for o in bucket.list_blobs(prefix=prefix):
                 # get directory from this path
                 for parent in PurePosixPath(o.name[len(prefix) :]).parents:
-                    # if we haven't surfaced their directory already
+                    # if we haven't surfaced this directory already
                     if parent not in yielded_dirs and str(parent) != ".":
                         yield (
                             self.CloudPath(f"gs://{cloud_path.bucket}/{prefix}{parent}"),
@@ -188,15 +188,15 @@ class GSClient(Client):
                 yield (self.CloudPath(f"gs://{cloud_path.bucket}/{o.name}"), False)  # is a file
         else:
             iterator = bucket.list_blobs(delimiter="/", prefix=prefix)
-            for file in iterator:
-                yield (
-                    self.CloudPath(f"gs://{cloud_path.bucket}/{file.name}"),
-                    False,  # is a file
-                )
             for directory in iterator.prefixes:
                 yield (
                     self.CloudPath(f"gs://{cloud_path.bucket}/{directory}"),
                     True,  # is a directory
+                )
+            for file in iterator:
+                yield (
+                    self.CloudPath(f"gs://{cloud_path.bucket}/{file.name}"),
+                    False,  # is a file
                 )
 
     def _move_file(self, src: GSPath, dst: GSPath, remove_src: bool = True) -> GSPath:
