@@ -1,8 +1,10 @@
 # cloudpathlib Changelog
 
-## v0.13.0 (UNRLEASED)
+## v0.13.0 (2023-02-15)
 
  - Implement `file_cache_mode`s to give users finer-grained control over when and how the cache is cleared. ([Issue #10](https://github.com/drivendataorg/cloudpathlib/issues/10), [PR #314](https://github.com/drivendataorg/cloudpathlib/pull/314))
+ - Speed up listing directories for Google Cloud Storage. ([PR #318](https://github.com/drivendataorg/cloudpathlib/pull/318))
+ - Add compatibility for Python 3.11 ([PR #317](https://github.com/drivendataorg/cloudpathlib/pull/317))
 
 ## v0.12.1 (2023-01-04)
 

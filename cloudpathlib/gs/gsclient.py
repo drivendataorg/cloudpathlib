@@ -189,7 +189,7 @@ class GSClient(Client):
         else:
             iterator = bucket.list_blobs(delimiter="/", prefix=prefix)
 
-            # files must be iterated first for `.prefixes` to be populated exist:
+            # files must be iterated first for `.prefixes` to be populated:
             #   see: https://github.com/googleapis/python-storage/issues/863
             for file in iterator:
                 yield (
