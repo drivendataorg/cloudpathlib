@@ -41,8 +41,8 @@ def _configure(
         logger.info("Bucket not set explicitly, loading from environment variable.")
         bucket = {
             "s3": os.environ.get("LIVE_S3_BUCKET"),
-            "gs": os.environ.get("LIVE_AZURE_CONTAINER"),
-            "azure": os.environ.get("LIVE_GS_BUCKET"),
+            "gs": os.environ.get("LIVE_GS_BUCKET"),
+            "azure": os.environ.get("LIVE_AZURE_CONTAINER"),
         }.get(backend.value)
 
     logger.info(f"Bucket: {bucket}")

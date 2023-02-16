@@ -113,17 +113,22 @@ class MockBucket:
         else:
             return None
 
-    def list_blobs(self, max_results=None, prefix=None):
+    def list_blobs(self, max_results=None, prefix=None, delimiter=None):
         path = self.name if prefix is None else self.name / prefix
-        items = [
-            MockBlob(self.name, f.relative_to(self.name), client=self.client)
-            for f in path.glob("**/*")
-            if f.is_file() and not f.name.startswith(".")
-        ]
+        pattern = "**/*" if delimiter is None else "*"
+        blobs, prefixes = [], []
+        for item in path.glob(pattern):
+            if not item.name.startswith("."):
+                if item.is_file():
+                    blobs.append(
+                        MockBlob(self.name, item.relative_to(self.name), client=self.client)
+                    )
+                else:
+                    prefixes.append(str(item.relative_to(self.name).as_posix()))
 
         # bucket name for passing tests
         if self.bucket_name == DEFAULT_GS_BUCKET_NAME:
-            return iter(MockHTTPIterator(items, max_results))
+            return MockHTTPIterator(blobs, prefixes, max_results)
         else:
             raise NotFound(
                 f"Bucket {self.name} not expected as mock bucket; only '{DEFAULT_GS_BUCKET_NAME}' exists."
@@ -131,12 +136,20 @@ class MockBucket:
 
 
 class MockHTTPIterator:
-    def __init__(self, items, max_results):
-        self.items = items
+    def __init__(self, blobs, sub_directories, max_results):
+        self.blobs = blobs
+        self.sub_directories = sub_directories
         self.max_results = max_results
 
     def __iter__(self):
         if self.max_results is None:
-            return iter(self.items)
+            return iter(self.blobs)
         else:
-            return iter(self.items[: self.max_results])
+            return iter(self.blobs[: self.max_results])
+
+    def __next__(self):
+        yield from iter(self)
+
+    @property
+    def prefixes(self):
+        return self.sub_directories
