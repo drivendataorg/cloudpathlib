@@ -185,13 +185,6 @@ jobs:
     if: failure() && github.event.pull_request == null
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: JasonEtco/create-an-issue@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WORKFLOW_NAME: ${{ github.workflow }}
-          RUN_NUMBER: ${{ github.run_number}}
-          REPOSITORY: ${{ github.repository }}
-          RUN_ID: ${{ github.run_id }}
+      - uses: jayqi/failed-build-issue-action@v1
         with:
-          filename: .github/failed_build_issue_template.md
+          github-token: ${{ secrets.GITHUB_TOKEN }}
