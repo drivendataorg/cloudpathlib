@@ -34,6 +34,7 @@ dependencies = ["importlib_metadata ; python_version < '3.8'"]
 azure = ["azure-storage-blob>=12"]
 gs = ["google-cloud-storage"]
 s3 = ["boto3"]
+all = ["cloudpathlib[azure]", "cloudpathlib[gs]", "cloudpathlib[s3]"]
 
 
 [project.urls]
