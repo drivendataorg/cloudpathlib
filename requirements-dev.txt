@@ -1,6 +1,7 @@
 -e .[all]
 
 black[jupyter]
+build
 flake8
 ipytest
 ipython
