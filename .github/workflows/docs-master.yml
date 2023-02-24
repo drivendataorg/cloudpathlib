@@ -50,7 +50,7 @@ jobs:
           ref: gh-pages
 
       - name: Deploy docs to Netlify
-        uses: nwtgck/actions-netlify@v1.1
+        uses: nwtgck/actions-netlify@v2.0.0
         with:
           publish-dir: "./"
           production-deploy: true

@@ -30,7 +30,7 @@ jobs:
           make docs
 
       - name: Deploy site preview to Netlify
-        uses: nwtgck/actions-netlify@v1.1
+        uses: nwtgck/actions-netlify@v2.0.0
         with:
           publish-dir: "./docs/site"
           production-deploy: false
