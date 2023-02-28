@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## v0.14.0 (Unreleased)
+
+- Changed to pyproject.toml-based build.
+
 ## v0.13.0 (2023-02-15)
 
  - Implement `file_cache_mode`s to give users finer-grained control over when and how the cache is cleared. ([Issue #10](https://github.com/drivendataorg/cloudpathlib/issues/10), [PR #314](https://github.com/drivendataorg/cloudpathlib/pull/314))
