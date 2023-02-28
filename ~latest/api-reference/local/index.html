@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://cloudpathlib.drivendata.org/~latest/api-reference/local/">
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.2.4, mkdocs-material-8.2.7">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-8.5.10">
     
     
       
@@ -21,12 +21,14 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.9d5733d3.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.975780f9.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.e6a45f82.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
         
       
+      
+
     
     
     
@@ -45,10 +47,11 @@
     
       <link rel="stylesheet" href="../../stylesheets/custom_mkdocstrings.css">
     
-    <script>__md_scope=new URL("../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
+    
     
     
   </head>
@@ -59,7 +62,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="None" data-md-color-accent="None">
   
     
     
@@ -79,9 +82,7 @@
     </div>
     
       <div data-md-component="outdated" hidden>
-        <aside class="md-banner md-banner--warning">
-          
-        </aside>
+        
       </div>
     
     
@@ -95,7 +96,7 @@
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
     </label>
     <div class="md-header__title" data-md-component="header-title">
       <div class="md-header__ellipsis">
@@ -117,7 +118,7 @@
     
     
       <label class="md-header__button md-icon" for="__search">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
       </label>
       <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
@@ -125,13 +126,13 @@
     <form class="md-search__form" name="search">
       <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
       </label>
       <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
         </button>
       </nav>
       
@@ -151,10 +152,10 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/drivendataorg/cloudpathlib" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
   </div>
   <div class="md-source__repository">
     GitHub
@@ -195,10 +196,10 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/drivendataorg/cloudpathlib/" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/drivendataorg/cloudpathlib" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
   </div>
   <div class="md-source__repository">
     GitHub
@@ -412,7 +413,7 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_10_3" data-md-state="indeterminate" type="checkbox" id="__nav_10_3" checked>
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_10_3" type="checkbox" id="__nav_10_3" checked>
       
       
       
@@ -473,7 +474,7 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_10_4" data-md-state="indeterminate" type="checkbox" id="__nav_10_4" checked>
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_10_4" type="checkbox" id="__nav_10_4" checked>
       
       
       
@@ -534,7 +535,7 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_10_5" data-md-state="indeterminate" type="checkbox" id="__nav_10_5" checked>
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_10_5" type="checkbox" id="__nav_10_5" checked>
       
       
       
@@ -971,14 +972,16 @@
               </div>
             
           
-          <div class="md-content" data-md-component="content">
-            <article class="md-content__inner md-typeset">
-              
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
                 
-<a href="https://github.com/drivendataorg/cloudpathlib/edit/master/docs/api-reference/local.md" title="Edit this page" class="md-content__button md-icon">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
-</a>
+                  
 
+  <a href="https://github.com/drivendataorg/cloudpathlib/edit/master/docs/api-reference/local.md" title="Edit this page" class="md-content__button md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
 
 
 <h1 id="cloudpathliblocal">cloudpathlib.local<a class="headerlink" href="#cloudpathliblocal" title="Permanent link">&para;</a></h1>
@@ -1007,11 +1010,11 @@ examples.</p>
 
 
 
-<h3 class="doc doc-heading" id="cloudpathlib.cloudpath.local_azure_blob_implementation">
+<h3 id="cloudpathlib.cloudpath.local_azure_blob_implementation" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">local_azure_blob_implementation</span><span class="p">:</span> <span class="kc">None</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.cloudpath.local_azure_blob_implementation" title="Permanent link">&para;</a></h3>
+<a href="#cloudpathlib.cloudpath.local_azure_blob_implementation" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents first">
 
@@ -1025,11 +1028,11 @@ examples.</p>
 
 
 
-<h3 class="doc doc-heading" id="cloudpathlib.cloudpath.local_gs_implementation">
+<h3 id="cloudpathlib.cloudpath.local_gs_implementation" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">local_gs_implementation</span><span class="p">:</span> <span class="kc">None</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.cloudpath.local_gs_implementation" title="Permanent link">&para;</a></h3>
+<a href="#cloudpathlib.cloudpath.local_gs_implementation" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents first">
 
@@ -1043,11 +1046,11 @@ examples.</p>
 
 
 
-<h3 class="doc doc-heading" id="cloudpathlib.cloudpath.local_s3_implementation">
+<h3 id="cloudpathlib.cloudpath.local_s3_implementation" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">local_s3_implementation</span><span class="p">:</span> <span class="kc">None</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.cloudpath.local_s3_implementation" title="Permanent link">&para;</a></h3>
+<a href="#cloudpathlib.cloudpath.local_s3_implementation" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents first">
 
@@ -1062,14 +1065,14 @@ examples.</p>
 
 
 
-<h3 class="doc doc-heading" id="cloudpathlib.local.implementations.azure.LocalAzureBlobClient">
+<h3 id="cloudpathlib.local.implementations.azure.LocalAzureBlobClient" class="doc doc-heading">
         <code>
 LocalAzureBlobClient            (<a class="autorefs autorefs-internal" title="cloudpathlib.local.localclient.LocalClient" href="#cloudpathlib.local.localclient.LocalClient">LocalClient</a>)
         </code>
 
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobClient" title="Permanent link">&para;</a></h3>
+<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobClient" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents first">
 
@@ -1118,11 +1121,11 @@ substitute when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.azure.LocalAzureBlobClient.AzureBlobPath">
+<h5 id="cloudpathlib.local.implementations.azure.LocalAzureBlobClient.AzureBlobPath" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">AzureBlobPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">~</span><span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="o">~</span><span class="n">BoundedCloudPath</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobClient.AzureBlobPath" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobClient.AzureBlobPath" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1143,14 +1146,14 @@ substitute when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.azure.LocalAzureBlobClient.__init__">
+<h5 id="cloudpathlib.local.implementations.azure.LocalAzureBlobClient.__init__" class="doc doc-heading">
 <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobClient.__init__" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobClient.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1193,14 +1196,14 @@ substitute when writing tests.</p>
 
 
 
-<h3 class="doc doc-heading" id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath">
+<h3 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath" class="doc doc-heading">
         <code>
 LocalAzureBlobPath            (<a class="autorefs autorefs-internal" title="cloudpathlib.local.localpath.LocalPath" href="#cloudpathlib.local.localpath.LocalPath">LocalPath</a>)
         </code>
 
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath" title="Permanent link">&para;</a></h3>
+<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents first">
 
@@ -1215,13 +1218,13 @@ substitute when writing tests.</p>
 
 
 
-<h4 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath-attributes">Attributes<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath-attributes" title="Permanent link">&para;</a></h4>
+<h4 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath-attributes">Attributes<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath-attributes" class="headerlink" title="Permanent link">&para;</a></h4>
 
   <div class="doc doc-object doc-attribute">
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.blob">
+<h5 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.blob" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">blob</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
@@ -1229,7 +1232,7 @@ substitute when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.blob" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.blob" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1243,11 +1246,11 @@ substitute when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.cloud_prefix">
+<h5 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.cloud_prefix" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">cloud_prefix</span><span class="p">:</span> <span class="nb">str</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.cloud_prefix" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.cloud_prefix" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1261,7 +1264,7 @@ substitute when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.container">
+<h5 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.container" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">container</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
@@ -1269,7 +1272,7 @@ substitute when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.container" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.container" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1283,7 +1286,7 @@ substitute when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.drive">
+<h5 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.drive" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">drive</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
@@ -1291,7 +1294,7 @@ substitute when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.drive" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.drive" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1306,7 +1309,7 @@ substitute when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.etag">
+<h5 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.etag" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">etag</span></code>
 
   <span class="doc doc-properties">
@@ -1314,7 +1317,7 @@ substitute when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.etag" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.etag" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1328,7 +1331,7 @@ substitute when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.md5">
+<h5 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.md5" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">md5</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
@@ -1336,7 +1339,7 @@ substitute when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.md5" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.md5" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1347,17 +1350,17 @@ substitute when writing tests.</p>
 
 
 
-<h4 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath-methods">Methods<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath-methods" title="Permanent link">&para;</a></h4>
+<h4 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath-methods">Methods<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath-methods" class="headerlink" title="Permanent link">&para;</a></h4>
 
   <div class="doc doc-object doc-method">
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.mkdir">
+<h5 id="cloudpathlib.local.implementations.azure.LocalAzureBlobPath.mkdir" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parents</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">exist_ok</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.mkdir" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.azure.LocalAzureBlobPath.mkdir" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1391,14 +1394,14 @@ substitute when writing tests.</p>
 
 
 
-<h3 class="doc doc-heading" id="cloudpathlib.local.localclient.LocalClient">
+<h3 id="cloudpathlib.local.localclient.LocalClient" class="doc doc-heading">
         <code>
 LocalClient            (<a class="autorefs autorefs-internal" title="cloudpathlib.client.Client" href="../client/#cloudpathlib.client.Client">Client</a>)
         </code>
 
 
 
-<a class="headerlink" href="#cloudpathlib.local.localclient.LocalClient" title="Permanent link">&para;</a></h3>
+<a href="#cloudpathlib.local.localclient.LocalClient" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents first">
 
@@ -1569,14 +1572,14 @@ substitutes for normal Client subclasses when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.localclient.LocalClient.__init__">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">cloudpathlib</span><span class="o">.</span><span class="n">enums</span><span class="o">.</span><span class="n">FileCacheMode</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7f5f86cfa200</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<h5 id="cloudpathlib.local.localclient.LocalClient.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">cloudpathlib</span><span class="o">.</span><span class="n">enums</span><span class="o">.</span><span class="n">FileCacheMode</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7f93900d85e0</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.localclient.LocalClient.__init__" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.localclient.LocalClient.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1614,14 +1617,14 @@ substitutes for normal Client subclasses when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.localclient.LocalClient.get_default_storage_dir">
+<h5 id="cloudpathlib.local.localclient.LocalClient.get_default_storage_dir" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">get_default_storage_dir</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.localclient.LocalClient.get_default_storage_dir" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.localclient.LocalClient.get_default_storage_dir" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1646,14 +1649,14 @@ substitutes for normal Client subclasses when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.localclient.LocalClient.reset_default_storage_dir">
+<h5 id="cloudpathlib.local.localclient.LocalClient.reset_default_storage_dir" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">reset_default_storage_dir</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.localclient.LocalClient.reset_default_storage_dir" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.localclient.LocalClient.reset_default_storage_dir" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1686,14 +1689,14 @@ substitutes for normal Client subclasses when writing tests.</p>
 
 
 
-<h3 class="doc doc-heading" id="cloudpathlib.local.implementations.gs.LocalGSClient">
+<h3 id="cloudpathlib.local.implementations.gs.LocalGSClient" class="doc doc-heading">
         <code>
 LocalGSClient            (<a class="autorefs autorefs-internal" title="cloudpathlib.local.localclient.LocalClient" href="#cloudpathlib.local.localclient.LocalClient">LocalClient</a>)
         </code>
 
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.gs.LocalGSClient" title="Permanent link">&para;</a></h3>
+<a href="#cloudpathlib.local.implementations.gs.LocalGSClient" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents first">
 
@@ -1727,11 +1730,11 @@ substitute when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.gs.LocalGSClient.GSPath">
+<h5 id="cloudpathlib.local.implementations.gs.LocalGSClient.GSPath" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">GSPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">~</span><span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="o">~</span><span class="n">BoundedCloudPath</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.gs.LocalGSClient.GSPath" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.gs.LocalGSClient.GSPath" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1762,14 +1765,14 @@ substitute when writing tests.</p>
 
 
 
-<h3 class="doc doc-heading" id="cloudpathlib.local.implementations.gs.LocalGSPath">
+<h3 id="cloudpathlib.local.implementations.gs.LocalGSPath" class="doc doc-heading">
         <code>
 LocalGSPath            (<a class="autorefs autorefs-internal" title="cloudpathlib.local.localpath.LocalPath" href="#cloudpathlib.local.localpath.LocalPath">LocalPath</a>)
         </code>
 
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.gs.LocalGSPath" title="Permanent link">&para;</a></h3>
+<a href="#cloudpathlib.local.implementations.gs.LocalGSPath" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents first">
 
@@ -1784,13 +1787,13 @@ when writing tests.</p>
 
 
 
-<h4 id="cloudpathlib.local.implementations.gs.LocalGSPath-attributes">Attributes<a class="headerlink" href="#cloudpathlib.local.implementations.gs.LocalGSPath-attributes" title="Permanent link">&para;</a></h4>
+<h4 id="cloudpathlib.local.implementations.gs.LocalGSPath-attributes">Attributes<a href="#cloudpathlib.local.implementations.gs.LocalGSPath-attributes" class="headerlink" title="Permanent link">&para;</a></h4>
 
   <div class="doc doc-object doc-attribute">
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.gs.LocalGSPath.blob">
+<h5 id="cloudpathlib.local.implementations.gs.LocalGSPath.blob" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">blob</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
@@ -1798,7 +1801,7 @@ when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.gs.LocalGSPath.blob" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.gs.LocalGSPath.blob" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1812,7 +1815,7 @@ when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.gs.LocalGSPath.bucket">
+<h5 id="cloudpathlib.local.implementations.gs.LocalGSPath.bucket" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
@@ -1820,7 +1823,7 @@ when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.gs.LocalGSPath.bucket" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.gs.LocalGSPath.bucket" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1834,11 +1837,11 @@ when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.gs.LocalGSPath.cloud_prefix">
+<h5 id="cloudpathlib.local.implementations.gs.LocalGSPath.cloud_prefix" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">cloud_prefix</span><span class="p">:</span> <span class="nb">str</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.gs.LocalGSPath.cloud_prefix" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.gs.LocalGSPath.cloud_prefix" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1852,7 +1855,7 @@ when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.gs.LocalGSPath.drive">
+<h5 id="cloudpathlib.local.implementations.gs.LocalGSPath.drive" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">drive</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
@@ -1860,7 +1863,7 @@ when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.gs.LocalGSPath.drive" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.gs.LocalGSPath.drive" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1875,7 +1878,7 @@ when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.gs.LocalGSPath.etag">
+<h5 id="cloudpathlib.local.implementations.gs.LocalGSPath.etag" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">etag</span></code>
 
   <span class="doc doc-properties">
@@ -1883,7 +1886,7 @@ when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.gs.LocalGSPath.etag" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.gs.LocalGSPath.etag" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1894,17 +1897,17 @@ when writing tests.</p>
 
 
 
-<h4 id="cloudpathlib.local.implementations.gs.LocalGSPath-methods">Methods<a class="headerlink" href="#cloudpathlib.local.implementations.gs.LocalGSPath-methods" title="Permanent link">&para;</a></h4>
+<h4 id="cloudpathlib.local.implementations.gs.LocalGSPath-methods">Methods<a href="#cloudpathlib.local.implementations.gs.LocalGSPath-methods" class="headerlink" title="Permanent link">&para;</a></h4>
 
   <div class="doc doc-object doc-method">
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.gs.LocalGSPath.mkdir">
+<h5 id="cloudpathlib.local.implementations.gs.LocalGSPath.mkdir" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parents</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">exist_ok</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.gs.LocalGSPath.mkdir" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.gs.LocalGSPath.mkdir" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -1938,14 +1941,14 @@ when writing tests.</p>
 
 
 
-<h3 class="doc doc-heading" id="cloudpathlib.local.localpath.LocalPath">
+<h3 id="cloudpathlib.local.localpath.LocalPath" class="doc doc-heading">
         <code>
 LocalPath            (<a class="autorefs autorefs-internal" title="cloudpathlib.cloudpath.CloudPath" href="../cloudpath/#cloudpathlib.cloudpath.CloudPath">CloudPath</a>)
         </code>
 
 
 
-<a class="headerlink" href="#cloudpathlib.local.localpath.LocalPath" title="Permanent link">&para;</a></h3>
+<a href="#cloudpathlib.local.localpath.LocalPath" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents first">
 
@@ -1990,17 +1993,17 @@ monkeypatch substitutes for normal CloudPath subclasses when writing tests.</p>
 
 
 
-<h4 id="cloudpathlib.local.localpath.LocalPath-methods">Methods<a class="headerlink" href="#cloudpathlib.local.localpath.LocalPath-methods" title="Permanent link">&para;</a></h4>
+<h4 id="cloudpathlib.local.localpath.LocalPath-methods">Methods<a href="#cloudpathlib.local.localpath.LocalPath-methods" class="headerlink" title="Permanent link">&para;</a></h4>
 
   <div class="doc doc-object doc-method">
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.localpath.LocalPath.is_dir">
+<h5 id="cloudpathlib.local.localpath.LocalPath.is_dir" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.localpath.LocalPath.is_dir" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.localpath.LocalPath.is_dir" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -2023,11 +2026,11 @@ monkeypatch substitutes for normal CloudPath subclasses when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.localpath.LocalPath.is_file">
+<h5 id="cloudpathlib.local.localpath.LocalPath.is_file" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.localpath.LocalPath.is_file" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.localpath.LocalPath.is_file" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -2051,11 +2054,11 @@ to regular files).
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.localpath.LocalPath.stat">
+<h5 id="cloudpathlib.local.localpath.LocalPath.stat" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.localpath.LocalPath.stat" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.localpath.LocalPath.stat" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -2085,11 +2088,11 @@ os.stat() does.
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.localpath.LocalPath.touch">
+<h5 id="cloudpathlib.local.localpath.LocalPath.touch" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">touch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.localpath.LocalPath.touch" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.localpath.LocalPath.touch" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -2122,14 +2125,14 @@ os.stat() does.
 
 
 
-<h3 class="doc doc-heading" id="cloudpathlib.local.implementations.s3.LocalS3Client">
+<h3 id="cloudpathlib.local.implementations.s3.LocalS3Client" class="doc doc-heading">
         <code>
 LocalS3Client            (<a class="autorefs autorefs-internal" title="cloudpathlib.local.localclient.LocalClient" href="#cloudpathlib.local.localclient.LocalClient">LocalClient</a>)
         </code>
 
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.s3.LocalS3Client" title="Permanent link">&para;</a></h3>
+<a href="#cloudpathlib.local.implementations.s3.LocalS3Client" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents first">
 
@@ -2163,11 +2166,11 @@ substitute when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.s3.LocalS3Client.S3Path">
+<h5 id="cloudpathlib.local.implementations.s3.LocalS3Client.S3Path" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">S3Path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">~</span><span class="n">BoundedCloudPath</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="o">~</span><span class="n">BoundedCloudPath</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.s3.LocalS3Client.S3Path" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.s3.LocalS3Client.S3Path" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -2198,14 +2201,14 @@ substitute when writing tests.</p>
 
 
 
-<h3 class="doc doc-heading" id="cloudpathlib.local.implementations.s3.LocalS3Path">
+<h3 id="cloudpathlib.local.implementations.s3.LocalS3Path" class="doc doc-heading">
         <code>
 LocalS3Path            (<a class="autorefs autorefs-internal" title="cloudpathlib.local.localpath.LocalPath" href="#cloudpathlib.local.localpath.LocalPath">LocalPath</a>)
         </code>
 
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.s3.LocalS3Path" title="Permanent link">&para;</a></h3>
+<a href="#cloudpathlib.local.implementations.s3.LocalS3Path" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents first">
 
@@ -2220,13 +2223,13 @@ when writing tests.</p>
 
 
 
-<h4 id="cloudpathlib.local.implementations.s3.LocalS3Path-attributes">Attributes<a class="headerlink" href="#cloudpathlib.local.implementations.s3.LocalS3Path-attributes" title="Permanent link">&para;</a></h4>
+<h4 id="cloudpathlib.local.implementations.s3.LocalS3Path-attributes">Attributes<a href="#cloudpathlib.local.implementations.s3.LocalS3Path-attributes" class="headerlink" title="Permanent link">&para;</a></h4>
 
   <div class="doc doc-object doc-attribute">
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.s3.LocalS3Path.bucket">
+<h5 id="cloudpathlib.local.implementations.s3.LocalS3Path.bucket" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
@@ -2234,7 +2237,7 @@ when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.s3.LocalS3Path.bucket" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.s3.LocalS3Path.bucket" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -2248,11 +2251,11 @@ when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.s3.LocalS3Path.cloud_prefix">
+<h5 id="cloudpathlib.local.implementations.s3.LocalS3Path.cloud_prefix" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">cloud_prefix</span><span class="p">:</span> <span class="nb">str</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.s3.LocalS3Path.cloud_prefix" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.s3.LocalS3Path.cloud_prefix" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -2266,7 +2269,7 @@ when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.s3.LocalS3Path.drive">
+<h5 id="cloudpathlib.local.implementations.s3.LocalS3Path.drive" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">drive</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
@@ -2274,7 +2277,7 @@ when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.s3.LocalS3Path.drive" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.s3.LocalS3Path.drive" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -2289,7 +2292,7 @@ when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.s3.LocalS3Path.etag">
+<h5 id="cloudpathlib.local.implementations.s3.LocalS3Path.etag" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">etag</span></code>
 
   <span class="doc doc-properties">
@@ -2297,7 +2300,7 @@ when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.s3.LocalS3Path.etag" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.s3.LocalS3Path.etag" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -2311,7 +2314,7 @@ when writing tests.</p>
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.s3.LocalS3Path.key">
+<h5 id="cloudpathlib.local.implementations.s3.LocalS3Path.key" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">key</span><span class="p">:</span> <span class="nb">str</span></code>
 
   <span class="doc doc-properties">
@@ -2319,7 +2322,7 @@ when writing tests.</p>
       <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
   </span>
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.s3.LocalS3Path.key" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.s3.LocalS3Path.key" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -2330,17 +2333,17 @@ when writing tests.</p>
 
 
 
-<h4 id="cloudpathlib.local.implementations.s3.LocalS3Path-methods">Methods<a class="headerlink" href="#cloudpathlib.local.implementations.s3.LocalS3Path-methods" title="Permanent link">&para;</a></h4>
+<h4 id="cloudpathlib.local.implementations.s3.LocalS3Path-methods">Methods<a href="#cloudpathlib.local.implementations.s3.LocalS3Path-methods" class="headerlink" title="Permanent link">&para;</a></h4>
 
   <div class="doc doc-object doc-method">
 
 
 
-<h5 class="doc doc-heading" id="cloudpathlib.local.implementations.s3.LocalS3Path.mkdir">
+<h5 id="cloudpathlib.local.implementations.s3.LocalS3Path.mkdir" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parents</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">exist_ok</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span></code>
 
 
-<a class="headerlink" href="#cloudpathlib.local.implementations.s3.LocalS3Path.mkdir" title="Permanent link">&para;</a></h5>
+<a href="#cloudpathlib.local.implementations.s3.LocalS3Path.mkdir" class="headerlink" title="Permanent link">&para;</a></h5>
 
     <div class="doc doc-contents ">
 
@@ -2368,21 +2371,28 @@ when writing tests.</p>
 
   </div>
 
-              
-            </article>
-          </div>
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
         </div>
         
       </main>
       
         <footer class="md-footer">
   
-    <nav class="md-footer__inner md-grid" aria-label="Footer">
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
         
         <a href="../exceptions/" class="md-footer__link md-footer__link--prev" aria-label="Previous: cloudpathlib.exceptions" rel="prev">
           <div class="md-footer__button md-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
           <div class="md-footer__title">
             <div class="md-ellipsis">
@@ -2417,11 +2427,13 @@ when writing tests.</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.5e67fbfe.min.js", "version": {"provider": "mike"}}</script>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "search": "../../assets/javascripts/workers/search.16e2a7d4.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e87a5f81.min.js"></script>
+      <script src="../../assets/javascripts/bundle.5a2dcb6a.min.js"></script>
       
+    
     
   </body>
 </html>
