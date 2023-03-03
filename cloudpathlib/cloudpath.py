@@ -177,11 +177,19 @@ class CloudPath(metaclass=CloudPathMeta):
     def __init__(
         self: DerivedCloudPath,
         cloud_path: Union[str, DerivedCloudPath],
+        *parts: str,
         client: Optional["Client"] = None,
     ) -> None:
         # handle if local file gets opened. must be set at the top of the method in case any code
         # below raises an exception, this prevents __del__ from raising an AttributeError
         self._handle: Optional[IO] = None
+
+        if parts:
+            # ensure first part ends in "/"; (sometimes it is just prefix, sometimes a longer path)
+            if not str(cloud_path).endswith("/"):
+                cloud_path = str(cloud_path) + "/"
+
+            cloud_path = str(cloud_path) + "/".join(p.strip("/") for p in parts)
 
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
 
