@@ -3,6 +3,7 @@
 ## v0.14.0 (Unreleased)
 
 - Changed to pyproject.toml-based build.
+- Changed type hints from custom type variable `DerivedCloudPath` to [`typing.Self`](https://docs.python.org/3/library/typing.html#typing.Self) ([PEP 673](https://docs.python.org/3/library/typing.html#typing.Self)). This adds a dependency on the [typing-extensions](https://pypi.org/project/typing-extensions/) backport package from Python versions lower than 3.11.
 
 ## v0.13.0 (2023-02-15)
 
