@@ -3,6 +3,7 @@ from collections import defaultdict
 import collections.abc
 from contextlib import contextmanager
 import os
+import smart_open
 from pathlib import (  # type: ignore
     Path,
     PosixPath,
@@ -468,7 +469,7 @@ class CloudPath(metaclass=CloudPathMeta):
             closefd=closefd,
             opener=opener,
             transport_params={"client": self.client.client}
-
+        )
         return smart_open.open(**kwargs)
     
     def read_text(
