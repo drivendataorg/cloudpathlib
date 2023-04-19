@@ -458,18 +458,18 @@ class CloudPath(metaclass=CloudPathMeta):
             :return: a file-like object.
             See https://github.com/RaRe-Technologies/smart_open for more info.
             """
-            kwargs = dict(
-                uri=self.as_uri(),
-                mode=mode,
-                buffering=buffering,
-                encoding=encoding,
-                errors=errors,
-                newline=newline,
-                closefd=closefd,
-                opener=opener,
-                transport_params={"client": self.client.client}
+        kwargs = dict(
+            uri=self.as_uri(),
+            mode=mode,
+            buffering=buffering,
+            encoding=encoding,
+            errors=errors,
+            newline=newline,
+            closefd=closefd,
+            opener=opener,
+            transport_params={"client": self.client.client}
 
-            return smart_open.open(**kwargs)
+        return smart_open.open(**kwargs)
     
     def read_text(
         self,
