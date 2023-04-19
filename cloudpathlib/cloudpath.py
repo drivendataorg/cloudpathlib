@@ -500,7 +500,7 @@ class CloudPath(metaclass=CloudPathMeta):
             opener=opener,
             transport_params={"client": self.client.client}
 
-            return smart_open.open(**kwargs)
+        return smart_open.open(**kwargs)
     
     def read_text(
         self,
