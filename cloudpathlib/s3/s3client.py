@@ -142,7 +142,7 @@ class S3Client(Client):
             "last_modified": data["LastModified"],
             "size": data["ContentLength"],
             "etag": data["ETag"],
-            "content_type": data["ContentType"],
+            "content_type": data["ContentType"] or None,
             "extra": data["Metadata"],
         }
 
