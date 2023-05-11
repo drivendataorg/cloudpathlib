@@ -98,10 +98,11 @@ class CloudImplementation:
 implementation_registry: Dict[str, CloudImplementation] = defaultdict(CloudImplementation)
 
 
-def register_path_class(key: str) -> Callable:
-    T = TypeVar("T", bound=Type[CloudPath])
+CloudPathT = TypeVar("CloudPathT", bound="CloudPath")
 
-    def decorator(cls: Type[T]) -> Type[T]:
+
+def register_path_class(key: str) -> Callable[[Type[CloudPathT]], Type[CloudPathT]]:
+    def decorator(cls: Type[CloudPathT]) -> Type[CloudPathT]:
         if not issubclass(cls, CloudPath):
             raise TypeError("Only subclasses of CloudPath can be registered.")
         implementation_registry[key]._path_class = cls
@@ -112,7 +113,7 @@ def register_path_class(key: str) -> Callable:
 
 
 class CloudPathMeta(abc.ABCMeta):
-    def __call__(cls, cloud_path, *args, **kwargs):
+    def __call__(cls, cloud_path: Union[str, CloudPathT], *args, **kwargs) -> CloudPathT:
         # cls is a class that is the instance of this metaclass, e.g., CloudPath
 
         # Dispatch to subclass if base CloudPath
