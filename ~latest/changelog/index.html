@@ -372,8 +372,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#v0140-unreleased" class="md-nav__link">
-    v0.14.0 (Unreleased)
+  <a href="#v0140-2023-05-13" class="md-nav__link">
+    v0.14.0 (2023-05-13)
   </a>
   
 </li>
@@ -932,8 +932,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#v0140-unreleased" class="md-nav__link">
-    v0.14.0 (Unreleased)
+  <a href="#v0140-2023-05-13" class="md-nav__link">
+    v0.14.0 (2023-05-13)
   </a>
   
 </li>
@@ -1125,10 +1125,11 @@
 
 
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
-<h2 id="v0140-unreleased">v0.14.0 (Unreleased)<a class="headerlink" href="#v0140-unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="v0140-2023-05-13">v0.14.0 (2023-05-13)<a class="headerlink" href="#v0140-2023-05-13" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Changed to pyproject.toml-based build.</li>
 <li>Changed type hints from custom type variable <code>DerivedCloudPath</code> to <a href="https://docs.python.org/3/library/typing.html#typing.Self"><code>typing.Self</code></a> (<a href="https://docs.python.org/3/library/typing.html#typing.Self">PEP 673</a>). This adds a dependency on the <a href="https://pypi.org/project/typing-extensions/">typing-extensions</a> backport package from Python versions lower than 3.11.</li>
+<li>Fixed a runtime key error when an S3 object does not have the <code>Content-Type</code> metadata set. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/331">Issue #331</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/332">PR #332</a>)</li>
 </ul>
 <h2 id="v0130-2023-02-15">v0.13.0 (2023-02-15)<a class="headerlink" href="#v0130-2023-02-15" title="Permanent link">&para;</a></h2>
 <ul>
