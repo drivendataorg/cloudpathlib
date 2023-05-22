@@ -1,9 +1,10 @@
 # cloudpathlib Changelog
 
-## v0.14.0 (Unreleased)
+## v0.14.0 (2023-05-13)
 
 - Changed to pyproject.toml-based build.
 - Changed type hints from custom type variable `DerivedCloudPath` to [`typing.Self`](https://docs.python.org/3/library/typing.html#typing.Self) ([PEP 673](https://docs.python.org/3/library/typing.html#typing.Self)). This adds a dependency on the [typing-extensions](https://pypi.org/project/typing-extensions/) backport package from Python versions lower than 3.11.
+- Fixed a runtime key error when an S3 object does not have the `Content-Type` metadata set. ([Issue #331](https://github.com/drivendataorg/cloudpathlib/issues/331), [PR #332](https://github.com/drivendataorg/cloudpathlib/pull/332))
 
 ## v0.13.0 (2023-02-15)
 
