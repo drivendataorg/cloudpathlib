@@ -113,20 +113,19 @@ def register_path_class(key: str) -> Callable[[Type[CloudPathT]], Type[CloudPath
 
 
 class CloudPathMeta(abc.ABCMeta):
-    def __call__(cls, cloud_path: Union[str, CloudPathT], *args, **kwargs) -> CloudPathT:
+    def __call__(cls, cloud_path: Union[str, CloudPathT], *args: Any, **kwargs: Any) -> CloudPathT:
         # cls is a class that is the instance of this metaclass, e.g., CloudPath
 
         # Dispatch to subclass if base CloudPath
-        if cls == CloudPath:
+        if cls is CloudPath:
             for implementation in implementation_registry.values():
                 path_class = implementation._path_class
                 if path_class is not None and path_class.is_valid_cloudpath(
                     cloud_path, raise_on_error=False
                 ):
                     # Instantiate path_class instance
-                    new_obj = path_class.__new__(path_class, cloud_path, *args, **kwargs)
-                    if isinstance(new_obj, path_class):
-                        path_class.__init__(new_obj, cloud_path, *args, **kwargs)
+                    new_obj = object.__new__(path_class)
+                    path_class.__init__(new_obj, cloud_path, *args, **kwargs)
                     return new_obj
             valid = [
                 impl._path_class.cloud_prefix
@@ -136,11 +135,9 @@ class CloudPathMeta(abc.ABCMeta):
             raise InvalidPrefixError(
                 f"Path {cloud_path} does not begin with a known prefix {valid}."
             )
-
-        # Otherwise instantiate as normal
-        new_obj = cls.__new__(cls, cloud_path, *args, **kwargs)
-        if isinstance(new_obj, cls):
-            cls.__init__(new_obj, cloud_path, *args, **kwargs)
+        assert issubclass(cls, CloudPath)
+        new_obj = object.__new__(cls)
+        new_obj.__init__(cloud_path, *args, **kwargs)
         return new_obj
 
     def __init__(cls, name: str, bases: Tuple[type, ...], dic: Dict[str, Any]) -> None:
@@ -180,7 +177,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def __init__(
         self,
-        cloud_path: Union[str, Self],
+        cloud_path: Union[str, CloudPathT],
         client: Optional["Client"] = None,
     ) -> None:
         # handle if local file gets opened. must be set at the top of the method in case any code
@@ -450,7 +447,7 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: Optional[str] = None,
         force_overwrite_from_cloud: bool = False,  # extra kwarg not in pathlib
         force_overwrite_to_cloud: bool = False,  # extra kwarg not in pathlib
-    ) -> IO:
+    ) -> IO[Any]:
         # if trying to call open on a directory that exists
         if self.exists() and not self.is_file():
             raise CloudPathIsADirectoryError(
