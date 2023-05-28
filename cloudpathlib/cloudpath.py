@@ -126,7 +126,7 @@ class CloudPathMeta(abc.ABCMeta):
                     # Instantiate path_class instance
                     new_obj = object.__new__(path_class)
                     path_class.__init__(new_obj, cloud_path, *args, **kwargs)
-                    return new_obj
+                    return new_obj  # type: ignore[return-value]
             valid = [
                 impl._path_class.cloud_prefix
                 for impl in implementation_registry.values()
@@ -137,8 +137,8 @@ class CloudPathMeta(abc.ABCMeta):
             )
         assert issubclass(cls, CloudPath)
         new_obj = object.__new__(cls)
-        new_obj.__init__(cloud_path, *args, **kwargs)
-        return new_obj
+        cls.__init__(new_obj, cloud_path, *args, **kwargs)
+        return new_obj  # type: ignore[return-value]
 
     def __init__(cls, name: str, bases: Tuple[type, ...], dic: Dict[str, Any]) -> None:
         # Copy docstring from pathlib.Path
