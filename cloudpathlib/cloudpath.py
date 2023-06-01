@@ -142,7 +142,7 @@ class CloudPathMeta(abc.ABCMeta):
                 ):
                     # Instantiate path_class instance
                     new_obj = object.__new__(path_class)
-                    path_class.__init__(new_obj, cloud_path, *args, **kwargs)
+                    path_class.__init__(new_obj, cloud_path, *args, **kwargs)  # type: ignore[type-var]
                     return new_obj
             valid_prefixes = [
                 impl._path_class.cloud_prefix
@@ -154,7 +154,7 @@ class CloudPathMeta(abc.ABCMeta):
             )
 
         new_obj = object.__new__(cls)
-        cls.__init__(new_obj, cloud_path, *args, **kwargs)
+        cls.__init__(new_obj, cloud_path, *args, **kwargs)  # type: ignore[type-var]
         return new_obj
 
     def __init__(cls, name: str, bases: Tuple[type, ...], dic: Dict[str, Any]) -> None:
@@ -194,7 +194,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def __init__(
         self,
-        cloud_path: Union[str, CloudPathT],
+        cloud_path: Union[str, Self],
         client: Optional["Client"] = None,
     ) -> None:
         # handle if local file gets opened. must be set at the top of the method in case any code
