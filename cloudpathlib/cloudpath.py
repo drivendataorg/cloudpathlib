@@ -115,9 +115,7 @@ def register_path_class(key: str) -> Callable[[Type[CloudPathT]], Type[CloudPath
 
 class CloudPathMeta(abc.ABCMeta):
     @overload
-    def __call__(
-        cls: Type[T], cloud_path: CloudPathT, *args: Any, **kwargs: Any
-    ) -> CloudPathT:
+    def __call__(cls: Type[T], cloud_path: CloudPathT, *args: Any, **kwargs: Any) -> CloudPathT:
         ...
 
     @overload
