@@ -98,6 +98,7 @@ class CloudImplementation:
 implementation_registry: Dict[str, CloudImplementation] = defaultdict(CloudImplementation)
 
 
+T = TypeVar("T")
 CloudPathT = TypeVar("CloudPathT", bound="CloudPath")
 
 
@@ -113,8 +114,26 @@ def register_path_class(key: str) -> Callable[[Type[CloudPathT]], Type[CloudPath
 
 
 class CloudPathMeta(abc.ABCMeta):
-    def __call__(cls, cloud_path: Union[str, CloudPathT], *args: Any, **kwargs: Any) -> CloudPathT:
+    @overload
+    def __call__(
+        cls: Type[T], cloud_path: CloudPathT, *args: Any, **kwargs: Any
+    ) -> CloudPathT:
+        ...
+
+    @overload
+    def __call__(
+        cls: Type[T], cloud_path: Union[str, "CloudPath"], *args: Any, **kwargs: Any
+    ) -> T:
+        ...
+
+    def __call__(
+        cls: Type[T], cloud_path: Union[str, CloudPathT], *args: Any, **kwargs: Any
+    ) -> Union[T, "CloudPath", CloudPathT]:
         # cls is a class that is the instance of this metaclass, e.g., CloudPath
+        if not issubclass(cls, CloudPath):
+            raise TypeError(
+                f"Only subclasses of {CloudPath.__name__} can be instantiated from its meta class."
+            )
 
         # Dispatch to subclass if base CloudPath
         if cls is CloudPath:
@@ -126,19 +145,19 @@ class CloudPathMeta(abc.ABCMeta):
                     # Instantiate path_class instance
                     new_obj = object.__new__(path_class)
                     path_class.__init__(new_obj, cloud_path, *args, **kwargs)
-                    return new_obj  # type: ignore[return-value]
-            valid = [
+                    return new_obj
+            valid_prefixes = [
                 impl._path_class.cloud_prefix
                 for impl in implementation_registry.values()
                 if impl._path_class is not None
             ]
             raise InvalidPrefixError(
-                f"Path {cloud_path} does not begin with a known prefix {valid}."
+                f"Path {cloud_path} does not begin with a known prefix {valid_prefixes}."
             )
-        assert issubclass(cls, CloudPath)
+
         new_obj = object.__new__(cls)
         cls.__init__(new_obj, cloud_path, *args, **kwargs)
-        return new_obj  # type: ignore[return-value]
+        return new_obj
 
     def __init__(cls, name: str, bases: Tuple[type, ...], dic: Dict[str, Any]) -> None:
         # Copy docstring from pathlib.Path
