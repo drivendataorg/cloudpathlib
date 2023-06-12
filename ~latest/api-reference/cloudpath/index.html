@@ -1604,8 +1604,20 @@ storage URI (e.g., <code>"s3://"</code>).</p>
     <span class="k">def</span> <span class="nf">_no_prefix_no_drive</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_str</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drive</span><span class="p">)</span> <span class="p">:]</span>
 
+    <span class="nd">@overload</span>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">is_valid_cloudpath</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span> <span class="n">raise_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">is_valid_cloudpath</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">,</span> <span class="n">raise_on_error</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TypeGuard</span><span class="p">[</span><span class="n">Self</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">is_valid_cloudpath</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">raise_on_error</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="o">...</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">is_valid_cloudpath</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span> <span class="n">raise_on_error</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">TypeGuard</span><span class="p">[</span><span class="n">Self</span><span class="p">]]:</span>
         <span class="n">valid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="n">raise_on_error</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">valid</span><span class="p">:</span>
@@ -3201,7 +3213,7 @@ to regular files).
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.is_valid_cloudpath" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">is_valid_cloudpath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">],</span> <span class="n">raise_on_error</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span></code>
+<code class="highlight language-python"><span class="n">is_valid_cloudpath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">],</span> <span class="n">raise_on_error</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">TypeGuard</span><span class="p">[</span><span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span><span class="p">]]</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
@@ -3215,7 +3227,9 @@ to regular files).
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
-<span class="k">def</span> <span class="nf">is_valid_cloudpath</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span> <span class="n">raise_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">is_valid_cloudpath</span><span class="p">(</span>
+    <span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;CloudPath&quot;</span><span class="p">],</span> <span class="n">raise_on_error</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">TypeGuard</span><span class="p">[</span><span class="n">Self</span><span class="p">]]:</span>
     <span class="n">valid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
 
     <span class="k">if</span> <span class="n">raise_on_error</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">valid</span><span class="p">:</span>
