@@ -786,7 +786,7 @@ class CloudPath(metaclass=CloudPathMeta):
         else:
             return path_version
 
-    def stat(self) -> os.stat_result:
+    def stat(self, follow_symlinks: bool = True) -> os.stat_result:
         """Note: for many clients, we may want to override so we don't incur
         network costs since many of these properties are available as
         API calls.
@@ -795,7 +795,7 @@ class CloudPath(metaclass=CloudPathMeta):
             f"stat not implemented as API call for {self.__class__} so file must be downloaded to "
             f"calculate stats; this may take a long time depending on filesize"
         )
-        return self._dispatch_to_local_cache_path("stat")
+        return self._dispatch_to_local_cache_path("stat", follow_symlinks=follow_symlinks)
 
     # ===========  public cloud methods, not in pathlib ===============
     def download_to(self, destination: Union[str, os.PathLike]) -> Path:
@@ -1182,7 +1182,7 @@ class _CloudPathSelectable:
     def __repr__(self) -> str:
         return "/".join(self._parents + [self.name])
 
-    def is_dir(self) -> bool:
+    def is_dir(self, follow_symlinks: bool = False) -> bool:
         return self._all_children is not None
 
     def exists(self) -> bool:
