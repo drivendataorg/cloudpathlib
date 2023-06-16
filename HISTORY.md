@@ -1,5 +1,10 @@
 # cloudpathlib Changelog
 
+## v0.15.0 (2023-06-16)
+
+- Changed return type for `CloudPathMeta.__call__` to fix problems with pyright/pylance ([PR #330](https://github.com/drivendataorg/cloudpathlib/pull/330))
+- Make `CloudPath.is_valid_cloudpath` a TypeGuard so that type checkers can know the subclass if `is_valid_cloudpath` is called ([PR #337](https://github.com/drivendataorg/cloudpathlib/pull/337))
+
 ## v0.14.0 (2023-05-13)
 
 - Changed to pyproject.toml-based build.
