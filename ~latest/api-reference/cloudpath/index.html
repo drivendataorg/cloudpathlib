@@ -19,7 +19,7 @@
         <link rel="next" href="../anypath/">
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
     
     
       
@@ -2128,7 +2128,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">path_version</span>
 
-    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">os</span><span class="o">.</span><span class="n">stat_result</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">os</span><span class="o">.</span><span class="n">stat_result</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Note: for many clients, we may want to override so we don&#39;t incur</span>
 <span class="sd">        network costs since many of these properties are available as</span>
 <span class="sd">        API calls.</span>
@@ -2137,7 +2137,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
             <span class="sa">f</span><span class="s2">&quot;stat not implemented as API call for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s2"> so file must be downloaded to &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;calculate stats; this may take a long time depending on filesize&quot;</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;stat&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;stat&quot;</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">follow_symlinks</span><span class="p">)</span>
 
     <span class="c1"># ===========  public cloud methods, not in pathlib ===============</span>
     <span class="k">def</span> <span class="nf">download_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
@@ -3819,7 +3819,7 @@ this subtree.
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.stat" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">stat_result</span></code>
+<code class="highlight language-python"><span class="n">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">stat_result</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.stat" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3832,7 +3832,7 @@ os.stat() does.
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">os</span><span class="o">.</span><span class="n">stat_result</span><span class="p">:</span>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">os</span><span class="o">.</span><span class="n">stat_result</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Note: for many clients, we may want to override so we don&#39;t incur</span>
 <span class="sd">    network costs since many of these properties are available as</span>
 <span class="sd">    API calls.</span>
@@ -3841,7 +3841,7 @@ os.stat() does.
         <span class="sa">f</span><span class="s2">&quot;stat not implemented as API call for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="si">}</span><span class="s2"> so file must be downloaded to &quot;</span>
         <span class="sa">f</span><span class="s2">&quot;calculate stats; this may take a long time depending on filesize&quot;</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;stat&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_local_cache_path</span><span class="p">(</span><span class="s2">&quot;stat&quot;</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="n">follow_symlinks</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
@@ -4136,7 +4136,7 @@ string, remove the suffix from the path.
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a51614de.min.js"></script>
       
     
   </body>

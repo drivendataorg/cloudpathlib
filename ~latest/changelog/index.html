@@ -19,7 +19,7 @@
         <link rel="next" href="../api-reference/cloudpath/">
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
     
     
       
@@ -370,6 +370,13 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v0150-2023-06-16" class="md-nav__link">
+    v0.15.0 (2023-06-16)
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#v0140-2023-05-13" class="md-nav__link">
@@ -932,6 +939,13 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v0150-2023-06-16" class="md-nav__link">
+    v0.15.0 (2023-06-16)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v0140-2023-05-13" class="md-nav__link">
     v0.14.0 (2023-05-13)
   </a>
@@ -1125,6 +1139,13 @@
 
 
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
+<h2 id="v0150-2023-06-16">v0.15.0 (2023-06-16)<a class="headerlink" href="#v0150-2023-06-16" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Changed return type for <code>CloudPathMeta.__call__</code> to fix problems with pyright/pylance (<a href="https://github.com/drivendataorg/cloudpathlib/pull/330">PR #330</a>)</li>
+<li>Make <code>CloudPath.is_valid_cloudpath</code> a TypeGuard so that type checkers can know the subclass if <code>is_valid_cloudpath</code> is called (<a href="https://github.com/drivendataorg/cloudpathlib/pull/337">PR #337</a>)</li>
+<li>Added <code>follow_symlinks</code> to <code>stat</code> for 3.11.4 compatibility (see <a href="https://github.com/python/cpython/issues/84087">bpo 39906</a>)</li>
+<li>Add <code>follow_symlinks</code> to <code>is_dir</code> implementation for CPython <code>glob</code> compatibility (see <a href="https://github.com/python/cpython/pull/104512">CPython PR #104512</a>)</li>
+</ul>
 <h2 id="v0140-2023-05-13">v0.14.0 (2023-05-13)<a class="headerlink" href="#v0140-2023-05-13" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Changed to pyproject.toml-based build.</li>
@@ -1318,7 +1339,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.expand"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../assets/javascripts/bundle.a51614de.min.js"></script>
       
     
   </body>
