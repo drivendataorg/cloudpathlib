@@ -1,5 +1,12 @@
 # cloudpathlib Changelog
 
+## v0.15.0 (2023-06-16)
+
+- Changed return type for `CloudPathMeta.__call__` to fix problems with pyright/pylance ([PR #330](https://github.com/drivendataorg/cloudpathlib/pull/330))
+- Make `CloudPath.is_valid_cloudpath` a TypeGuard so that type checkers can know the subclass if `is_valid_cloudpath` is called ([PR #337](https://github.com/drivendataorg/cloudpathlib/pull/337))
+- Added `follow_symlinks` to `stat` for 3.11.4 compatibility (see [bpo 39906](https://github.com/python/cpython/issues/84087))
+- Add `follow_symlinks` to `is_dir` implementation for CPython `glob` compatibility (see [CPython PR #104512](https://github.com/python/cpython/pull/104512))
+
 ## v0.14.0 (2023-05-13)
 
 - Changed to pyproject.toml-based build.
