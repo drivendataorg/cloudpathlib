@@ -198,7 +198,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def __init__(
         self,
-        cloud_path: Union[str, Self],
+        cloud_path: Union[str, Self, "CloudPath"],
         client: Optional["Client"] = None,
     ) -> None:
         # handle if local file gets opened. must be set at the top of the method in case any code
