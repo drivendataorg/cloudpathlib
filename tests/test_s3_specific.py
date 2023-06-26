@@ -22,6 +22,28 @@ def test_s3path_properties(path_class):
     assert p2.bucket == "bucket"
 
 
+@pytest.mark.parametrize("path_class", [S3Path, LocalS3Path])
+def test_s3path_properties_with_relative_paths(path_class):
+    p = path_class("s3://bucket") / "foo"
+    assert p.key == "foo"
+    assert p.bucket == "bucket"
+
+    p2 = path_class("s3://bucket/") / "foo/bar"
+    assert p2.key == "foo/bar"
+    assert p2.bucket == "bucket"
+
+
+@pytest.mark.parametrize("path_class", [S3Path, LocalS3Path])
+def test_s3path_properties_with_absolute_paths(path_class):
+    p = path_class("s3://bucket") / "/foo"
+    assert p.key == "foo"
+    assert p.bucket == "bucket"
+
+    p2 = path_class("s3://bucket/") / "/foo/bar"
+    assert p2.key == "foo/bar"
+    assert p2.bucket == "bucket"
+
+
 def test_transfer_config(s3_rig, tmp_path):
     transfer_config = TransferConfig(multipart_threshold=50)
     client = s3_rig.client_class(boto3_transfer_config=transfer_config)
