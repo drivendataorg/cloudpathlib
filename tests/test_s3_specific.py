@@ -43,6 +43,14 @@ def test_s3path_properties_with_absolute_paths(path_class):
     assert p2.key == "foo/bar"
     assert p2.bucket == "bucket"
 
+    p3 = path_class("s3://bucket/fee") / "/foo"
+    assert p3.key == "fee/foo"
+    assert p3.bucket == "bucket"
+
+    p4 = path_class("s3://bucket/fee/") / "/foo/bar"
+    assert p4.key == "fee/foo/bar"
+    assert p4.bucket == "bucket"
+
 
 def test_transfer_config(s3_rig, tmp_path):
     transfer_config = TransferConfig(multipart_threshold=50)
