@@ -688,8 +688,8 @@ class CloudPath(metaclass=CloudPathMeta):
         if not isinstance(other, (str, PurePosixPath)):
             raise TypeError(f"Can only join path {repr(self)} with strings or posix paths.")
 
-        # Special handling is needed, because pathlib's `/` operator ignores all previous segments, when `other` is
-        # an absolute path. That means bucket name would be removed.
+        # Special handling is needed, because pathlib's `/` operator ignores all previous segments,
+        # when `other` is an absolute path. That means bucket name would be removed.
         other_str = str(other)
         if other_str.startswith('/'):
             other = other_str.lstrip('/')
