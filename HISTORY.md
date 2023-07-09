@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## v0.15.1 (2023-06-16)
+ - Warn if Pydantic >= 2.0.0 since we are not yet compatible.
+
+
 ## v0.15.0 (2023-06-16)
 
 - Changed return type for `CloudPathMeta.__call__` to fix problems with pyright/pylance ([PR #330](https://github.com/drivendataorg/cloudpathlib/pull/330))
