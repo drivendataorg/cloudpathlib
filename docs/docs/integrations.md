@@ -2,6 +2,13 @@
 
 ## Pydantic
 
+!!! warning
+
+    As of version `0.15.1`, `cloudpathlib` is not compatible with
+    version `2.0.0` or greater of Pydantic. If you want to annotate
+    your pydantic models with cloudpathlib types, you need to use
+    `pydantic<2`.
+
 `cloudpathlib` integrates with [Pydantic](https://pydantic-docs.helpmanual.io/)'s data validation. You can declare fields with cloud path classes, and Pydantic's validation mechanisms will run inputs through the cloud path's constructor.
 
 ```python
