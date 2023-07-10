@@ -4,15 +4,6 @@
 
 `cloudpathlib` integrates with [Pydantic](https://pydantic-docs.helpmanual.io/)'s data validation. You can declare fields with cloud path classes, and Pydantic's validation mechanisms will run inputs through the cloud path's constructor.
 
-### Compatibility table
-
-| `pydantic` version | `cloudpathlib` version |
-| --- | --- |
-| `>=2.0.0` | `>=0.15.2` |
-| `<2.0.0` | `<0.15.2` |
-
-### Example
-
 ```python
 from cloudpathlib import S3Path
 from pydantic import BaseModel

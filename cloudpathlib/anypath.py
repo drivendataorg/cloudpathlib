@@ -56,6 +56,19 @@ class AnyPath(ABC):
             #  https://docs.pydantic.dev/2.0/migration/#typeerror-is-no-longer-converted-to-validationerror-in-validators
             raise ValueError(e)
 
+    @classmethod
+    def __get_validators__(cls):
+        """Pydantic special method. See
+        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
+        yield cls._validate
+
+    @classmethod
+    def _validate(cls, value) -> Union[CloudPath, Path]:
+        """Used as a Pydantic validator. See
+        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
+        # Note __new__ is static method and not a class method
+        return cls.__new__(cls, value)
+
 
 AnyPath.register(CloudPath)  # type: ignore
 AnyPath.register(Path)

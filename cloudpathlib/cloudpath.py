@@ -1132,6 +1132,18 @@ class CloudPath(metaclass=CloudPathMeta):
         https://docs.pydantic.dev/2.0/usage/types/custom/"""
         return cls(v)
 
+    @classmethod
+    def __get_validators__(cls) -> Generator[Callable[[Any], Self], None, None]:
+        """Pydantic special method. See
+        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
+        yield cls._validate
+
+    @classmethod
+    def _validate(cls, value: Any) -> Self:
+        """Used as a Pydantic validator. See
+        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
+        return cls(value)
+
 
 # The function resolve is not available on Pure paths because it removes relative
 # paths and symlinks. We _just_ want the relative path resolution for
