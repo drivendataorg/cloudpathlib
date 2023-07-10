@@ -1113,16 +1113,24 @@ class CloudPath(metaclass=CloudPathMeta):
 
     # ===========  pydantic integration special methods ===============
     @classmethod
-    def __get_validators__(cls) -> Generator[Callable[[Any], Self], None, None]:
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler):
         """Pydantic special method. See
-        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
-        yield cls._validate
+        https://docs.pydantic.dev/2.0/usage/types/custom/"""
+        try:
+            from pydantic_core import core_schema
+
+            return core_schema.no_info_after_validator_function(
+                cls.validate,
+                core_schema.any_schema(),
+            )
+        except ImportError:
+            return None
 
     @classmethod
-    def _validate(cls, value: Any) -> Self:
+    def validate(cls, v: str) -> Self:
         """Used as a Pydantic validator. See
-        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
-        return cls(value)
+        https://docs.pydantic.dev/2.0/usage/types/custom/"""
+        return cls(v)
 
 
 # The function resolve is not available on Pure paths because it removes relative

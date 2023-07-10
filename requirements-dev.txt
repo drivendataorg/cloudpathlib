@@ -18,7 +18,7 @@ nbautoexport
 pandas
 pillow
 psutil
-pydantic<2
+pydantic
 pytest
 pytest-cases
 pytest-cov

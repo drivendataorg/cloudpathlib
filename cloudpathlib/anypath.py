@@ -1,7 +1,7 @@
 import os
 from abc import ABC
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 
 from .cloudpath import InvalidPrefixError, CloudPath
 from .exceptions import AnyPathTypeError
@@ -30,18 +30,31 @@ class AnyPath(ABC):
                     f"Path exception: {repr(path_exception)}"
                 )
 
+    # ===========  pydantic integration special methods ===============
     @classmethod
-    def __get_validators__(cls):
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler):
         """Pydantic special method. See
-        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
-        yield cls._validate
+        https://docs.pydantic.dev/2.0/usage/types/custom/"""
+        try:
+            from pydantic_core import core_schema
+
+            return core_schema.no_info_after_validator_function(
+                cls.validate,
+                core_schema.any_schema(),
+            )
+        except ImportError:
+            return None
 
     @classmethod
-    def _validate(cls, value) -> Union[CloudPath, Path]:
-        """Used as a Pydantic validator. See
-        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
-        # Note __new__ is static method and not a class method
-        return cls.__new__(cls, value)
+    def validate(cls, v: str) -> Union[CloudPath, Path]:
+        """Pydantic special method. See
+        https://docs.pydantic.dev/2.0/usage/types/custom/"""
+        try:
+            return cls.__new__(cls, v)
+        except AnyPathTypeError as e:
+            # type errors no longer converted to validation errors
+            #  https://docs.pydantic.dev/2.0/migration/#typeerror-is-no-longer-converted-to-validationerror-in-validators
+            raise ValueError(e)
 
 
 AnyPath.register(CloudPath)  # type: ignore

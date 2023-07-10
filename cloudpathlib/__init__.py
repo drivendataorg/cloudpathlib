@@ -35,9 +35,10 @@ __all__ = [
 
 class PydanticVersionWarning(UserWarning):
     message = (
-        "This version of cloudpathlib is only compatible with pydantic<2.0.0. "
+        "This version of cloudpathlib is only compatible with pydantic>=2.0.0. "
         "You can ignore this warning if none of your pydantic models are "
-        "annotated with cloudpathlib types."
+        "annotated with cloudpathlib types. cloudpathlib=0.15.1 is the last "
+        "version that supports pydantic<2.0.0."
     )
 
 
@@ -45,7 +46,7 @@ try:
     import pydantic
     from packaging.version import parse
 
-    if parse(pydantic.__version__) >= parse("2.0.0"):
+    if parse(pydantic.__version__) < parse("2.0.0"):
         warn(PydanticVersionWarning(PydanticVersionWarning.message))
 
 except ImportError:
