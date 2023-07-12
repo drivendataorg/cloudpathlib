@@ -1,7 +1,8 @@
 # cloudpathlib Changelog
 
-## v0.15.1 (2023-07-09)
- - Compatibility with pydantic >= 2.0.0.
+## v0.15.1 (2023-07-12)
+
+- Compatibility with pydantic >= 2.0.0. ([PR #349](https://github.com/drivendataorg/cloudpathlib/pull/349))
 
 ## v0.15.0 (2023-06-16)
 
