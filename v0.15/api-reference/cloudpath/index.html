@@ -19,7 +19,7 @@
         <link rel="next" href="../anypath/">
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
     
     
       
@@ -747,6 +747,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#cloudpathlib.cloudpath.CloudPath.validate" class="md-nav__link">
+    validate()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#cloudpathlib.cloudpath.CloudPath.with_name" class="md-nav__link">
     with_name()
   </a>
@@ -1443,6 +1450,13 @@
           <li class="md-nav__item">
   <a href="#cloudpathlib.cloudpath.CloudPath.upload_from" class="md-nav__link">
     upload_from()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.cloudpath.CloudPath.validate" class="md-nav__link">
+    validate()
   </a>
   
 </li>
@@ -2454,6 +2468,26 @@ storage URI (e.g., <code>"s3://"</code>).</p>
         <span class="p">)</span>
 
     <span class="c1"># ===========  pydantic integration special methods ===============</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">__get_pydantic_core_schema__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">_source_type</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">_handler</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic special method. See</span>
+<span class="sd">        https://docs.pydantic.dev/2.0/usage/types/custom/&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">pydantic_core</span> <span class="kn">import</span> <span class="n">core_schema</span>
+
+            <span class="k">return</span> <span class="n">core_schema</span><span class="o">.</span><span class="n">no_info_after_validator_function</span><span class="p">(</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">validate</span><span class="p">,</span>
+                <span class="n">core_schema</span><span class="o">.</span><span class="n">any_schema</span><span class="p">(),</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Used as a Pydantic validator. See</span>
+<span class="sd">        https://docs.pydantic.dev/2.0/usage/types/custom/&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">__get_validators__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Self</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic special method. See</span>
@@ -3963,6 +3997,39 @@ If the path is a directory, use rmdir() instead.
 
 
 
+<h3 id="cloudpathlib.cloudpath.CloudPath.validate" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">validate</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#cloudpathlib.cloudpath.CloudPath.validate" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Used as a Pydantic validator. See
+https://docs.pydantic.dev/2.0/usage/types/custom/</p>
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Used as a Pydantic validator. See</span>
+<span class="sd">    https://docs.pydantic.dev/2.0/usage/types/custom/&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
 <h3 id="cloudpathlib.cloudpath.CloudPath.with_name" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">with_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
@@ -4133,10 +4200,10 @@ string, remove the suffix from the path.
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "search": "../../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.a51614de.min.js"></script>
+      <script src="../../assets/javascripts/bundle.220ee61c.min.js"></script>
       
     
   </body>
