@@ -1113,6 +1113,26 @@ class CloudPath(metaclass=CloudPathMeta):
 
     # ===========  pydantic integration special methods ===============
     @classmethod
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler):
+        """Pydantic special method. See
+        https://docs.pydantic.dev/2.0/usage/types/custom/"""
+        try:
+            from pydantic_core import core_schema
+
+            return core_schema.no_info_after_validator_function(
+                cls.validate,
+                core_schema.any_schema(),
+            )
+        except ImportError:
+            return None
+
+    @classmethod
+    def validate(cls, v: str) -> Self:
+        """Used as a Pydantic validator. See
+        https://docs.pydantic.dev/2.0/usage/types/custom/"""
+        return cls(v)
+
+    @classmethod
     def __get_validators__(cls) -> Generator[Callable[[Any], Self], None, None]:
         """Pydantic special method. See
         https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
