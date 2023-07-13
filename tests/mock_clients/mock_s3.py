@@ -90,6 +90,9 @@ class MockBoto3Object:
 
     def download_file(self, to_path, Config=None, ExtraArgs=None):
         to_path = Path(to_path)
+
+        to_path.parent.mkdir(parents=True, exist_ok=True)
+
         to_path.write_bytes(self.path.read_bytes())
         # track config to make sure it's used in tests
         self.resource.download_config = Config

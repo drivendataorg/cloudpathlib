@@ -36,6 +36,10 @@ from typing import (
 from urllib.parse import urlparse
 from warnings import warn
 
+if sys.version_info >= (3, 10):
+    from typing import TypeGuard
+else:
+    from typing_extensions import TypeGuard
 if sys.version_info >= (3, 11):
     from typing import Self
 else:
@@ -99,10 +103,12 @@ class CloudImplementation:
 implementation_registry: Dict[str, CloudImplementation] = defaultdict(CloudImplementation)
 
 
-def register_path_class(key: str) -> Callable:
-    T = TypeVar("T", bound=Type[CloudPath])
+T = TypeVar("T")
+CloudPathT = TypeVar("CloudPathT", bound="CloudPath")
 
-    def decorator(cls: Type[T]) -> Type[T]:
+
+def register_path_class(key: str) -> Callable[[Type[CloudPathT]], Type[CloudPathT]]:
+    def decorator(cls: Type[CloudPathT]) -> Type[CloudPathT]:
         if not issubclass(cls, CloudPath):
             raise TypeError("Only subclasses of CloudPath can be registered.")
         implementation_registry[key]._path_class = cls
@@ -113,34 +119,47 @@ def register_path_class(key: str) -> Callable:
 
 
 class CloudPathMeta(abc.ABCMeta):
-    def __call__(cls, cloud_path, *args, **kwargs):
+    @overload
+    def __call__(cls: Type[T], cloud_path: CloudPathT, *args: Any, **kwargs: Any) -> CloudPathT:
+        ...
+
+    @overload
+    def __call__(
+        cls: Type[T], cloud_path: Union[str, "CloudPath"], *args: Any, **kwargs: Any
+    ) -> T:
+        ...
+
+    def __call__(
+        cls: Type[T], cloud_path: Union[str, CloudPathT], *args: Any, **kwargs: Any
+    ) -> Union[T, "CloudPath", CloudPathT]:
         # cls is a class that is the instance of this metaclass, e.g., CloudPath
+        if not issubclass(cls, CloudPath):
+            raise TypeError(
+                f"Only subclasses of {CloudPath.__name__} can be instantiated from its meta class."
+            )
 
         # Dispatch to subclass if base CloudPath
-        if cls == CloudPath:
+        if cls is CloudPath:
             for implementation in implementation_registry.values():
                 path_class = implementation._path_class
                 if path_class is not None and path_class.is_valid_cloudpath(
                     cloud_path, raise_on_error=False
                 ):
                     # Instantiate path_class instance
-                    new_obj = path_class.__new__(path_class, cloud_path, *args, **kwargs)
-                    if isinstance(new_obj, path_class):
-                        path_class.__init__(new_obj, cloud_path, *args, **kwargs)
+                    new_obj = object.__new__(path_class)
+                    path_class.__init__(new_obj, cloud_path, *args, **kwargs)  # type: ignore[type-var]
                     return new_obj
-            valid = [
+            valid_prefixes = [
                 impl._path_class.cloud_prefix
                 for impl in implementation_registry.values()
                 if impl._path_class is not None
             ]
             raise InvalidPrefixError(
-                f"Path {cloud_path} does not begin with a known prefix {valid}."
+                f"Path {cloud_path} does not begin with a known prefix {valid_prefixes}."
             )
 
-        # Otherwise instantiate as normal
-        new_obj = cls.__new__(cls, cloud_path, *args, **kwargs)
-        if isinstance(new_obj, cls):
-            cls.__init__(new_obj, cloud_path, *args, **kwargs)
+        new_obj = object.__new__(cls)
+        cls.__init__(new_obj, cloud_path, *args, **kwargs)  # type: ignore[type-var]
         return new_obj
 
     def __init__(cls, name: str, bases: Tuple[type, ...], dic: Dict[str, Any]) -> None:
@@ -244,8 +263,20 @@ class CloudPath(metaclass=CloudPathMeta):
     def _no_prefix_no_drive(self) -> str:
         return self._str[len(self.cloud_prefix) + len(self.drive) :]
 
+    @overload
     @classmethod
-    def is_valid_cloudpath(cls, path: Union[str, "CloudPath"], raise_on_error=False) -> bool:
+    def is_valid_cloudpath(cls, path: "CloudPath", raise_on_error: bool = ...) -> TypeGuard[Self]:
+        ...
+
+    @overload
+    @classmethod
+    def is_valid_cloudpath(cls, path: str, raise_on_error: bool = ...) -> bool:
+        ...
+
+    @classmethod
+    def is_valid_cloudpath(
+        cls, path: Union[str, "CloudPath"], raise_on_error: bool = False
+    ) -> Union[bool, TypeGuard[Self]]:
         valid = str(path).lower().startswith(cls.cloud_prefix.lower())
 
         if raise_on_error and not valid:
@@ -443,11 +474,13 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def open(
         self,
-            mode="r",
-            buffering=-1,
-            encoding=None,
-            errors=None,
-            newline=None,
+            mode: str = "r",
+            buffering: int = -1,
+            encoding: Optional[str] = None,
+            errors: Optional[str] = None,
+            newline: Optional[str] = None,
+            force_overwrite_from_cloud: bool = False,  # extra kwarg not in pathlib
+            force_overwrite_to_cloud: bool = False,  # extra kwarg not in pathlib
             closefd=True,
             opener=None,
             ignore_ext=False,
@@ -737,7 +770,7 @@ class CloudPath(metaclass=CloudPathMeta):
         else:
             return path_version
 
-    def stat(self) -> os.stat_result:
+    def stat(self, follow_symlinks: bool = True) -> os.stat_result:
         """Note: for many clients, we may want to override so we don't incur
         network costs since many of these properties are available as
         API calls.
@@ -746,7 +779,7 @@ class CloudPath(metaclass=CloudPathMeta):
             f"stat not implemented as API call for {self.__class__} so file must be downloaded to "
             f"calculate stats; this may take a long time depending on filesize"
         )
-        return self._dispatch_to_local_cache_path("stat")
+        return self._dispatch_to_local_cache_path("stat", follow_symlinks=follow_symlinks)
 
     # ===========  public cloud methods, not in pathlib ===============
     def download_to(self, destination: Union[str, os.PathLike]) -> Path:
@@ -1064,6 +1097,26 @@ class CloudPath(metaclass=CloudPathMeta):
 
     # ===========  pydantic integration special methods ===============
     @classmethod
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler):
+        """Pydantic special method. See
+        https://docs.pydantic.dev/2.0/usage/types/custom/"""
+        try:
+            from pydantic_core import core_schema
+
+            return core_schema.no_info_after_validator_function(
+                cls.validate,
+                core_schema.any_schema(),
+            )
+        except ImportError:
+            return None
+
+    @classmethod
+    def validate(cls, v: str) -> Self:
+        """Used as a Pydantic validator. See
+        https://docs.pydantic.dev/2.0/usage/types/custom/"""
+        return cls(v)
+
+    @classmethod
     def __get_validators__(cls) -> Generator[Callable[[Any], Self], None, None]:
         """Pydantic special method. See
         https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
@@ -1133,7 +1186,7 @@ class _CloudPathSelectable:
     def __repr__(self) -> str:
         return "/".join(self._parents + [self.name])
 
-    def is_dir(self) -> bool:
+    def is_dir(self, follow_symlinks: bool = False) -> bool:
         return self._all_children is not None
 
     def exists(self) -> bool:

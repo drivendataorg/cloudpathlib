@@ -1,9 +1,21 @@
 # cloudpathlib Changelog
 
-## v0.14.0 (Unreleased)
+## v0.15.1 (2023-07-12)
+
+- Compatibility with pydantic >= 2.0.0. ([PR #349](https://github.com/drivendataorg/cloudpathlib/pull/349))
+
+## v0.15.0 (2023-06-16)
+
+- Changed return type for `CloudPathMeta.__call__` to fix problems with pyright/pylance ([PR #330](https://github.com/drivendataorg/cloudpathlib/pull/330))
+- Make `CloudPath.is_valid_cloudpath` a TypeGuard so that type checkers can know the subclass if `is_valid_cloudpath` is called ([PR #337](https://github.com/drivendataorg/cloudpathlib/pull/337))
+- Added `follow_symlinks` to `stat` for 3.11.4 compatibility (see [bpo 39906](https://github.com/python/cpython/issues/84087))
+- Add `follow_symlinks` to `is_dir` implementation for CPython `glob` compatibility (see [CPython PR #104512](https://github.com/python/cpython/pull/104512))
+
+## v0.14.0 (2023-05-13)
 
 - Changed to pyproject.toml-based build.
 - Changed type hints from custom type variable `DerivedCloudPath` to [`typing.Self`](https://docs.python.org/3/library/typing.html#typing.Self) ([PEP 673](https://docs.python.org/3/library/typing.html#typing.Self)). This adds a dependency on the [typing-extensions](https://pypi.org/project/typing-extensions/) backport package from Python versions lower than 3.11.
+- Fixed a runtime key error when an S3 object does not have the `Content-Type` metadata set. ([Issue #331](https://github.com/drivendataorg/cloudpathlib/issues/331), [PR #332](https://github.com/drivendataorg/cloudpathlib/pull/332))
 
 ## v0.13.0 (2023-02-15)
 
