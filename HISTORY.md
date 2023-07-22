@@ -1,5 +1,8 @@
 # cloudpathlib Changelog
 
+## UNRELEASED
+ - Add "CloudPath" as return type on `__init__` for mypy issues. ([Issue #179](https://github.com/drivendataorg/cloudpathlib/issues/179), [PR #342](https://github.com/drivendataorg/cloudpathlib/pull/342))
+
 ## v0.15.1 (2023-07-12)
 
 - Compatibility with pydantic >= 2.0.0. ([PR #349](https://github.com/drivendataorg/cloudpathlib/pull/349))
