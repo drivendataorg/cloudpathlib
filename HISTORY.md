@@ -2,6 +2,7 @@
 
 ## UNRELEASED
  - Add "CloudPath" as return type on `__init__` for mypy issues. ([Issue #179](https://github.com/drivendataorg/cloudpathlib/issues/179), [PR #342](https://github.com/drivendataorg/cloudpathlib/pull/342))
+ - Add `with_stem` to all path types when python version supports it (>=3.9). ([Issue #287](https://github.com/drivendataorg/cloudpathlib/issues/287), [PR #290](https://github.com/drivendataorg/cloudpathlib/pull/290), thanks to [@Gilthans](https://github.com/Gilthans)) 
 
 ## v0.15.1 (2023-07-12)
 

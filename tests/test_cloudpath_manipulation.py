@@ -27,6 +27,13 @@ def test_with_suffix(rig):
     )
 
 
+def test_with_stem(rig):
+    assert (
+        str(rig.create_cloud_path("a/b/c/old.file").with_stem("new"))
+        == f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/a/b/c/new.file"
+    )
+
+
 def test_no_op_actions(rig):
     path = rig.create_cloud_path("a/b/c/d.file")
     assert path == path.absolute()
