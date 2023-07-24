@@ -760,7 +760,10 @@ class CloudPath(metaclass=CloudPathMeta):
         return self._dispatch_to_path("suffixes")
 
     def with_stem(self, stem: str) -> Self:
-        return self._dispatch_to_path("with_stem", stem)
+        try:
+            return self._dispatch_to_path("with_stem", stem)
+        except AttributeError:
+            return self.with_name(stem + self.suffix)
 
     def with_name(self, name: str) -> Self:
         return self._dispatch_to_path("with_name", name)
