@@ -761,6 +761,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#cloudpathlib.cloudpath.CloudPath.with_stem" class="md-nav__link">
+    with_stem()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#cloudpathlib.cloudpath.CloudPath.with_suffix" class="md-nav__link">
     with_suffix()
   </a>
@@ -1469,6 +1476,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#cloudpathlib.cloudpath.CloudPath.with_stem" class="md-nav__link">
+    with_stem()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#cloudpathlib.cloudpath.CloudPath.with_suffix" class="md-nav__link">
     with_suffix()
   </a>
@@ -2114,6 +2128,13 @@ storage URI (e.g., <code>"s3://"</code>).</p>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">suffixes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;suffixes&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">with_stem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stem</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;with_stem&quot;</span><span class="p">,</span> <span class="n">stem</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c1"># with_stem was only added in python 3.9, so we fallback for compatibility</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="n">stem</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">with_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;with_name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
@@ -4044,6 +4065,35 @@ https://docs.pydantic.dev/2.0/usage/types/custom/</p>
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">with_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;with_name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.cloudpath.CloudPath.with_stem" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">with_stem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stem</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
+
+
+<a href="#cloudpathlib.cloudpath.CloudPath.with_stem" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">with_stem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stem</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;with_stem&quot;</span><span class="p">,</span> <span class="n">stem</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="c1"># with_stem was only added in python 3.9, so we fallback for compatibility</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="n">stem</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>
 </code></pre></div>
         </details>
     </div>
