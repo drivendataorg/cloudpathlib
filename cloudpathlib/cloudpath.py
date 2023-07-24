@@ -763,6 +763,7 @@ class CloudPath(metaclass=CloudPathMeta):
         try:
             return self._dispatch_to_path("with_stem", stem)
         except AttributeError:
+            # with_stem was only added in python 3.9, so we fallback for compatibility
             return self.with_name(stem + self.suffix)
 
     def with_name(self, name: str) -> Self:
