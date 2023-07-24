@@ -759,6 +759,13 @@ class CloudPath(metaclass=CloudPathMeta):
     def suffixes(self) -> List[str]:
         return self._dispatch_to_path("suffixes")
 
+    def with_stem(self, stem: str) -> Self:
+        try:
+            return self._dispatch_to_path("with_stem", stem)
+        except AttributeError:
+            # with_stem was only added in python 3.9, so we fallback for compatibility
+            return self.with_name(stem + self.suffix)
+
     def with_name(self, name: str) -> Self:
         return self._dispatch_to_path("with_name", name)
 

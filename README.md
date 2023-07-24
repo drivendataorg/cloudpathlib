@@ -161,6 +161,7 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `touch`                | ✅                | ✅         | ✅         |
 | `unlink`               | ✅                | ✅         | ✅         |
 | `with_name`            | ✅                | ✅         | ✅         |
+| `with_stem`            | ✅                | ✅         | ✅         |
 | `with_suffix`          | ✅                | ✅         | ✅         |
 | `write_bytes`          | ✅                | ✅         | ✅         |
 | `write_text`           | ✅                | ✅         | ✅         |
@@ -184,7 +185,7 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `readlink`             | ❌                | ❌         | ❌         |
 | `root`                 | ❌                | ❌         | ❌         |
 | `symlink_to`           | ❌                | ❌         | ❌         |
-| `with_stem`            | ❌                | ❌         | ❌         |
+| `clear_cache`          | ✅                | ✅         | ✅         |
 | `cloud_prefix`         | ✅                | ✅         | ✅         |
 | `copy`                 | ✅                | ✅         | ✅         |
 | `copytree`             | ✅                | ✅         | ✅         |
@@ -194,6 +195,7 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `is_valid_cloudpath`   | ✅                | ✅         | ✅         |
 | `rmtree`               | ✅                | ✅         | ✅         |
 | `upload_from`          | ✅                | ✅         | ✅         |
+| `validate`             | ✅                | ✅         | ✅         |
 | `blob`                 | ✅                | ❌         | ✅         |
 | `bucket`               | ❌                | ✅         | ✅         |
 | `container`            | ✅                | ❌         | ❌         |
