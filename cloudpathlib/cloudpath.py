@@ -559,7 +559,7 @@ class CloudPath(metaclass=CloudPathMeta):
         return buffer
 
     def replace(self, target: Self) -> Self:
-        if type(self) is type(target):
+        if type(self) is not type(target):
             raise TypeError(
                 f"The target based to rename must be an instantiated class of type: {type(self)}"
             )
