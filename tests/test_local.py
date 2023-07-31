@@ -36,7 +36,7 @@ def test_interface(cloud_class, local_class):
         cloud_attr = getattr(cloud_class, attr_name)
         local_attr = getattr(local_class, attr_name)
 
-        assert type(cloud_attr) == type(local_attr)
+        assert type(cloud_attr) is type(local_attr)
         if callable(cloud_attr):
             assert signature(cloud_attr).parameters == signature(local_attr).parameters
 
