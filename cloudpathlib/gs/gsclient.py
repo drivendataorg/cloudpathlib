@@ -72,7 +72,8 @@ class GSClient(Client):
                 [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information
                 about the options in cloudpathlib.eums.FileCacheMode.
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
-                for downloaded files. If None, will use a temporary directory.
+                for downloaded files. If None, will use a temporary directory. Default can be set with
+                the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
         """

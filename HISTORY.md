@@ -5,6 +5,7 @@
  - Add `with_stem` to all path types when python version supports it (>=3.9). ([Issue #287](https://github.com/drivendataorg/cloudpathlib/issues/287), [PR #290](https://github.com/drivendataorg/cloudpathlib/pull/290), thanks to [@Gilthans](https://github.com/Gilthans)) 
  - Add `newline` parameter to the `write_text` method to align to `pathlib` functionality as of Python 3.10. [PR #362]https://github.com/drivendataorg/cloudpathlib/pull/362), thanks to [@pricemg](https://github.com/pricemg).
  - Add support for Python 3.12 ([PR #364](https://github.com/drivendataorg/cloudpathlib/pull/364))
+ - Add `CLOUDPATHLIB_LOCAL_CACHE_DIR` env var for setting local_cache_dir default for clients ([Issue #352](https://github.com/drivendataorg/cloudpathlib/issues/352), [PR #357](https://github.com/drivendataorg/cloudpathlib/pull/357))
 
 ## v0.15.1 (2023-07-12)
 

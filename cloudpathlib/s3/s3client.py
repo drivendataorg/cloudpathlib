@@ -66,7 +66,8 @@ class S3Client(Client):
                 [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information
                 about the options in cloudpathlib.eums.FileCacheMode.
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
-                for downloaded files. If None, will use a temporary directory.
+                for downloaded files. If None, will use a temporary directory. Default can be set with
+                the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
             endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.
                 Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.
             boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing
