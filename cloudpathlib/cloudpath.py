@@ -639,7 +639,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
         encoding = io.text_encoding(encoding)
 
-        with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+        with self.open(mode="w", encoding=encoding, errors=errors, newline=newline) as f:
             return f.write(data)
 
     def read_bytes(self) -> bytes:
