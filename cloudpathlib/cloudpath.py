@@ -2,7 +2,6 @@ import abc
 from collections import defaultdict
 import collections.abc
 from contextlib import contextmanager
-import io
 import os
 from pathlib import (  # type: ignore
     Path,
@@ -636,8 +635,6 @@ class CloudPath(metaclass=CloudPathMeta):
         """
         if not isinstance(data, str):
             raise TypeError("data must be str, not %s" % data.__class__.__name__)
-
-        encoding = io.text_encoding(encoding)
 
         with self.open(mode="w", encoding=encoding, errors=errors, newline=newline) as f:
             return f.write(data)
