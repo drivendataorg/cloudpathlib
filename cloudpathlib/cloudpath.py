@@ -626,15 +626,17 @@ class CloudPath(metaclass=CloudPathMeta):
         data: str,
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
+        newline: Optional[str] = None,
     ) -> int:
         """Open the file in text mode, write to it, and close the file.
 
         NOTE: vendored from pathlib since we override open
-        https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1244-L1252
+        https://github.com/python/cpython/blob/3.10/Lib/pathlib.py#L1146-L1155
         """
         if not isinstance(data, str):
             raise TypeError("data must be str, not %s" % data.__class__.__name__)
-        with self.open(mode="w", encoding=encoding, errors=errors) as f:
+
+        with self.open(mode="w", encoding=encoding, errors=errors, newline=newline) as f:
             return f.write(data)
 
     def read_bytes(self) -> bytes:
