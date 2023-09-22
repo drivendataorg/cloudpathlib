@@ -1,6 +1,6 @@
 import inspect
 import os
-from pathlib import Path, PurePath
+from pathlib import PurePath
 import re
 
 import pytest
