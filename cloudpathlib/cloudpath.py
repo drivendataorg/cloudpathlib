@@ -47,7 +47,7 @@ else:
 if sys.version_info >= (3, 12):
     from pathlib import posixpath as _posix_flavour  # type: ignore[attr-defined]
 else:
-    from pathlib import _posix_flavour
+    from pathlib import _posix_flavour  # type: ignore[attr-defined]
 
 
 from cloudpathlib.enums import FileCacheMode
