@@ -1244,7 +1244,6 @@ class _CloudPathSelectable:
     def scandir(
         root: "_CloudPathSelectable",
     ) -> Generator[Generator["_CloudPathSelectable", None, None], None, None]:
-        print("scandir on ", root)
         yield (
             _CloudPathSelectable(child, root._parents + [root._name], grand_children)
             for child, grand_children in root._all_children.items()
