@@ -45,7 +45,7 @@ else:
     from typing_extensions import Self
 
 if sys.version_info >= (3, 12):
-    from pathlib import posixpath as _posix_flavour
+    from pathlib import posixpath as _posix_flavour  # type: ignore[attr-defined]
 else:
     from pathlib import _posix_flavour
 
@@ -730,7 +730,7 @@ class CloudPath(metaclass=CloudPathMeta):
             raise ValueError(
                 f"{self} is a {self.cloud_prefix} path, but {other} is a {other.cloud_prefix} path"
             )
-        return self._path.relative_to(other._path, walk_up=walk_up)
+        return self._path.relative_to(other._path, walk_up=walk_up)  # type: ignore[call-arg]
 
     def is_relative_to(self, other: Self) -> bool:
         try:
