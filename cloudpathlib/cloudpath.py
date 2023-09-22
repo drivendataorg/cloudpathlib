@@ -451,11 +451,15 @@ class CloudPath(metaclass=CloudPathMeta):
             # select_from returns self.name/... so strip before joining
             yield (self / str(p)[len(self.name) + 1 :])
 
-    def glob(self, pattern: str, case_sensitive: Optional[bool] = None) -> Generator[Self, None, None]:
+    def glob(
+        self, pattern: str, case_sensitive: Optional[bool] = None
+    ) -> Generator[Self, None, None]:
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
-        selector = _make_selector(tuple(pattern_parts), _posix_flavour, case_sensitive=case_sensitive)
+        selector = _make_selector(
+            tuple(pattern_parts), _posix_flavour, case_sensitive=case_sensitive
+        )
 
         yield from self._glob(
             selector,
@@ -464,11 +468,15 @@ class CloudPath(metaclass=CloudPathMeta):
             in pattern,  # recursive listing needed if explicit ** or any sub folder in pattern
         )
 
-    def rglob(self, pattern: str, case_sensitive: Optional[bool] = None) -> Generator[Self, None, None]:
+    def rglob(
+        self, pattern: str, case_sensitive: Optional[bool] = None
+    ) -> Generator[Self, None, None]:
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
-        selector = _make_selector(("**",) + tuple(pattern_parts), _posix_flavour, case_sensitive=case_sensitive)
+        selector = _make_selector(
+            ("**",) + tuple(pattern_parts), _posix_flavour, case_sensitive=case_sensitive
+        )
 
         yield from self._glob(selector, True)
 
@@ -653,6 +661,9 @@ class CloudPath(metaclass=CloudPathMeta):
         with self.open(mode="r", encoding=encoding, errors=errors) as f:
             return f.read()
 
+    def is_junction(self):
+        return False  # only windows paths can be junctions, not cloudpaths
+
     # ====================== DISPATCHED TO POSIXPATH FOR PURE PATHS ======================
     # Methods that are dispatched to exactly how pathlib.PurePosixPath would calculate it on
     # self._path for pure paths (does not matter if file exists);
@@ -698,8 +709,8 @@ class CloudPath(metaclass=CloudPathMeta):
 
         return self._dispatch_to_path("__truediv__", other)
 
-    def joinpath(self, *args: Union[str, os.PathLike]) -> Self:
-        return self._dispatch_to_path("joinpath", *args)
+    def joinpath(self, *pathsegments: Union[str, os.PathLike]) -> Self:
+        return self._dispatch_to_path("joinpath", *pathsegments)
 
     def absolute(self) -> Self:
         return self
@@ -710,7 +721,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def resolve(self, strict: bool = False) -> Self:
         return self
 
-    def relative_to(self, other: Self) -> PurePosixPath:
+    def relative_to(self, other: Self, walk_up: bool = False) -> PurePosixPath:
         # We don't dispatch regularly since this never returns a cloud path (since it is relative, and cloud paths are
         # absolute)
         if not isinstance(other, CloudPath):
@@ -719,7 +730,7 @@ class CloudPath(metaclass=CloudPathMeta):
             raise ValueError(
                 f"{self} is a {self.cloud_prefix} path, but {other} is a {other.cloud_prefix} path"
             )
-        return self._path.relative_to(other._path)
+        return self._path.relative_to(other._path, walk_up=walk_up)
 
     def is_relative_to(self, other: Self) -> bool:
         try:
@@ -732,12 +743,12 @@ class CloudPath(metaclass=CloudPathMeta):
     def name(self) -> str:
         return self._dispatch_to_path("name")
 
-    def match(self, path_pattern: str) -> bool:
+    def match(self, path_pattern: str, case_sensitive: Optional[bool] = None) -> bool:
         # strip scheme from start of pattern before testing
         if path_pattern.startswith(self.anchor + self.drive + "/"):
             path_pattern = path_pattern[len(self.anchor + self.drive + "/") :]
 
-        return self._dispatch_to_path("match", path_pattern)
+        return self._dispatch_to_path("match", path_pattern, case_sensitive=case_sensitive)
 
     @property
     def parent(self) -> Self:
@@ -776,6 +787,9 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def with_name(self, name: str) -> Self:
         return self._dispatch_to_path("with_name", name)
+
+    def with_segments(self, *pathsegments) -> Self:
+        return self._new_cloudpath("/".join(pathsegments))
 
     def with_suffix(self, suffix: str) -> Self:
         return self._dispatch_to_path("with_suffix", suffix)
@@ -1257,7 +1271,7 @@ class _CloudPathSelectable:
         with self.scandir(self) as items:
             for child in items:
                 dirs_files[child.is_dir()].append(child)
-            
+
             # top-down, so yield self before recursive call
             yield self, [f.name for f in dirs_files[True]], [f.name for f in dirs_files[False]]
 
