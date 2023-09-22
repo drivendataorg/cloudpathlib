@@ -9,9 +9,9 @@ from pathlib import (  # type: ignore
     PurePosixPath,
     WindowsPath,
     _make_selector,
-    _posix_flavour,
     _PathParents,
 )
+
 import shutil
 import sys
 from typing import (
@@ -43,6 +43,12 @@ if sys.version_info >= (3, 11):
     from typing import Self
 else:
     from typing_extensions import Self
+
+if sys.version_info >= (3, 12):
+    from pathlib import posixpath as _posix_flavour
+else:
+    from pathlib import _posix_flavour
+
 
 from cloudpathlib.enums import FileCacheMode
 
@@ -445,11 +451,11 @@ class CloudPath(metaclass=CloudPathMeta):
             # select_from returns self.name/... so strip before joining
             yield (self / str(p)[len(self.name) + 1 :])
 
-    def glob(self, pattern: str) -> Generator[Self, None, None]:
+    def glob(self, pattern: str, case_sensitive: Optional[bool] = None) -> Generator[Self, None, None]:
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
-        selector = _make_selector(tuple(pattern_parts), _posix_flavour)
+        selector = _make_selector(tuple(pattern_parts), _posix_flavour, case_sensitive=case_sensitive)
 
         yield from self._glob(
             selector,
@@ -458,11 +464,11 @@ class CloudPath(metaclass=CloudPathMeta):
             in pattern,  # recursive listing needed if explicit ** or any sub folder in pattern
         )
 
-    def rglob(self, pattern: str) -> Generator[Self, None, None]:
+    def rglob(self, pattern: str, case_sensitive: Optional[bool] = None) -> Generator[Self, None, None]:
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
-        selector = _make_selector(("**",) + tuple(pattern_parts), _posix_flavour)
+        selector = _make_selector(("**",) + tuple(pattern_parts), _posix_flavour, case_sensitive=case_sensitive)
 
         yield from self._glob(selector, True)
 
@@ -1238,9 +1244,23 @@ class _CloudPathSelectable:
     def scandir(
         root: "_CloudPathSelectable",
     ) -> Generator[Generator["_CloudPathSelectable", None, None], None, None]:
+        print("scandir on ", root)
         yield (
             _CloudPathSelectable(child, root._parents + [root._name], grand_children)
             for child, grand_children in root._all_children.items()
         )
 
     _scandir = scandir  # Py 3.11 compatibility
+
+    def walk(self):
+        # split into dirs and files
+        dirs_files = defaultdict(list)
+        with self.scandir(self) as items:
+            for child in items:
+                dirs_files[child.is_dir()].append(child)
+            
+            # top-down, so yield self before recursive call
+            yield self, [f.name for f in dirs_files[True]], [f.name for f in dirs_files[False]]
+
+            for child_dir in dirs_files[True]:
+                yield from child_dir.walk()
