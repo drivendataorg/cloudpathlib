@@ -121,7 +121,9 @@ def test_public_interface_is_superset(rig):
             # all parameters for Path method should be part of CloudPath signature
             for parameter in lp_signature.parameters:
                 # some parameters like _deprecated in Path.is_relative_to are not really part of the signature
-                if parameter.startswith("_"):
+                if parameter.startswith("_") or (
+                    name == "joinpath" and parameter in ["args", "pathsegments"]
+                ):  # handle arg name change in 3.12
                     continue
 
                 assert (
@@ -130,6 +132,12 @@ def test_public_interface_is_superset(rig):
 
             # extra parameters for CloudPath method should be optional with defaults
             for parameter, param_details in cp_signature.parameters.items():
+                if name == "joinpath" and parameter in [
+                    "args",
+                    "pathsegments",
+                ]:  # handle arg name change in 3.12
+                    continue
+
                 if parameter not in lp_signature.parameters:
                     assert (
                         param_details.default is not inspect.Parameter.empty

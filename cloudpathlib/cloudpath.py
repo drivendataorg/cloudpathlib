@@ -8,7 +8,6 @@ from pathlib import (  # type: ignore
     PosixPath,
     PurePosixPath,
     WindowsPath,
-    _make_selector,
     _PathParents,
 )
 
@@ -46,8 +45,13 @@ else:
 
 if sys.version_info >= (3, 12):
     from pathlib import posixpath as _posix_flavour  # type: ignore[attr-defined]
+    from pathlib import _make_selector  # type: ignore[attr-defined]
 else:
     from pathlib import _posix_flavour  # type: ignore[attr-defined]
+    from pathlib import _make_selector as _make_selector_pathlib  # type: ignore[attr-defined]
+
+    def _make_selector(pattern_parts, _flavour, case_sensitive=True):
+        return _make_selector_pathlib(tuple(pattern_parts), _flavour)
 
 
 from cloudpathlib.enums import FileCacheMode
@@ -730,7 +734,13 @@ class CloudPath(metaclass=CloudPathMeta):
             raise ValueError(
                 f"{self} is a {self.cloud_prefix} path, but {other} is a {other.cloud_prefix} path"
             )
-        return self._path.relative_to(other._path, walk_up=walk_up)  # type: ignore[call-arg]
+
+        kwargs = dict(walk_up=walk_up)
+
+        if sys.version_info < (3, 12):
+            kwargs.pop("walk_up")
+
+        return self._path.relative_to(other._path, **kwargs)  # type: ignore[call-arg]
 
     def is_relative_to(self, other: Self) -> bool:
         try:
@@ -748,7 +758,12 @@ class CloudPath(metaclass=CloudPathMeta):
         if path_pattern.startswith(self.anchor + self.drive + "/"):
             path_pattern = path_pattern[len(self.anchor + self.drive + "/") :]
 
-        return self._dispatch_to_path("match", path_pattern, case_sensitive=case_sensitive)
+        kwargs = dict(case_sensitive=case_sensitive)
+
+        if sys.version_info < (3, 12):
+            kwargs.pop("case_sensitive")
+
+        return self._dispatch_to_path("match", path_pattern, **kwargs)
 
     @property
     def parent(self) -> Self:
