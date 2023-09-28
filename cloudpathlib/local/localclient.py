@@ -7,11 +7,11 @@ import shutil
 from tempfile import TemporaryDirectory
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
-from ..client import Client
+from ..client import Client, register_client_class
 from ..enums import FileCacheMode
 from .localpath import LocalPath
 
-
+@register_client_class("local")
 class LocalClient(Client):
     """Abstract client for accessing objects the local filesystem. Subclasses are as a monkeypatch
     substitutes for normal Client subclasses when writing tests."""
@@ -156,6 +156,9 @@ class LocalClient(Client):
             "content_type": content_type_method(str(self._cloud_path_to_local(cloud_path)))[0],
         }
 
+@register_client_class("localuri")
+class LocalUriClient(LocalClient):
+    pass
 
 _temp_dirs_to_clean: List[TemporaryDirectory] = []
 
