@@ -122,13 +122,20 @@ def _assert_glob_results_match(cloud_results, local_results, cloud_root, local_r
 
 
 def _assert_walk_results_match(cloud_results, local_results, cloud_root, local_root):
-    for (cloud_item, cloud_dirs, cloud_files), (local_item, local_dirs, local_files) in zip(
-        cloud_results, local_results
-    ):
-        # check items returned by walk by stripping the root and comparing strings
-        assert _lstrip_path_root(cloud_item, cloud_root) == _lstrip_path_root(
-            Path(local_item).as_posix(), local_root
-        )
+    # order not guaranteed, so strip use top as keys for matching
+    cloud_results = {
+        _lstrip_path_root(top, cloud_root): [dirs, files] for top, dirs, files in cloud_results
+    }
+    local_results = {
+        _lstrip_path_root(Path(top).as_posix(), local_root): [dirs, files]
+        for top, dirs, files in local_results
+    }
+
+    assert set(cloud_results.keys()) == set(local_results.keys())
+
+    for top in local_results:
+        local_dirs, local_files = local_results[top]
+        cloud_dirs, cloud_files = cloud_results[top]
 
         assert set(cloud_dirs) == set(local_dirs)  # order not guaranteed
         assert set(local_files) == set(cloud_files)  # order not guaranteed
