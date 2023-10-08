@@ -1,6 +1,6 @@
 from datetime import datetime
 import os
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 import pickle
 from shutil import rmtree
 from time import sleep
@@ -126,7 +126,7 @@ def _assert_walk_results_match(cloud_results, local_results, cloud_root, local_r
     ):
         # check items returned by walk by stripping the root and comparing strings
         assert _lstrip_path_root(cloud_item, cloud_root) == _lstrip_path_root(
-            local_item.as_posix(), local_root
+            Path(local_item).as_posix(), local_root
         )
 
         assert cloud_dirs == local_dirs
@@ -154,9 +154,20 @@ def test_iterdir(glob_test_dirs):
 
 def test_walk(glob_test_dirs):
     cloud_root, local_root = glob_test_dirs
-    _assert_walk_results_match(cloud_root.walk(), local_root.walk(), cloud_root, local_root)
+
+    # walk only natively available in python 3.12+
+    local_results = local_root.walk() if hasattr(local_root, "walk") else os.walk(local_root)
+
+    _assert_walk_results_match(cloud_root.walk(), local_results, cloud_root, local_root)
+
+    local_results = (
+        local_root.walk(top_down=False)
+        if hasattr(local_root, "walk")
+        else os.walk(local_root, topdown=False)
+    )
+
     _assert_walk_results_match(
-        cloud_root.walk(top_down=False), local_root.walk(top_down=False), cloud_root, local_root
+        cloud_root.walk(top_down=False), local_results, cloud_root, local_root
     )
 
 
