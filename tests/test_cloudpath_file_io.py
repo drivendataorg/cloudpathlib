@@ -104,11 +104,12 @@ def glob_test_dirs(rig, tmp_path):
     rmtree(local_root)
 
 
-def _assert_glob_results_match(cloud_results, local_results, cloud_root, local_root):
-    def _lstrip_path_root(path, root):
-        rel_path = str(path)[len(str(root)) :]
-        return rel_path.rstrip("/")  # agnostic to trailing slash
+def _lstrip_path_root(path, root):
+    rel_path = str(path)[len(str(root)) :]
+    return rel_path.rstrip("/")  # agnostic to trailing slash
 
+
+def _assert_glob_results_match(cloud_results, local_results, cloud_root, local_root):
     local_results_no_root = [_lstrip_path_root(c.as_posix(), local_root) for c in local_results]
     cloud_results_no_root = [_lstrip_path_root(c, cloud_root) for c in cloud_results]
 
@@ -117,6 +118,19 @@ def _assert_glob_results_match(cloud_results, local_results, cloud_root, local_r
 
     # check that contents are the same regardless of order
     assert set(local_results_no_root) == set(cloud_results_no_root)
+
+
+def _assert_walk_results_match(cloud_results, local_results, cloud_root, local_root):
+    for (cloud_item, cloud_dirs, cloud_files), (local_item, local_dirs, local_files) in zip(
+        cloud_results, local_results
+    ):
+        # check items returned by walk by stripping the root and comparing strings
+        assert _lstrip_path_root(cloud_item, cloud_root) == _lstrip_path_root(
+            local_item.as_posix(), local_root
+        )
+
+        assert cloud_dirs == local_dirs
+        assert local_files == cloud_files
 
 
 def test_iterdir(glob_test_dirs):
@@ -135,6 +149,14 @@ def test_iterdir(glob_test_dirs):
         (local_root / "dirC" / "dirD").iterdir(),
         cloud_root,
         local_root,
+    )
+
+
+def test_walk(glob_test_dirs):
+    cloud_root, local_root = glob_test_dirs
+    _assert_walk_results_match(cloud_root.walk(), local_root.walk(), cloud_root, local_root)
+    _assert_walk_results_match(
+        cloud_root.walk(top_down=False), local_root.walk(top_down=False), cloud_root, local_root
     )
 
 
