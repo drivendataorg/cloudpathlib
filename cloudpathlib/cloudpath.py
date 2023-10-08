@@ -494,8 +494,8 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @staticmethod
     def _walk_results_from_tree(root, tree, top_down=True):
-        """ Utility to yield tuples in the form expected by `.walk` from the file
-            tree constructed by `_build_substree`.
+        """Utility to yield tuples in the form expected by `.walk` from the file
+        tree constructed by `_build_substree`.
         """
         dirs = []
         files = []
