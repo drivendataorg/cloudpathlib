@@ -416,7 +416,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 ".glob is only supported within a bucket or container; you can use `.iterdir` to list buckets; for example, CloudPath('s3://').iterdir()"
             )
 
-    def _glob(self, selector, recursive: bool) -> Generator[Self, None, None]:
+    def _build_subtree(self, recursive):
         # build a tree structure for all files out of default dicts
         Tree: Callable = lambda: defaultdict(Tree)
 
@@ -443,7 +443,10 @@ class CloudPath(metaclass=CloudPathMeta):
             nodes = (p for p in parts)
             _build_tree(file_tree, next(nodes, None), nodes, is_dir)
 
-        file_tree = dict(file_tree)  # freeze as normal dict before passing in
+        return dict(file_tree)  # freeze as normal dict before passing in
+
+    def _glob(self, selector, recursive: bool) -> Generator[Self, None, None]:
+        file_tree = self._build_subtree(recursive)
 
         root = _CloudPathSelectable(
             self.name,
@@ -488,6 +491,41 @@ class CloudPath(metaclass=CloudPathMeta):
         for f, _ in self.client._list_dir(self, recursive=False):
             if f != self:  # iterdir does not include itself in pathlib
                 yield f
+
+    @staticmethod
+    def _walk_results_from_tree(root, tree, top_down=True):
+        """ Utility to yield tuples in the form expected by `.walk` from the file
+            tree constructed by `_build_substree`.
+        """
+        dirs = []
+        files = []
+        for item, branch in tree.items():
+            files.append(item) if branch is None else dirs.append(item)
+
+        if top_down:
+            yield root, dirs, files
+
+        for dir in dirs:
+            yield from CloudPath._walk_results_from_tree(root / dir, tree[dir], top_down=top_down)
+
+        if not top_down:
+            yield root, dirs, files
+
+    def walk(
+        self,
+        top_down: bool = True,
+        on_error: Optional[Callable] = None,
+        follow_symlinks: bool = False,
+    ) -> Generator[Tuple[Self, List[str], List[str]], None, None]:
+        try:
+            file_tree = self._build_subtree(recursive=True)  # walking is always recursive
+            yield from self._walk_results_from_tree(self, file_tree, top_down=top_down)
+
+        except Exception as e:
+            if on_error is not None:
+                on_error(e)
+            else:
+                raise
 
     def open(
         self,
