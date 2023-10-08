@@ -352,6 +352,8 @@ class CloudPath(metaclass=CloudPathMeta):
     # owner - no cloud equivalent
     # root - drive already has the bucket and anchor/prefix has the scheme, so nothing to store here
     # symlink_to - no cloud equivalent
+    # link_to - no cloud equivalent
+    # hardlink_to - no cloud equivalent
 
     # ====================== REQUIRED, NOT GENERIC ======================
     # Methods that must be implemented, but have no generic application
