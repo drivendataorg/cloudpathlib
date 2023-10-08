@@ -225,7 +225,7 @@ def test_glob(glob_test_dirs):
     )
 
     # 3.12+ kwargs
-    if sys.version_info < (3, 12):
+    if sys.version_info >= (3, 12):
         _check_glob("dir*/FILE*", "glob", case_sensitive=False)
         _check_glob("dir*/file*", "glob", case_sensitive=True)
         _check_glob("dir*/FILE*", "rglob", case_sensitive=False)

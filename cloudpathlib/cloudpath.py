@@ -844,6 +844,9 @@ class CloudPath(metaclass=CloudPathMeta):
         return self._dispatch_to_path("with_name", name)
 
     def with_segments(self, *pathsegments) -> Self:
+        """Create a new CloudPath with the same client out of the given segments.
+        The first segment will be interpreted as the bucket/container name.
+        """
         return self._new_cloudpath("/".join(pathsegments))
 
     def with_suffix(self, suffix: str) -> Self:
