@@ -23,6 +23,7 @@ nav:
   - Other Client settings: "other_client_settings.md"
   - Testing code that uses cloudpathlib: "testing_mocked_cloudpathlib.ipynb"
   - Integrations: "integrations.md"
+  - Contributing: "contributing.md"
   - Changelog: "changelog.md"
   - API Reference:
       - CloudPath: "api-reference/cloudpath.md"
