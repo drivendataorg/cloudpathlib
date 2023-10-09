@@ -48,6 +48,13 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         if file_cache_mode is None:
             file_cache_mode = FileCacheMode.from_environment()
 
+        if local_cache_dir is None:
+            local_cache_dir = os.environ.get("CLOUDPATHLIB_LOCAL_CACHE_DIR", None)
+
+            # treat empty string as None to avoid writing cache in cwd; set to "." for cwd
+            if local_cache_dir == "":
+                local_cache_dir = None
+
         # explicitly passing a cache dir, so we set to persistent
         # unless user explicitly passes a different file cache mode
         if local_cache_dir and file_cache_mode is None:

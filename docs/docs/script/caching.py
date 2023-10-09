@@ -85,7 +85,7 @@ get_ipython().run_cell_magic('time', '', 'with flood_image.open("rb") as f:\n   
 # 
 # However, sometimes I don't want to have to re-download files I know won't change. For example, in the LADI dataset, I may want to use the images in a Jupyter notebook and every time I restart the notebook I want to always have the downloaded files. I don't want to ever re-download since I know the LADI images won't be changing on S3. I want these to be there, even if I restart my whole machine.
 # 
-# We can do this just by using a `Client` that does all the downloading/uploading to a specfic folder on our local machine.
+# We can do this just by using a `Client` that does all the downloading/uploading to a specfic folder on our local machine. We set the cache folder by passing `local_cache_dir` to the `Client` when instantiating. You can also set a default for all clients by setting the `CLOUDPATHLIB_LOCAL_CACHE_DIR` to a path. (This is only recommended with (1) an absolute path, so you know where the cache is no matter where your code is running, and (2) if you only use the default client for one cloud provider and don't instantiate multiple. In this case, the clients will use the same cache dir and could overwrite each other's content. Setting `CLOUDPATHLIB_LOCAL_CACHE_DIR` to an empty string will be treated as it not being set.)
 
 from cloudpathlib import S3Client
 
