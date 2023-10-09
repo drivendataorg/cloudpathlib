@@ -46,7 +46,7 @@ This will also install an editable version of `cloudpathlib` with all the extras
 
 ### Adding dependencies
 
-We want `cloudpathlib` to be as lightweight as possible. Our strong preference is to not take any external dependencies for the library outside of the official SDK for the cloud provider. If you want to add a dependency, please open an issue to discuss it first. Library depencies are tracked in `pyproject.toml`.
+We want `cloudpathlib` to be as lightweight as possible. Our strong preference is to not take any external dependencies for the library outside of the official software development kit (SDK) for the cloud provider. If you want to add a dependency, please open an issue to discuss it first. Library depencies are tracked in `pyproject.toml`.
 
 Dependencies that are only needed for building documentation, development, linting, formatting, or testing can be added to `requirements-dev.txt`, and are not subject to the same scrutiny.
 
@@ -142,7 +142,7 @@ new_client = rig.client_class()
 
 #### Interactive testing
 
-By default, we `.gitignore` a file called `sandbox.ipynb` in the root of the project. This is a Jupyter notebook that you can use to interactively test the library. You can import the library and run commands in the notebook to test functionality. This is useful for testing new features or debugging issues.
+To interactively test the library, we recommend creating a Jupyter notebook in the root of the project called `sandbox.ipynb`. We `.gitignore` a `sandbox.ipynb` file by default for this purpose. You can import the library and run commands in the notebook to test functionality. This is useful for testing new features or debugging issues.
 
 It's best to start the notebook with cells to autoreload the library:
 
@@ -162,7 +162,7 @@ cp = CloudPath("s3://my-test-bucket/")
 
 ### Credentials and cloud access
 
-For certain tests and development scenarios, you will need to have access to the relevant cloud provider. You can put the authentication credentials into a `.env` file in the root of the project. The `.env` file is ignored by git, so you can put your credentials there without worrying about them being committed. See the [authentication documentation]() for information on what variables to set.
+For certain tests and development scenarios, you will need to have access to the relevant cloud provider. You can put the authentication credentials into a `.env` file in the root of the project. The `.env` file is ignored by git, so you can put your credentials there without worrying about them being committed. See the [authentication documentation](https://cloudpathlib.drivendata.org/stable/authentication/) for information on what variables to set.
 
 If you need to test against a cloud provider you do not have access to, you can reach out to the maintainers, who may be willing to grant credentials for testing purposes.
 
@@ -176,7 +176,7 @@ The mocks are set up in each rig in `conftest.py` as long as `USE_LIVE_CLOUD` is
 
 #### Performance testing
 
-Listing files with `client._list_dir`, `CloudPath.glob`, `CloudPath.rglob`, and `CloudPath.walk` are all performance-sensitive operations for large directories on cloud storage. If you change code related to any of these methods, make sure to run the performance tests and include both the results on your machine before the change and the ones
+Listing files with `client._list_dir`, `CloudPath.glob`, `CloudPath.rglob`, and `CloudPath.walk` are all performance-sensitive operations for large directories on cloud storage. If you change code related to any of these methods, make sure to run the performance tests. In your PR description, include the results on your machine prior to making your changes and the results with your changes.
 
 These can be run with `make perf`. This will generate a report like:
 
@@ -235,7 +235,7 @@ Note that the main page (`index.md`), the changelog (`HISTORY.md`), and the cont
 
 Documentation pages can either be authored in normal Markdown or in a runnable jupyter notebook. Notebooks are useful for showing examples of how to use the library. You can see an example of a notebook in [`docs/docs/why_cloudpathlib.ipynb`](docs/docs/why_cloudpathlib.ipynb).
 
-Note: generating the documentation **does not** execute the notebook, it just converts them. You need to restart and run all notebook cells to make sure the notebook executes top-to-bottom and has the latest results before committing it.
+Note: generating the documentation **does not** execute any notebooks, it just converts them. You need to restart and run all notebook cells to make sure the notebook executes top-to-bottom and has the latest results before committing it.
 
 #### Docstrings
 
@@ -295,6 +295,7 @@ Each provider has its own `*Client` class that implements the interface defined 
 ### `CloudPath` abstraction
 
 The core [`cloudpath.py`](cloudpathlib/cloudpath.py) file provides most of the method implementations in a provider-agnostic way. Most feature changes will happen in the `CloudPath` class, unless there is a provider specific issue. There are a number of ways that functionality gets implemented:
+
  - Some methods are implemented from scratch for cloud paths
  - Some methods are implemented by calling the `pathlib.Path` version on either (1) the file in the cache if concrete, or (2) a `PurePosixPath` conversion of the CloudPath if not concrete.
  - Some methods that are not relevant for a cloud backend are not implemented and listed in the code.
@@ -305,11 +306,11 @@ Some methods are implemented on the `*Path` class for the specific provider. Thi
 
 ### Exceptions
 
-Different backends may raise different exception classses when something goes wrong. To make it easy for users to catch exceptions that are agnostic of the backend, we generally will catch and raise a specific exception from [`exceptions.py`](cloudpathlib/exceptions.py) for any exception that we understand. You can add exceptions to this file if you find you need a new one for a new features.
+Different backends may raise different exception classses when something goes wrong. To make it easy for users to catch exceptions that are agnostic of the backend, we generally will catch and raise a specific exception from [`exceptions.py`](cloudpathlib/exceptions.py) for any exception that we understand. You can add new exceptions to this file if any are needed for new features.
 
 ### Adding a new provider
 
-Adding a new provder is relatively straightforward. If you are extending `cloudpathlib`, but don't intend to make your provider part of the core library, you implement the following pieces:
+Adding a new provider is relatively straightforward. If you are extending `cloudpathlib`, but don't intend to make your provider part of the core library, implement the following pieces.
 
 #### A `*Client` class that inherits from `Client`
 
@@ -317,7 +318,7 @@ Adding a new provder is relatively straightforward. If you are extending `cloudp
 from cloudpathlib.client import Client
 
 class MyClient(Client):
-    # implemntation here...
+    # implementation here...
 ```
 
 #### A `*Path` class that inherits from `CloudPath`
@@ -332,7 +333,14 @@ class MyPath(CloudPath):
     # implementation here...
 ```
 
-This `*Path` class should also be registered, if you want dispatch from `CloudPath` to work.
+This `*Path` class should also be registered, if you want dispatch from `CloudPath` to work (see the next section).
+
+If you do intend to make your provider part of the code library, you will also need to do the following steps:
+
+ - Export the client and path classes in `cloudpathlib/__init__.py`
+ - Write a mock backend for local backend testing in `tests/mock_clients`
+ - Add a rig to run tests against the backend in `tests/conftest.py`
+ - Ensure documentation is updated
 
 ### Register your provider for dispatch from `CloudPath`
 
@@ -344,7 +352,7 @@ from cloudpathlib.cloudpath import CloudPath, register_path_class
 
 @register_client_class("my-prefix")
 class MyClient(Client):
-    # implemntation here...
+    # implementation here...
 
 @register_path_class("my-prefix")
 class MyPath(CloudPath):
