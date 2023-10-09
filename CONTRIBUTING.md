@@ -9,13 +9,26 @@ First, a few guidelines:
  - If you are looking just to make a contribution, look at issues with [label "good first issue"](https://github.com/drivendataorg/cloudpathlib/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 
 
+## How to contribute
+
+0. File an [issue](https://github.com/drivendataorg/cloudpathlib/issues). No PRs from outside contributors are accepted without an issue. We respect your time and want to make sure any work you do will be reviewed, so please wait for a maintainer to sign off on the issue before getting started. 
+1. Fork the repo, clone it locally, and create a [local environment](#local-development).
+2. Make changes in your local version of the repository.
+3. Make sure that the [tests](#tests) pass locally.
+4. Update the package [documentation](#documentation), if applicable.
+5. Go through the items in the final [PR checklist](#pr-checklist).
+6. [Submit a PR](#submitting-a-pr)
+ 
+For some guidance on working with the code, see the sections on [code standards](link to new section described below) and [code architecture](#code-architecture).
+
+
 ## Local development
 
 Create a Python environment to work in. If you're working on Windows, a bash shell will make your life easier. We recommend [git bash](https://gitforwindows.org/), [cygwin](https://www.cygwin.com/), or [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) so that you can use the `make` commands, but it is totally optional.
 
 You can see all the available developer commands by running `make`:
 
-```bash
+```
 ❯ make
 clean                remove all build, test, coverage and Python artifacts
 clean-build          remove build artifacts
