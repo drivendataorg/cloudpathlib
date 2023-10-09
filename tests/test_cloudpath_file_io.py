@@ -1,8 +1,9 @@
 from datetime import datetime
 import os
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 import pickle
 from shutil import rmtree
+import sys
 from time import sleep
 
 import pytest
@@ -104,11 +105,12 @@ def glob_test_dirs(rig, tmp_path):
     rmtree(local_root)
 
 
-def _assert_glob_results_match(cloud_results, local_results, cloud_root, local_root):
-    def _lstrip_path_root(path, root):
-        rel_path = str(path)[len(str(root)) :]
-        return rel_path.rstrip("/")  # agnostic to trailing slash
+def _lstrip_path_root(path, root):
+    rel_path = str(path)[len(str(root)) :]
+    return rel_path.rstrip("/")  # agnostic to trailing slash
 
+
+def _assert_glob_results_match(cloud_results, local_results, cloud_root, local_root):
     local_results_no_root = [_lstrip_path_root(c.as_posix(), local_root) for c in local_results]
     cloud_results_no_root = [_lstrip_path_root(c, cloud_root) for c in cloud_results]
 
@@ -117,6 +119,26 @@ def _assert_glob_results_match(cloud_results, local_results, cloud_root, local_r
 
     # check that contents are the same regardless of order
     assert set(local_results_no_root) == set(cloud_results_no_root)
+
+
+def _assert_walk_results_match(cloud_results, local_results, cloud_root, local_root):
+    # order not guaranteed, so strip use top as keys for matching
+    cloud_results = {
+        _lstrip_path_root(top, cloud_root): [dirs, files] for top, dirs, files in cloud_results
+    }
+    local_results = {
+        _lstrip_path_root(Path(top).as_posix(), local_root): [dirs, files]
+        for top, dirs, files in local_results
+    }
+
+    assert set(cloud_results.keys()) == set(local_results.keys())
+
+    for top in local_results:
+        local_dirs, local_files = local_results[top]
+        cloud_dirs, cloud_files = cloud_results[top]
+
+        assert set(cloud_dirs) == set(local_dirs)  # order not guaranteed
+        assert set(local_files) == set(cloud_files)  # order not guaranteed
 
 
 def test_iterdir(glob_test_dirs):
@@ -138,6 +160,25 @@ def test_iterdir(glob_test_dirs):
     )
 
 
+def test_walk(glob_test_dirs):
+    cloud_root, local_root = glob_test_dirs
+
+    # walk only natively available in python 3.12+
+    local_results = local_root.walk() if hasattr(local_root, "walk") else os.walk(local_root)
+
+    _assert_walk_results_match(cloud_root.walk(), local_results, cloud_root, local_root)
+
+    local_results = (
+        local_root.walk(top_down=False)
+        if hasattr(local_root, "walk")
+        else os.walk(local_root, topdown=False)
+    )
+
+    _assert_walk_results_match(
+        cloud_root.walk(top_down=False), local_results, cloud_root, local_root
+    )
+
+
 def test_list_buckets(rig):
     # test we can list buckets
     buckets = list(rig.path_class(f"{rig.path_class.cloud_prefix}").iterdir())
@@ -155,10 +196,10 @@ def test_glob(glob_test_dirs):
     # cases adapted from CPython glob tests:
     #  https://github.com/python/cpython/blob/7ffe7ba30fc051014977c6f393c51e57e71a6648/Lib/test/test_pathlib.py#L1634-L1720
 
-    def _check_glob(pattern, glob_method):
+    def _check_glob(pattern, glob_method, **kwargs):
         _assert_glob_results_match(
-            getattr(cloud_root, glob_method)(pattern),
-            getattr(local_root, glob_method)(pattern),
+            getattr(cloud_root, glob_method)(pattern, **kwargs),
+            getattr(local_root, glob_method)(pattern, **kwargs),
             cloud_root,
             local_root,
         )
@@ -189,6 +230,21 @@ def test_glob(glob_test_dirs):
     _assert_glob_results_match(
         dir_c_cloud.rglob("*/*"), dir_c_local.rglob("*/*"), dir_c_cloud, dir_c_local
     )
+
+    # 3.12+ kwargs
+    if sys.version_info >= (3, 12):
+        _check_glob("dir*/FILE*", "glob", case_sensitive=False)
+        _check_glob("dir*/file*", "glob", case_sensitive=True)
+        _check_glob("dir*/FILE*", "rglob", case_sensitive=False)
+        _check_glob("dir*/file*", "rglob", case_sensitive=True)
+
+        # test case insensitive for cloud; sensitive different pattern for local
+        _assert_glob_results_match(
+            dir_c_cloud.glob("FILE*", case_sensitive=False),
+            dir_c_local.glob("file*"),
+            dir_c_cloud,
+            dir_c_local,
+        )
 
 
 def test_glob_buckets(rig):

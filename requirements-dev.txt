@@ -20,7 +20,8 @@ pillow
 psutil
 pydantic
 pytest
-pytest-cases
+# pytest-cases
+git+https://github.com/jayqi/python-pytest-cases@packaging-version
 pytest-cov
 pytest-xdist
 python-dotenv

@@ -231,6 +231,7 @@ def test_interaction_with_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
     assert cp.client.file_cache_mode == FileCacheMode.tmp_dir
 
     # download from cloud into the cache
+    sleep(0.1)  # test can be flaky saing that the cache dir doesn't exist yet
     with cp.open("r") as f:
         _ = f.read()
 

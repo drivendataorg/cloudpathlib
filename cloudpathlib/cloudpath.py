@@ -8,10 +8,9 @@ from pathlib import (  # type: ignore
     PosixPath,
     PurePosixPath,
     WindowsPath,
-    _make_selector,
-    _posix_flavour,
     _PathParents,
 )
+
 import shutil
 import sys
 from typing import (
@@ -43,6 +42,17 @@ if sys.version_info >= (3, 11):
     from typing import Self
 else:
     from typing_extensions import Self
+
+if sys.version_info >= (3, 12):
+    from pathlib import posixpath as _posix_flavour  # type: ignore[attr-defined]
+    from pathlib import _make_selector  # type: ignore[attr-defined]
+else:
+    from pathlib import _posix_flavour  # type: ignore[attr-defined]
+    from pathlib import _make_selector as _make_selector_pathlib  # type: ignore[attr-defined]
+
+    def _make_selector(pattern_parts, _flavour, case_sensitive=True):
+        return _make_selector_pathlib(tuple(pattern_parts), _flavour)
+
 
 from cloudpathlib.enums import FileCacheMode
 
@@ -342,6 +352,8 @@ class CloudPath(metaclass=CloudPathMeta):
     # owner - no cloud equivalent
     # root - drive already has the bucket and anchor/prefix has the scheme, so nothing to store here
     # symlink_to - no cloud equivalent
+    # link_to - no cloud equivalent
+    # hardlink_to - no cloud equivalent
 
     # ====================== REQUIRED, NOT GENERIC ======================
     # Methods that must be implemented, but have no generic application
@@ -406,7 +418,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 ".glob is only supported within a bucket or container; you can use `.iterdir` to list buckets; for example, CloudPath('s3://').iterdir()"
             )
 
-    def _glob(self, selector, recursive: bool) -> Generator[Self, None, None]:
+    def _build_subtree(self, recursive):
         # build a tree structure for all files out of default dicts
         Tree: Callable = lambda: defaultdict(Tree)
 
@@ -433,7 +445,10 @@ class CloudPath(metaclass=CloudPathMeta):
             nodes = (p for p in parts)
             _build_tree(file_tree, next(nodes, None), nodes, is_dir)
 
-        file_tree = dict(file_tree)  # freeze as normal dict before passing in
+        return dict(file_tree)  # freeze as normal dict before passing in
+
+    def _glob(self, selector, recursive: bool) -> Generator[Self, None, None]:
+        file_tree = self._build_subtree(recursive)
 
         root = _CloudPathSelectable(
             self.name,
@@ -445,11 +460,15 @@ class CloudPath(metaclass=CloudPathMeta):
             # select_from returns self.name/... so strip before joining
             yield (self / str(p)[len(self.name) + 1 :])
 
-    def glob(self, pattern: str) -> Generator[Self, None, None]:
+    def glob(
+        self, pattern: str, case_sensitive: Optional[bool] = None
+    ) -> Generator[Self, None, None]:
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
-        selector = _make_selector(tuple(pattern_parts), _posix_flavour)
+        selector = _make_selector(
+            tuple(pattern_parts), _posix_flavour, case_sensitive=case_sensitive
+        )
 
         yield from self._glob(
             selector,
@@ -458,11 +477,15 @@ class CloudPath(metaclass=CloudPathMeta):
             in pattern,  # recursive listing needed if explicit ** or any sub folder in pattern
         )
 
-    def rglob(self, pattern: str) -> Generator[Self, None, None]:
+    def rglob(
+        self, pattern: str, case_sensitive: Optional[bool] = None
+    ) -> Generator[Self, None, None]:
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
-        selector = _make_selector(("**",) + tuple(pattern_parts), _posix_flavour)
+        selector = _make_selector(
+            ("**",) + tuple(pattern_parts), _posix_flavour, case_sensitive=case_sensitive
+        )
 
         yield from self._glob(selector, True)
 
@@ -470,6 +493,41 @@ class CloudPath(metaclass=CloudPathMeta):
         for f, _ in self.client._list_dir(self, recursive=False):
             if f != self:  # iterdir does not include itself in pathlib
                 yield f
+
+    @staticmethod
+    def _walk_results_from_tree(root, tree, top_down=True):
+        """Utility to yield tuples in the form expected by `.walk` from the file
+        tree constructed by `_build_substree`.
+        """
+        dirs = []
+        files = []
+        for item, branch in tree.items():
+            files.append(item) if branch is None else dirs.append(item)
+
+        if top_down:
+            yield root, dirs, files
+
+        for dir in dirs:
+            yield from CloudPath._walk_results_from_tree(root / dir, tree[dir], top_down=top_down)
+
+        if not top_down:
+            yield root, dirs, files
+
+    def walk(
+        self,
+        top_down: bool = True,
+        on_error: Optional[Callable] = None,
+        follow_symlinks: bool = False,
+    ) -> Generator[Tuple[Self, List[str], List[str]], None, None]:
+        try:
+            file_tree = self._build_subtree(recursive=True)  # walking is always recursive
+            yield from self._walk_results_from_tree(self, file_tree, top_down=top_down)
+
+        except Exception as e:
+            if on_error is not None:
+                on_error(e)
+            else:
+                raise
 
     def open(
         self,
@@ -647,6 +705,9 @@ class CloudPath(metaclass=CloudPathMeta):
         with self.open(mode="r", encoding=encoding, errors=errors) as f:
             return f.read()
 
+    def is_junction(self):
+        return False  # only windows paths can be junctions, not cloudpaths
+
     # ====================== DISPATCHED TO POSIXPATH FOR PURE PATHS ======================
     # Methods that are dispatched to exactly how pathlib.PurePosixPath would calculate it on
     # self._path for pure paths (does not matter if file exists);
@@ -692,8 +753,8 @@ class CloudPath(metaclass=CloudPathMeta):
 
         return self._dispatch_to_path("__truediv__", other)
 
-    def joinpath(self, *args: Union[str, os.PathLike]) -> Self:
-        return self._dispatch_to_path("joinpath", *args)
+    def joinpath(self, *pathsegments: Union[str, os.PathLike]) -> Self:
+        return self._dispatch_to_path("joinpath", *pathsegments)
 
     def absolute(self) -> Self:
         return self
@@ -704,7 +765,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def resolve(self, strict: bool = False) -> Self:
         return self
 
-    def relative_to(self, other: Self) -> PurePosixPath:
+    def relative_to(self, other: Self, walk_up: bool = False) -> PurePosixPath:
         # We don't dispatch regularly since this never returns a cloud path (since it is relative, and cloud paths are
         # absolute)
         if not isinstance(other, CloudPath):
@@ -713,7 +774,13 @@ class CloudPath(metaclass=CloudPathMeta):
             raise ValueError(
                 f"{self} is a {self.cloud_prefix} path, but {other} is a {other.cloud_prefix} path"
             )
-        return self._path.relative_to(other._path)
+
+        kwargs = dict(walk_up=walk_up)
+
+        if sys.version_info < (3, 12):
+            kwargs.pop("walk_up")
+
+        return self._path.relative_to(other._path, **kwargs)  # type: ignore[call-arg]
 
     def is_relative_to(self, other: Self) -> bool:
         try:
@@ -726,12 +793,17 @@ class CloudPath(metaclass=CloudPathMeta):
     def name(self) -> str:
         return self._dispatch_to_path("name")
 
-    def match(self, path_pattern: str) -> bool:
+    def match(self, path_pattern: str, case_sensitive: Optional[bool] = None) -> bool:
         # strip scheme from start of pattern before testing
         if path_pattern.startswith(self.anchor + self.drive + "/"):
             path_pattern = path_pattern[len(self.anchor + self.drive + "/") :]
 
-        return self._dispatch_to_path("match", path_pattern)
+        kwargs = dict(case_sensitive=case_sensitive)
+
+        if sys.version_info < (3, 12):
+            kwargs.pop("case_sensitive")
+
+        return self._dispatch_to_path("match", path_pattern, **kwargs)
 
     @property
     def parent(self) -> Self:
@@ -770,6 +842,12 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def with_name(self, name: str) -> Self:
         return self._dispatch_to_path("with_name", name)
+
+    def with_segments(self, *pathsegments) -> Self:
+        """Create a new CloudPath with the same client out of the given segments.
+        The first segment will be interpreted as the bucket/container name.
+        """
+        return self._new_cloudpath("/".join(pathsegments))
 
     def with_suffix(self, suffix: str) -> Self:
         return self._dispatch_to_path("with_suffix", suffix)
@@ -1244,3 +1322,16 @@ class _CloudPathSelectable:
         )
 
     _scandir = scandir  # Py 3.11 compatibility
+
+    def walk(self):
+        # split into dirs and files
+        dirs_files = defaultdict(list)
+        with self.scandir(self) as items:
+            for child in items:
+                dirs_files[child.is_dir()].append(child)
+
+            # top-down, so yield self before recursive call
+            yield self, [f.name for f in dirs_files[True]], [f.name for f in dirs_files[False]]
+
+            for child_dir in dirs_files[True]:
+                yield from child_dir.walk()
