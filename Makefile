@@ -43,6 +43,10 @@ docs-setup:  ## setup docs pages based on README.md and HISTORY.md
 		> docs/docs/index.md
 	sed 's|https://cloudpathlib.drivendata.org/stable/|../|g' HISTORY.md \
 		> docs/docs/changelog.md
+	python -c \
+		"import sys, re; print(re.sub(r'\]\((?!http|#)([^\)]+)\)', r'](https://github.com/drivendataorg/cloudpathlib/blob/master/\1)', sys.stdin.read()), end='')" \
+		< CONTRIBUTING.md \
+		> docs/docs/contributing.md
 
 docs: clean-docs docs-setup ## build the static version of the docs
 	cd docs && mkdocs build
