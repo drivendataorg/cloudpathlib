@@ -6,6 +6,7 @@
  - Add `newline` parameter to the `write_text` method to align to `pathlib` functionality as of Python 3.10. [PR #362]https://github.com/drivendataorg/cloudpathlib/pull/362), thanks to [@pricemg](https://github.com/pricemg).
  - Add support for Python 3.12 ([PR #364](https://github.com/drivendataorg/cloudpathlib/pull/364))
  - Add `CLOUDPATHLIB_LOCAL_CACHE_DIR` env var for setting local_cache_dir default for clients ([Issue #352](https://github.com/drivendataorg/cloudpathlib/issues/352), [PR #357](https://github.com/drivendataorg/cloudpathlib/pull/357))
+ - Add `CONTRIBUTING.md` instructions for contributors ([Issue #213](https://github.com/drivendataorg/cloudpathlib/issues/213), [PR #367](https://github.com/drivendataorg/cloudpathlib/pull/367))
 
 ## v0.15.1 (2023-07-12)
 

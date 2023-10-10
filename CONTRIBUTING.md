@@ -5,13 +5,13 @@ Thanks for offering to help on `cloudpathlib`! We welcome contributions. This do
 First, a few guidelines:
 
  - Follow the [code of conduct](CODE_OF_CONDUCT.md).
- - No PRs from outside contributors are accepted without an issue. Please file an issue if you think a change is necessary. This is so you don't waste your time, so please get maintainer sign off before you work.
+ - PRs from outside contributors will not be accepted without an issue. We respect your time and want to make sure any work you do will be reviewed, so please wait for a maintainer to sign off on the issue before getting started. 
  - If you are looking just to make a contribution, look at issues with [label "good first issue"](https://github.com/drivendataorg/cloudpathlib/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 
 
 ## How to contribute
 
-0. File an [issue](https://github.com/drivendataorg/cloudpathlib/issues). No PRs from outside contributors are accepted without an issue. We respect your time and want to make sure any work you do will be reviewed, so please wait for a maintainer to sign off on the issue before getting started. 
+0. As noted above, please file an [issue](https://github.com/drivendataorg/cloudpathlib/issues) if you are not fixing an existing issue.
 1. Fork the repo, clone it locally, and create a [local environment](#local-development).
 2. Make changes in your local version of the repository.
 3. Make sure that the [tests](#tests) pass locally.
@@ -19,7 +19,7 @@ First, a few guidelines:
 5. Go through the items in the final [PR checklist](#pr-checklist).
 6. [Submit a PR](#submitting-a-pr)
  
-For some guidance on working with the code, see the sections on [code standards](link to new section described below) and [code architecture](#code-architecture).
+For some guidance on working with the code, see the sections on [code standards](#code-standards-and-tips) and [code architecture](#code-architecture).
 
 
 ## Local development
@@ -57,6 +57,141 @@ make reqs
 
 This will also install an editable version of `cloudpathlib` with all the extras into your environment.
 
+## Tests
+
+### Commands
+
+There is a robust test suite that covers most of the core functionality of the library. There are a few different testing commands that are useful to developers.
+
+The most common way when developing is to run the full test suite with mocked, local backends (no network calls):
+
+```bash
+make test
+```
+
+If you have a test fail or want to be able to interactively debug if a test fails, you can use a different command. This will run pytest with `pdb`, and `last-fail` so it will drop you into a debugger if a test fails and only run the tests that failed last time:
+
+```bash
+make test-debug
+```
+
+Finally, you may want to run your tests against live servers to ensure that the behavior against a provider's server is not different from the mocked provider. You will need credentials configured for each of the providers you run against. You can run the live tests with:
+
+```bash
+make test-live-cloud
+```
+
+### Test rigs
+
+Since we want behavior parity across providers, nearly all of the tests are written in a provider-agnositc way. Each test is passed a test rig as a fixture, and the rig provides the correct way for generating cloudpaths for testing. The test rigs are defined in [`conftest.py`](tests/conftest.py).
+
+**Almost none of the tests instantiate `CloudPath` or a `*Client` class directly.**
+
+When a test suite runs against the rig, the rig does the following steps on setup:
+ - Creates a folder on the provider with a unique ID just for this test run.
+ - Copies the contents of [`tests/assets/`](tests/assets/) into that folder.
+ - Sets the rigs `client_class` using `set_as_default_client` so that any `CloudPath` with the right prefix created in the test will use the rig's client.
+
+When the tests finish, if it is using a live server, the test files will be deleted from the provider.
+
+If you want to speed up your testing during development, you may comment out some of the rigs in [`conftest.py`](tests/conftest.py). Don't commit this change, and make sure you run against all the rigs before submitting a PR.
+
+### Authoring tests
+
+We want our test suite coverage to be comprehensive, so PRs need to add tests if they add new functionality. If you are adding a new feature, you will need to add tests for it. If you are changing an existing feature, you will need to update the tests to match the new behavior.
+
+The tests are written in `pytest`. You can read the [pytest documentation](https://docs.pytest.org/en/stable/) for more information on how to write tests with pytest.
+
+Your best guide will be reading the existing test suite, and making sure you're using the rig when possible.
+
+For example, if you want a `CloudPath` referring to a file that actually exists, you may want to do something like this:
+
+```python
+# note that dir_0/file0_0.txt is in tests/assets, so you can expect to exist on the provider
+cp = rig.create_cloud_path("dir_0/file0_0.txt")
+
+# if you don't need the file to actually exist, you can use the same method
+cp2 = rig.create_cloud_path("path/that/does/not/exist.txt")
+```
+
+If you are testing functionality on the `*Client` class, you can get an instance of the class for the rig with:
+
+```python
+new_client = rig.client_class()
+```
+
+## Documentation
+
+We also aim to have robust and comprehensive documentation. For public API functions, we provide docstrings that explain how things work to end users, and these are automatically built into the documentation. For more complex topics, we write specific documentation.
+
+We use [mkdocs](https://www.mkdocs.org/) to generate the documentation.
+
+
+### Building
+
+To build the latest version of the documentation, you can run:
+
+```bash
+make docs
+```
+
+### Serving
+
+While you are developing, you can serve a local version of the docs to see what your changes look like. This will auto-reload for most changes to the docs:
+
+```bash
+make docs-serve
+```
+
+Note that the main page (`index.md`), the changelog (`HISTORY.md`), and the contributing page (`CONTRIBUTING.md`) are all generated from the files in the project root. If you want to make changes to the documentation, you should make them in the root of the project and then run `make docs-setup` to update the other files. **The dev server does not automatically pick up these changes.** You will need to stop the server and restart it to see the changes.
+
+### Authoring
+
+Documentation pages can either be authored in normal Markdown or in a runnable jupyter notebook. Notebooks are useful for showing examples of how to use the library. You can see an example of a notebook in [`docs/docs/why_cloudpathlib.ipynb`](docs/docs/why_cloudpathlib.ipynb).
+
+Note: generating the documentation **does not** execute any notebooks, it just converts them. You need to restart and run all notebook cells to make sure the notebook executes top-to-bottom and has the latest results before committing it.
+
+### Docstrings
+
+For public APIs, please add a docstring that will appear in the documentation automatically. Since public APIs are type-hinted, there is no need to list the function parameters, their types, and the return types in a specific format in the docstring. Instead, you should describe what the function does and any relevant information for the user.
+
+## Submitting a PR
+
+Once you have everything working as expected locally, submit a PR. The PR will be automatically tested by GitHub Actions. If the tests fail, you will need to fix the issue and push a new commit to the PR. If the tests pass (except the live tests, as noted below), you will need to get a maintainer to review the PR and merge it.
+
+### PR checklist
+
+Here's a checklist from the PR template to make sure that you did all the required steps:
+
+```
+ - [ ] I have read and understood `CONTRIBUTING.md`
+ - [ ] Confirmed an issue exists for the PR, and the text `Closes #issue` appears in the PR summary (e.g., `Closes #123`).
+ - [ ] Confirmed PR is rebased onto the latest base
+ - [ ] Confirmed failure before change and success after change
+ - [ ] Any generic new functionality is replicated across cloud providers if necessary
+ - [ ] Tested manually against live server backend for at least one provider
+ - [ ] Added tests for any new functionality
+ - [ ] Linting passes locally
+ - [ ] Tests pass locally
+ - [ ] Updated `HISTORY.md` with the issue that is addressed and the PR you are submitting. If the top section is not `## UNRELEASED``, then you need to add a new section to the top of the document for your change.
+```
+
+### PR CI/CD test run
+
+If you are not a maintainer, a maintainer will have to approve your PR to run the test suite in GitHub Actions. No need to ping a maintainer, it will be seen as part of our regular review.
+
+Even once the tests run, two jobs will fail. This is expected. The failures are: (1) The live tests, and (2) the install tests. Both of these require access to the live backends, which are not available to outside contributors. If everything else passes, you can ignore these failiures. A mainter will take the following steps:
+
+ - Create a branch off the main repo for your PR's changes
+ - Merge your PR into that new branch
+ - Run CI/CD on the repo-local branch which has access to the live backends
+ - Confirm the live tests pass as expected. (If not, you will need to fix the issue and create another PR into this reopo-local branch.)
+ - Once they pass, merge the repo-local branch into the main branch.
+
+For example, see a [repo-local branch running the live tests in this PR](https://github.com/drivendataorg/cloudpathlib/pull/354).
+
+## Code standards and tips
+
 ### Adding dependencies
 
 We want `cloudpathlib` to be as lightweight as possible. Our strong preference is to not take any external dependencies for the library outside of the official software development kit (SDK) for the cloud provider. If you want to add a dependency, please open an issue to discuss it first. Library depencies are tracked in `pyproject.toml`.
@@ -90,69 +225,6 @@ As mentioned, to ensure your code passes `mypy` type checking, you can run:
 make lint
 ```
 
-### Tests
-
-#### Commands
-
-There is a robust test suite that covers most of the core functionality of the library. There are a few different testing commands that are useful to developers.
-
-The most common way when developing is to run the full test suite with mocked, local backends (no network calls):
-
-```bash
-make test
-```
-
-If you have a test fail or want to be able to interactively debug if a test fails, you can use a different command. This will run pytest with `pdb`, and `last-fail` so it will drop you into a debugger if a test fails and only run the tests that failed last time:
-
-```bash
-make test-debug
-```
-
-Finally, you may want to run your tests against live servers to ensure that the behavior against a provider's server is not different from the mocked provider. You will need credentials configured for each of the providers you run against. You can run the live tests with:
-
-```bash
-make test-live-cloud
-```
-
-#### Test rigs
-
-Since we want behavior parity across providers, nearly all of the tests are written in a provider-agnositc way. Each test is passed a test rig as a fixture, and the rig provides the correct way for generating cloudpaths for testing. The test rigs are defined in [`conftest.py`](tests/conftest.py).
-
-**Almost none of the tests instantiate `CloudPath` or a `*Client` class directly.**
-
-When a test suite runs against the rig, the rig does the following steps on setup:
- - Creates a folder on the provider with a unique ID just for this test run.
- - Copies the contents of [`tests/assets/`](tests/assets/) into that folder.
- - Sets the rigs `client_class` using `set_as_default_client` so that any `CloudPath` with the right prefix created in the test will use the rig's client.
-
-When the tests finish, if it is using a live server, the test files will be deleted from the provider.
-
-If you want to speed up your testing, you may comment out some of the rigs in [`conftest.py`](tests/conftest.py) during development. Don't commit this change, and make sure you run against all the rigs before submitting a PR.
-
-#### Authoring tests
-
-We want our test suite coverage to be comprehensive, so PRs need to add tests if they add new functionality. If you are adding a new feature, you will need to add tests for it. If you are changing an existing feature, you will need to update the tests to match the new behavior.
-
-The tests are written in `pytest`. You can read the [pytest documentation](https://docs.pytest.org/en/stable/) for more information on how to write tests with pytest.
-
-Your best guide will be reading the existing test suite, and making sure you're using the rig when possible.
-
-For example, if you want a `CloudPath` referring to a file that actually exists, you may want to do something like this:
-
-```python
-# note that dir_0/file0_0.txt is in tests/assets, so you can expect to exist on the provider
-cp = rig.create_cloud_path("dir_0/file0_0.txt")
-
-# if you don't need the file to actually exist, you can use the same method
-cp2 = rig.create_cloud_path("path/that/does/not/exist.txt")
-```
-
-If you are testing functionality on the `*Client` class, you can get an instance of the class for the rig with:
-
-```python
-new_client = rig.client_class()
-```
-
 #### Interactive testing
 
 To interactively test the library, we recommend creating a Jupyter notebook in the root of the project called `sandbox.ipynb`. We `.gitignore` a `sandbox.ipynb` file by default for this purpose. You can import the library and run commands in the notebook to test functionality. This is useful for testing new features or debugging issues.
@@ -171,7 +243,6 @@ from cloudpathlib import CloudPath
 
 cp = CloudPath("s3://my-test-bucket/")
 ```
-
 
 ### Credentials and cloud access
 
@@ -218,78 +289,10 @@ These can be run with `make perf`. This will generate a report like:
 
 To see how it is used in PR, you can [see an example here](https://github.com/drivendataorg/cloudpathlib/pull/364).
 
+### Exceptions
 
-### Documentation
+Different backends may raise different exception classses when something goes wrong. To make it easy for users to catch exceptions that are agnostic of the backend, we generally will catch and raise a specific exception from [`exceptions.py`](cloudpathlib/exceptions.py) for any exception that we understand. You can add new exceptions to this file if any are needed for new features.
 
-We also aim to have robust and comprehensive documentation. For public API functions, we provide docstrings that explain how things work to end users, and these are automatically built into the documentation. For more complex topics, we write specific documentation.
-
-We use [mkdocs](https://www.mkdocs.org/) to generate the documentation.
-
-
-#### Building
-
-To build the latest version of the documentation, you can run:
-
-```bash
-make docs
-```
-
-#### Serving
-
-While you are developing, you can serve a local version of the docs to see what your changes look like. This will auto-reload for most changes to the docs:
-
-```bash
-make docs-serve
-```
-
-Note that the main page (`index.md`), the changelog (`HISTORY.md`), and the contributing page (`CONTRIBUTING.md`) are all generated from the files in the project root. If you want to make changes to the documentation, you should make them in the root of the project and then run `make docs-setup` to update the other files. **The dev server does not automatically pick up these changes.** You will need to stop the server and restart it to see the changes.
-
-#### Authoring
-
-Documentation pages can either be authored in normal Markdown or in a runnable jupyter notebook. Notebooks are useful for showing examples of how to use the library. You can see an example of a notebook in [`docs/docs/why_cloudpathlib.ipynb`](docs/docs/why_cloudpathlib.ipynb).
-
-Note: generating the documentation **does not** execute any notebooks, it just converts them. You need to restart and run all notebook cells to make sure the notebook executes top-to-bottom and has the latest results before committing it.
-
-#### Docstrings
-
-For public APIs, please add a docstring that will appear in the documentation automatically. Since public APIs are type-hinted, there is no need to list the function parameters, their types, and the return types in a specific format in the docstring. Instead, you should describe what the function does and any relevant information for the user.
-
-
-## Submitting a PR
-
-Once you have everything working as expected locally, submit a PR. The PR will be automatically tested by GitHub Actions. If the tests fail, you will need to fix the issue and push a new commit to the PR. If the tests pass (except the live tests, as noted below), you will need to get a maintainer to review the PR and merge it.
-
-### PR checklist
-
-Here's a checklist you can put in your PR to make sure that you did all the required steps:
-
-
-```
- - [ ] I have read and understood `CONTRIBUTING.md`
- - [ ] Confirmed an issue exists for the PR, and the text `Closes #issue` appears in the PR summary (e.g., `Closes #123`).
- - [ ] Confirmed PR is rebased onto the latest base
- - [ ] Confirmed failure before change and success after change
- - [ ] Any generic new functionality is replicated across cloud providers if necessary
- - [ ] Tested manually against live server backend for at least one provider
- - [ ] Added tests for any new functionality
- - [ ] Linting passes locally
- - [ ] Tests pass locally
- - [ ] Updated `HISTORY.md` with the issue that is addressed and the PR you are submitting. If the top section is not `## UNRELEASED``, then you need to add a new section to the top of the document for your change.
-```
-
-### PR CI/CD test run
-
-If you are not a maintainer, a maintainer will have to approve your PR to run the test suite in GitHub Actions. No need to ping a maintainer, it will be seen as part of our regular review.
-
-Even once the tests run, two jobs will fail. This is expected. The failures are: (1) The live tests, and (2) the install tests. Both of these require access to the live backends, which are not available to outside contributors. If everything else passes, you can ignore these failiures. A mainter will take the following steps:
-
- - Create a branch off the main repo for your PR's changes
- - Merge your PR into that new branch
- - Run CI/CD on the repo-local branch which has access to the live backends
- - Confirm the live tests pass as expected. (If not, you will need to fix the issue and create another PR into this reopo-local branch.)
- - Once they pass, merge the repo-local branch into the main branch.
-
-For example, see a [repo-local branch running the live tests in this PR](https://github.com/drivendataorg/cloudpathlib/pull/354).
 
 
 ## Code architecture
@@ -316,10 +319,6 @@ The core [`cloudpath.py`](cloudpathlib/cloudpath.py) file provides most of the m
 Any code that needs to interact with the provider does so by calling methods on the `CloudPath.client`, which is an instance of the `Client` class so all the methods are provider-agnostic.
 
 Some methods are implemented on the `*Path` class for the specific provider. This is reserved for two cases: (1) provider-specific properties, like `S3Path.bucket` or `AzureBlobPath.container`, and (2) methods that are more efficiently implemented in a provider-specific way, like `S3Path.stat`. 
-
-### Exceptions
-
-Different backends may raise different exception classses when something goes wrong. To make it easy for users to catch exceptions that are agnostic of the backend, we generally will catch and raise a specific exception from [`exceptions.py`](cloudpathlib/exceptions.py) for any exception that we understand. You can add new exceptions to this file if any are needed for new features.
 
 ### Adding a new provider
 
