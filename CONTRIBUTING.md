@@ -314,7 +314,7 @@ The core [`cloudpath.py`](cloudpathlib/cloudpath.py) file provides most of the m
 
  - Some methods are implemented from scratch for cloud paths
  - Some methods are implemented by calling the `pathlib.Path` version on either (1) the file in the cache if concrete, or (2) a `PurePosixPath` conversion of the CloudPath if not concrete.
- - Some methods that are not relevant for a cloud backend are not implemented and listed in the code.
+ - Some methods that are not relevant for a cloud backend are not implemented.
 
 Any code that needs to interact with the provider does so by calling methods on the `CloudPath.client`, which is an instance of the `Client` class so all the methods are provider-agnostic.
 
