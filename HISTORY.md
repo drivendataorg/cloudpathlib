@@ -3,7 +3,7 @@
 ## v0.16.0 (2023-10-09)
  - Add "CloudPath" as return type on `__init__` for mypy issues. ([Issue #179](https://github.com/drivendataorg/cloudpathlib/issues/179), [PR #342](https://github.com/drivendataorg/cloudpathlib/pull/342))
  - Add `with_stem` to all path types when python version supports it (>=3.9). ([Issue #287](https://github.com/drivendataorg/cloudpathlib/issues/287), [PR #290](https://github.com/drivendataorg/cloudpathlib/pull/290), thanks to [@Gilthans](https://github.com/Gilthans)) 
- - Add `newline` parameter to the `write_text` method to align to `pathlib` functionality as of Python 3.10. [PR #362]https://github.com/drivendataorg/cloudpathlib/pull/362), thanks to [@pricemg](https://github.com/pricemg).
+ - Add `newline` parameter to the `write_text` method to align to `pathlib` functionality as of Python 3.10. [PR #362](https://github.com/drivendataorg/cloudpathlib/pull/362), thanks to [@pricemg](https://github.com/pricemg).
  - Add support for Python 3.12 ([PR #364](https://github.com/drivendataorg/cloudpathlib/pull/364))
  - Add `CLOUDPATHLIB_LOCAL_CACHE_DIR` env var for setting local_cache_dir default for clients ([Issue #352](https://github.com/drivendataorg/cloudpathlib/issues/352), [PR #357](https://github.com/drivendataorg/cloudpathlib/pull/357))
  - Add `CONTRIBUTING.md` instructions for contributors ([Issue #213](https://github.com/drivendataorg/cloudpathlib/issues/213), [PR #367](https://github.com/drivendataorg/cloudpathlib/pull/367))
