@@ -85,7 +85,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     def __del__(self) -> None:
         # remove containing dir, even if a more aggressive strategy
         # removed the actual files
-        if self.file_cache_mode in [
+        if getattr(self, "file_cache_mode", None) in [
             FileCacheMode.tmp_dir,
             FileCacheMode.close_file,
             FileCacheMode.cloudpath_object,
