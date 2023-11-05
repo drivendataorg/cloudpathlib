@@ -178,7 +178,7 @@ def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
 
 
 def test_interaction_with_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
-    default_sleep = 0.5  # sometimes GH runners are slow and fail saying dir doesn't exist
+    default_sleep = 1.0  # sometimes GH runners are slow and fail saying dir doesn't exist
 
     # cannot instantiate persistent without local file dir
     with pytest.raises(InvalidConfigurationException):
