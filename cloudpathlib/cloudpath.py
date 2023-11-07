@@ -134,12 +134,12 @@ class CloudPathMeta(abc.ABCMeta):
 
     @overload
     def __call__(
-            cls: Type[T], cloud_path: Union[str, "CloudPath"], *args: Any, **kwargs: Any
+        cls: Type[T], cloud_path: Union[str, "CloudPath"], *args: Any, **kwargs: Any
     ) -> T:
         ...
 
     def __call__(
-            cls: Type[T], cloud_path: Union[str, CloudPathT], *args: Any, **kwargs: Any
+        cls: Type[T], cloud_path: Union[str, CloudPathT], *args: Any, **kwargs: Any
     ) -> Union[T, "CloudPath", CloudPathT]:
         # cls is a class that is the instance of this metaclass, e.g., CloudPath
         if not issubclass(cls, CloudPath):
@@ -152,7 +152,7 @@ class CloudPathMeta(abc.ABCMeta):
             for implementation in implementation_registry.values():
                 path_class = implementation._path_class
                 if path_class is not None and path_class.is_valid_cloudpath(
-                        cloud_path, raise_on_error=False
+                    cloud_path, raise_on_error=False
                 ):
                     # Instantiate path_class instance
                     new_obj = object.__new__(path_class)
@@ -175,9 +175,9 @@ class CloudPathMeta(abc.ABCMeta):
         # Copy docstring from pathlib.Path
         for attr in dir(cls):
             if (
-                    not attr.startswith("_")
-                    and hasattr(Path, attr)
-                    and getattr(getattr(Path, attr), "__doc__", None)
+                not attr.startswith("_")
+                and hasattr(Path, attr)
+                and getattr(getattr(Path, attr), "__doc__", None)
             ):
                 docstring = getattr(Path, attr).__doc__ + " _(Docstring copied from pathlib.Path)_"
                 getattr(cls, attr).__doc__ = docstring
@@ -207,9 +207,9 @@ class CloudPath(metaclass=CloudPathMeta):
     cloud_prefix: str
 
     def __init__(
-            self,
-            cloud_path: Union[str, Self, "CloudPath"],
-            client: Optional["Client"] = None,
+        self,
+        cloud_path: Union[str, Self, "CloudPath"],
+        client: Optional["Client"] = None,
     ) -> None:
         # handle if local file gets opened. must be set at the top of the method in case any code
         # below raises an exception, this prevents __del__ from raising an AttributeError
@@ -246,8 +246,8 @@ class CloudPath(metaclass=CloudPathMeta):
 
         # ensure file removed from cache when cloudpath object deleted
         if (
-                hasattr(self, "client")
-                and self.client.file_cache_mode == FileCacheMode.cloudpath_object
+            hasattr(self, "client")
+            and self.client.file_cache_mode == FileCacheMode.cloudpath_object
         ):
             self.clear_cache()
 
@@ -266,11 +266,11 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @property
     def _no_prefix(self) -> str:
-        return self._str[len(self.cloud_prefix):]
+        return self._str[len(self.cloud_prefix) :]
 
     @property
     def _no_prefix_no_drive(self) -> str:
-        return self._str[len(self.cloud_prefix) + len(self.drive):]
+        return self._str[len(self.cloud_prefix) + len(self.drive) :]
 
     @overload
     @classmethod
@@ -284,7 +284,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @classmethod
     def is_valid_cloudpath(
-            cls, path: Union[str, "CloudPath"], raise_on_error: bool = False
+        cls, path: Union[str, "CloudPath"], raise_on_error: bool = False
     ) -> Union[bool, TypeGuard[Self]]:
         valid = str(path).lower().startswith(cls.cloud_prefix.lower())
 
@@ -458,10 +458,10 @@ class CloudPath(metaclass=CloudPathMeta):
 
         for p in selector.select_from(root):
             # select_from returns self.name/... so strip before joining
-            yield (self / str(p)[len(self.name) + 1:])
+            yield (self / str(p)[len(self.name) + 1 :])
 
     def glob(
-            self, pattern: str, case_sensitive: Optional[bool] = None
+        self, pattern: str, case_sensitive: Optional[bool] = None
     ) -> Generator[Self, None, None]:
         self._glob_checks(pattern)
 
@@ -478,7 +478,7 @@ class CloudPath(metaclass=CloudPathMeta):
         )
 
     def rglob(
-            self, pattern: str, case_sensitive: Optional[bool] = None
+        self, pattern: str, case_sensitive: Optional[bool] = None
     ) -> Generator[Self, None, None]:
         self._glob_checks(pattern)
 
@@ -514,10 +514,10 @@ class CloudPath(metaclass=CloudPathMeta):
             yield root, dirs, files
 
     def walk(
-            self,
-            top_down: bool = True,
-            on_error: Optional[Callable] = None,
-            follow_symlinks: bool = False,
+        self,
+        top_down: bool = True,
+        on_error: Optional[Callable] = None,
+        follow_symlinks: bool = False,
     ) -> Generator[Tuple[Self, List[str], List[str]], None, None]:
         try:
             file_tree = self._build_subtree(recursive=True)  # walking is always recursive
@@ -530,14 +530,14 @@ class CloudPath(metaclass=CloudPathMeta):
                 raise
 
     def open(
-            self,
-            mode: str = "r",
-            buffering: int = -1,
-            encoding: Optional[str] = None,
-            errors: Optional[str] = None,
-            newline: Optional[str] = None,
-            force_overwrite_from_cloud: bool = False,  # extra kwarg not in pathlib
-            force_overwrite_to_cloud: bool = False,  # extra kwarg not in pathlib
+        self,
+        mode: str = "r",
+        buffering: int = -1,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
+        newline: Optional[str] = None,
+        force_overwrite_from_cloud: bool = False,  # extra kwarg not in pathlib
+        force_overwrite_to_cloud: bool = False,  # extra kwarg not in pathlib
     ) -> IO[Any]:
         # if trying to call open on a directory that exists
         if self.exists() and not self.is_file():
@@ -680,11 +680,11 @@ class CloudPath(metaclass=CloudPathMeta):
             return f.write(view)
 
     def write_text(
-            self,
-            data: str,
-            encoding: Optional[str] = None,
-            errors: Optional[str] = None,
-            newline: Optional[str] = None,
+        self,
+        data: str,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
+        newline: Optional[str] = None,
     ) -> int:
         """Open the file in text mode, write to it, and close the file.
 
@@ -731,9 +731,9 @@ class CloudPath(metaclass=CloudPathMeta):
 
         # When sequence of PurePosixPath, we want to convert to sequence of CloudPaths
         if (
-                isinstance(path_version, collections.abc.Sequence)
-                and len(path_version) > 0
-                and isinstance(path_version[0], PurePosixPath)
+            isinstance(path_version, collections.abc.Sequence)
+            and len(path_version) > 0
+            and isinstance(path_version[0], PurePosixPath)
         ):
             sequence_class = (
                 type(path_version) if not isinstance(path_version, _PathParents) else tuple
@@ -796,7 +796,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def match(self, path_pattern: str, case_sensitive: Optional[bool] = None) -> bool:
         # strip scheme from start of pattern before testing
         if path_pattern.startswith(self.anchor + self.drive + "/"):
-            path_pattern = path_pattern[len(self.anchor + self.drive + "/"):]
+            path_pattern = path_pattern[len(self.anchor + self.drive + "/") :]
 
         kwargs = dict(case_sensitive=case_sensitive)
 
@@ -898,7 +898,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 if not rel.endswith("/"):
                     rel = rel + "/"
 
-                rel_dest = str(f)[len(rel):]
+                rel_dest = str(f)[len(rel) :]
                 f.download_to(destination / rel_dest)
 
             return destination
@@ -912,9 +912,9 @@ class CloudPath(metaclass=CloudPathMeta):
         self.client._remove(self)
 
     def upload_from(
-            self,
-            source: Union[str, os.PathLike],
-            force_overwrite_to_cloud: bool = False,
+        self,
+        source: Union[str, os.PathLike],
+        force_overwrite_to_cloud: bool = False,
     ) -> Self:
         """Upload a file or directory to the cloud path."""
         source = Path(source)
@@ -937,25 +937,25 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @overload
     def copy(
-            self,
-            destination: Self,
-            force_overwrite_to_cloud: bool = False,
+        self,
+        destination: Self,
+        force_overwrite_to_cloud: bool = False,
     ) -> Self:
         ...
 
     @overload
     def copy(
-            self,
-            destination: Path,
-            force_overwrite_to_cloud: bool = False,
+        self,
+        destination: Path,
+        force_overwrite_to_cloud: bool = False,
     ) -> Path:
         ...
 
     @overload
     def copy(
-            self,
-            destination: str,
-            force_overwrite_to_cloud: bool = False,
+        self,
+        destination: str,
+        force_overwrite_to_cloud: bool = False,
     ) -> Union[Path, "CloudPath"]:
         ...
 
@@ -979,9 +979,9 @@ class CloudPath(metaclass=CloudPathMeta):
                 destination = destination / self.name
 
             if (
-                    not force_overwrite_to_cloud
-                    and destination.exists()
-                    and destination.stat().st_mtime >= self.stat().st_mtime
+                not force_overwrite_to_cloud
+                and destination.exists()
+                and destination.stat().st_mtime >= self.stat().st_mtime
             ):
                 raise OverwriteNewerCloudError(
                     f"File ({destination}) is newer than ({self}). "
@@ -1003,28 +1003,28 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @overload
     def copytree(
-            self,
-            destination: Self,
-            force_overwrite_to_cloud: bool = False,
-            ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
+        self,
+        destination: Self,
+        force_overwrite_to_cloud: bool = False,
+        ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
     ) -> Self:
         ...
 
     @overload
     def copytree(
-            self,
-            destination: Path,
-            force_overwrite_to_cloud: bool = False,
-            ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
+        self,
+        destination: Path,
+        force_overwrite_to_cloud: bool = False,
+        ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
     ) -> Path:
         ...
 
     @overload
     def copytree(
-            self,
-            destination: str,
-            force_overwrite_to_cloud: bool = False,
-            ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
+        self,
+        destination: str,
+        force_overwrite_to_cloud: bool = False,
+        ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
     ) -> Union[Path, "CloudPath"]:
         ...
 
@@ -1111,9 +1111,9 @@ class CloudPath(metaclass=CloudPathMeta):
 
         # if not exist or cloud newer
         if (
-                not self._local.exists()
-                or (self._local.stat().st_mtime < stats.st_mtime)
-                or force_overwrite_from_cloud
+            not self._local.exists()
+            or (self._local.stat().st_mtime < stats.st_mtime)
+            or force_overwrite_from_cloud
         ):
             # ensure there is a home for the file
             self._local.parent.mkdir(parents=True, exist_ok=True)
@@ -1141,8 +1141,8 @@ class CloudPath(metaclass=CloudPathMeta):
             )
 
     def _upload_local_to_cloud(
-            self,
-            force_overwrite_to_cloud: bool = False,
+        self,
+        force_overwrite_to_cloud: bool = False,
     ) -> Self:
         """Uploads cache file at self._local to the cloud"""
         # We should never try to be syncing entire directories; we should only
@@ -1165,9 +1165,9 @@ class CloudPath(metaclass=CloudPathMeta):
         return uploaded
 
     def _upload_file_to_cloud(
-            self,
-            local_path: Path,
-            force_overwrite_to_cloud: bool = False,
+        self,
+        local_path: Path,
+        force_overwrite_to_cloud: bool = False,
     ) -> Self:
         """Uploads file at `local_path` to the cloud if there is not a newer file
         already there.
@@ -1186,10 +1186,7 @@ class CloudPath(metaclass=CloudPathMeta):
             stats = None
 
         # if cloud does not exist or local is newer, do the upload
-        if (
-                not stats  # cloud does not exist
-                or (local_path.stat().st_mtime > stats.st_mtime)
-        ):
+        if not stats or (local_path.stat().st_mtime > stats.st_mtime):
             self.client._upload_file(
                 local_path,
                 self,
@@ -1280,11 +1277,11 @@ class _CloudPathSelectableAccessor:
 
 class _CloudPathSelectable:
     def __init__(
-            self,
-            name: str,
-            parents: List[str],
-            children: Any,  # Nested dictionaries as tree
-            exists: bool = True,
+        self,
+        name: str,
+        parents: List[str],
+        children: Any,  # Nested dictionaries as tree
+        exists: bool = True,
     ) -> None:
         self._name = name
         self._all_children = children
@@ -1321,7 +1318,7 @@ class _CloudPathSelectable:
     @staticmethod
     @contextmanager
     def scandir(
-            root: "_CloudPathSelectable",
+        root: "_CloudPathSelectable",
     ) -> Generator[Generator["_CloudPathSelectable", None, None], None, None]:
         yield (
             _CloudPathSelectable(child, root._parents + [root._name], grand_children)
