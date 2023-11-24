@@ -96,7 +96,7 @@ class MockBoto3Object:
 
         # sometimes on GH runners on Windows return from mkdir
         # before the directory actually exists.
-        waits = 10
+        waits = 50
         while not to_path.parent.exists() and waits > 0:
             sleep(0.1)
             waits -= 1
