@@ -64,7 +64,7 @@ class MockBlob:
         # before the directory actually exists.
         waits = 50
         while not to_path.parent.exists() and waits > 0:
-            sleep(0.1)
+            sleep(0.2)
             waits -= 1
 
         to_path.write_bytes(from_path.read_bytes())
