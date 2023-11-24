@@ -178,8 +178,6 @@ def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
 
 
 def test_interaction_with_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
-    default_sleep = 1.0  # sometimes GH runners are slow and fail saying dir doesn't exist
-
     # cannot instantiate persistent without local file dir
     with pytest.raises(InvalidConfigurationException):
         client = rig.client_class(
@@ -201,7 +199,6 @@ def test_interaction_with_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
 
     # download from cloud into the cache
     # must use open for close_file mode
-    sleep(default_sleep)
     with cp.open("r") as f:
         _ = f.read()
 
@@ -217,7 +214,6 @@ def test_interaction_with_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
     assert cp.client.file_cache_mode == FileCacheMode.cloudpath_object
 
     # download from cloud into the cache
-    sleep(default_sleep)  # test can be flaky saying that the cache dir doesn't exist yet
     with cp.open("r") as f:
         _ = f.read()
 
@@ -236,7 +232,6 @@ def test_interaction_with_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
     assert cp.client.file_cache_mode == FileCacheMode.tmp_dir
 
     # download from cloud into the cache
-    sleep(default_sleep)  # test can be flaky saying that the cache dir doesn't exist yet
     with cp.open("r") as f:
         _ = f.read()
 
