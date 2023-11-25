@@ -107,7 +107,7 @@ class MockBoto3Object:
 
         try:
             to_path.write_bytes(self.path.read_bytes())
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             exists_root = to_path
             while not exists_root.exists():
                 exists_root = exists_root.parent
