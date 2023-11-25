@@ -101,7 +101,18 @@ class MockBoto3Object:
             sleep(0.2)
             waits -= 1
 
-        to_path.write_bytes(self.path.read_bytes())
+        if not to_path.parent.exists():
+            print("PARENT NEVER CREATED??")
+            to_path.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            to_path.write_bytes(self.path.read_bytes())
+        except FileNotFoundError as e:
+            exists_root = to_path
+            while not exists_root.exists():
+                exists_root = exists_root.parent
+            raise FileNotFoundError(f"{to_path} does not exist; {exists_root} does")
+
         # track config to make sure it's used in tests
         self.resource.download_config = Config
         self.resource.download_extra_args = ExtraArgs
