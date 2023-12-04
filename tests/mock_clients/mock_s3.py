@@ -100,12 +100,16 @@ class MockBoto3Object:
         while not to_path.parent.exists() and waits > 0:
             sleep(0.2)
             waits -= 1
+            print("parent does not exist; waiting...")
 
         if not to_path.parent.exists():
             print("PARENT NEVER CREATED??")
             to_path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
+            if to_path.parent.exists():
+                print("parent exists right before write")
+
             to_path.write_bytes(self.path.read_bytes())
         except FileNotFoundError:
             exists_root = to_path
