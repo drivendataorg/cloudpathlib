@@ -2,7 +2,6 @@ from datetime import datetime
 from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
-from time import sleep
 
 from google.api_core.exceptions import NotFound
 
@@ -59,6 +58,7 @@ class MockBlob:
         to_path = Path(filename)
 
         to_path.parent.mkdir(exist_ok=True, parents=True)
+
         to_path.write_bytes(from_path.read_bytes())
 
     def patch(self):

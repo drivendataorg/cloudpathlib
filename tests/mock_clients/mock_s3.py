@@ -3,7 +3,6 @@ from datetime import datetime
 from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
-from time import sleep
 
 from boto3.session import Session
 from botocore.exceptions import ClientError
@@ -93,8 +92,8 @@ class MockBoto3Object:
         to_path = Path(to_path)
 
         to_path.parent.mkdir(parents=True, exist_ok=True)
-        to_path.write_bytes(self.path.read_bytes())
 
+        to_path.write_bytes(self.path.read_bytes())
         # track config to make sure it's used in tests
         self.resource.download_config = Config
         self.resource.download_extra_args = ExtraArgs
