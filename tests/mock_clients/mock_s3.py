@@ -93,29 +93,7 @@ class MockBoto3Object:
         to_path = Path(to_path)
 
         to_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # sometimes on GH runners on Windows return from mkdir
-        # before the directory actually exists.
-        waits = 50
-        while not to_path.parent.exists() and waits > 0:
-            sleep(0.2)
-            waits -= 1
-            print("parent does not exist; waiting...")
-
-        if not to_path.parent.exists():
-            print("PARENT NEVER CREATED??")
-            to_path.parent.mkdir(parents=True, exist_ok=True)
-
-        try:
-            if to_path.parent.exists():
-                print("parent exists right before write")
-
-            to_path.write_bytes(self.path.read_bytes())
-        except FileNotFoundError:
-            exists_root = to_path
-            while not exists_root.exists():
-                exists_root = exists_root.parent
-            raise FileNotFoundError(f"{to_path} does not exist; {exists_root} does")
+        to_path.write_bytes(self.path.read_bytes())
 
         # track config to make sure it's used in tests
         self.resource.download_config = Config

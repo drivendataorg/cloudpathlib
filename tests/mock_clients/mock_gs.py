@@ -59,14 +59,6 @@ class MockBlob:
         to_path = Path(filename)
 
         to_path.parent.mkdir(exist_ok=True, parents=True)
-
-        # sometimes on GH runners on Windows return from mkdir
-        # before the directory actually exists.
-        waits = 50
-        while not to_path.parent.exists() and waits > 0:
-            sleep(0.2)
-            waits -= 1
-
         to_path.write_bytes(from_path.read_bytes())
 
     def patch(self):
