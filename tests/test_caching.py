@@ -177,7 +177,7 @@ def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
     assert client_cache_dir.exists()
 
 
-def test_interaction_with_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
+def test_loc_dir(rig: CloudProviderTestRig, tmpdir):
     # cannot instantiate persistent without local file dir
     with pytest.raises(InvalidConfigurationException):
         client = rig.client_class(
