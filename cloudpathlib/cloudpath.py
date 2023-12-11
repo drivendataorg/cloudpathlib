@@ -1172,17 +1172,21 @@ class CloudPath(metaclass=CloudPathMeta):
         """Uploads file at `local_path` to the cloud if there is not a newer file
         already there.
         """
+        if force_overwrite_to_cloud:
+            # If we are overwriting no need to perform any checks, so we can save time
+            self.client._upload_file(
+                local_path,
+                self,
+            )
+            return self
+
         try:
             stats = self.stat()
         except NoStatError:
             stats = None
 
-        # if cloud does not exist or local is newer or we are overwriting, do the upload
-        if (
-            not stats  # cloud does not exist
-            or (local_path.stat().st_mtime > stats.st_mtime)
-            or force_overwrite_to_cloud
-        ):
+        # if cloud does not exist or local is newer, do the upload
+        if not stats or (local_path.stat().st_mtime > stats.st_mtime):
             self.client._upload_file(
                 local_path,
                 self,
