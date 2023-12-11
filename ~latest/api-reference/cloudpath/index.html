@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.1">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.45e1311d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.50c56a3b.min.css">
       
       
 
@@ -3013,17 +3013,21 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Uploads file at `local_path` to the cloud if there is not a newer file</span>
 <span class="sd">        already there.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">force_overwrite_to_cloud</span><span class="p">:</span>
+            <span class="c1"># If we are overwriting no need to perform any checks, so we can save time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_upload_file</span><span class="p">(</span>
+                <span class="n">local_path</span><span class="p">,</span>
+                <span class="bp">self</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span>
         <span class="k">except</span> <span class="n">NoStatError</span><span class="p">:</span>
             <span class="n">stats</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="c1"># if cloud does not exist or local is newer or we are overwriting, do the upload</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="ow">not</span> <span class="n">stats</span>  <span class="c1"># cloud does not exist</span>
-            <span class="ow">or</span> <span class="p">(</span><span class="n">local_path</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span> <span class="o">&gt;</span> <span class="n">stats</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="n">force_overwrite_to_cloud</span>
-        <span class="p">):</span>
+        <span class="c1"># if cloud does not exist or local is newer, do the upload</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">stats</span> <span class="ow">or</span> <span class="p">(</span><span class="n">local_path</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span> <span class="o">&gt;</span> <span class="n">stats</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_upload_file</span><span class="p">(</span>
                 <span class="n">local_path</span><span class="p">,</span>
                 <span class="bp">self</span><span class="p">,</span>
