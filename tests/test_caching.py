@@ -178,6 +178,12 @@ def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
 
 
 def test_loc_dir(rig: CloudProviderTestRig, tmpdir):
+    """Tests that local cache dir is used when specified and works'
+    with the different cache modes.
+
+    Used to be called `test_interaction_with_local_cache_dir` but
+    maybe that test name caused problems (see #382).
+    """
     # cannot instantiate persistent without local file dir
     with pytest.raises(InvalidConfigurationException):
         client = rig.client_class(
