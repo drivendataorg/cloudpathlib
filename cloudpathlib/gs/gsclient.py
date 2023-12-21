@@ -1,8 +1,8 @@
-from datetime import datetime
 import mimetypes
 import os
+from datetime import datetime
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Tuple, Union
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
@@ -16,6 +16,7 @@ try:
     from google.api_core.exceptions import NotFound
     from google.auth.exceptions import DefaultCredentialsError
     from google.cloud.storage import Client as StorageClient
+    from google.cloud.storage import transfer_manager
 
 
 except ModuleNotFoundError:
@@ -39,6 +40,7 @@ class GSClient(Client):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
+        download_chunks_concurrently_kwargs: Optional[Dict[str, Any]] = None,
     ):
         """Class constructor. Sets up a [`Storage
         Client`](https://googleapis.dev/python/storage/latest/client.html).
@@ -76,6 +78,9 @@ class GSClient(Client):
                 the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
+            download_chunks_concurrently_kwargs (Optional[Dict[str, Any]]): Keyword arguments to pass to
+                [`download_chunks_concurrently`](https://cloud.google.com/python/docs/reference/storage/latest/google.cloud.storage.transfer_manager#google_cloud_storage_transfer_manager_download_chunks_concurrently)
+                for sliced parallel downloads.
         """
         if application_credentials is None:
             application_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -91,6 +96,8 @@ class GSClient(Client):
                 self.client = StorageClient()
             except DefaultCredentialsError:
                 self.client = StorageClient.create_anonymous_client()
+
+        self.download_chunks_concurrently_kwargs = download_chunks_concurrently_kwargs
 
         super().__init__(
             local_cache_dir=local_cache_dir,
@@ -118,7 +125,13 @@ class GSClient(Client):
 
         local_path = Path(local_path)
 
-        blob.download_to_filename(local_path)
+        if self.download_chunks_concurrently_kwargs is not None:
+            transfer_manager.download_chunks_concurrently(
+                blob, local_path, **self.download_chunks_concurrently_kwargs
+            )
+        else:
+            blob.download_to_filename(local_path)
+
         return local_path
 
     def _is_file_or_dir(self, cloud_path: GSPath) -> Optional[str]:

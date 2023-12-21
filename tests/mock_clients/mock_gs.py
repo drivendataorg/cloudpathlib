@@ -1,6 +1,6 @@
+import shutil
 from datetime import datetime
 from pathlib import Path, PurePosixPath
-import shutil
 from tempfile import TemporaryDirectory
 
 from google.api_core.exceptions import NotFound
@@ -64,6 +64,21 @@ class MockBlob:
     def patch(self):
         if "updated" in self.metadata:
             (self.bucket / self.name).touch()
+
+    def reload(
+        self,
+        client=None,
+        projection="noAcl",
+        if_etag_match=None,
+        if_etag_not_match=None,
+        if_generation_match=None,
+        if_generation_not_match=None,
+        if_metageneration_match=None,
+        if_metageneration_not_match=None,
+        timeout=None,
+        retry=None,
+    ):
+        pass
 
     def upload_from_filename(self, filename, content_type=None):
         data = Path(filename).read_bytes()
