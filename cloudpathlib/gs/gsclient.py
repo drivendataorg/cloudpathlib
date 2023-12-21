@@ -1,8 +1,8 @@
+from datetime import datetime
 import mimetypes
 import os
-from datetime import datetime
 from pathlib import Path, PurePosixPath
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry

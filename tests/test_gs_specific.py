@@ -1,7 +1,7 @@
 import pytest
 
-from cloudpathlib import GSClient, GSPath
-from cloudpathlib.local import LocalGSClient, LocalGSPath
+from cloudpathlib import GSPath
+from cloudpathlib.local import LocalGSPath
 
 
 @pytest.mark.parametrize("path_class", [GSPath, LocalGSPath])
