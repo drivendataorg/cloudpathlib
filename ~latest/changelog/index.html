@@ -1518,7 +1518,7 @@
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
 <h2 id="0170-2023-12-21">0.17.0 (2023-12-21)<a class="headerlink" href="#0170-2023-12-21" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Fix <code>S3Client</code> cleanup via <code>Client.__del__</code> when <code>S3Client</code> encounters an exception during initialization. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/372">#372</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/373">#373</a>)</li>
+<li>Fix <code>S3Client</code> cleanup via <code>Client.__del__</code> when <code>S3Client</code> encounters an exception during initialization. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/372">#372</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/373">#373</a>, thanks to <a href="https://github.com/bryanwweber">@bryanwweber</a>)</li>
 <li>Skip mtime checks during upload when force_overwrite_to_cloud is set to improve upload performance. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/379">#379</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/380">#380</a>, thanks to <a href="https://github.com/Gilthans">@Gilthans</a>)</li>
 </ul>
 <h2 id="v0160-2023-10-09">v0.16.0 (2023-10-09)<a class="headerlink" href="#v0160-2023-10-09" title="Permanent link">&para;</a></h2>
