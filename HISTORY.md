@@ -1,6 +1,7 @@
 # cloudpathlib Changelog
 
-## Unreleased
+## 0.17.0 (2023-12-21)
+
 - Fix `S3Client` cleanup via `Client.__del__` when `S3Client` encounters an exception during initialization. (Issue [#372](https://github.com/drivendataorg/cloudpathlib/issues/372), PR [#373](https://github.com/drivendataorg/cloudpathlib/pull/373))
 - Skip mtime checks during upload when force_overwrite_to_cloud is set to improve upload performance. (Issue [#379](https://github.com/drivendataorg/cloudpathlib/issues/379), PR [#380](https://github.com/drivendataorg/cloudpathlib/pull/380), thanks to [@Gilthans](https://github.com/Gilthans))
 
