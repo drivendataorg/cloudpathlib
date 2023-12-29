@@ -168,3 +168,19 @@ class MockHTTPIterator:
     @property
     def prefixes(self):
         return self.sub_directories
+
+
+class MockTransferManager:
+    @staticmethod
+    def download_chunks_concurrently(
+        blob,
+        filename,
+        chunk_size=32 * 1024 * 1024,
+        download_kwargs=None,
+        deadline=None,
+        worker_type="process",
+        max_workers=8,
+        *,
+        crc32c_checksum=True,
+    ):
+        blob.download_to_filename(filename)

@@ -15,8 +15,9 @@ def test_gspath_properties(path_class):
     assert p2.bucket == "mybucket"
 
 
-def test_concurrent_download(gs_rig, tmp_path):
-    client = gs_rig.client_class(download_chunks_concurrently_kwargs={})
+@pytest.mark.parametrize("worker_type", ["process", "thread"])
+def test_concurrent_download(gs_rig, tmp_path, worker_type):
+    client = gs_rig.client_class(download_chunks_concurrently_kwargs={"worker_type": worker_type})
     p = gs_rig.create_cloud_path("dir_0/file0_0.txt", client=client)
     dl_dir = tmp_path
     assert not (dl_dir / p.name).exists()

@@ -30,6 +30,7 @@ from .mock_clients.mock_azureblob import mocked_client_class_factory, DEFAULT_CO
 from .mock_clients.mock_gs import (
     mocked_client_class_factory as mocked_gsclient_class_factory,
     DEFAULT_GS_BUCKET_NAME,
+    MockTransferManager,
 )
 from .mock_clients.mock_s3 import mocked_session_class_factory, DEFAULT_S3_BUCKET_NAME
 
@@ -183,6 +184,11 @@ def gs_rig(request, monkeypatch, assets_dir):
             cloudpathlib.gs.gsclient,
             "StorageClient",
             mocked_gsclient_class_factory(test_dir),
+        )
+        monkeypatch.setattr(
+            cloudpathlib.gs.gsclient,
+            "transfer_manager",
+            MockTransferManager,
         )
 
     rig = CloudProviderTestRig(
