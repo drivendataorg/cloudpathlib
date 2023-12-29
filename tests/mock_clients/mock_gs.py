@@ -65,6 +65,21 @@ class MockBlob:
         if "updated" in self.metadata:
             (self.bucket / self.name).touch()
 
+    def reload(
+        self,
+        client=None,
+        projection="noAcl",
+        if_etag_match=None,
+        if_etag_not_match=None,
+        if_generation_match=None,
+        if_generation_not_match=None,
+        if_metageneration_match=None,
+        if_metageneration_not_match=None,
+        timeout=None,
+        retry=None,
+    ):
+        pass
+
     def upload_from_filename(self, filename, content_type=None):
         data = Path(filename).read_bytes()
         path = self.bucket / self.name
@@ -153,3 +168,19 @@ class MockHTTPIterator:
     @property
     def prefixes(self):
         return self.sub_directories
+
+
+class MockTransferManager:
+    @staticmethod
+    def download_chunks_concurrently(
+        blob,
+        filename,
+        chunk_size=32 * 1024 * 1024,
+        download_kwargs=None,
+        deadline=None,
+        worker_type="process",
+        max_workers=8,
+        *,
+        crc32c_checksum=True,
+    ):
+        blob.download_to_filename(filename)
