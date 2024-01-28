@@ -1,6 +1,6 @@
 -e .[all]
 
-black[jupyter]>=24.1.0
+black[jupyter]>=24.1.0;python_version>='3.8'
 build
 flake8
 ipytest
