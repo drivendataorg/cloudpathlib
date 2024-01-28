@@ -259,9 +259,11 @@ class MockBoto3Paginator:
             files = [
                 {
                     "Key": str(_.relative_to(self.root).as_posix()),
-                    "Size": 123
-                    if not _.relative_to(self.root).exists()
-                    else _.relative_to(self.root).stat().st_size,
+                    "Size": (
+                        123
+                        if not _.relative_to(self.root).exists()
+                        else _.relative_to(self.root).stat().st_size
+                    ),
                 }
                 for _ in page
                 if _.is_file()

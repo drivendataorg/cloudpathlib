@@ -1,6 +1,6 @@
 -e .[all]
 
-black[jupyter]
+black[jupyter]>=24.1.0
 build
 flake8
 ipytest

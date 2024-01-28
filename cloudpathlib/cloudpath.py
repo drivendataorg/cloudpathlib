@@ -129,14 +129,14 @@ def register_path_class(key: str) -> Callable[[Type[CloudPathT]], Type[CloudPath
 
 class CloudPathMeta(abc.ABCMeta):
     @overload
-    def __call__(cls: Type[T], cloud_path: CloudPathT, *args: Any, **kwargs: Any) -> CloudPathT:
-        ...
+    def __call__(
+        cls: Type[T], cloud_path: CloudPathT, *args: Any, **kwargs: Any
+    ) -> CloudPathT: ...
 
     @overload
     def __call__(
         cls: Type[T], cloud_path: Union[str, "CloudPath"], *args: Any, **kwargs: Any
-    ) -> T:
-        ...
+    ) -> T: ...
 
     def __call__(
         cls: Type[T], cloud_path: Union[str, CloudPathT], *args: Any, **kwargs: Any
@@ -274,13 +274,13 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @overload
     @classmethod
-    def is_valid_cloudpath(cls, path: "CloudPath", raise_on_error: bool = ...) -> TypeGuard[Self]:
-        ...
+    def is_valid_cloudpath(
+        cls, path: "CloudPath", raise_on_error: bool = ...
+    ) -> TypeGuard[Self]: ...
 
     @overload
     @classmethod
-    def is_valid_cloudpath(cls, path: str, raise_on_error: bool = ...) -> bool:
-        ...
+    def is_valid_cloudpath(cls, path: str, raise_on_error: bool = ...) -> bool: ...
 
     @classmethod
     def is_valid_cloudpath(
@@ -940,24 +940,21 @@ class CloudPath(metaclass=CloudPathMeta):
         self,
         destination: Self,
         force_overwrite_to_cloud: bool = False,
-    ) -> Self:
-        ...
+    ) -> Self: ...
 
     @overload
     def copy(
         self,
         destination: Path,
         force_overwrite_to_cloud: bool = False,
-    ) -> Path:
-        ...
+    ) -> Path: ...
 
     @overload
     def copy(
         self,
         destination: str,
         force_overwrite_to_cloud: bool = False,
-    ) -> Union[Path, "CloudPath"]:
-        ...
+    ) -> Union[Path, "CloudPath"]: ...
 
     def copy(self, destination, force_overwrite_to_cloud=False):
         """Copy self to destination folder of file, if self is a file."""
@@ -1007,8 +1004,7 @@ class CloudPath(metaclass=CloudPathMeta):
         destination: Self,
         force_overwrite_to_cloud: bool = False,
         ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
-    ) -> Self:
-        ...
+    ) -> Self: ...
 
     @overload
     def copytree(
@@ -1016,8 +1012,7 @@ class CloudPath(metaclass=CloudPathMeta):
         destination: Path,
         force_overwrite_to_cloud: bool = False,
         ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
-    ) -> Path:
-        ...
+    ) -> Path: ...
 
     @overload
     def copytree(
@@ -1025,8 +1020,7 @@ class CloudPath(metaclass=CloudPathMeta):
         destination: str,
         force_overwrite_to_cloud: bool = False,
         ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
-    ) -> Union[Path, "CloudPath"]:
-        ...
+    ) -> Union[Path, "CloudPath"]: ...
 
     def copytree(self, destination, force_overwrite_to_cloud=False, ignore=None):
         """Copy self to a directory, if self is a directory."""
