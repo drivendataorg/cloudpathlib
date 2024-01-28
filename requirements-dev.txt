@@ -19,7 +19,7 @@ pandas
 pillow
 psutil
 pydantic
-pytest
+pytest<8
 pytest-cases>=3.7.0
 pytest-cov
 pytest-xdist
