@@ -47,7 +47,7 @@ UPLOAD_IGNORE_LIST = [
 ]
 
 
-@fixture()
+@fixture
 def assets_dir() -> Path:
     """Path to test assets directory."""
     return Path(__file__).parent / "assets"
@@ -108,7 +108,7 @@ def create_test_dir_name(request) -> str:
     return test_dir
 
 
-@fixture()
+@fixture
 def azure_rig(request, monkeypatch, assets_dir):
     drive = os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
     test_dir = create_test_dir_name(request)
@@ -159,7 +159,7 @@ def azure_rig(request, monkeypatch, assets_dir):
         container_client.delete_blobs(*to_delete)
 
 
-@fixture()
+@fixture
 def gs_rig(request, monkeypatch, assets_dir):
     drive = os.getenv("LIVE_GS_BUCKET", DEFAULT_GS_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
@@ -211,7 +211,7 @@ def gs_rig(request, monkeypatch, assets_dir):
             blob.delete()
 
 
-@fixture()
+@fixture
 def s3_rig(request, monkeypatch, assets_dir):
     drive = os.getenv("LIVE_S3_BUCKET", DEFAULT_S3_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
@@ -257,7 +257,7 @@ def s3_rig(request, monkeypatch, assets_dir):
         bucket.objects.filter(Prefix=test_dir).delete()
 
 
-@fixture()
+@fixture
 def custom_s3_rig(request, monkeypatch, assets_dir):
     """
     Custom S3 rig used to test the integrations with non-AWS S3-compatible object storages like
@@ -328,7 +328,7 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
         bucket.objects.filter(Prefix=test_dir).delete()
 
 
-@fixture()
+@fixture
 def local_azure_rig(request, monkeypatch, assets_dir):
     drive = os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
     test_dir = create_test_dir_name(request)
@@ -354,7 +354,7 @@ def local_azure_rig(request, monkeypatch, assets_dir):
     rig.client_class.reset_default_storage_dir()  # reset local storage directory
 
 
-@fixture()
+@fixture
 def local_gs_rig(request, monkeypatch, assets_dir):
     drive = os.getenv("LIVE_GS_BUCKET", DEFAULT_GS_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
@@ -379,7 +379,7 @@ def local_gs_rig(request, monkeypatch, assets_dir):
     rig.client_class.reset_default_storage_dir()  # reset local storage directory
 
 
-@fixture()
+@fixture
 def local_s3_rig(request, monkeypatch, assets_dir):
     drive = os.getenv("LIVE_S3_BUCKET", DEFAULT_S3_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
