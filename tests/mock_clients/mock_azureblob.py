@@ -96,9 +96,9 @@ class MockBlobClient:
         path.write_bytes(data)
 
         if content_settings is not None:
-            self.service_client.metadata_cache[
-                self.root / self.key
-            ] = content_settings.content_type
+            self.service_client.metadata_cache[self.root / self.key] = (
+                content_settings.content_type
+            )
 
 
 class MockStorageStreamDownloader:

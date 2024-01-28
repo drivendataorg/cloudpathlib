@@ -1,6 +1,6 @@
 -e .[all]
 
-black[jupyter]
+black[jupyter]>=24.1.0;python_version>='3.8'
 build
 flake8
 ipytest
@@ -19,9 +19,8 @@ pandas
 pillow
 psutil
 pydantic
-pytest
-# pytest-cases
-git+https://github.com/jayqi/python-pytest-cases@packaging-version
+pytest<8
+pytest-cases>=3.7.0
 pytest-cov
 pytest-xdist
 python-dotenv
