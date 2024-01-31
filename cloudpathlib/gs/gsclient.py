@@ -271,6 +271,11 @@ class GSClient(Client):
         blob.upload_from_filename(str(local_path), **extra_args)
         return cloud_path
 
+    def _get_public_url(self, cloud_path: GSPath) -> str:
+        bucket = self.client.get_bucket(cloud_path.bucket)
+        blob = bucket.blob(cloud_path.blob)
+        return blob.public_url
+
     def _generate_presigned_url(self, cloud_path: GSPath, expire_seconds: int = 60 * 60) -> str:
         bucket = self.client.get_bucket(cloud_path.bucket)
         blob = bucket.blob(cloud_path.blob)

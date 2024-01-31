@@ -60,9 +60,7 @@ class S3Path(CloudPath):
         if presign:
             url = self.client._generate_presigned_url(self, expire_seconds=expire_seconds)
         else:
-            url = f"https://{self.bucket}.s3.amazonaws.com"
-            if self.key:
-                url = f"/{self.key}"
+            url = self.client._get_public_url(self)
         return url
 
     def stat(self):
