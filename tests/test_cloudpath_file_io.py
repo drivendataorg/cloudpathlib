@@ -475,3 +475,8 @@ def test_drive_exists(rig):
     assert CloudPath(f"{rig.cloud_prefix}{p.drive}").exists()
 
     assert not CloudPath(f"{rig.cloud_prefix}totally-fake-not-existing-bucket-for-tests").exists()
+
+
+def test_as_url(rig):
+    p: CloudPath = rig.create_cloud_path("dir_0/file0_0.txt")
+    presigned_url = p.as_url(presign=True)

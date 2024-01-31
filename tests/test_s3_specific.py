@@ -247,3 +247,17 @@ def test_aws_endpoint_url_env(monkeypatch):
     monkeypatch.setenv("AWS_ENDPOINT_URL", localstack_url)
     s3_client_custom_endpoint = S3Client()
     assert s3_client_custom_endpoint.client.meta.endpoint_url == localstack_url
+
+
+def test_as_url(monkeypatch):
+    path = S3Path("s3://arxiv/pdf")
+    public_url = path.as_url()
+    assert public_url == f"https://arxiv.s3.amazonaws.com/pdf"
+
+    localstack_url = "http://localhost:4566"
+    monkeypatch.setenv("AWS_ENDPOINT_URL", localstack_url)
+    s3_client_custom_endpoint = S3Client()
+
+    path = S3Path("s3://arxiv/pdf", client=s3_client_custom_endpoint)
+    public_url = path.as_url()
+    assert public_url == f"{localstack_url}/arxiv/pdf"

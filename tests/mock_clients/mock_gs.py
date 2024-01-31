@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
@@ -37,6 +37,9 @@ def mocked_client_class_factory(test_dir: str):
 
         def list_buckets(self):
             return [DEFAULT_GS_BUCKET_NAME]
+
+        def get_bucket(self, bucket):
+            return MockBucket(self.tmp_path, bucket, client=self)
 
     return MockClient
 
@@ -106,6 +109,13 @@ class MockBlob:
     def content_type(self):
         return self.client.metadata_cache.get(self.bucket / self.name, None)
 
+    @property
+    def public_url(self) -> str:
+        return f"https://storage.googleapis.com{self.bucket}/{self.name}"
+
+    def generate_signed_url(self, version: str, expiration: timedelta, method: str):
+        return f"https://storage.googleapis.com{self.bucket}/{self.name}?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=TEST&X-Goog-Date=20240131T185515Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=TEST"
+
 
 class MockBucket:
     def __init__(self, name, bucket_name, client=None):
@@ -148,7 +158,6 @@ class MockBucket:
             raise NotFound(
                 f"Bucket {self.name} not expected as mock bucket; only '{DEFAULT_GS_BUCKET_NAME}' exists."
             )
-
 
 class MockHTTPIterator:
     def __init__(self, blobs, sub_directories, max_results):
