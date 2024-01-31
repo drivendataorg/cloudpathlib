@@ -159,7 +159,9 @@ class LocalClient(Client):
     def _get_public_url(self, cloud_path: "LocalPath") -> str:
         return cloud_path.as_uri()
 
-    def _generate_presigned_url(self, cloud_path: "LocalPath") -> str:
+    def _generate_presigned_url(
+        self, cloud_path: "LocalPath", expire_seconds: int = 60 * 60
+    ) -> str:
         raise NotImplementedError("Cannot generate a presigned URL for a local path.")
 
 
