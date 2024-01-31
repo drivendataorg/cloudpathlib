@@ -156,6 +156,14 @@ class LocalClient(Client):
             "content_type": content_type_method(str(self._cloud_path_to_local(cloud_path)))[0],
         }
 
+    def _get_public_url(self, cloud_path: "LocalPath") -> str:
+        return cloud_path.as_uri()
+
+    def _generate_presigned_url(self, cloud_path: "LocalPath") -> str:
+        raise NotImplementedError("Cannot generate a presigned URL for a local path.")
+
+
+
 
 _temp_dirs_to_clean: List[TemporaryDirectory] = []
 
