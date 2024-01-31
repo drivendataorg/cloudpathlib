@@ -56,5 +56,6 @@ class LocalGSPath(LocalPath):
 
 LocalGSPath.__name__ = "GSPath"
 
+local_gs_implementation.name = "gs"
 local_gs_implementation._client_class = LocalGSClient
 local_gs_implementation._path_class = LocalGSPath

@@ -2,10 +2,14 @@ import abc
 import mimetypes
 import os
 from pathlib import Path
+import shutil
 from tempfile import TemporaryDirectory
 from typing import Generic, Callable, Iterable, Optional, Tuple, TypeVar, Union
 
 from .cloudpath import CloudImplementation, CloudPath, implementation_registry
+from .enums import FileCacheMode
+from .exceptions import InvalidConfigurationException
+
 
 BoundedCloudPath = TypeVar("BoundedCloudPath", bound=CloudPath)
 
@@ -28,23 +32,68 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
 
     def __init__(
         self,
+        file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
     ):
-        self._cloud_meta.validate_completeness()
-        # setup caching and local versions of file and track if it is a tmp dir
+        self.file_cache_mode = None
         self._cache_tmp_dir = None
+        self._cloud_meta.validate_completeness()
+
+        # convert strings passed to enum
+        if isinstance(file_cache_mode, str):
+            file_cache_mode = FileCacheMode(file_cache_mode)
+
+        # if not explcitly passed to client, get from env var
+        if file_cache_mode is None:
+            file_cache_mode = FileCacheMode.from_environment()
+
+        if local_cache_dir is None:
+            local_cache_dir = os.environ.get("CLOUDPATHLIB_LOCAL_CACHE_DIR", None)
+
+            # treat empty string as None to avoid writing cache in cwd; set to "." for cwd
+            if local_cache_dir == "":
+                local_cache_dir = None
+
+        # explicitly passing a cache dir, so we set to persistent
+        # unless user explicitly passes a different file cache mode
+        if local_cache_dir and file_cache_mode is None:
+            file_cache_mode = FileCacheMode.persistent
+
+        if file_cache_mode == FileCacheMode.persistent and local_cache_dir is None:
+            raise InvalidConfigurationException(
+                f"If you use the '{FileCacheMode.persistent}' cache mode, you must pass a `local_cache_dir` when you instantiate the client."
+            )
+
+        # if no explicit local dir, setup caching in temporary dir
         if local_cache_dir is None:
             self._cache_tmp_dir = TemporaryDirectory()
             local_cache_dir = self._cache_tmp_dir.name
 
+            if file_cache_mode is None:
+                file_cache_mode = FileCacheMode.tmp_dir
+
         self._local_cache_dir = Path(local_cache_dir)
         self.content_type_method = content_type_method
 
+        # Fallback: if not set anywhere, default to tmp_dir (for backwards compatibility)
+        if file_cache_mode is None:
+            file_cache_mode = FileCacheMode.tmp_dir
+
+        self.file_cache_mode = file_cache_mode
+
     def __del__(self) -> None:
-        # make sure temp is cleaned up if we created it
-        if self._cache_tmp_dir is not None:
-            self._cache_tmp_dir.cleanup()
+        # remove containing dir, even if a more aggressive strategy
+        # removed the actual files
+        if getattr(self, "file_cache_mode", None) in [
+            FileCacheMode.tmp_dir,
+            FileCacheMode.close_file,
+            FileCacheMode.cloudpath_object,
+        ]:
+            self.clear_cache()
+
+            if self._local_cache_dir.exists():
+                self._local_cache_dir.rmdir()
 
     @classmethod
     def get_default_client(cls) -> "Client":
@@ -61,7 +110,18 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         self.__class__._default_client = self
 
     def CloudPath(self, cloud_path: Union[str, BoundedCloudPath]) -> BoundedCloudPath:
-        return self._cloud_meta.path_class(cloud_path=cloud_path, client=self)
+        return self._cloud_meta.path_class(cloud_path=cloud_path, client=self)  # type: ignore
+
+    def clear_cache(self):
+        """Clears the contents of the cache folder.
+        Does not remove folder so it can keep being written to.
+        """
+        if self._local_cache_dir.exists():
+            for p in self._local_cache_dir.iterdir():
+                if p.is_file():
+                    p.unlink()
+                else:
+                    shutil.rmtree(p)
 
     @abc.abstractmethod
     def _download_file(

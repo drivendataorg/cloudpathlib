@@ -1,6 +1,7 @@
 import os
 from pathlib import Path, PurePosixPath
 import shutil
+from typing import Dict, Optional
 
 from azure.storage.blob import BlobServiceClient
 import boto3
@@ -25,9 +26,13 @@ from cloudpathlib.local import (
 )
 import cloudpathlib.azure.azblobclient
 import cloudpathlib.s3.s3client
-from .mock_clients.mock_azureblob import mocked_client_class_factory
-from .mock_clients.mock_gs import mocked_client_class_factory as mocked_gsclient_class_factory
-from .mock_clients.mock_s3 import mocked_session_class_factory
+from .mock_clients.mock_azureblob import mocked_client_class_factory, DEFAULT_CONTAINER_NAME
+from .mock_clients.mock_gs import (
+    mocked_client_class_factory as mocked_gsclient_class_factory,
+    DEFAULT_GS_BUCKET_NAME,
+    MockTransferManager,
+)
+from .mock_clients.mock_s3 import mocked_session_class_factory, DEFAULT_S3_BUCKET_NAME
 
 
 if os.getenv("USE_LIVE_CLOUD") == "1":
@@ -58,6 +63,7 @@ class CloudProviderTestRig:
         drive: str = "drive",
         test_dir: str = "",
         live_server: bool = False,
+        required_client_kwargs: Optional[Dict] = None,
     ):
         """
         Args:
@@ -69,17 +75,28 @@ class CloudProviderTestRig:
         self.drive = drive
         self.test_dir = test_dir
         self.live_server = live_server  # if the server is a live server
+        self.required_client_kwargs = (
+            required_client_kwargs if required_client_kwargs is not None else {}
+        )
 
     @property
     def cloud_prefix(self):
         return self.path_class.cloud_prefix
 
-    def create_cloud_path(self, path: str):
+    def create_cloud_path(self, path: str, client=None):
         """CloudPath constructor that appends cloud prefix. Use this to instantiate
-        cloud path instances with generic paths. Includes drive and root test_dir already."""
-        return self.path_class(
-            cloud_path=f"{self.path_class.cloud_prefix}{self.drive}/{self.test_dir}/{path}"
-        )
+        cloud path instances with generic paths. Includes drive and root test_dir already.
+
+        If `client`, use that client to create the path.
+        """
+        if client:
+            return client.CloudPath(
+                cloud_path=f"{self.path_class.cloud_prefix}{self.drive}/{self.test_dir}/{path}"
+            )
+        else:
+            return self.path_class(
+                cloud_path=f"{self.path_class.cloud_prefix}{self.drive}/{self.test_dir}/{path}"
+            )
 
 
 def create_test_dir_name(request) -> str:
@@ -93,7 +110,7 @@ def create_test_dir_name(request) -> str:
 
 @fixture()
 def azure_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_AZURE_CONTAINER", "container")
+    drive = os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
     test_dir = create_test_dir_name(request)
 
     live_server = os.getenv("USE_LIVE_CLOUD") == "1"
@@ -144,7 +161,7 @@ def azure_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def gs_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_GS_BUCKET", "bucket")
+    drive = os.getenv("LIVE_GS_BUCKET", DEFAULT_GS_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
 
     live_server = os.getenv("USE_LIVE_CLOUD") == "1"
@@ -167,6 +184,11 @@ def gs_rig(request, monkeypatch, assets_dir):
             cloudpathlib.gs.gsclient,
             "StorageClient",
             mocked_gsclient_class_factory(test_dir),
+        )
+        monkeypatch.setattr(
+            cloudpathlib.gs.gsclient,
+            "transfer_manager",
+            MockTransferManager,
         )
 
     rig = CloudProviderTestRig(
@@ -191,7 +213,7 @@ def gs_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def s3_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_S3_BUCKET", "bucket")
+    drive = os.getenv("LIVE_S3_BUCKET", DEFAULT_S3_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
 
     live_server = os.getenv("USE_LIVE_CLOUD") == "1"
@@ -243,7 +265,7 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
         - CEPH  (https://ceph.io/ceph-storage/object-storage/)
         - others
     """
-    drive = os.getenv("CUSTOM_S3_BUCKET", "bucket")
+    drive = os.getenv("CUSTOM_S3_BUCKET", DEFAULT_S3_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
     custom_endpoint_url = os.getenv("CUSTOM_S3_ENDPOINT", "https://s3.us-west-1.drivendatabws.com")
 
@@ -288,6 +310,7 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
+        required_client_kwargs=dict(endpoint_url=custom_endpoint_url),
     )
 
     rig.client_class(
@@ -307,7 +330,7 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def local_azure_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_AZURE_CONTAINER", "container")
+    drive = os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
     test_dir = create_test_dir_name(request)
 
     # copy test assets
@@ -333,7 +356,7 @@ def local_azure_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def local_gs_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_GS_BUCKET", "bucket")
+    drive = os.getenv("LIVE_GS_BUCKET", DEFAULT_GS_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
 
     # copy test assets
@@ -358,7 +381,7 @@ def local_gs_rig(request, monkeypatch, assets_dir):
 
 @fixture()
 def local_s3_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_S3_BUCKET", "bucket")
+    drive = os.getenv("LIVE_S3_BUCKET", DEFAULT_S3_BUCKET_NAME)
     test_dir = create_test_dir_name(request)
 
     # copy test assets

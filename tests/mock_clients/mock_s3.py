@@ -10,6 +10,7 @@ from botocore.exceptions import ClientError
 from .utils import delete_empty_parents_up_to_root
 
 TEST_ASSETS = Path(__file__).parent.parent / "assets"
+DEFAULT_S3_BUCKET_NAME = "bucket"
 
 # Since we don't contol exactly when the filesystem finishes writing a file
 # and the test files are super small, we can end up with race conditions in
@@ -87,11 +88,15 @@ class MockBoto3Object:
         else:
             self.path.write_bytes((self.root / Path(CopySource["Key"])).read_bytes())
 
-    def download_file(self, to_path, Config=None):
+    def download_file(self, to_path, Config=None, ExtraArgs=None):
         to_path = Path(to_path)
+
+        to_path.parent.mkdir(parents=True, exist_ok=True)
+
         to_path.write_bytes(self.path.read_bytes())
         # track config to make sure it's used in tests
         self.resource.download_config = Config
+        self.resource.download_extra_args = ExtraArgs
 
     def upload_file(self, from_path, Config=None, ExtraArgs=None):
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -106,7 +111,7 @@ class MockBoto3Object:
         delete_empty_parents_up_to_root(self.path, self.root)
         return {"ResponseMetadata": {"HTTPStatusCode": 204}}
 
-    def copy(self, source):
+    def copy(self, source, ExtraArgs=None, Config=None):
         # boto3 is more like "copy from"
         source = self.root / source["Key"]
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -169,7 +174,8 @@ class MockCollection:
 
         self.full_paths = items
         self.s3_obj_paths = [
-            s3_obj(bucket_name="bucket", key=str(i.relative_to(self.root))) for i in items
+            s3_obj(bucket_name=DEFAULT_S3_BUCKET_NAME, key=str(i.relative_to(self.root)))
+            for i in items
         ]
 
     def __iter__(self):
@@ -199,6 +205,32 @@ class MockBoto3Client:
     def get_paginator(self, api):
         return MockBoto3Paginator(self.root, session=self.session)
 
+    def head_bucket(self, Bucket):
+        if Bucket == DEFAULT_S3_BUCKET_NAME:  # used in passing tests
+            return {"Bucket": Bucket}
+        else:
+            raise ClientError(
+                {
+                    "Error": {
+                        "Message": f"Bucket {Bucket} not expected as mock bucket; only '{DEFAULT_S3_BUCKET_NAME}' exists."
+                    }
+                },
+                {},
+            )
+
+    def list_buckets(self):
+        return {"Buckets": [{"Name": DEFAULT_S3_BUCKET_NAME}]}
+
+    def head_object(self, Bucket, Key, **kwargs):
+        if (
+            not (self.root / Key).exists()
+            or (self.root / Key).is_dir()
+            or Bucket != DEFAULT_S3_BUCKET_NAME
+        ):
+            raise ClientError({}, {})
+        else:
+            return {"key": Key}
+
     @property
     def exceptions(self):
         Ex = collections.namedtuple("Ex", "NoSuchKey")
@@ -214,7 +246,10 @@ class MockBoto3Paginator:
     def paginate(self, Bucket=None, Prefix="", Delimiter=None):
         new_dir = self.root / Prefix
 
-        items = [f for f in new_dir.iterdir() if not f.name.startswith(".")]
+        if Delimiter == "/":
+            items = [f for f in new_dir.iterdir() if not f.name.startswith(".")]
+        else:
+            items = [f for f in new_dir.rglob("*") if not f.name.startswith(".")]
 
         for ix in range(0, len(items), self.per_page):
             page = items[ix : ix + self.per_page]
@@ -222,6 +257,24 @@ class MockBoto3Paginator:
                 {"Prefix": str(_.relative_to(self.root).as_posix())} for _ in page if _.is_dir()
             ]
             files = [
-                {"Key": str(_.relative_to(self.root).as_posix())} for _ in page if _.is_file()
+                {
+                    "Key": str(_.relative_to(self.root).as_posix()),
+                    "Size": (
+                        123
+                        if not _.relative_to(self.root).exists()
+                        else _.relative_to(self.root).stat().st_size
+                    ),
+                }
+                for _ in page
+                if _.is_file()
             ]
+
+            # s3 can have "fake" directories where size is 0, but it is listed in "Contents" (see #198)
+            # add one in here for testing
+            if dirs:
+                fake_dir = dirs.pop(-1)
+                fake_dir["Size"] = 0
+                fake_dir["Key"] = fake_dir.pop("Prefix") + "/"  # fake dirs have '/' appended
+                files.append(fake_dir)
+
             yield {"CommonPrefixes": dirs, "Contents": files}

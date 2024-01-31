@@ -11,10 +11,10 @@ jobs:
     runs-on: "ubuntu-latest"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -68,7 +68,7 @@ jobs:
           echo $OLD_STABLE
           mike retitle stable $OLD_STABLE
           # Deploy new version as stable
-          mike deploy --push --update-aliases --no-redirect \
+          mike deploy --push --update-aliases --alias-type=copy \
             ${{ steps.version.outputs.major_minor_version }} \
             stable \
             --title="${{ github.event.release.tag_name }} (stable)"
@@ -79,12 +79,12 @@ jobs:
     runs-on: "ubuntu-latest"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: gh-pages
 
       - name: Deploy docs to Netlify
-        uses: nwtgck/actions-netlify@v1.1
+        uses: nwtgck/actions-netlify@v2.0.0
         with:
           publish-dir: "./"
           production-deploy: true

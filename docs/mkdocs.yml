@@ -23,6 +23,7 @@ nav:
   - Other Client settings: "other_client_settings.md"
   - Testing code that uses cloudpathlib: "testing_mocked_cloudpathlib.ipynb"
   - Integrations: "integrations.md"
+  - Contributing: "contributing.md"
   - Changelog: "changelog.md"
   - API Reference:
       - CloudPath: "api-reference/cloudpath.md"
@@ -38,10 +39,12 @@ nav:
           - GSPath: "api-reference/gspath.md"
       - Submodules:
           - cloudpathlib.client: "api-reference/client.md"
+          - cloudpathlib.enums: "api-reference/enums.md"
           - cloudpathlib.exceptions: "api-reference/exceptions.md"
           - cloudpathlib.local: "api-reference/local.md"
 
 markdown_extensions:
+  - admonition
   - pymdownx.highlight
   - pymdownx.superfences
   - toc:
@@ -55,12 +58,11 @@ plugins:
       default_handler: python
       handlers:
         python:
-          selection:
+          options:
             filters: ["!^_(?!_init__)"]
             inherited_members: true
-          rendering:
             show_root_heading: false
-            show_root_toc_entry: false
+            show_root_toc_entry: true
             show_root_full_path: false
             show_if_no_docstring: true
             show_signature_annotations: true
@@ -68,9 +70,10 @@ plugins:
             heading_level: 2
             group_by_category: true
             show_category_heading: true
-      watch:
-        - ../cloudpathlib
 
 extra:
   version:
     provider: mike
+
+watch:
+  - ../cloudpathlib

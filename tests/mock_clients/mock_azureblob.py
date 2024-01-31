@@ -1,3 +1,4 @@
+from collections import namedtuple
 from datetime import datetime
 from pathlib import Path, PurePosixPath
 import shutil
@@ -10,6 +11,9 @@ from azure.core.exceptions import ResourceNotFoundError
 from .utils import delete_empty_parents_up_to_root
 
 TEST_ASSETS = Path(__file__).parent.parent / "assets"
+
+
+DEFAULT_CONTAINER_NAME = "container"
 
 
 def mocked_client_class_factory(test_dir: str):
@@ -33,7 +37,11 @@ def mocked_client_class_factory(test_dir: str):
             return MockBlobClient(self.tmp_path, blob, service_client=self)
 
         def get_container_client(self, container):
-            return MockContainerClient(self.tmp_path)
+            return MockContainerClient(self.tmp_path, container_name=container)
+
+        def list_containers(self):
+            Container = namedtuple("Container", "name")
+            return [Container(name=DEFAULT_CONTAINER_NAME)]
 
     return MockBlobServiceClient
 
@@ -88,9 +96,9 @@ class MockBlobClient:
         path.write_bytes(data)
 
         if content_settings is not None:
-            self.service_client.metadata_cache[
-                self.root / self.key
-            ] = content_settings.content_type
+            self.service_client.metadata_cache[self.root / self.key] = (
+                content_settings.content_type
+            )
 
 
 class MockStorageStreamDownloader:
@@ -106,8 +114,15 @@ class MockStorageStreamDownloader:
 
 
 class MockContainerClient:
-    def __init__(self, root):
+    def __init__(self, root, container_name):
         self.root = root
+        self.container_name = container_name
+
+    def exists(self):
+        if self.container_name == DEFAULT_CONTAINER_NAME:  # name used by passing tests
+            return True
+        else:
+            return False
 
     def list_blobs(self, name_starts_with=None):
         return mock_item_paged(self.root, name_starts_with)

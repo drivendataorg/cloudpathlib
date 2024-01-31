@@ -3,9 +3,12 @@ from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
 
+from google.api_core.exceptions import NotFound
+
 from .utils import delete_empty_parents_up_to_root
 
 TEST_ASSETS = Path(__file__).parent.parent / "assets"
+DEFAULT_GS_BUCKET_NAME = "bucket"
 
 
 def mocked_client_class_factory(test_dir: str):
@@ -30,7 +33,10 @@ def mocked_client_class_factory(test_dir: str):
             self.tmp.cleanup()
 
         def bucket(self, bucket):
-            return MockBucket(self.tmp_path, client=self)
+            return MockBucket(self.tmp_path, bucket, client=self)
+
+        def list_buckets(self):
+            return [DEFAULT_GS_BUCKET_NAME]
 
     return MockClient
 
@@ -58,6 +64,21 @@ class MockBlob:
     def patch(self):
         if "updated" in self.metadata:
             (self.bucket / self.name).touch()
+
+    def reload(
+        self,
+        client=None,
+        projection="noAcl",
+        if_etag_match=None,
+        if_etag_not_match=None,
+        if_generation_match=None,
+        if_generation_not_match=None,
+        if_metageneration_match=None,
+        if_metageneration_not_match=None,
+        timeout=None,
+        retry=None,
+    ):
+        pass
 
     def upload_from_filename(self, filename, content_type=None):
         data = Path(filename).read_bytes()
@@ -87,8 +108,9 @@ class MockBlob:
 
 
 class MockBucket:
-    def __init__(self, name, client=None):
+    def __init__(self, name, bucket_name, client=None):
         self.name = name
+        self.bucket_name = bucket_name
         self.client = client
 
     def blob(self, blob):
@@ -106,23 +128,59 @@ class MockBucket:
         else:
             return None
 
-    def list_blobs(self, max_results=None, prefix=None):
+    def list_blobs(self, max_results=None, prefix=None, delimiter=None):
         path = self.name if prefix is None else self.name / prefix
-        items = [
-            MockBlob(self.name, f.relative_to(self.name), client=self.client)
-            for f in path.glob("**/*")
-            if f.is_file() and not f.name.startswith(".")
-        ]
-        return MockHTTPIterator(items, max_results)
+        pattern = "**/*" if delimiter is None else "*"
+        blobs, prefixes = [], []
+        for item in path.glob(pattern):
+            if not item.name.startswith("."):
+                if item.is_file():
+                    blobs.append(
+                        MockBlob(self.name, item.relative_to(self.name), client=self.client)
+                    )
+                else:
+                    prefixes.append(str(item.relative_to(self.name).as_posix()))
+
+        # bucket name for passing tests
+        if self.bucket_name == DEFAULT_GS_BUCKET_NAME:
+            return MockHTTPIterator(blobs, prefixes, max_results)
+        else:
+            raise NotFound(
+                f"Bucket {self.name} not expected as mock bucket; only '{DEFAULT_GS_BUCKET_NAME}' exists."
+            )
 
 
 class MockHTTPIterator:
-    def __init__(self, items, max_results):
-        self.items = items
+    def __init__(self, blobs, sub_directories, max_results):
+        self.blobs = blobs
+        self.sub_directories = sub_directories
         self.max_results = max_results
 
     def __iter__(self):
         if self.max_results is None:
-            return iter(self.items)
+            return iter(self.blobs)
         else:
-            return iter(self.items[: self.max_results])
+            return iter(self.blobs[: self.max_results])
+
+    def __next__(self):
+        yield from iter(self)
+
+    @property
+    def prefixes(self):
+        return self.sub_directories
+
+
+class MockTransferManager:
+    @staticmethod
+    def download_chunks_concurrently(
+        blob,
+        filename,
+        chunk_size=32 * 1024 * 1024,
+        download_kwargs=None,
+        deadline=None,
+        worker_type="process",
+        max_workers=8,
+        *,
+        crc32c_checksum=True,
+    ):
+        blob.download_to_filename(filename)

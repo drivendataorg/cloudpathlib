@@ -6,14 +6,17 @@ from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
+from ..enums import FileCacheMode
 from .gspath import GSPath
 
 try:
     if TYPE_CHECKING:
         from google.auth.credentials import Credentials
 
+    from google.api_core.exceptions import NotFound
     from google.auth.exceptions import DefaultCredentialsError
     from google.cloud.storage import Client as StorageClient
+    from google.cloud.storage import transfer_manager
 
 
 except ModuleNotFoundError:
@@ -34,8 +37,10 @@ class GSClient(Client):
         credentials: Optional["Credentials"] = None,
         project: Optional[str] = None,
         storage_client: Optional["StorageClient"] = None,
+        file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
+        download_chunks_concurrently_kwargs: Optional[Dict[str, Any]] = None,
     ):
         """Class constructor. Sets up a [`Storage
         Client`](https://googleapis.dev/python/storage/latest/client.html).
@@ -65,10 +70,17 @@ class GSClient(Client):
                 https://googleapis.dev/python/storage/latest/client.html).
             storage_client (Optional[StorageClient]): Instantiated [`StorageClient`](
                 https://googleapis.dev/python/storage/latest/client.html).
+            file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see
+                [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information
+                about the options in cloudpathlib.eums.FileCacheMode.
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
-                for downloaded files. If None, will use a temporary directory.
+                for downloaded files. If None, will use a temporary directory. Default can be set with
+                the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
+            download_chunks_concurrently_kwargs (Optional[Dict[str, Any]]): Keyword arguments to pass to
+                [`download_chunks_concurrently`](https://cloud.google.com/python/docs/reference/storage/latest/google.cloud.storage.transfer_manager#google_cloud_storage_transfer_manager_download_chunks_concurrently)
+                for sliced parallel downloads.
         """
         if application_credentials is None:
             application_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -85,7 +97,13 @@ class GSClient(Client):
             except DefaultCredentialsError:
                 self.client = StorageClient.create_anonymous_client()
 
-        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
+        self.download_chunks_concurrently_kwargs = download_chunks_concurrently_kwargs
+
+        super().__init__(
+            local_cache_dir=local_cache_dir,
+            content_type_method=content_type_method,
+            file_cache_mode=file_cache_mode,
+        )
 
     def _get_metadata(self, cloud_path: GSPath) -> Optional[Dict[str, Any]]:
         bucket = self.client.bucket(cloud_path.bucket)
@@ -107,7 +125,13 @@ class GSClient(Client):
 
         local_path = Path(local_path)
 
-        blob.download_to_filename(local_path)
+        if self.download_chunks_concurrently_kwargs is not None:
+            transfer_manager.download_chunks_concurrently(
+                blob, local_path, **self.download_chunks_concurrently_kwargs
+            )
+        else:
+            blob.download_to_filename(local_path)
+
         return local_path
 
     def _is_file_or_dir(self, cloud_path: GSPath) -> Optional[str]:
@@ -135,41 +159,63 @@ class GSClient(Client):
                 return None
 
     def _exists(self, cloud_path: GSPath) -> bool:
+        # short-circuit the root-level bucket
+        if not cloud_path.blob:
+            try:
+                next(self.client.bucket(cloud_path.bucket).list_blobs())
+                return True
+            except NotFound:
+                return False
+
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
     def _list_dir(self, cloud_path: GSPath, recursive=False) -> Iterable[Tuple[GSPath, bool]]:
+        # shortcut if listing all available buckets
+        if not cloud_path.bucket:
+            if recursive:
+                raise NotImplementedError(
+                    "Cannot recursively list all buckets and contents; you can get all the buckets then recursively list each separately."
+                )
+
+            yield from (
+                (self.CloudPath(f"gs://{str(b)}"), True) for b in self.client.list_buckets()
+            )
+            return
+
         bucket = self.client.bucket(cloud_path.bucket)
 
         prefix = cloud_path.blob
         if prefix and not prefix.endswith("/"):
             prefix += "/"
+        if recursive:
+            yielded_dirs = set()
+            for o in bucket.list_blobs(prefix=prefix):
+                # get directory from this path
+                for parent in PurePosixPath(o.name[len(prefix) :]).parents:
+                    # if we haven't surfaced this directory already
+                    if parent not in yielded_dirs and str(parent) != ".":
+                        yield (
+                            self.CloudPath(f"gs://{cloud_path.bucket}/{prefix}{parent}"),
+                            True,  # is a directory
+                        )
+                        yielded_dirs.add(parent)
+                yield (self.CloudPath(f"gs://{cloud_path.bucket}/{o.name}"), False)  # is a file
+        else:
+            iterator = bucket.list_blobs(delimiter="/", prefix=prefix)
 
-        yielded_dirs = set()
+            # files must be iterated first for `.prefixes` to be populated:
+            #   see: https://github.com/googleapis/python-storage/issues/863
+            for file in iterator:
+                yield (
+                    self.CloudPath(f"gs://{cloud_path.bucket}/{file.name}"),
+                    False,  # is a file
+                )
 
-        # NOTE: Not recursive may be slower than necessary since it just filters
-        #   the recursive implementation
-        for o in bucket.list_blobs(prefix=prefix):
-            # get directory from this path
-            for parent in PurePosixPath(o.name[len(prefix) :]).parents:
-
-                # if we haven't surfaced thei directory already
-                if parent not in yielded_dirs and str(parent) != ".":
-
-                    # skip if not recursive and this is beyond our depth
-                    if not recursive and "/" in str(parent):
-                        continue
-
-                    yield (
-                        self.CloudPath(f"gs://{cloud_path.bucket}/{prefix}{parent}"),
-                        True,  # is a directory
-                    )
-                    yielded_dirs.add(parent)
-
-            # skip file if not recursive and this is beyond our depth
-            if not recursive and "/" in o.name[len(prefix) :]:
-                continue
-
-            yield (self.CloudPath(f"gs://{cloud_path.bucket}/{o.name}"), False)  # is a file
+            for directory in iterator.prefixes:
+                yield (
+                    self.CloudPath(f"gs://{cloud_path.bucket}/{directory}"),
+                    True,  # is a directory
+                )
 
     def _move_file(self, src: GSPath, dst: GSPath, remove_src: bool = True) -> GSPath:
         # just a touch, so "REPLACE" metadata

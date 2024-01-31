@@ -1,4 +1,5 @@
 from concurrent.futures import ProcessPoolExecutor
+from itertools import islice
 from time import sleep
 
 import pytest
@@ -164,6 +165,24 @@ def test_fake_directories(s3_like_rig):
         assert not test_case.is_file()
 
 
+def test_directories(s3_like_rig):
+    """Fixing bug that marks as directories prefixes of existing paths
+
+    Ref: https://github.com/drivendataorg/cloudpathlib/issues/208
+    """
+    super_path = s3_like_rig.create_cloud_path("dir_0/file0_0.txt")
+    assert super_path.exists()
+    assert not super_path.is_dir()
+
+    super_path = s3_like_rig.create_cloud_path("dir_0")
+    assert super_path.exists()
+    assert super_path.is_dir()
+
+    super_path = s3_like_rig.create_cloud_path("dir_0/file0")
+    assert not super_path.exists()
+    assert not super_path.is_dir()
+
+
 def test_no_sign_request(s3_rig, tmp_path):
     """Tests that we can pass no_sign_request to the S3Client and we will
     be able to access public resources but not private ones.
@@ -186,6 +205,32 @@ def test_no_sign_request(s3_rig, tmp_path):
     p = client.CloudPath(f"s3://{s3_rig.drive}/dir_0/file0_to_download.txt")
     with pytest.raises(botocore.exceptions.ClientError):
         p.exists()
+
+
+def test_extra_args_via_requester_pays(s3_rig, tmp_path):
+    """Tests that we can pass Extra to the S3Client and we will
+    be able to use those by leveraging the RequestPayer extra.
+
+    NOTE: Requires AWS S3 credentials where you will pay for
+    the requests here (which are a minimal amount).
+    """
+    if not s3_rig.live_server:
+        pytest.skip("This test only runs against live servers.")
+
+    # without the extras, this should raise
+    with pytest.raises(botocore.exceptions.ClientError):
+        list(s3_rig.path_class("s3://arxiv/pdf/").iterdir())
+
+    client = s3_rig.client_class(extra_args={"RequestPayer": "requester"})
+
+    # unsigned can access public path (axiv bucket is requester pays)
+    paths = list(islice(client.CloudPath("s3://arxiv/pdf/").iterdir(), 0, 5))
+    assert len(paths) > 0
+
+    # download of a file to the local bucket
+    local = client.CloudPath("s3://arxiv/pdf/arXiv_pdf_manifest.xml").download_to(tmp_path)
+
+    assert local.stat().st_size > 0
 
 
 def test_aws_endpoint_url_env(monkeypatch):

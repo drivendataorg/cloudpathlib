@@ -44,6 +44,10 @@ class InvalidPrefixError(CloudPathException, ValueError):
     pass
 
 
+class InvalidConfigurationException(CloudPathException, ValueError):
+    pass
+
+
 class MissingCredentialsError(CloudPathException):
     pass
 

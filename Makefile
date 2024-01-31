@@ -34,8 +34,7 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 dist: clean ## builds source and wheel package
-	python setup.py sdist
-	python setup.py bdist_wheel
+	python -m build
 	ls -l dist
 
 docs-setup:  ## setup docs pages based on README.md and HISTORY.md
@@ -44,6 +43,10 @@ docs-setup:  ## setup docs pages based on README.md and HISTORY.md
 		> docs/docs/index.md
 	sed 's|https://cloudpathlib.drivendata.org/stable/|../|g' HISTORY.md \
 		> docs/docs/changelog.md
+	python -c \
+		"import sys, re; print(re.sub(r'\]\((?!http|#)([^\)]+)\)', r'](https://github.com/drivendataorg/cloudpathlib/blob/master/\1)', sys.stdin.read()), end='')" \
+		< CONTRIBUTING.md \
+		> docs/docs/contributing.md
 
 docs: clean-docs docs-setup ## build the static version of the docs
 	cd docs && mkdocs build
@@ -51,7 +54,7 @@ docs: clean-docs docs-setup ## build the static version of the docs
 docs-serve: clean-docs docs-setup ## serve documentation to livereload while you work
 	cd docs && mkdocs serve
 
-format:
+format:  ## run black to format codebase
 	black cloudpathlib tests docs
 
 help:
@@ -60,7 +63,7 @@ help:
 install: clean ## install the package to the active Python's site-packages
 	python setup.py install
 
-lint: ## check style with flake8
+lint: ## check style with black, flake8, and mypy
 	black --check cloudpathlib tests docs
 	flake8 cloudpathlib tests docs
 	mypy cloudpathlib
@@ -71,11 +74,17 @@ release: dist ## package and upload a release
 release-test: dist
 	twine upload --repository pypitest dist/*
 
-reqs:
+reqs:  ## install development requirements
 	pip install -U -r requirements-dev.txt
 
 test: ## run tests with mocked cloud SDKs
 	python -m pytest -vv
 
+test-debug:  ## rerun tests that failed in last run and stop with pdb at failures
+	python -m pytest -n=0 -vv --lf --pdb
+
 test-live-cloud:  ## run tests on live cloud backends
 	USE_LIVE_CLOUD=1 python -m pytest -vv
+
+perf:  ## run performance measurement suite for s3 and save results to perf-results.csv
+	python tests/performance/cli.py s3 --save-csv=perf-results.csv

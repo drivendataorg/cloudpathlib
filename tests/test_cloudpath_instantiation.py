@@ -1,4 +1,7 @@
+import inspect
 import os
+from pathlib import PurePath
+import re
 
 import pytest
 
@@ -83,3 +86,59 @@ def test_dependencies_not_loaded(rig, monkeypatch):
 def test_is_pathlike(rig):
     p = rig.create_cloud_path("dir_0")
     assert isinstance(p, os.PathLike)
+
+
+def test_public_interface_is_superset(rig):
+    """Test that a CloudPath has all of the Path methods and properties. For methods
+    we also ensure that the only difference in the signature is that a CloudPath has
+    optional additional kwargs (which are likely added in subsequent Python versions).
+    """
+    lp = PurePath(".")
+    cp = rig.create_cloud_path("dir_0/file0_0.txt")
+
+    # Use regex to find the methods not implemented that are listed in the CloudPath code
+    not_implemented_section = re.search(
+        r"# =+ NOT IMPLEMENTED =+\n(.+?)\n\n", inspect.getsource(CloudPath), re.DOTALL
+    )
+
+    if not_implemented_section:
+        methods_not_implemented_str = not_implemented_section.group(1)
+        methods_not_implemented = re.findall(r"# (\w+)", methods_not_implemented_str)
+
+    for name, lp_member in inspect.getmembers(lp):
+        if name.startswith("_") or name in methods_not_implemented:
+            continue
+
+        # checks all public methods and properties
+        cp_member = getattr(cp, name, None)
+        assert cp_member is not None, f"CloudPath missing {name}"
+
+        # for methods, checks the function signature
+        if callable(lp_member):
+            cp_signature = inspect.signature(cp_member)
+            lp_signature = inspect.signature(lp_member)
+
+            # all parameters for Path method should be part of CloudPath signature
+            for parameter in lp_signature.parameters:
+                # some parameters like _deprecated in Path.is_relative_to are not really part of the signature
+                if parameter.startswith("_") or (
+                    name == "joinpath" and parameter in ["args", "pathsegments"]
+                ):  # handle arg name change in 3.12
+                    continue
+
+                assert (
+                    parameter in cp_signature.parameters
+                ), f"CloudPath.{name} missing parameter {parameter}"
+
+            # extra parameters for CloudPath method should be optional with defaults
+            for parameter, param_details in cp_signature.parameters.items():
+                if name == "joinpath" and parameter in [
+                    "args",
+                    "pathsegments",
+                ]:  # handle arg name change in 3.12
+                    continue
+
+                if parameter not in lp_signature.parameters:
+                    assert (
+                        param_details.default is not inspect.Parameter.empty
+                    ), f"CloudPath.{name} added parameter {parameter} without a default"

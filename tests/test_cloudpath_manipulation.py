@@ -1,4 +1,5 @@
 from pathlib import PurePosixPath
+import sys
 
 import pytest
 
@@ -27,6 +28,13 @@ def test_with_suffix(rig):
     )
 
 
+def test_with_stem(rig):
+    assert (
+        str(rig.create_cloud_path("a/b/c/old.file").with_stem("new"))
+        == f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/a/b/c/new.file"
+    )
+
+
 def test_no_op_actions(rig):
     path = rig.create_cloud_path("a/b/c/d.file")
     assert path == path.absolute()
@@ -43,6 +51,12 @@ def test_relative_to(rig, azure_rig, gs_rig):
         assert rig.create_cloud_path("bucket/b/c/d.file").relative_to(
             rig.create_cloud_path("bucket/z")
         )
+
+    if sys.version_info >= (3, 12):
+        assert rig.create_cloud_path("bucket/path/to/file.txt").relative_to(
+            rig.create_cloud_path("other_bucket/path2"), walk_up=True
+        ) == PurePosixPath("../../bucket/path/to/file.txt")
+
     with pytest.raises(ValueError):
         assert rig.create_cloud_path("a/b/c/d.file").relative_to(PurePosixPath("/a/b/c"))
     other_rig = azure_rig if rig.cloud_prefix != azure_rig.cloud_prefix else gs_rig
@@ -65,6 +79,9 @@ def test_joins(rig):
     assert rig.create_cloud_path("a/b/c/d").match("**/c/*")
     assert not rig.create_cloud_path("a/b/c/d").match("**/c")
     assert rig.create_cloud_path("a/b/c/d").match("a/*/c/d")
+
+    if sys.version_info >= (3, 12):
+        assert rig.create_cloud_path("a/b/c/d").match("A/*/C/D", case_sensitive=False)
 
     assert rig.create_cloud_path("a/b/c/d").anchor == rig.cloud_prefix
     assert rig.create_cloud_path("a/b/c/d").parent == rig.create_cloud_path("a/b/c")
@@ -98,6 +115,16 @@ def test_joins(rig):
         "c",
         "d",
     )
+
+
+def test_with_segments(rig):
+    assert rig.create_cloud_path("a/b/c/d").with_segments(
+        "x", "y", "z"
+    ) == rig.client_class().CloudPath(f"{rig.cloud_prefix}x/y/z")
+
+
+def test_is_junction(rig):
+    assert not rig.create_cloud_path("a/b/foo").is_junction()
 
 
 def test_equality(rig):
