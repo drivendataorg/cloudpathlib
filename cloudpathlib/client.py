@@ -181,5 +181,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         pass
 
     @abc.abstractmethod
-    def _generate_presigned_url(self, cloud_path: BoundedCloudPath, expire_seconds: int = 60 * 60) -> str:
+    def _generate_presigned_url(
+        self, cloud_path: BoundedCloudPath, expire_seconds: int = 60 * 60
+    ) -> str:
         pass

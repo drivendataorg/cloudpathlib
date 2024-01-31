@@ -163,8 +163,6 @@ class LocalClient(Client):
         raise NotImplementedError("Cannot generate a presigned URL for a local path.")
 
 
-
-
 _temp_dirs_to_clean: List[TemporaryDirectory] = []
 
 
