@@ -1,24 +1,13 @@
 import os
+from abc import ABC
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 
 from .cloudpath import InvalidPrefixError, CloudPath
 from .exceptions import AnyPathTypeError
 
 
-class AnyPathMeta(type):
-    """Metaclass for AnyPath that implements special methods so that AnyPath works as a virtual
-    superclass when using isinstance or issubclass checks on CloudPath or Path inputs. See
-    [PEP 3119](https://www.python.org/dev/peps/pep-3119/#overloading-isinstance-and-issubclass)."""
-
-    def __instancecheck__(cls, inst):
-        return isinstance(inst, CloudPath) or isinstance(inst, Path)
-
-    def __subclasscheck__(cls, sub):
-        return issubclass(sub, CloudPath) or issubclass(sub, Path)
-
-
-class AnyPath(metaclass=AnyPathMeta):
+class AnyPath(ABC):
     """Polymorphic virtual superclass for CloudPath and pathlib.Path. Constructing an instance will
     automatically dispatch to CloudPath or Path based on the input. It also supports both
     isinstance and issubclass checks.
@@ -41,6 +30,32 @@ class AnyPath(metaclass=AnyPathMeta):
                     f"Path exception: {repr(path_exception)}"
                 )
 
+    # ===========  pydantic integration special methods ===============
+    @classmethod
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler):
+        """Pydantic special method. See
+        https://docs.pydantic.dev/2.0/usage/types/custom/"""
+        try:
+            from pydantic_core import core_schema
+
+            return core_schema.no_info_after_validator_function(
+                cls.validate,
+                core_schema.any_schema(),
+            )
+        except ImportError:
+            return None
+
+    @classmethod
+    def validate(cls, v: str) -> Union[CloudPath, Path]:
+        """Pydantic special method. See
+        https://docs.pydantic.dev/2.0/usage/types/custom/"""
+        try:
+            return cls.__new__(cls, v)
+        except AnyPathTypeError as e:
+            # type errors no longer converted to validation errors
+            #  https://docs.pydantic.dev/2.0/migration/#typeerror-is-no-longer-converted-to-validationerror-in-validators
+            raise ValueError(e)
+
     @classmethod
     def __get_validators__(cls):
         """Pydantic special method. See
@@ -53,6 +68,10 @@ class AnyPath(metaclass=AnyPathMeta):
         https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
         # Note __new__ is static method and not a class method
         return cls.__new__(cls, value)
+
+
+AnyPath.register(CloudPath)  # type: ignore
+AnyPath.register(Path)
 
 
 def to_anypath(s: Union[str, os.PathLike]) -> Union[CloudPath, Path]:

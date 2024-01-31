@@ -8,13 +8,53 @@ from pathlib import (  # type: ignore
     PosixPath,
     PurePosixPath,
     WindowsPath,
-    _make_selector,
-    _posix_flavour,
     _PathParents,
 )
-from typing import Any, IO, Iterable, Dict, Optional, TYPE_CHECKING, Union
+
+import shutil
+import sys
+from typing import (
+    overload,
+    Any,
+    Callable,
+    Container,
+    Iterable,
+    IO,
+    Dict,
+    Generator,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
+)
 from urllib.parse import urlparse
 from warnings import warn
+
+if sys.version_info >= (3, 10):
+    from typing import TypeGuard
+else:
+    from typing_extensions import TypeGuard
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
+if sys.version_info >= (3, 12):
+    from pathlib import posixpath as _posix_flavour  # type: ignore[attr-defined]
+    from pathlib import _make_selector  # type: ignore[attr-defined]
+else:
+    from pathlib import _posix_flavour  # type: ignore[attr-defined]
+    from pathlib import _make_selector as _make_selector_pathlib  # type: ignore[attr-defined]
+
+    def _make_selector(pattern_parts, _flavour, case_sensitive=True):
+        return _make_selector_pathlib(tuple(pattern_parts), _flavour)
+
+
+from cloudpathlib.enums import FileCacheMode
 
 from . import anypath
 
@@ -40,13 +80,12 @@ if TYPE_CHECKING:
 
 
 class CloudImplementation:
-    def __init__(self):
-        self.name = None
-        self.dependencies_loaded = True
-        self._client_class = None
-        self._path_class = None
+    name: str
+    dependencies_loaded: bool = True
+    _client_class: Type["Client"]
+    _path_class: Type["CloudPath"]
 
-    def validate_completeness(self):
+    def validate_completeness(self) -> None:
         expected = ["client_class", "path_class"]
         missing = [cls for cls in expected if getattr(self, f"_{cls}") is None]
         if missing:
@@ -60,24 +99,27 @@ class CloudImplementation:
             )
 
     @property
-    def client_class(self):
+    def client_class(self) -> Type["Client"]:
         self.validate_completeness()
         return self._client_class
 
     @property
-    def path_class(self):
+    def path_class(self) -> Type["CloudPath"]:
         self.validate_completeness()
         return self._path_class
 
 
-implementation_registry: defaultdict = defaultdict(CloudImplementation)
+implementation_registry: Dict[str, CloudImplementation] = defaultdict(CloudImplementation)
 
 
-def register_path_class(key: str):
-    def decorator(cls: type):
+T = TypeVar("T")
+CloudPathT = TypeVar("CloudPathT", bound="CloudPath")
+
+
+def register_path_class(key: str) -> Callable[[Type[CloudPathT]], Type[CloudPathT]]:
+    def decorator(cls: Type[CloudPathT]) -> Type[CloudPathT]:
         if not issubclass(cls, CloudPath):
             raise TypeError("Only subclasses of CloudPath can be registered.")
-        global implementation_registry
         implementation_registry[key]._path_class = cls
         cls._cloud_meta = implementation_registry[key]
         return cls
@@ -86,43 +128,56 @@ def register_path_class(key: str):
 
 
 class CloudPathMeta(abc.ABCMeta):
-    def __call__(cls, cloud_path, *args, **kwargs):
+    @overload
+    def __call__(
+        cls: Type[T], cloud_path: CloudPathT, *args: Any, **kwargs: Any
+    ) -> CloudPathT: ...
+
+    @overload
+    def __call__(
+        cls: Type[T], cloud_path: Union[str, "CloudPath"], *args: Any, **kwargs: Any
+    ) -> T: ...
+
+    def __call__(
+        cls: Type[T], cloud_path: Union[str, CloudPathT], *args: Any, **kwargs: Any
+    ) -> Union[T, "CloudPath", CloudPathT]:
         # cls is a class that is the instance of this metaclass, e.g., CloudPath
+        if not issubclass(cls, CloudPath):
+            raise TypeError(
+                f"Only subclasses of {CloudPath.__name__} can be instantiated from its meta class."
+            )
 
         # Dispatch to subclass if base CloudPath
-        if cls == CloudPath:
+        if cls is CloudPath:
             for implementation in implementation_registry.values():
                 path_class = implementation._path_class
                 if path_class is not None and path_class.is_valid_cloudpath(
                     cloud_path, raise_on_error=False
                 ):
                     # Instantiate path_class instance
-                    new_obj = path_class.__new__(path_class, cloud_path, *args, **kwargs)
-                    if isinstance(new_obj, path_class):
-                        path_class.__init__(new_obj, cloud_path, *args, **kwargs)
+                    new_obj = object.__new__(path_class)
+                    path_class.__init__(new_obj, cloud_path, *args, **kwargs)  # type: ignore[type-var]
                     return new_obj
-            valid = [
+            valid_prefixes = [
                 impl._path_class.cloud_prefix
                 for impl in implementation_registry.values()
                 if impl._path_class is not None
             ]
             raise InvalidPrefixError(
-                f"Path {cloud_path} does not begin with a known prefix " f"{valid}."
+                f"Path {cloud_path} does not begin with a known prefix {valid_prefixes}."
             )
 
-        # Otherwise instantiate as normal
-        new_obj = cls.__new__(cls, cloud_path, *args, **kwargs)
-        if isinstance(new_obj, cls):
-            cls.__init__(new_obj, cloud_path, *args, **kwargs)
+        new_obj = object.__new__(cls)
+        cls.__init__(new_obj, cloud_path, *args, **kwargs)  # type: ignore[type-var]
         return new_obj
 
-    def __init__(cls, name, bases, dic):
+    def __init__(cls, name: str, bases: Tuple[type, ...], dic: Dict[str, Any]) -> None:
         # Copy docstring from pathlib.Path
         for attr in dir(cls):
             if (
                 not attr.startswith("_")
                 and hasattr(Path, attr)
-                and hasattr(getattr(Path, attr), "__doc__")
+                and getattr(getattr(Path, attr), "__doc__", None)
             ):
                 docstring = getattr(Path, attr).__doc__ + " _(Docstring copied from pathlib.Path)_"
                 getattr(cls, attr).__doc__ = docstring
@@ -151,7 +206,15 @@ class CloudPath(metaclass=CloudPathMeta):
     _cloud_meta: CloudImplementation
     cloud_prefix: str
 
-    def __init__(self, cloud_path: Union[str, "CloudPath"], client: Optional["Client"] = None):
+    def __init__(
+        self,
+        cloud_path: Union[str, Self, "CloudPath"],
+        client: Optional["Client"] = None,
+    ) -> None:
+        # handle if local file gets opened. must be set at the top of the method in case any code
+        # below raises an exception, this prevents __del__ from raising an AttributeError
+        self._handle: Optional[IO] = None
+
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
 
         # versions of the raw string that provide useful methods
@@ -176,15 +239,19 @@ class CloudPath(metaclass=CloudPathMeta):
         # track if local has been written to, if so it may need to be uploaded
         self._dirty = False
 
-        # handle if local file gets opened
-        self._handle = None
-
-    def __del__(self):
+    def __del__(self) -> None:
         # make sure that file handle to local path is closed
         if self._handle is not None:
             self._handle.close()
 
-    def __getstate__(self):
+        # ensure file removed from cache when cloudpath object deleted
+        if (
+            hasattr(self, "client")
+            and self.client.file_cache_mode == FileCacheMode.cloudpath_object
+        ):
+            self.clear_cache()
+
+    def __getstate__(self) -> Dict[str, Any]:
         state = self.__dict__.copy()
 
         # don't pickle client
@@ -192,10 +259,10 @@ class CloudPath(metaclass=CloudPathMeta):
 
         return state
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: Dict[str, Any]) -> None:
         client = self._cloud_meta.client_class.get_default_client()
         state["client"] = client
-        return self.__dict__.update(state)
+        self.__dict__.update(state)
 
     @property
     def _no_prefix(self) -> str:
@@ -205,8 +272,20 @@ class CloudPath(metaclass=CloudPathMeta):
     def _no_prefix_no_drive(self) -> str:
         return self._str[len(self.cloud_prefix) + len(self.drive) :]
 
+    @overload
     @classmethod
-    def is_valid_cloudpath(cls, path: Union[str, "CloudPath"], raise_on_error=False) -> bool:
+    def is_valid_cloudpath(
+        cls, path: "CloudPath", raise_on_error: bool = ...
+    ) -> TypeGuard[Self]: ...
+
+    @overload
+    @classmethod
+    def is_valid_cloudpath(cls, path: str, raise_on_error: bool = ...) -> bool: ...
+
+    @classmethod
+    def is_valid_cloudpath(
+        cls, path: Union[str, "CloudPath"], raise_on_error: bool = False
+    ) -> Union[bool, TypeGuard[Self]]:
         valid = str(path).lower().startswith(cls.cloud_prefix.lower())
 
         if raise_on_error and not valid:
@@ -228,7 +307,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, type(self)) and str(self) == str(other)
 
-    def __fspath__(self):
+    def __fspath__(self) -> str:
         if self.is_file():
             self._refresh_cache(force_overwrite_from_cloud=False)
         return str(self._local)
@@ -273,6 +352,8 @@ class CloudPath(metaclass=CloudPathMeta):
     # owner - no cloud equivalent
     # root - drive already has the bucket and anchor/prefix has the scheme, so nothing to store here
     # symlink_to - no cloud equivalent
+    # link_to - no cloud equivalent
+    # hardlink_to - no cloud equivalent
 
     # ====================== REQUIRED, NOT GENERIC ======================
     # Methods that must be implemented, but have no generic application
@@ -293,12 +374,12 @@ class CloudPath(metaclass=CloudPathMeta):
         pass
 
     @abc.abstractmethod
-    def mkdir(self, parents: bool = False, exist_ok: bool = False):
+    def mkdir(self, parents: bool = False, exist_ok: bool = False) -> None:
         """Should be implemented using the client API without requiring a dir is downloaded"""
         pass
 
     @abc.abstractmethod
-    def touch(self, exist_ok: bool = True):
+    def touch(self, exist_ok: bool = True) -> None:
         """Should be implemented using the client API to create and update modified time"""
         pass
 
@@ -309,7 +390,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     # ====================== IMPLEMENTED FROM SCRATCH ======================
     # Methods with their own implementations that work generically
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other: Any) -> None:
         raise ValueError(
             "Cannot change a cloud path's root since all paths are absolute; create a new path instead."
         )
@@ -328,7 +409,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def fspath(self) -> str:
         return self.__fspath__()
 
-    def _glob_checks(self, pattern):
+    def _glob_checks(self, pattern: str) -> None:
         if ".." in pattern:
             raise CloudPathNotImplementedError(
                 "Relative paths with '..' not supported in glob patterns."
@@ -337,51 +418,132 @@ class CloudPath(metaclass=CloudPathMeta):
         if pattern.startswith(self.cloud_prefix) or pattern.startswith("/"):
             raise CloudPathNotImplementedError("Non-relative patterns are unsupported")
 
-    def _glob(self, selector):
+        if self.drive == "":
+            raise CloudPathNotImplementedError(
+                ".glob is only supported within a bucket or container; you can use `.iterdir` to list buckets; for example, CloudPath('s3://').iterdir()"
+            )
+
+    def _build_subtree(self, recursive):
+        # build a tree structure for all files out of default dicts
+        Tree: Callable = lambda: defaultdict(Tree)
+
+        def _build_tree(trunk, branch, nodes, is_dir):
+            """Utility to build a tree from nested defaultdicts with a generator
+            of nodes (parts) of a path."""
+            next_branch = next(nodes, None)
+
+            if next_branch is None:
+                trunk[branch] = Tree() if is_dir else None  # leaf node
+
+            else:
+                _build_tree(trunk[branch], next_branch, nodes, is_dir)
+
+        file_tree = Tree()
+
+        for f, is_dir in self.client._list_dir(self, recursive=recursive):
+            parts = str(f.relative_to(self)).split("/")
+
+            # skip self
+            if len(parts) == 1 and parts[0] == ".":
+                continue
+
+            nodes = (p for p in parts)
+            _build_tree(file_tree, next(nodes, None), nodes, is_dir)
+
+        return dict(file_tree)  # freeze as normal dict before passing in
+
+    def _glob(self, selector, recursive: bool) -> Generator[Self, None, None]:
+        file_tree = self._build_subtree(recursive)
+
         root = _CloudPathSelectable(
-            PurePosixPath(self._no_prefix_no_drive),
-            {
-                PurePosixPath(c._no_prefix_no_drive): is_dir
-                for c, is_dir in self.client._list_dir(self, recursive=True)
-            },
-            is_dir=True,
-            exists=True,
+            self.name,
+            [],  # nothing above self will be returned, so initial parents is empty
+            file_tree,
         )
 
         for p in selector.select_from(root):
-            yield self.client.CloudPath(f"{self.cloud_prefix}{self.drive}{p}")
+            # select_from returns self.name/... so strip before joining
+            yield (self / str(p)[len(self.name) + 1 :])
 
-    def glob(self, pattern):
+    def glob(
+        self, pattern: str, case_sensitive: Optional[bool] = None
+    ) -> Generator[Self, None, None]:
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
-        selector = _make_selector(tuple(pattern_parts), _posix_flavour)
+        selector = _make_selector(
+            tuple(pattern_parts), _posix_flavour, case_sensitive=case_sensitive
+        )
 
-        yield from self._glob(selector)
+        yield from self._glob(
+            selector,
+            "/" in pattern
+            or "**"
+            in pattern,  # recursive listing needed if explicit ** or any sub folder in pattern
+        )
 
-    def rglob(self, pattern):
+    def rglob(
+        self, pattern: str, case_sensitive: Optional[bool] = None
+    ) -> Generator[Self, None, None]:
         self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
-        selector = _make_selector(("**",) + tuple(pattern_parts), _posix_flavour)
+        selector = _make_selector(
+            ("**",) + tuple(pattern_parts), _posix_flavour, case_sensitive=case_sensitive
+        )
 
-        yield from self._glob(selector)
+        yield from self._glob(selector, True)
 
-    def iterdir(self) -> Iterable["CloudPath"]:
+    def iterdir(self) -> Generator[Self, None, None]:
         for f, _ in self.client._list_dir(self, recursive=False):
             if f != self:  # iterdir does not include itself in pathlib
                 yield f
 
+    @staticmethod
+    def _walk_results_from_tree(root, tree, top_down=True):
+        """Utility to yield tuples in the form expected by `.walk` from the file
+        tree constructed by `_build_substree`.
+        """
+        dirs = []
+        files = []
+        for item, branch in tree.items():
+            files.append(item) if branch is None else dirs.append(item)
+
+        if top_down:
+            yield root, dirs, files
+
+        for dir in dirs:
+            yield from CloudPath._walk_results_from_tree(root / dir, tree[dir], top_down=top_down)
+
+        if not top_down:
+            yield root, dirs, files
+
+    def walk(
+        self,
+        top_down: bool = True,
+        on_error: Optional[Callable] = None,
+        follow_symlinks: bool = False,
+    ) -> Generator[Tuple[Self, List[str], List[str]], None, None]:
+        try:
+            file_tree = self._build_subtree(recursive=True)  # walking is always recursive
+            yield from self._walk_results_from_tree(self, file_tree, top_down=top_down)
+
+        except Exception as e:
+            if on_error is not None:
+                on_error(e)
+            else:
+                raise
+
     def open(
         self,
-        mode="r",
-        buffering=-1,
-        encoding=None,
-        errors=None,
-        newline=None,
-        force_overwrite_from_cloud=False,  # extra kwarg not in pathlib
-        force_overwrite_to_cloud=False,  # extra kwarg not in pathlib
-    ) -> IO:
+        mode: str = "r",
+        buffering: int = -1,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
+        newline: Optional[str] = None,
+        force_overwrite_from_cloud: bool = False,  # extra kwarg not in pathlib
+        force_overwrite_to_cloud: bool = False,  # extra kwarg not in pathlib
+    ) -> IO[Any]:
         # if trying to call open on a directory that exists
         if self.exists() and not self.is_file():
             raise CloudPathIsADirectoryError(
@@ -397,7 +559,7 @@ class CloudPath(metaclass=CloudPathMeta):
         # create any directories that may be needed if the file is new
         if not self._local.exists():
             self._local.parent.mkdir(parents=True, exist_ok=True)
-            original_mtime = 0
+            original_mtime = 0.0
         else:
             original_mtime = self._local.stat().st_mtime
 
@@ -412,12 +574,17 @@ class CloudPath(metaclass=CloudPathMeta):
         # write modes need special on closing the buffer
         if any(m in mode for m in ("w", "+", "x", "a")):
             # dirty, handle, patch close
-            original_close = buffer.close
+            wrapped_close = buffer.close
 
             # since we are pretending this is a cloud file, upload it to the cloud
             # when the buffer is closed
-            def _patched_close(*args, **kwargs):
-                original_close(*args, **kwargs)
+            def _patched_close_upload(*args, **kwargs) -> None:
+                wrapped_close(*args, **kwargs)
+
+                # we should be idempotent and not upload again if
+                # we already ran our close method patch
+                if not self._dirty:
+                    return
 
                 # original mtime should match what was in the cloud; because of system clocks or rounding
                 # by the cloud provider, the new version in our cache is "older" than the original version;
@@ -427,8 +594,9 @@ class CloudPath(metaclass=CloudPathMeta):
                     os.utime(self._local, times=(new_mtime, new_mtime))
 
                 self._upload_local_to_cloud(force_overwrite_to_cloud=force_overwrite_to_cloud)
+                self._dirty = False
 
-            buffer.close = _patched_close
+            buffer.close = _patched_close_upload  # type: ignore
 
             # keep reference in case we need to close when __del__ is called on this object
             self._handle = buffer
@@ -436,13 +604,37 @@ class CloudPath(metaclass=CloudPathMeta):
             # opened for write, so mark dirty
             self._dirty = True
 
+        # if we don't want any cache around, remove the cache
+        # as soon as the file is closed
+        if self.client.file_cache_mode == FileCacheMode.close_file:
+            # this may be _patched_close_upload, in which case we need to
+            # make sure to call that first so the file gets uploaded
+            wrapped_close_for_cache = buffer.close
+
+            def _patched_close_empty_cache(*args, **kwargs):
+                wrapped_close_for_cache(*args, **kwargs)
+
+                # remove local file as last step on closing
+                self.clear_cache()
+
+            buffer.close = _patched_close_empty_cache  # type: ignore
+
         return buffer
 
-    def replace(self, target: "CloudPath") -> "CloudPath":
-        if type(self) != type(target):
+    def replace(self, target: Self) -> Self:
+        if type(self) is not type(target):
             raise TypeError(
                 f"The target based to rename must be an instantiated class of type: {type(self)}"
             )
+
+        if self.is_dir():
+            raise CloudPathIsADirectoryError(
+                f"Path {self} is a directory; rename/replace the files recursively."
+            )
+
+        if target == self:
+            # Request is to replace/rename this with the same path - nothing to do
+            return self
 
         if target.exists():
             target.unlink()
@@ -450,12 +642,12 @@ class CloudPath(metaclass=CloudPathMeta):
         self.client._move_file(self, target)
         return target
 
-    def rename(self, target: "CloudPath") -> "CloudPath":
+    def rename(self, target: Self) -> Self:
         # for cloud services replace == rename since we don't just rename,
         # we actually move files
         return self.replace(target)
 
-    def rmdir(self):
+    def rmdir(self) -> None:
         if self.is_file():
             raise CloudPathNotADirectoryError(
                 f"Path {self} is a file; call unlink instead of rmdir."
@@ -469,11 +661,11 @@ class CloudPath(metaclass=CloudPathMeta):
             pass
         self.client._remove(self)
 
-    def samefile(self, other_path: "CloudPath") -> bool:
+    def samefile(self, other_path: Union[str, os.PathLike]) -> bool:
         # all cloud paths are absolute and the paths are used for hash
         return self == other_path
 
-    def unlink(self, missing_ok=True):
+    def unlink(self, missing_ok: bool = True) -> None:
         # Note: missing_ok defaults to False in pathlib, but changing the default now would be a breaking change.
         if self.is_dir():
             raise CloudPathIsADirectoryError(
@@ -481,7 +673,7 @@ class CloudPath(metaclass=CloudPathMeta):
             )
         self.client._remove(self, missing_ok)
 
-    def write_bytes(self, data: bytes):
+    def write_bytes(self, data: bytes) -> int:
         """Open the file in bytes mode, write to it, and close the file.
 
         NOTE: vendored from pathlib since we override open
@@ -492,22 +684,40 @@ class CloudPath(metaclass=CloudPathMeta):
         with self.open(mode="wb") as f:
             return f.write(view)
 
-    def write_text(self, data: str, encoding=None, errors=None):
+    def write_text(
+        self,
+        data: str,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
+        newline: Optional[str] = None,
+    ) -> int:
         """Open the file in text mode, write to it, and close the file.
 
         NOTE: vendored from pathlib since we override open
-        https://github.com/python/cpython/blob/3.8/Lib/pathlib.py#L1244-L1252
+        https://github.com/python/cpython/blob/3.10/Lib/pathlib.py#L1146-L1155
         """
         if not isinstance(data, str):
             raise TypeError("data must be str, not %s" % data.__class__.__name__)
-        with self.open(mode="w", encoding=encoding, errors=errors) as f:
+
+        with self.open(mode="w", encoding=encoding, errors=errors, newline=newline) as f:
             return f.write(data)
+
+    def read_bytes(self) -> bytes:
+        with self.open(mode="rb") as f:
+            return f.read()
+
+    def read_text(self, encoding: Optional[str] = None, errors: Optional[str] = None) -> str:
+        with self.open(mode="r", encoding=encoding, errors=errors) as f:
+            return f.read()
+
+    def is_junction(self):
+        return False  # only windows paths can be junctions, not cloudpaths
 
     # ====================== DISPATCHED TO POSIXPATH FOR PURE PATHS ======================
     # Methods that are dispatched to exactly how pathlib.PurePosixPath would calculate it on
     # self._path for pure paths (does not matter if file exists);
     # see the next session for ones that require a real file to exist
-    def _dispatch_to_path(self, func, *args, **kwargs):
+    def _dispatch_to_path(self, func: str, *args, **kwargs) -> Any:
         """Some functions we can just dispatch to the pathlib version
         We want to do this explicitly so we don't have to support all
         of pathlib and subclasses can override individually if necessary.
@@ -533,7 +743,7 @@ class CloudPath(metaclass=CloudPathMeta):
             sequence_class = (
                 type(path_version) if not isinstance(path_version, _PathParents) else tuple
             )
-            return sequence_class(
+            return sequence_class(  # type: ignore
                 self._new_cloudpath(_resolve(p)) for p in path_version if _resolve(p) != p.root
             )
 
@@ -542,25 +752,25 @@ class CloudPath(metaclass=CloudPathMeta):
         else:
             return path_version
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: Union[str, PurePosixPath]) -> Self:
         if not isinstance(other, (str, PurePosixPath)):
             raise TypeError(f"Can only join path {repr(self)} with strings or posix paths.")
 
         return self._dispatch_to_path("__truediv__", other)
 
-    def joinpath(self, *args):
-        return self._dispatch_to_path("joinpath", *args)
+    def joinpath(self, *pathsegments: Union[str, os.PathLike]) -> Self:
+        return self._dispatch_to_path("joinpath", *pathsegments)
 
-    def absolute(self):
+    def absolute(self) -> Self:
         return self
 
-    def is_absolute(self):
+    def is_absolute(self) -> bool:
         return True
 
-    def resolve(self, strict=False):
+    def resolve(self, strict: bool = False) -> Self:
         return self
 
-    def relative_to(self, other):
+    def relative_to(self, other: Self, walk_up: bool = False) -> PurePosixPath:
         # We don't dispatch regularly since this never returns a cloud path (since it is relative, and cloud paths are
         # absolute)
         if not isinstance(other, CloudPath):
@@ -569,9 +779,15 @@ class CloudPath(metaclass=CloudPathMeta):
             raise ValueError(
                 f"{self} is a {self.cloud_prefix} path, but {other} is a {other.cloud_prefix} path"
             )
-        return self._path.relative_to(other._path)
 
-    def is_relative_to(self, other):
+        kwargs = dict(walk_up=walk_up)
+
+        if sys.version_info < (3, 12):
+            kwargs.pop("walk_up")
+
+        return self._path.relative_to(other._path, **kwargs)  # type: ignore[call-arg]
+
+    def is_relative_to(self, other: Self) -> bool:
         try:
             self.relative_to(other)
             return True
@@ -579,26 +795,31 @@ class CloudPath(metaclass=CloudPathMeta):
             return False
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._dispatch_to_path("name")
 
-    def match(self, path_pattern):
+    def match(self, path_pattern: str, case_sensitive: Optional[bool] = None) -> bool:
         # strip scheme from start of pattern before testing
         if path_pattern.startswith(self.anchor + self.drive + "/"):
             path_pattern = path_pattern[len(self.anchor + self.drive + "/") :]
 
-        return self._dispatch_to_path("match", path_pattern)
+        kwargs = dict(case_sensitive=case_sensitive)
+
+        if sys.version_info < (3, 12):
+            kwargs.pop("case_sensitive")
+
+        return self._dispatch_to_path("match", path_pattern, **kwargs)
 
     @property
-    def parent(self):
+    def parent(self) -> Self:
         return self._dispatch_to_path("parent")
 
     @property
-    def parents(self):
+    def parents(self) -> Sequence[Self]:
         return self._dispatch_to_path("parents")
 
     @property
-    def parts(self):
+    def parts(self) -> Tuple[str, ...]:
         parts = self._dispatch_to_path("parts")
         if parts[0] == "/":
             parts = parts[1:]
@@ -606,26 +827,39 @@ class CloudPath(metaclass=CloudPathMeta):
         return (self.anchor, *parts)
 
     @property
-    def stem(self):
+    def stem(self) -> str:
         return self._dispatch_to_path("stem")
 
     @property
-    def suffix(self):
+    def suffix(self) -> str:
         return self._dispatch_to_path("suffix")
 
     @property
-    def suffixes(self):
+    def suffixes(self) -> List[str]:
         return self._dispatch_to_path("suffixes")
 
-    def with_name(self, name):
+    def with_stem(self, stem: str) -> Self:
+        try:
+            return self._dispatch_to_path("with_stem", stem)
+        except AttributeError:
+            # with_stem was only added in python 3.9, so we fallback for compatibility
+            return self.with_name(stem + self.suffix)
+
+    def with_name(self, name: str) -> Self:
         return self._dispatch_to_path("with_name", name)
 
-    def with_suffix(self, suffix):
+    def with_segments(self, *pathsegments) -> Self:
+        """Create a new CloudPath with the same client out of the given segments.
+        The first segment will be interpreted as the bucket/container name.
+        """
+        return self._new_cloudpath("/".join(pathsegments))
+
+    def with_suffix(self, suffix: str) -> Self:
         return self._dispatch_to_path("with_suffix", suffix)
 
     # ====================== DISPATCHED TO LOCAL CACHE FOR CONCRETE PATHS ======================
     # Items that can be executed on the cached file on the local filesystem
-    def _dispatch_to_local_cache_path(self, func, *args, **kwargs):
+    def _dispatch_to_local_cache_path(self, func: str, *args, **kwargs) -> Any:
         self._refresh_cache()
 
         path_version = self._local.__getattribute__(func)
@@ -644,8 +878,7 @@ class CloudPath(metaclass=CloudPathMeta):
         else:
             return path_version
 
-    @property
-    def stat(self):
+    def stat(self, follow_symlinks: bool = True) -> os.stat_result:
         """Note: for many clients, we may want to override so we don't incur
         network costs since many of these properties are available as
         API calls.
@@ -654,13 +887,7 @@ class CloudPath(metaclass=CloudPathMeta):
             f"stat not implemented as API call for {self.__class__} so file must be downloaded to "
             f"calculate stats; this may take a long time depending on filesize"
         )
-        return self._dispatch_to_local_cache_path("stat")
-
-    def read_bytes(self):
-        return self._dispatch_to_local_cache_path("read_bytes")
-
-    def read_text(self, *args, **kwargs):
-        return self._dispatch_to_local_cache_path("read_text", *args, **kwargs)
+        return self._dispatch_to_local_cache_path("stat", follow_symlinks=follow_symlinks)
 
     # ===========  public cloud methods, not in pathlib ===============
     def download_to(self, destination: Union[str, os.PathLike]) -> Path:
@@ -681,7 +908,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
             return destination
 
-    def rmtree(self):
+    def rmtree(self) -> None:
         """Delete an entire directory tree."""
         if self.is_file():
             raise CloudPathNotADirectoryError(
@@ -690,8 +917,10 @@ class CloudPath(metaclass=CloudPathMeta):
         self.client._remove(self)
 
     def upload_from(
-        self, source: Union[str, os.PathLike], force_overwrite_to_cloud: bool = False
-    ) -> "CloudPath":
+        self,
+        source: Union[str, os.PathLike],
+        force_overwrite_to_cloud: bool = False,
+    ) -> Self:
         """Upload a file or directory to the cloud path."""
         source = Path(source)
 
@@ -711,11 +940,28 @@ class CloudPath(metaclass=CloudPathMeta):
 
             return dst
 
+    @overload
     def copy(
         self,
-        destination: Union[str, os.PathLike, "CloudPath"],
+        destination: Self,
         force_overwrite_to_cloud: bool = False,
-    ) -> Union[Path, "CloudPath"]:
+    ) -> Self: ...
+
+    @overload
+    def copy(
+        self,
+        destination: Path,
+        force_overwrite_to_cloud: bool = False,
+    ) -> Path: ...
+
+    @overload
+    def copy(
+        self,
+        destination: str,
+        force_overwrite_to_cloud: bool = False,
+    ) -> Union[Path, "CloudPath"]: ...
+
+    def copy(self, destination, force_overwrite_to_cloud=False):
         """Copy self to destination folder of file, if self is a file."""
         if not self.exists() or not self.is_file():
             raise ValueError(
@@ -730,9 +976,9 @@ class CloudPath(metaclass=CloudPathMeta):
             return self.download_to(destination)
 
         # if same client, use cloud-native _move_file on client to avoid downloading
-        elif self.client is destination.client:
+        if self.client is destination.client:
             if destination.exists() and destination.is_dir():
-                destination: CloudPath = destination / self.name  # type: ignore
+                destination = destination / self.name
 
             if (
                 not force_overwrite_to_cloud
@@ -757,11 +1003,31 @@ class CloudPath(metaclass=CloudPathMeta):
                     self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
                 )
 
+    @overload
     def copytree(
         self,
-        destination: Union[str, os.PathLike, "CloudPath"],
+        destination: Self,
         force_overwrite_to_cloud: bool = False,
-    ) -> Union[Path, "CloudPath"]:
+        ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
+    ) -> Self: ...
+
+    @overload
+    def copytree(
+        self,
+        destination: Path,
+        force_overwrite_to_cloud: bool = False,
+        ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
+    ) -> Path: ...
+
+    @overload
+    def copytree(
+        self,
+        destination: str,
+        force_overwrite_to_cloud: bool = False,
+        ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
+    ) -> Union[Path, "CloudPath"]: ...
+
+    def copytree(self, destination, force_overwrite_to_cloud=False, ignore=None):
         """Copy self to a directory, if self is a directory."""
         if not self.is_dir():
             raise CloudPathNotADirectoryError(
@@ -774,30 +1040,49 @@ class CloudPath(metaclass=CloudPathMeta):
 
         if destination.exists() and destination.is_file():
             raise CloudPathFileExistsError(
-                "Destination path {destination} of copytree must be a directory."
+                f"Destination path {destination} of copytree must be a directory."
             )
+
+        contents = list(self.iterdir())
+
+        if ignore is not None:
+            ignored_names = ignore(self._no_prefix_no_drive, [x.name for x in contents])
+        else:
+            ignored_names = set()
 
         destination.mkdir(parents=True, exist_ok=True)
 
-        for subpath in self.iterdir():
+        for subpath in contents:
+            if subpath.name in ignored_names:
+                continue
             if subpath.is_file():
                 subpath.copy(
                     destination / subpath.name, force_overwrite_to_cloud=force_overwrite_to_cloud
                 )
             elif subpath.is_dir():
                 subpath.copytree(
-                    destination / subpath.name, force_overwrite_to_cloud=force_overwrite_to_cloud
+                    destination / subpath.name,
+                    force_overwrite_to_cloud=force_overwrite_to_cloud,
+                    ignore=ignore,
                 )
 
         return destination
 
+    def clear_cache(self):
+        """Removes cache if it exists"""
+        if self._local.exists():
+            if self._local.is_file():
+                self._local.unlink()
+            else:
+                shutil.rmtree(self._local)
+
     # ===========  private cloud methods ===============
     @property
-    def _local(self):
+    def _local(self) -> Path:
         """Cached local version of the file."""
         return self.client._local_cache_dir / self._no_prefix
 
-    def _new_cloudpath(self, path):
+    def _new_cloudpath(self, path: Union[str, os.PathLike]) -> Self:
         """Use the scheme, client, cache dir of this cloudpath to instantiate
         a new cloudpath of the same type with the path passed.
 
@@ -815,7 +1100,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
         return self.client.CloudPath(path)
 
-    def _refresh_cache(self, force_overwrite_from_cloud=False):
+    def _refresh_cache(self, force_overwrite_from_cloud: bool = False) -> None:
         try:
             stats = self.stat()
         except NoStatError:
@@ -854,7 +1139,10 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"overwrite."
             )
 
-    def _upload_local_to_cloud(self, force_overwrite_to_cloud: bool = False):
+    def _upload_local_to_cloud(
+        self,
+        force_overwrite_to_cloud: bool = False,
+    ) -> Self:
         """Uploads cache file at self._local to the cloud"""
         # We should never try to be syncing entire directories; we should only
         # cache and upload individual files.
@@ -875,21 +1163,29 @@ class CloudPath(metaclass=CloudPathMeta):
 
         return uploaded
 
-    def _upload_file_to_cloud(self, local_path, force_overwrite_to_cloud: bool = False):
+    def _upload_file_to_cloud(
+        self,
+        local_path: Path,
+        force_overwrite_to_cloud: bool = False,
+    ) -> Self:
         """Uploads file at `local_path` to the cloud if there is not a newer file
         already there.
         """
+        if force_overwrite_to_cloud:
+            # If we are overwriting no need to perform any checks, so we can save time
+            self.client._upload_file(
+                local_path,
+                self,
+            )
+            return self
+
         try:
             stats = self.stat()
         except NoStatError:
             stats = None
 
-        # if cloud does not exist or local is newer or we are overwriting, do the upload
-        if (
-            not stats  # cloud does not exist
-            or (local_path.stat().st_mtime > stats.st_mtime)
-            or force_overwrite_to_cloud
-        ):
+        # if cloud does not exist or local is newer, do the upload
+        if not stats or (local_path.stat().st_mtime > stats.st_mtime):
             self.client._upload_file(
                 local_path,
                 self,
@@ -907,13 +1203,33 @@ class CloudPath(metaclass=CloudPathMeta):
 
     # ===========  pydantic integration special methods ===============
     @classmethod
-    def __get_validators__(cls):
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler):
+        """Pydantic special method. See
+        https://docs.pydantic.dev/2.0/usage/types/custom/"""
+        try:
+            from pydantic_core import core_schema
+
+            return core_schema.no_info_after_validator_function(
+                cls.validate,
+                core_schema.any_schema(),
+            )
+        except ImportError:
+            return None
+
+    @classmethod
+    def validate(cls, v: str) -> Self:
+        """Used as a Pydantic validator. See
+        https://docs.pydantic.dev/2.0/usage/types/custom/"""
+        return cls(v)
+
+    @classmethod
+    def __get_validators__(cls) -> Generator[Callable[[Any], Self], None, None]:
         """Pydantic special method. See
         https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
         yield cls._validate
 
     @classmethod
-    def _validate(cls, value: Any):
+    def _validate(cls, value: Any) -> Self:
         """Used as a Pydantic validator. See
         https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""
         return cls(value)
@@ -954,73 +1270,71 @@ def _resolve(path: PurePosixPath) -> str:
 # Designed to be compatible when used by these selector implementations from pathlib:
 # https://github.com/python/cpython/blob/3.10/Lib/pathlib.py#L385-L500
 class _CloudPathSelectableAccessor:
-    def __init__(self, scandir_func):
+    def __init__(self, scandir_func: Callable) -> None:
         self.scandir = scandir_func
 
 
 class _CloudPathSelectable:
     def __init__(
         self,
-        relative_cloud_path: PurePosixPath,
-        children: Dict[PurePosixPath, bool],
-        is_dir: bool,
-        exists: bool,
-    ):
-        self._path = relative_cloud_path
+        name: str,
+        parents: List[str],
+        children: Any,  # Nested dictionaries as tree
+        exists: bool = True,
+    ) -> None:
+        self._name = name
         self._all_children = children
+        self._parents = parents
+        self._exists = exists
 
         self._accessor = _CloudPathSelectableAccessor(self.scandir)
 
-        self._is_dir = is_dir
-        self._exists = exists
+    def __repr__(self) -> str:
+        return "/".join(self._parents + [self.name])
 
-    def __repr__(self):
-        return str(self._path)
+    def is_dir(self, follow_symlinks: bool = False) -> bool:
+        return self._all_children is not None
 
-    def is_dir(self):
-        return self._is_dir
-
-    def exists(self):
+    def exists(self) -> bool:
         return self._exists
 
-    def is_symlink(self):
+    def is_symlink(self) -> bool:
         return False
 
     @property
-    def name(self):
-        return self._path.name
+    def name(self) -> str:
+        return self._name
+
+    def _make_child_relpath(self, part):
+        # pathlib internals shortcut; makes a relative path, even if it doesn't actually exist
+        return _CloudPathSelectable(
+            part,
+            self._parents + [self.name],
+            self._all_children.get(part, None),
+            exists=part in self._all_children,
+        )
 
     @staticmethod
     @contextmanager
-    def scandir(root):
+    def scandir(
+        root: "_CloudPathSelectable",
+    ) -> Generator[Generator["_CloudPathSelectable", None, None], None, None]:
         yield (
-            root._make_child_relpath(c.name)
-            for c, _ in root._all_children.items()
-            if c.parent == root._path
+            _CloudPathSelectable(child, root._parents + [root._name], grand_children)
+            for child, grand_children in root._all_children.items()
         )
 
-    def _filter_children(self, rel_to):
-        return {
-            c: is_dir
-            for c, is_dir in self._all_children.items()
-            if self._is_relative_to(c, rel_to)
-        }
+    _scandir = scandir  # Py 3.11 compatibility
 
-    @staticmethod
-    def _is_relative_to(maybe_child, maybe_parent):
-        try:
-            maybe_child.relative_to(maybe_parent)
-            return True
-        except ValueError:
-            return False
+    def walk(self):
+        # split into dirs and files
+        dirs_files = defaultdict(list)
+        with self.scandir(self) as items:
+            for child in items:
+                dirs_files[child.is_dir()].append(child)
 
-    def _make_child_relpath(self, part):
-        child = self._path / part
-        filtered_children = self._filter_children(child)
+            # top-down, so yield self before recursive call
+            yield self, [f.name for f in dirs_files[True]], [f.name for f in dirs_files[False]]
 
-        return _CloudPathSelectable(
-            child,
-            filtered_children,
-            is_dir=self._all_children.get(child, False),
-            exists=child in self._all_children,
-        )
+            for child_dir in dirs_files[True]:
+                yield from child_dir.walk()

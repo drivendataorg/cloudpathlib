@@ -19,7 +19,7 @@ def print_table():
     for _cls, methods in lib_methods.items():
         all_methods = all_methods.union(methods)
 
-    df = pd.DataFrame(index=all_methods)
+    df = pd.DataFrame(index=list(all_methods))
     df.index.name = "Methods + properties"
 
     for _cls, methods in lib_methods.items():

@@ -25,12 +25,13 @@ class LocalAzureBlobClient(LocalClient):
             kwargs.get("account_url", None),
             os.getenv("AZURE_STORAGE_CONNECTION_STRING", None),
         ]
+        super().__init__(*args, **kwargs)
+
         if all(opt is None for opt in cred_opts):
             raise MissingCredentialsError(
                 "AzureBlobClient does not support anonymous instantiation. "
                 "Credentials are required; see docs for options."
             )
-        super().__init__(*args, **kwargs)
 
 
 LocalAzureBlobClient.AzureBlobPath = LocalAzureBlobClient.CloudPath  # type: ignore
@@ -77,5 +78,6 @@ class LocalAzureBlobPath(LocalPath):
 
 LocalAzureBlobPath.__name__ = "AzureBlobPath"
 
+local_azure_blob_implementation.name = "azure"
 local_azure_blob_implementation._client_class = LocalAzureBlobClient
 local_azure_blob_implementation._path_class = LocalAzureBlobPath

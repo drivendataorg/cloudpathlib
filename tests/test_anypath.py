@@ -36,3 +36,7 @@ def test_anypath_cloudpath(rig):
 def test_anypath_bad_input():
     with pytest.raises(AnyPathTypeError):
         AnyPath(0)
+
+
+def test_anypath_subclass_anypath():
+    assert issubclass(AnyPath, AnyPath)

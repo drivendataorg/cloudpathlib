@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
+from ..enums import FileCacheMode
 from ..exceptions import MissingCredentialsError
 from .azblobpath import AzureBlobPath
 
@@ -32,6 +33,7 @@ class AzureBlobClient(Client):
         credential: Optional[Any] = None,
         connection_string: Optional[str] = None,
         blob_service_client: Optional["BlobServiceClient"] = None,
+        file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
     ):
@@ -68,11 +70,21 @@ class AzureBlobClient(Client):
                 https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).
             blob_service_client (Optional[BlobServiceClient]): Instantiated [`BlobServiceClient`](
                 https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
+            file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see
+                [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information
+                about the options in cloudpathlib.eums.FileCacheMode.
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
-                for downloaded files. If None, will use a temporary directory.
+                for downloaded files. If None, will use a temporary directory. Default can be set with
+                the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
         """
+        super().__init__(
+            local_cache_dir=local_cache_dir,
+            content_type_method=content_type_method,
+            file_cache_mode=file_cache_mode,
+        )
+
         if connection_string is None:
             connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING", None)
 
@@ -89,8 +101,6 @@ class AzureBlobClient(Client):
                 "AzureBlobClient does not support anonymous instantiation. "
                 "Credentials are required; see docs for options."
             )
-
-        super().__init__(local_cache_dir=local_cache_dir, content_type_method=content_type_method)
 
     def _get_metadata(self, cloud_path: AzureBlobPath) -> Union["BlobProperties", Dict[str, Any]]:
         blob = self.service_client.get_blob_client(
@@ -142,11 +152,28 @@ class AzureBlobClient(Client):
                 return None
 
     def _exists(self, cloud_path: AzureBlobPath) -> bool:
+        # short circuit when only the container
+        if not cloud_path.blob:
+            return self.service_client.get_container_client(cloud_path.container).exists()
+
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
     def _list_dir(
         self, cloud_path: AzureBlobPath, recursive: bool = False
     ) -> Iterable[Tuple[AzureBlobPath, bool]]:
+        # shortcut if listing all available containers
+        if not cloud_path.container:
+            if recursive:
+                raise NotImplementedError(
+                    "Cannot recursively list all containers and contents; you can get all the containers then recursively list each separately."
+                )
+
+            yield from (
+                (self.CloudPath(f"az://{c.name}"), True)
+                for c in self.service_client.list_containers()
+            )
+            return
+
         container_client = self.service_client.get_container_client(cloud_path.container)
 
         prefix = cloud_path.blob
@@ -160,10 +187,8 @@ class AzureBlobClient(Client):
         for o in container_client.list_blobs(name_starts_with=prefix):
             # get directory from this path
             for parent in PurePosixPath(o.name[len(prefix) :]).parents:
-
                 # if we haven't surfaced this directory already
                 if parent not in yielded_dirs and str(parent) != ".":
-
                     # skip if not recursive and this is beyond our depth
                     if not recursive and "/" in str(parent):
                         continue

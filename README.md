@@ -5,6 +5,7 @@
 [![Docs Status](https://img.shields.io/badge/docs-stable-informational)](https://cloudpathlib.drivendata.org/)
 [![PyPI](https://img.shields.io/pypi/v/cloudpathlib.svg)](https://pypi.org/project/cloudpathlib/)
 [![conda-forge](https://img.shields.io/conda/vn/conda-forge/cloudpathlib.svg)](https://anaconda.org/conda-forge/cloudpathlib)
+[![conda-forge feedstock](https://img.shields.io/badge/conda--forge-feedstock-yellowgreen)](https://github.com/conda-forge/cloudpathlib-feedstock)
 [![tests](https://github.com/drivendataorg/cloudpathlib/workflows/tests/badge.svg?branch=master)](https://github.com/drivendataorg/cloudpathlib/actions?query=workflow%3Atests+branch%3Amaster)
 [![codecov](https://codecov.io/gh/drivendataorg/cloudpathlib/branch/master/graph/badge.svg)](https://codecov.io/gh/drivendataorg/cloudpathlib)
 
@@ -36,6 +37,12 @@ To install a cloud service's SDK dependency when installing `cloudpathlib`, you 
 
 ```bash
 pip install cloudpathlib[s3,gs,azure]
+```
+
+With some shells, you may need to use quotes:
+
+```bash
+pip install "cloudpathlib[s3,gs,azure]"
 ```
 
 Currently supported cloud storage services are: `azure`, `gs`, `s3`. You can also use `all` to install all available services' dependencies.
@@ -128,6 +135,7 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `is_absolute`          | ✅                | ✅         | ✅         |
 | `is_dir`               | ✅                | ✅         | ✅         |
 | `is_file`              | ✅                | ✅         | ✅         |
+| `is_junction`          | ✅                | ✅         | ✅         |
 | `is_relative_to`       | ✅                | ✅         | ✅         |
 | `iterdir`              | ✅                | ✅         | ✅         |
 | `joinpath`             | ✅                | ✅         | ✅         |
@@ -153,7 +161,10 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `suffixes`             | ✅                | ✅         | ✅         |
 | `touch`                | ✅                | ✅         | ✅         |
 | `unlink`               | ✅                | ✅         | ✅         |
+| `walk`                 | ✅                | ✅         | ✅         |
 | `with_name`            | ✅                | ✅         | ✅         |
+| `with_segments`        | ✅                | ✅         | ✅         |
+| `with_stem`            | ✅                | ✅         | ✅         |
 | `with_suffix`          | ✅                | ✅         | ✅         |
 | `write_bytes`          | ✅                | ✅         | ✅         |
 | `write_text`           | ✅                | ✅         | ✅         |
@@ -162,6 +173,7 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `cwd`                  | ❌                | ❌         | ❌         |
 | `expanduser`           | ❌                | ❌         | ❌         |
 | `group`                | ❌                | ❌         | ❌         |
+| `hardlink_to`          | ❌                | ❌         | ❌         |
 | `home`                 | ❌                | ❌         | ❌         |
 | `is_block_device`      | ❌                | ❌         | ❌         |
 | `is_char_device`       | ❌                | ❌         | ❌         |
@@ -171,13 +183,12 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `is_socket`            | ❌                | ❌         | ❌         |
 | `is_symlink`           | ❌                | ❌         | ❌         |
 | `lchmod`               | ❌                | ❌         | ❌         |
-| `link_to`              | ❌                | ❌         | ❌         |
 | `lstat`                | ❌                | ❌         | ❌         |
 | `owner`                | ❌                | ❌         | ❌         |
 | `readlink`             | ❌                | ❌         | ❌         |
 | `root`                 | ❌                | ❌         | ❌         |
 | `symlink_to`           | ❌                | ❌         | ❌         |
-| `with_stem`            | ❌                | ❌         | ❌         |
+| `clear_cache`          | ✅                | ✅         | ✅         |
 | `cloud_prefix`         | ✅                | ✅         | ✅         |
 | `copy`                 | ✅                | ✅         | ✅         |
 | `copytree`             | ✅                | ✅         | ✅         |
@@ -187,6 +198,7 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `is_valid_cloudpath`   | ✅                | ✅         | ✅         |
 | `rmtree`               | ✅                | ✅         | ✅         |
 | `upload_from`          | ✅                | ✅         | ✅         |
+| `validate`             | ✅                | ✅         | ✅         |
 | `blob`                 | ✅                | ❌         | ✅         |
 | `bucket`               | ❌                | ✅         | ✅         |
 | `container`            | ✅                | ❌         | ❌         |

@@ -1,14 +1,83 @@
 # cloudpathlib Changelog
 
-## v0.9.0 (UNRELEASED)
+## UNRELEASED
+- Implement sliced downloads in GSClient. (Issue [#387](https://github.com/drivendataorg/cloudpathlib/issues/387), PR [#389](https://github.com/drivendataorg/cloudpathlib/pull/389))
+
+## 0.17.0 (2023-12-21)
+
+- Fix `S3Client` cleanup via `Client.__del__` when `S3Client` encounters an exception during initialization. (Issue [#372](https://github.com/drivendataorg/cloudpathlib/issues/372), PR [#373](https://github.com/drivendataorg/cloudpathlib/pull/373), thanks to [@bryanwweber](https://github.com/bryanwweber))
+- Skip mtime checks during upload when force_overwrite_to_cloud is set to improve upload performance. (Issue [#379](https://github.com/drivendataorg/cloudpathlib/issues/379), PR [#380](https://github.com/drivendataorg/cloudpathlib/pull/380), thanks to [@Gilthans](https://github.com/Gilthans))
+
+## v0.16.0 (2023-10-09)
+ - Add "CloudPath" as return type on `__init__` for mypy issues. ([Issue #179](https://github.com/drivendataorg/cloudpathlib/issues/179), [PR #342](https://github.com/drivendataorg/cloudpathlib/pull/342))
+ - Add `with_stem` to all path types when python version supports it (>=3.9). ([Issue #287](https://github.com/drivendataorg/cloudpathlib/issues/287), [PR #290](https://github.com/drivendataorg/cloudpathlib/pull/290), thanks to [@Gilthans](https://github.com/Gilthans))
+ - Add `newline` parameter to the `write_text` method to align to `pathlib` functionality as of Python 3.10. [PR #362](https://github.com/drivendataorg/cloudpathlib/pull/362), thanks to [@pricemg](https://github.com/pricemg).
+ - Add support for Python 3.12 ([PR #364](https://github.com/drivendataorg/cloudpathlib/pull/364))
+ - Add `CLOUDPATHLIB_LOCAL_CACHE_DIR` env var for setting local_cache_dir default for clients ([Issue #352](https://github.com/drivendataorg/cloudpathlib/issues/352), [PR #357](https://github.com/drivendataorg/cloudpathlib/pull/357))
+ - Add `CONTRIBUTING.md` instructions for contributors ([Issue #213](https://github.com/drivendataorg/cloudpathlib/issues/213), [PR #367](https://github.com/drivendataorg/cloudpathlib/pull/367))
+
+## v0.15.1 (2023-07-12)
+
+- Compatibility with pydantic >= 2.0.0. ([PR #349](https://github.com/drivendataorg/cloudpathlib/pull/349))
+
+## v0.15.0 (2023-06-16)
+
+- Changed return type for `CloudPathMeta.__call__` to fix problems with pyright/pylance ([PR #330](https://github.com/drivendataorg/cloudpathlib/pull/330))
+- Make `CloudPath.is_valid_cloudpath` a TypeGuard so that type checkers can know the subclass if `is_valid_cloudpath` is called ([PR #337](https://github.com/drivendataorg/cloudpathlib/pull/337))
+- Added `follow_symlinks` to `stat` for 3.11.4 compatibility (see [bpo 39906](https://github.com/python/cpython/issues/84087))
+- Add `follow_symlinks` to `is_dir` implementation for CPython `glob` compatibility (see [CPython PR #104512](https://github.com/python/cpython/pull/104512))
+
+## v0.14.0 (2023-05-13)
+
+- Changed to pyproject.toml-based build.
+- Changed type hints from custom type variable `DerivedCloudPath` to [`typing.Self`](https://docs.python.org/3/library/typing.html#typing.Self) ([PEP 673](https://docs.python.org/3/library/typing.html#typing.Self)). This adds a dependency on the [typing-extensions](https://pypi.org/project/typing-extensions/) backport package from Python versions lower than 3.11.
+- Fixed a runtime key error when an S3 object does not have the `Content-Type` metadata set. ([Issue #331](https://github.com/drivendataorg/cloudpathlib/issues/331), [PR #332](https://github.com/drivendataorg/cloudpathlib/pull/332))
+
+## v0.13.0 (2023-02-15)
+
+ - Implement `file_cache_mode`s to give users finer-grained control over when and how the cache is cleared. ([Issue #10](https://github.com/drivendataorg/cloudpathlib/issues/10), [PR #314](https://github.com/drivendataorg/cloudpathlib/pull/314))
+ - Speed up listing directories for Google Cloud Storage. ([PR #318](https://github.com/drivendataorg/cloudpathlib/pull/318))
+ - Add compatibility for Python 3.11 ([PR #317](https://github.com/drivendataorg/cloudpathlib/pull/317))
+
+## v0.12.1 (2023-01-04)
+
+ - Fix glob logic for buckets; add regression test; add error on globbing all buckets ([Issue #311](https://github.com/drivendataorg/cloudpathlib/issues/311), [PR #312](https://github.com/drivendataorg/cloudpathlib/pull/312))
+
+## v0.12.0 (2022-12-30)
+
+ - API Change: `S3Client` supports an `extra_args` kwarg now to pass extra args down to `boto3` functions; this enables Requester Pays bucket access and bucket encryption. (Issues [#254](https://github.com/drivendataorg/cloudpathlib/issues/254), [#180](https://github.com/drivendataorg/cloudpathlib/issues/180); [PR #307](https://github.com/drivendataorg/cloudpathlib/pull/307))
+ - Speed up glob! ([Issue #274](https://github.com/drivendataorg/cloudpathlib/issues/274), [PR #304](https://github.com/drivendataorg/cloudpathlib/pull/304))
+ - Ability to list buckets/containers a user has access to. ([Issue #48](https://github.com/drivendataorg/cloudpathlib/issues/48), [PR #307](https://github.com/drivendataorg/cloudpathlib/pull/307))
+ - Remove overly specific status check and assert in production code on remove. ([Issue #212](https://github.com/drivendataorg/cloudpathlib/issues/212), [PR #307](https://github.com/drivendataorg/cloudpathlib/pull/307))
+ - Update docs, including accessing public buckets. ([Issue #271](https://github.com/drivendataorg/cloudpathlib/issues/271), [PR #307](https://github.com/drivendataorg/cloudpathlib/pull/307))
+
+## v0.11.0 (2022-12-18)
+
+ - API change: Add `ignore` parameter to `CloudPath.copytree` in order to match `shutil` API. ([Issue #145](https://github.com/drivendataorg/cloudpathlib/issues/145), [PR #272](https://github.com/drivendataorg/cloudpathlib/pull/272))
+ - Use the V2 version for listing objects `list_objects_v2` in `S3Client`. ([Issue #155](https://github.com/drivendataorg/cloudpathlib/issues/155), [PR #302](https://github.com/drivendataorg/cloudpathlib/pull/302))
+ - Add abilty to use `.exists` to check for a raw bucket/container (no additional path components). ([Issue #291](https://github.com/drivendataorg/cloudpathlib/issues/291), [PR #302](https://github.com/drivendataorg/cloudpathlib/pull/302))
+ - Prevent data loss when renaming by skipping files that would be renamed to the same thing. ([Issue #277](https://github.com/drivendataorg/cloudpathlib/issues/277), [PR #278](https://github.com/drivendataorg/cloudpathlib/pull/278))
+ - Speed up common `glob`/`rglob` patterns. ([Issue #274](https://github.com/drivendataorg/cloudpathlib/issues/274), [PR #276](https://github.com/drivendataorg/cloudpathlib/pull/276))
+
+
+## v0.10.0 (2022-08-18)
+
+ - API change: Make `stat` on base class method instead of property to follow `pathlib` ([Issue #234](https://github.com/drivendataorg/cloudpathlib/issues/234), [PR #250](https://github.com/drivendataorg/cloudpathlib/pull/250))
+ - Fixed "S3Path.exists() returns True on partial matches." ([Issue #208](https://github.com/drivendataorg/cloudpathlib/issues/208), [PR #244](https://github.com/drivendataorg/cloudpathlib/pull/244))
+ - Make `AnyPath` subclass of `AnyPath` ([Issue #246](https://github.com/drivendataorg/cloudpathlib/issues/246), [PR #251](https://github.com/drivendataorg/cloudpathlib/pull/251))
+ - Skip docstrings if not present to avoid failing under `-00` ([Issue #238](https://github.com/drivendataorg/cloudpathlib/issues/238), [PR #249](https://github.com/drivendataorg/cloudpathlib/pull/249))
+ - Add `py.typed` file so mypy runs ([Issue #243](https://github.com/drivendataorg/cloudpathlib/issues/243), [PR #248](https://github.com/drivendataorg/cloudpathlib/pull/248))
+
+## v0.9.0 (2022-06-03)
  - Added `absolute` to `CloudPath` (does nothing as `CloudPath` is always absolute) ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
  - Added `resolve` to `CloudPath` (does nothing as `CloudPath` is resolved in advance) ([Issue #151](https://github.com/drivendataorg/cloudpathlib/issues/151), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
  - Added `relative_to` to `CloudPath` which returns a `PurePosixPath` ([Issue #149](https://github.com/drivendataorg/cloudpathlib/issues/149), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
  - Added `is_relative_to` to `CloudPath` ([Issue #149](https://github.com/drivendataorg/cloudpathlib/issues/149), [PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
  - Added `is_absolute` to `CloudPath` (always true as `CloudPath` is always absolute) ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
  - Accept and delegate `read_text` parameters to cached file ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
- - Add `exist_ok` parameter to `touch` ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
- - Add `missing_ok` parameter to `unlink`, which defaults to True. This diverges from pathlib to maintain backward compatibility ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `exist_ok` parameter to `touch` ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Added `missing_ok` parameter to `unlink`, which defaults to True. This diverges from pathlib to maintain backward compatibility ([PR #230](https://github.com/drivendataorg/cloudpathlib/pull/230))
+ - Fixed missing root object entries in documentation's Intersphinx inventory ([Issue #211](https://github.com/drivendataorg/cloudpathlib/issues/211), [PR #237](https://github.com/drivendataorg/cloudpathlib/pull/237))
 
 ## v0.8.0 (2022-05-19)
 

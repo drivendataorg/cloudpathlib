@@ -14,3 +14,13 @@
 .md-header-nav__title {
   padding-left: 0.05rem !important;
 }
+
+
+/* hide jupyter notebooks input/output numbers */
+.jp-InputPrompt {
+  display: none !important;
+}
+
+.jp-OutputPrompt {
+  display: none !important;
+}

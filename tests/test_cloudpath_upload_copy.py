@@ -1,4 +1,5 @@
 from pathlib import Path
+from shutil import ignore_patterns
 from time import sleep
 
 import pytest
@@ -243,3 +244,34 @@ def test_copytree(rig, tmpdir):
 
     p.copytree(p2, force_overwrite_to_cloud=True)
     assert assert_mirrored(p2, p, check_no_extra=False)
+
+    # additional files that will be ignored using the ignore argument
+    (p / "ignored.py").write_text("print('ignore')")
+    (p / "dir1" / "file1.txt").write_text("ignore")
+    (p / "dir2" / "file2.txt").write_text("ignore")
+
+    # cloud dir to local dir but ignoring files (shutil.ignore_patterns)
+    p3 = rig.create_cloud_path("new_dir3")
+    p.copytree(p3, ignore=ignore_patterns("*.py", "dir*"))
+    assert assert_mirrored(p, p3, check_no_extra=False)
+    assert not (p3 / "ignored.py").exists()
+    assert not (p3 / "dir1").exists()
+    assert not (p3 / "dir2").exists()
+
+    # cloud dir to local dir but ignoring files (custom function)
+    p4 = rig.create_cloud_path("new_dir4")
+
+    def _custom_ignore(path, names):
+        ignore = []
+        for name in names:
+            if name.endswith(".py"):
+                ignore.append(name)
+            elif name.startswith("dir"):
+                ignore.append(name)
+        return ignore
+
+    p.copytree(p4, ignore=_custom_ignore)
+    assert assert_mirrored(p, p4, check_no_extra=False)
+    assert not (p4 / "ignored.py").exists()
+    assert not (p4 / "dir1").exists()
+    assert not (p4 / "dir2").exists()
