@@ -19,7 +19,6 @@ try:
         BlobServiceClient,
         BlobProperties,
         ContentSettings,
-        ResourceTypes,
         generate_blob_sas,
     )
 except ModuleNotFoundError:
