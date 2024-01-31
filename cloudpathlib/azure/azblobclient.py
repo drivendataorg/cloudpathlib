@@ -271,6 +271,12 @@ class AzureBlobClient(Client):
 
         return cloud_path
 
+    def _get_public_url(self, cloud_path: AzureBlobPath) -> str:
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        return blob_client.url
+
     def _generate_presigned_url(self, cloud_path: AzureBlobPath, expire_seconds: int = 60 * 60) -> str:
         sas_token = generate_blob_sas(
             self.service_client.account_name,
@@ -280,9 +286,8 @@ class AzureBlobClient(Client):
             permission=BlobSasPermissions(read=True),
             expiry=datetime.utcnow() + timedelta(seconds=expire_seconds)
         )
-        url = f"https://{self.service_client.account_name}.blob.core.windows.net/{cloud_path.container}/{cloud_path.blob}?{sas_token}"
+        url = f"{self._get_public_url(cloud_path)}?{sas_token}"
         return url
-
 
 
 AzureBlobClient.AzureBlobPath = AzureBlobClient.CloudPath  # type: ignore

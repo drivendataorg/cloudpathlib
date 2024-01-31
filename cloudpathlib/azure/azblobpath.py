@@ -65,9 +65,10 @@ class AzureBlobPath(CloudPath):
         if presign:
             url = self.client._generate_presigned_url(self, expire_seconds=expire_seconds)
         else:
-            url = f"https://{self.client.service_client.account_name}.blob.core.windows.net/{self.container}"
-            if self.blob:
-                url += f"/{self.blob}"
+            url = self.client._get_public_url(self)
+            # url = f"https://{self.client.service_client.account_name}.blob.core.windows.net/{self.container}"
+            # if self.blob:
+            #     url += f"/{self.blob}"
         return url
 
     def stat(self):

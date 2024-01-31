@@ -351,8 +351,12 @@ class S3Client(Client):
         return cloud_path
 
     def _get_public_url(self, cloud_path: S3Path) -> str:
+        """Apparently the best way to get the public URL is to generate a presigned URL
+        with the unsigned config set. This creates a temporary unsigned client to generate
+        the correct URL
+        See: https://stackoverflow.com/a/48197877
+        """
         unsigned_config = Config(signature_version=botocore.UNSIGNED)
-
         unsigned_client = self.sess.client("s3", endpoint_url=self._endpoint_url, config=unsigned_config)
         url: str = unsigned_client.generate_presigned_url(
             "get_object",
