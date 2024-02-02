@@ -384,8 +384,9 @@ class CloudPath(metaclass=CloudPathMeta):
         pass
 
     @abc.abstractmethod
-    def as_url(self, presign: bool = False, expire_seconds: int = 60 * 60):
-        """Should be implemented using the client API to create and update modified time"""
+    def as_url(self, presign: bool = False, expire_seconds: int = 60 * 60) -> str:
+        """Should be implemented using the client API to get either the public URL for a path or
+        a presigned URL to the path that will be valid for `expire_seconds`."""
         pass
 
     # ====================== IMPLEMENTED FROM SCRATCH ======================
