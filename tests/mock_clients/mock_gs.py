@@ -159,6 +159,7 @@ class MockBucket:
                 f"Bucket {self.name} not expected as mock bucket; only '{DEFAULT_GS_BUCKET_NAME}' exists."
             )
 
+
 class MockHTTPIterator:
     def __init__(self, blobs, sub_directories, max_results):
         self.blobs = blobs

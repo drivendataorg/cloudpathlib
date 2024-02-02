@@ -43,7 +43,10 @@ def mocked_client_class_factory(test_dir: str):
             """Returns well-known account key used by Azurite
             See: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#well-known-storage-account-and-key
             """
-            return SharedKeyCredentialPolicy(self.account_name, "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==")
+            return SharedKeyCredentialPolicy(
+                self.account_name,
+                "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==",
+            )
 
         def __del__(self):
             self.tmp.cleanup()
