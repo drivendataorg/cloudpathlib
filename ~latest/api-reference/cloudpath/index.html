@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.6">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.7">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.50c56a3b.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.f2e4d321.min.css">
       
       
 
@@ -3177,7 +3177,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.parent" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parent</span><span class="p">:</span> <span class="n">Self</span></code>
+<code class="highlight language-python"><span class="n">parent</span><span class="p">:</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-property"><code>property</code></small>
@@ -3200,7 +3200,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.parents" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">parents</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Self</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">parents</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span><span class="p">]</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-property"><code>property</code></small>
@@ -3323,7 +3323,7 @@ components in the filesystem path. <em>(Docstring copied from pathlib.Path)</em>
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Self</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">],</span> <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Client</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">],</span> <span class="n">client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Client</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -3381,16 +3381,17 @@ components in the filesystem path. <em>(Docstring copied from pathlib.Path)</em>
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.absolute" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span></code>
+<code class="highlight language-python"><span class="n">absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.absolute" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents ">
 
-      <p>Return an absolute version of this path by prepending the current
-working directory. No normalization or symlink resolution is performed.</p>
-<p>Use resolve() to get the canonical path to a file.
+      <p>Return an absolute version of this path.  This function works
+even if the path doesn't point to anything.</p>
+<p>No normalization is done, i.e. all '.' and '..' will be kept along.
+Use resolve() to get the canonical path to a file.
  <em>(Docstring copied from pathlib.Path)</em></p>
 
         <details class="quote">
@@ -3663,7 +3664,7 @@ working directory. No normalization or symlink resolution is performed.</p>
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.glob" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Self</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">]</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.glob" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3816,15 +3817,13 @@ to regular files).
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.is_relative_to" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">is_relative_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span></code>
+<code class="highlight language-python"><span class="n">is_relative_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.is_relative_to" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents ">
 
-      <p>Return True if the path is relative to another path or False.
-<em>(Docstring copied from pathlib.Path)</em></p>
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
@@ -3847,7 +3846,7 @@ to regular files).
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.is_valid_cloudpath" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">is_valid_cloudpath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">],</span> <span class="n">raise_on_error</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">TypeGuard</span><span class="p">[</span><span class="n">Self</span><span class="p">]]</span></code>
+<code class="highlight language-python"><span class="n">is_valid_cloudpath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">],</span> <span class="n">raise_on_error</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">TypeGuard</span><span class="p">[</span><span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span><span class="p">]]</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
@@ -3885,7 +3884,7 @@ to regular files).
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.iterdir" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">iterdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Self</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">iterdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">]</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.iterdir" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3915,7 +3914,7 @@ result for the special paths '.' and '..'.
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.joinpath" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">joinpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pathsegments</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span></code>
+<code class="highlight language-python"><span class="n">joinpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pathsegments</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.joinpath" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4178,7 +4177,7 @@ the built-in open() function does.
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.relative_to" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">relative_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Self</span><span class="p">,</span> <span class="n">walk_up</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PurePosixPath</span></code>
+<code class="highlight language-python"><span class="n">relative_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span><span class="p">,</span> <span class="n">walk_up</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PurePosixPath</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.relative_to" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4221,7 +4220,7 @@ a subpath of the other path), raise ValueError.
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.rename" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span></code>
+<code class="highlight language-python"><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.rename" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4254,7 +4253,7 @@ directory of the Path object.</p>
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.replace" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span></code>
+<code class="highlight language-python"><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.replace" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4303,7 +4302,7 @@ directory of the Path object.</p>
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.resolve" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span></code>
+<code class="highlight language-python"><span class="n">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.resolve" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4311,7 +4310,8 @@ directory of the Path object.</p>
     <div class="doc doc-contents ">
 
       <p>Make the path absolute, resolving all symlinks on the way and also
-normalizing it.
+normalizing it (for example turning slashes into backslashes under
+Windows).
  <em>(Docstring copied from pathlib.Path)</em></p>
 
         <details class="quote">
@@ -4331,7 +4331,7 @@ normalizing it.
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.rglob" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">rglob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Self</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">rglob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">]</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.rglob" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4565,7 +4565,7 @@ If the path is a directory, use rmdir() instead.
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.upload_from" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">upload_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">force_overwrite_to_cloud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span></code>
+<code class="highlight language-python"><span class="n">upload_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">force_overwrite_to_cloud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.upload_from" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4612,7 +4612,7 @@ If the path is a directory, use rmdir() instead.
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.validate" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">validate</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span></code>
+<code class="highlight language-python"><span class="n">validate</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
@@ -4645,7 +4645,7 @@ https://docs.pydantic.dev/2.0/usage/types/custom/</p>
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.walk" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">top_down</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">on_error</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Self</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">NoneType</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">top_down</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">on_error</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">NoneType</span><span class="p">,</span> <span class="n">NoneType</span><span class="p">]</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.walk" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4683,7 +4683,7 @@ https://docs.pydantic.dev/2.0/usage/types/custom/</p>
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.with_name" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">with_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span></code>
+<code class="highlight language-python"><span class="n">with_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.with_name" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4709,7 +4709,7 @@ https://docs.pydantic.dev/2.0/usage/types/custom/</p>
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.with_segments" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">with_segments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pathsegments</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span></code>
+<code class="highlight language-python"><span class="n">with_segments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pathsegments</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.with_segments" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4739,14 +4739,13 @@ The first segment will be interpreted as the bucket/container name.</p>
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.with_stem" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">with_stem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stem</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span></code>
+<code class="highlight language-python"><span class="n">with_stem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stem</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.with_stem" class="headerlink" title="Permanent link">&para;</a></h3>
 
     <div class="doc doc-contents ">
 
-      <p>Return a new path with the stem changed. <em>(Docstring copied from pathlib.Path)</em></p>
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
@@ -4769,7 +4768,7 @@ The first segment will be interpreted as the bucket/container name.</p>
 
 
 <h3 id="cloudpathlib.cloudpath.CloudPath.with_suffix" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">with_suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span></code>
+<code class="highlight language-python"><span class="n">with_suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing_extensions</span><span class="o">.</span><span class="n">Self</span></code>
 
 
 <a href="#cloudpathlib.cloudpath.CloudPath.with_suffix" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4926,7 +4925,7 @@ string, remove the suffix from the path.
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.e1c3ead8.min.js"></script>
+      <script src="../../assets/javascripts/bundle.caa56a14.min.js"></script>
       
     
   </body>
