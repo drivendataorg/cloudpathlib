@@ -70,6 +70,8 @@ plugins:
             heading_level: 2
             group_by_category: true
             show_category_heading: true
+  - mike:
+      canonical_version: stable
 
 extra:
   version:
