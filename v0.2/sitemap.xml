@@ -2,62 +2,62 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://cloudpathlib.drivendata.org/stable/</loc>
-         <lastmod>2021-09-04</lastmod>
+         <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cloudpathlib.drivendata.org/stable/authentication/</loc>
-         <lastmod>2021-09-04</lastmod>
+         <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cloudpathlib.drivendata.org/stable/caching/</loc>
-         <lastmod>2021-09-04</lastmod>
+         <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cloudpathlib.drivendata.org/stable/changelog/</loc>
-         <lastmod>2021-09-04</lastmod>
+         <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cloudpathlib.drivendata.org/stable/why_cloudpathlib/</loc>
-         <lastmod>2021-09-04</lastmod>
+         <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cloudpathlib.drivendata.org/stable/api-reference/azblobclient/</loc>
-         <lastmod>2021-09-04</lastmod>
+         <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cloudpathlib.drivendata.org/stable/api-reference/azblobpath/</loc>
-         <lastmod>2021-09-04</lastmod>
+         <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cloudpathlib.drivendata.org/stable/api-reference/cloudpath/</loc>
-         <lastmod>2021-09-04</lastmod>
+         <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cloudpathlib.drivendata.org/stable/api-reference/gsclient/</loc>
-         <lastmod>2021-09-04</lastmod>
+         <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cloudpathlib.drivendata.org/stable/api-reference/gspath/</loc>
-         <lastmod>2021-09-04</lastmod>
+         <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cloudpathlib.drivendata.org/stable/api-reference/s3client/</loc>
-         <lastmod>2021-09-04</lastmod>
+         <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://cloudpathlib.drivendata.org/stable/api-reference/s3path/</loc>
-         <lastmod>2021-09-04</lastmod>
+         <lastmod>2024-02-09</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
