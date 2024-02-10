@@ -1,122 +1,122 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/anypath-polymorphism/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/anypath-polymorphism/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/authentication/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/authentication/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/caching/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/caching/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/changelog/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/changelog/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/integrations/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/integrations/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/other_client_settings/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/other_client_settings/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/testing_mocked_cloudpathlib/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/testing_mocked_cloudpathlib/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/why_cloudpathlib/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/why_cloudpathlib/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/api-reference/anypath/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/anypath/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/api-reference/azblobclient/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/azblobclient/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/api-reference/azblobpath/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/azblobpath/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/api-reference/client/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/client/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/api-reference/cloudpath/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/cloudpath/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/api-reference/enums/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/enums/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/api-reference/exceptions/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/exceptions/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/api-reference/gsclient/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/gsclient/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/api-reference/gspath/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/gspath/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/api-reference/local/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/local/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/api-reference/s3client/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/s3client/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/api-reference/s3path/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/s3path/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/script/caching/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/script/caching/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/script/testing_mocked_cloudpathlib/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/script/testing_mocked_cloudpathlib/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/v0.13/script/why_cloudpathlib/</loc>
+         <loc>https://cloudpathlib.drivendata.org/stable/script/why_cloudpathlib/</loc>
          <lastmod>2023-02-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
