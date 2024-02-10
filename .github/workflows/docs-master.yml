@@ -3,6 +3,7 @@ name: docs-master
 on:
   push:
     branches: [master]
+  workflow_dispatch:
 
 jobs:
   build:
