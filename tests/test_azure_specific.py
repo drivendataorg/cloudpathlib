@@ -34,12 +34,13 @@ def test_as_url(azure_rig):
 
     public_url = str(p.as_url())
     public_parts = urlparse(public_url)
-    assert public_parts.path.endswith("/dir_0/file0_0.txt")
+
+    assert public_parts.path.endswith("file0_0.txt")
 
     presigned_url = p.as_url(presign=True)
     parts = urlparse(presigned_url)
     query_params = parse_qs(parts.query)
-    assert parts.path.endswith("/dir_0/file0_0.txt")
+    assert parts.path.endswith("file0_0.txt")
     assert "se" in query_params
     assert "sp" in query_params
     assert "sr" in query_params

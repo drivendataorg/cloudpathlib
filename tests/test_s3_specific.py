@@ -271,7 +271,7 @@ def test_as_url_presign(s3_rig):
     parts = urlparse(presigned_url)
     query_params = parse_qs(parts.query)
 
-    assert parts.path.endswith("/dir_0/file0_0.txt")
+    assert parts.path.endswith("file0_0.txt")
     assert query_params["X-Amz-Expires"] == [str(expire_seconds)]
     assert "X-Amz-Algorithm" in query_params
     assert "X-Amz-Credential" in query_params

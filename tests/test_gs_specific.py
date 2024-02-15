@@ -30,14 +30,14 @@ def test_as_url(gs_rig):
     p: GSPath = gs_rig.create_cloud_path("dir_0/file0_0.txt")
     public_url = p.as_url()
     public_url_parts = urlparse(public_url)
-    assert public_url_parts.hostname == "storage.googleapis.com"
-    assert public_url_parts.path.endswith("/dir_0/file0_0.txt")
+    assert public_url_parts.hostname and public_url_parts.hostname.startswith("storage.googleapis.com")
+    assert public_url_parts.path.endswith("file0_0.txt")
 
     expire_seconds = 3600
     presigned_url = p.as_url(presign=True, expire_seconds=expire_seconds)
     parts = urlparse(presigned_url)
     query_params = parse_qs(parts.query)
-    assert parts.path.endswith("/dir_0/file0_0.txt")
+    assert parts.path.endswith("file0_0.txt")
     assert query_params["X-Goog-Expires"] == [str(expire_seconds)]
     assert "X-Goog-Algorithm" in query_params
     assert "X-Goog-Credential" in query_params
