@@ -250,7 +250,7 @@ def test_aws_endpoint_url_env(monkeypatch):
     assert s3_client_custom_endpoint.client.meta.endpoint_url == localstack_url
 
 
-def test_as_url(monkeypatch):
+def test_as_url_local(monkeypatch):
     path = S3Path("s3://arxiv/pdf")
     public_url = path.as_url()
     assert public_url == "https://arxiv.s3.amazonaws.com/pdf"
@@ -263,12 +263,14 @@ def test_as_url(monkeypatch):
     public_url = path.as_url()
     assert public_url == f"{localstack_url}/arxiv/pdf"
 
+def test_as_url_presign(s3_rig):
+    p: S3Path = s3_rig.create_cloud_path("dir_0/file0_0.txt")
     expire_seconds = 3600
-    presigned_url = path.as_url(presign=True, expire_seconds=expire_seconds)
+    presigned_url = p.as_url(presign=True, expire_seconds=expire_seconds)
     parts = urlparse(presigned_url)
     query_params = parse_qs(parts.query)
 
-    assert parts.path == "/arxiv/pdf"
+    assert parts.path.endswith("/dir_0/file0_0.txt")
     assert query_params["X-Amz-Expires"] == [str(expire_seconds)]
     assert "X-Amz-Algorithm" in query_params
     assert "X-Amz-Credential" in query_params
