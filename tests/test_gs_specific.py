@@ -30,7 +30,9 @@ def test_as_url(gs_rig):
     p: GSPath = gs_rig.create_cloud_path("dir_0/file0_0.txt")
     public_url = p.as_url()
     public_url_parts = urlparse(public_url)
-    assert public_url_parts.hostname and public_url_parts.hostname.startswith("storage.googleapis.com")
+    assert public_url_parts.hostname and public_url_parts.hostname.startswith(
+        "storage.googleapis.com"
+    )
     assert public_url_parts.path.endswith("file0_0.txt")
 
     expire_seconds = 3600
