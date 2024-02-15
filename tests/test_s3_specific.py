@@ -263,6 +263,7 @@ def test_as_url_local(monkeypatch):
     public_url = path.as_url()
     assert public_url == f"{localstack_url}/arxiv/pdf"
 
+
 def test_as_url_presign(s3_rig):
     p: S3Path = s3_rig.create_cloud_path("dir_0/file0_0.txt")
     expire_seconds = 3600
