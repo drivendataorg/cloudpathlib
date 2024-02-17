@@ -6,7 +6,10 @@ from cloudpathlib.local import LocalGSPath
 
 
 @pytest.mark.parametrize("path_class", [GSPath, LocalGSPath])
-def test_gspath_properties(path_class):
+def test_gspath_properties(path_class, monkeypatch):
+    if path_class == GSPath:
+        monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "fake-project")
+
     p = path_class("gs://mybucket")
     assert p.blob == ""
     assert p.bucket == "mybucket"

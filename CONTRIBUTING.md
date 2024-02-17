@@ -81,6 +81,11 @@ Finally, you may want to run your tests against live servers to ensure that the 
 make test-live-cloud
 ```
 
+You can copy `.env.example` to `.env` and fill in the credentials and bucket/container names for the providers you want to test against.  **Note that the live tests will create and delete files on the cloud provider.**
+
+You can also skip providers you do not have accounts for by commenting them out in the `rig` and `s3_like_rig` variables defined at the end of `tests/conftest.py`. 
+
+
 ### Test rigs
 
 Since we want behavior parity across providers, nearly all of the tests are written in a provider-agnositc way. Each test is passed a test rig as a fixture, and the rig provides the correct way for generating cloudpaths for testing. The test rigs are defined in [`conftest.py`](tests/conftest.py).

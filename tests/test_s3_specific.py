@@ -1,6 +1,7 @@
 from concurrent.futures import ProcessPoolExecutor
 from itertools import islice
 from time import sleep
+import time
 
 from urllib.parse import urlparse, parse_qs
 import pytest
@@ -267,14 +268,25 @@ def test_as_url_local(monkeypatch):
 def test_as_url_presign(s3_rig):
     p: S3Path = s3_rig.create_cloud_path("dir_0/file0_0.txt")
     expire_seconds = 3600
+    expire_timestamp = int(time.time()) + expire_seconds
     presigned_url = p.as_url(presign=True, expire_seconds=expire_seconds)
     parts = urlparse(presigned_url)
     query_params = parse_qs(parts.query)
 
     assert parts.path.endswith("file0_0.txt")
-    assert query_params["X-Amz-Expires"] == [str(expire_seconds)]
-    assert "X-Amz-Algorithm" in query_params
-    assert "X-Amz-Credential" in query_params
-    assert "X-Amz-Date" in query_params
-    assert "X-Amz-SignedHeaders" in query_params
-    assert "X-Amz-Signature" in query_params
+
+    # v4 presigned URL (version depends on region and config)
+    # https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html
+    if "X-Amz-Expires" in query_params:
+        assert query_params["X-Amz-Expires"] == [str(expire_seconds)]
+        assert "X-Amz-Algorithm" in query_params
+        assert "X-Amz-Credential" in query_params
+        assert "X-Amz-Date" in query_params
+        assert "X-Amz-SignedHeaders" in query_params
+        assert "X-Amz-Signature" in query_params
+    elif "Expires" in query_params:
+        assert query_params["Expires"] == [str(expire_timestamp)]
+        assert "AWSAccessKeyId" in query_params
+        assert "Signature" in query_params
+    else:
+        assert False, "Unknown presigned URL format"
