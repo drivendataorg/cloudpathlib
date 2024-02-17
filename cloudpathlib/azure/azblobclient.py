@@ -118,6 +118,10 @@ class AzureBlobClient(Client):
 
         return properties
 
+    @staticmethod
+    def _partial_filename(local_path) -> Path:
+        return Path(str(local_path) + ".part")
+
     def _download_file(
         self, cloud_path: AzureBlobPath, local_path: Union[str, os.PathLike]
     ) -> Path:
@@ -131,7 +135,17 @@ class AzureBlobClient(Client):
 
         local_path.parent.mkdir(exist_ok=True, parents=True)
 
-        local_path.write_bytes(download_stream.content_as_bytes())
+        try:
+            partial_local_path = self._partial_filename(local_path)
+            with partial_local_path.open("wb") as data:
+                download_stream.readinto(data)
+
+            partial_local_path.replace(local_path)
+        except:  # noqa: E722
+            # remove any partial download
+            if partial_local_path.exists():
+                partial_local_path.unlink()
+            raise
 
         return local_path
 
@@ -273,7 +287,8 @@ class AzureBlobClient(Client):
 
         content_settings = ContentSettings(**extra_args)
 
-        blob.upload_blob(Path(local_path).read_bytes(), overwrite=True, content_settings=content_settings)  # type: ignore
+        with Path(local_path).open("rb") as data:
+            blob.upload_blob(data, overwrite=True, content_settings=content_settings)  # type: ignore
 
         return cloud_path
 

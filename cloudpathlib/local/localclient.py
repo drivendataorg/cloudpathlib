@@ -5,6 +5,7 @@ import os
 from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
+from time import sleep
 from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from ..client import Client
@@ -63,7 +64,17 @@ class LocalClient(Client):
     def _download_file(self, cloud_path: "LocalPath", local_path: Union[str, os.PathLike]) -> Path:
         local_path = Path(local_path)
         local_path.parent.mkdir(exist_ok=True, parents=True)
-        shutil.copyfile(self._cloud_path_to_local(cloud_path), local_path)
+
+        try:
+            shutil.copyfile(self._cloud_path_to_local(cloud_path), local_path)
+        except FileNotFoundError:
+            # erroneous FileNotFoundError appears in tests sometimes; patiently insist on the parent directory existing
+            sleep(1.0)
+            local_path.parent.mkdir(exist_ok=True, parents=True)
+            sleep(1.0)
+
+            shutil.copyfile(self._cloud_path_to_local(cloud_path), local_path)
+
         return local_path
 
     def _exists(self, cloud_path: "LocalPath") -> bool:
