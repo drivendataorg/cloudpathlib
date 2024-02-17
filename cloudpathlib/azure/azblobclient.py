@@ -131,7 +131,8 @@ class AzureBlobClient(Client):
 
         local_path.parent.mkdir(exist_ok=True, parents=True)
 
-        local_path.write_bytes(download_stream.content_as_bytes())
+        with open(local_path, "wb") as data:
+            download_stream.readinto(data)
 
         return local_path
 
@@ -273,7 +274,8 @@ class AzureBlobClient(Client):
 
         content_settings = ContentSettings(**extra_args)
 
-        blob.upload_blob(Path(local_path).read_bytes(), overwrite=True, content_settings=content_settings)  # type: ignore
+        with open(Path(local_path), "rb") as data:
+            blob.upload_blob(data, overwrite=True, content_settings=content_settings)  # type: ignore
 
         return cloud_path
 
