@@ -140,7 +140,7 @@ class AzureBlobClient(Client):
             with partial_local_path.open("wb") as data:
                 download_stream.readinto(data)
 
-            partial_local_path.rename(local_path)
+            partial_local_path.replace(local_path)
         except:  # noqa: E722
             # remove any partial download
             if partial_local_path.exists():
