@@ -383,11 +383,12 @@ class CloudPath(metaclass=CloudPathMeta):
         """Should be implemented using the client API to create and update modified time"""
         pass
 
-    @abc.abstractmethod
     def as_url(self, presign: bool = False, expire_seconds: int = 60 * 60) -> str:
-        """Should be implemented using the client API to get either the public URL for a path or
-        a presigned URL to the path that will be valid for `expire_seconds`."""
-        pass
+        if presign:
+            url = self.client._generate_presigned_url(self, expire_seconds=expire_seconds)
+        else:
+            url = self.client._get_public_url(self)
+        return url
 
     # ====================== IMPLEMENTED FROM SCRATCH ======================
     # Methods with their own implementations that work generically
