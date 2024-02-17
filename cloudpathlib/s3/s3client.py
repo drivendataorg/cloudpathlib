@@ -126,6 +126,7 @@ class S3Client(Client):
             for k in ["RequestPayer", "ExpectedBucketOwner"]
             if k in self._extra_args
         }
+        self._endpoint_url = endpoint_url
 
         super().__init__(
             local_cache_dir=local_cache_dir,
@@ -348,6 +349,31 @@ class S3Client(Client):
 
         obj.upload_file(str(local_path), Config=self.boto3_transfer_config, ExtraArgs=extra_args)
         return cloud_path
+
+    def _get_public_url(self, cloud_path: S3Path) -> str:
+        """Apparently the best way to get the public URL is to generate a presigned URL
+        with the unsigned config set. This creates a temporary unsigned client to generate
+        the correct URL
+        See: https://stackoverflow.com/a/48197877
+        """
+        unsigned_config = Config(signature_version=botocore.UNSIGNED)
+        unsigned_client = self.sess.client(
+            "s3", endpoint_url=self._endpoint_url, config=unsigned_config
+        )
+        url: str = unsigned_client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": cloud_path.bucket, "Key": cloud_path.key},
+            ExpiresIn=0,
+        )
+        return url
+
+    def _generate_presigned_url(self, cloud_path: S3Path, expire_seconds: int = 60 * 60) -> str:
+        url: str = self.client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": cloud_path.bucket, "Key": cloud_path.key},
+            ExpiresIn=expire_seconds,
+        )
+        return url
 
 
 S3Client.S3Path = S3Client.CloudPath  # type: ignore

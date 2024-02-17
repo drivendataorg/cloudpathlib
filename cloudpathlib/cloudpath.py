@@ -383,6 +383,13 @@ class CloudPath(metaclass=CloudPathMeta):
         """Should be implemented using the client API to create and update modified time"""
         pass
 
+    def as_url(self, presign: bool = False, expire_seconds: int = 60 * 60) -> str:
+        if presign:
+            url = self.client._generate_presigned_url(self, expire_seconds=expire_seconds)
+        else:
+            url = self.client._get_public_url(self)
+        return url
+
     # ====================== IMPLEMENTED FROM SCRATCH ======================
     # Methods with their own implementations that work generically
     def __rtruediv__(self, other: Any) -> None:

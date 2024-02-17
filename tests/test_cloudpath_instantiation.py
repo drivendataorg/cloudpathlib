@@ -31,6 +31,9 @@ def test_dispatch(path_class, cloud_path, monkeypatch):
     if path_class == AzureBlobPath:
         monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "AccountName=fake;AccountKey=fake2;")
 
+    if path_class == GSPath:
+        monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "fake-project")
+
     assert isinstance(CloudPath(cloud_path), path_class)
 
 

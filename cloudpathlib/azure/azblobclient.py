@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import mimetypes
 import os
 from pathlib import Path, PurePosixPath
@@ -14,7 +14,13 @@ from .azblobpath import AzureBlobPath
 
 try:
     from azure.core.exceptions import ResourceNotFoundError
-    from azure.storage.blob import BlobServiceClient, BlobProperties, ContentSettings
+    from azure.storage.blob import (
+        BlobSasPermissions,
+        BlobServiceClient,
+        BlobProperties,
+        ContentSettings,
+        generate_blob_sas,
+    )
 except ModuleNotFoundError:
     implementation_registry["azure"].dependencies_loaded = False
 
@@ -270,6 +276,26 @@ class AzureBlobClient(Client):
         blob.upload_blob(Path(local_path).read_bytes(), overwrite=True, content_settings=content_settings)  # type: ignore
 
         return cloud_path
+
+    def _get_public_url(self, cloud_path: AzureBlobPath) -> str:
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        return blob_client.url
+
+    def _generate_presigned_url(
+        self, cloud_path: AzureBlobPath, expire_seconds: int = 60 * 60
+    ) -> str:
+        sas_token = generate_blob_sas(
+            self.service_client.account_name,
+            container_name=cloud_path.container,
+            blob_name=cloud_path.blob,
+            account_key=self.service_client.credential.account_key,
+            permission=BlobSasPermissions(read=True),
+            expiry=datetime.utcnow() + timedelta(seconds=expire_seconds),
+        )
+        url = f"{self._get_public_url(cloud_path)}?{sas_token}"
+        return url
 
 
 AzureBlobClient.AzureBlobPath = AzureBlobClient.CloudPath  # type: ignore

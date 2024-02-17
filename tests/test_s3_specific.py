@@ -1,7 +1,9 @@
 from concurrent.futures import ProcessPoolExecutor
 from itertools import islice
 from time import sleep
+import time
 
+from urllib.parse import urlparse, parse_qs
 import pytest
 
 from boto3.s3.transfer import TransferConfig
@@ -247,3 +249,44 @@ def test_aws_endpoint_url_env(monkeypatch):
     monkeypatch.setenv("AWS_ENDPOINT_URL", localstack_url)
     s3_client_custom_endpoint = S3Client()
     assert s3_client_custom_endpoint.client.meta.endpoint_url == localstack_url
+
+
+def test_as_url_local(monkeypatch):
+    path = S3Path("s3://arxiv/pdf")
+    public_url = path.as_url()
+    assert public_url == "https://arxiv.s3.amazonaws.com/pdf"
+
+    localstack_url = "http://localhost:4566"
+    monkeypatch.setenv("AWS_ENDPOINT_URL", localstack_url)
+    s3_client_custom_endpoint = S3Client()
+
+    path = S3Path("s3://arxiv/pdf", client=s3_client_custom_endpoint)
+    public_url = path.as_url()
+    assert public_url == f"{localstack_url}/arxiv/pdf"
+
+
+def test_as_url_presign(s3_rig):
+    p: S3Path = s3_rig.create_cloud_path("dir_0/file0_0.txt")
+    expire_seconds = 3600
+    expire_timestamp = int(time.time()) + expire_seconds
+    presigned_url = p.as_url(presign=True, expire_seconds=expire_seconds)
+    parts = urlparse(presigned_url)
+    query_params = parse_qs(parts.query)
+
+    assert parts.path.endswith("file0_0.txt")
+
+    # v4 presigned URL (version depends on region and config)
+    # https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html
+    if "X-Amz-Expires" in query_params:
+        assert query_params["X-Amz-Expires"] == [str(expire_seconds)]
+        assert "X-Amz-Algorithm" in query_params
+        assert "X-Amz-Credential" in query_params
+        assert "X-Amz-Date" in query_params
+        assert "X-Amz-SignedHeaders" in query_params
+        assert "X-Amz-Signature" in query_params
+    elif "Expires" in query_params:
+        assert query_params["Expires"] == [str(expire_timestamp)]
+        assert "AWSAccessKeyId" in query_params
+        assert "Signature" in query_params
+    else:
+        assert False, "Unknown presigned URL format"

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import mimetypes
 import os
 from pathlib import Path, PurePosixPath
@@ -270,6 +270,19 @@ class GSClient(Client):
 
         blob.upload_from_filename(str(local_path), **extra_args)
         return cloud_path
+
+    def _get_public_url(self, cloud_path: GSPath) -> str:
+        bucket = self.client.get_bucket(cloud_path.bucket)
+        blob = bucket.blob(cloud_path.blob)
+        return blob.public_url
+
+    def _generate_presigned_url(self, cloud_path: GSPath, expire_seconds: int = 60 * 60) -> str:
+        bucket = self.client.get_bucket(cloud_path.bucket)
+        blob = bucket.blob(cloud_path.blob)
+        url = blob.generate_signed_url(
+            version="v4", expiration=timedelta(seconds=expire_seconds), method="GET"
+        )
+        return url
 
 
 GSClient.GSPath = GSClient.CloudPath  # type: ignore
