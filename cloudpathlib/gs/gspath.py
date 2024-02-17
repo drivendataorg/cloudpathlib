@@ -56,6 +56,13 @@ class GSPath(CloudPath):
 
             tf.cleanup()
 
+    def as_url(self, presign: bool = False, expire_seconds: int = 60 * 60):
+        if presign:
+            url = self.client._generate_presigned_url(self, expire_seconds=expire_seconds)
+        else:
+            url = self.client._get_public_url(self)
+        return url
+
     def stat(self):
         meta = self.client._get_metadata(self)
         if meta is None:

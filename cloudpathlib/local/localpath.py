@@ -30,3 +30,6 @@ class LocalPath(CloudPath):
 
     def touch(self, exist_ok: bool = True):
         self.client._touch(self, exist_ok)
+
+    def as_url(self, presign: bool = False, expire_seconds: int = 60 * 60):
+        return self.as_uri()
