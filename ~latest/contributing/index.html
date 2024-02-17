@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.8">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.9">
     
     
       
@@ -733,14 +733,14 @@
     
     
     
-    
-    
       
+        
+        
       
+    
     
     <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
-        
         
         
           
@@ -817,11 +817,11 @@
     
     
     
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
       
-        
         
         
           
@@ -906,11 +906,11 @@
     
     
     
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
       
-        
         
         
           
@@ -995,11 +995,11 @@
     
     
     
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
       
-        
         
         
           
@@ -1084,11 +1084,11 @@
     
     
     
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
       
-        
         
         
           
@@ -1578,6 +1578,8 @@ perf                 run performance measurement suite for s3 and save results t
 <p>Finally, you may want to run your tests against live servers to ensure that the behavior against a provider's server is not different from the mocked provider. You will need credentials configured for each of the providers you run against. You can run the live tests with:</p>
 <div class="highlight"><pre><span></span><code>make<span class="w"> </span>test-live-cloud
 </code></pre></div>
+<p>You can copy <code>.env.example</code> to <code>.env</code> and fill in the credentials and bucket/container names for the providers you want to test against.  <strong>Note that the live tests will create and delete files on the cloud provider.</strong></p>
+<p>You can also skip providers you do not have accounts for by commenting them out in the <code>rig</code> and <code>s3_like_rig</code> variables defined at the end of <code>tests/conftest.py</code>. </p>
 <h3 id="test-rigs">Test rigs<a class="headerlink" href="#test-rigs" title="Permanent link">&para;</a></h3>
 <p>Since we want behavior parity across providers, nearly all of the tests are written in a provider-agnositc way. Each test is passed a test rig as a fixture, and the rig provides the correct way for generating cloudpaths for testing. The test rigs are defined in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/conftest.py"><code>conftest.py</code></a>.</p>
 <p><strong>Almost none of the tests instantiate <code>CloudPath</code> or a <code>*Client</code> class directly.</strong></p>
@@ -1608,6 +1610,7 @@ perf                 run performance measurement suite for s3 and save results t
 <p>To build the latest version of the documentation, you can run:</p>
 <div class="highlight"><pre><span></span><code>make<span class="w"> </span>docs
 </code></pre></div>
+<p>If you add/remove a method on the <code>CloudPath</code> class or any subclass, run <code>python docs/make_support_table.py</code> and paste the updated table into README.md.</p>
 <h3 id="serving">Serving<a class="headerlink" href="#serving" title="Permanent link">&para;</a></h3>
 <p>While you are developing, you can serve a local version of the docs to see what your changes look like. This will auto-reload for most changes to the docs:</p>
 <div class="highlight"><pre><span></span><code>make<span class="w"> </span>docs-serve

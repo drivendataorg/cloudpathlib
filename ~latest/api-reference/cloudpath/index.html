@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.8">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.9">
     
     
       
@@ -431,14 +431,14 @@
     
     
     
-    
-    
       
+        
+        
       
+    
     
     <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
-        
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" checked>
@@ -660,6 +660,15 @@
   <a href="#cloudpathlib.cloudpath.CloudPath.as_uri" class="md-nav__link">
     <span class="md-ellipsis">
       as_uri()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.cloudpath.CloudPath.as_url" class="md-nav__link">
+    <span class="md-ellipsis">
+      as_url()
     </span>
   </a>
   
@@ -1060,11 +1069,11 @@
     
     
     
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
       
-        
         
         
           
@@ -1149,11 +1158,11 @@
     
     
     
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
       
-        
         
         
           
@@ -1238,11 +1247,11 @@
     
     
     
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
       
-        
         
         
           
@@ -1327,11 +1336,11 @@
     
     
     
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
       
-        
         
         
           
@@ -1628,6 +1637,15 @@
   <a href="#cloudpathlib.cloudpath.CloudPath.as_uri" class="md-nav__link">
     <span class="md-ellipsis">
       as_uri()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.cloudpath.CloudPath.as_url" class="md-nav__link">
+    <span class="md-ellipsis">
+      as_url()
     </span>
   </a>
   
@@ -2223,6 +2241,13 @@ storage URI (e.g., <code>"s3://"</code>).</p>
     <span class="k">def</span> <span class="nf">touch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exist_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Should be implemented using the client API to create and update modified time&quot;&quot;&quot;</span>
         <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">as_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presign</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">expire_seconds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">presign</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_generate_presigned_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expire_seconds</span><span class="o">=</span><span class="n">expire_seconds</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_get_public_url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">url</span>
 
     <span class="c1"># ====================== IMPLEMENTED FROM SCRATCH ======================</span>
     <span class="c1"># Methods with their own implementations that work generically</span>
@@ -3424,6 +3449,35 @@ Use resolve() to get the canonical path to a file.
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">as_uri</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-method">
+
+
+
+<h3 id="cloudpathlib.cloudpath.CloudPath.as_url" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">as_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presign</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">expire_seconds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3600</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span></code>
+
+
+<a href="#cloudpathlib.cloudpath.CloudPath.as_url" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+
+        <details class="quote">
+          <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
+          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">as_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">presign</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">expire_seconds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">presign</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_generate_presigned_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expire_seconds</span><span class="o">=</span><span class="n">expire_seconds</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_get_public_url</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">url</span>
 </code></pre></div>
         </details>
     </div>
