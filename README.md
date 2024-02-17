@@ -135,7 +135,6 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `is_absolute`          | ✅                | ✅         | ✅         |
 | `is_dir`               | ✅                | ✅         | ✅         |
 | `is_file`              | ✅                | ✅         | ✅         |
-| `is_junction`          | ✅                | ✅         | ✅         |
 | `is_relative_to`       | ✅                | ✅         | ✅         |
 | `iterdir`              | ✅                | ✅         | ✅         |
 | `joinpath`             | ✅                | ✅         | ✅         |
@@ -161,9 +160,7 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `suffixes`             | ✅                | ✅         | ✅         |
 | `touch`                | ✅                | ✅         | ✅         |
 | `unlink`               | ✅                | ✅         | ✅         |
-| `walk`                 | ✅                | ✅         | ✅         |
 | `with_name`            | ✅                | ✅         | ✅         |
-| `with_segments`        | ✅                | ✅         | ✅         |
 | `with_stem`            | ✅                | ✅         | ✅         |
 | `with_suffix`          | ✅                | ✅         | ✅         |
 | `write_bytes`          | ✅                | ✅         | ✅         |
@@ -183,11 +180,13 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `is_socket`            | ❌                | ❌         | ❌         |
 | `is_symlink`           | ❌                | ❌         | ❌         |
 | `lchmod`               | ❌                | ❌         | ❌         |
+| `link_to`              | ❌                | ❌         | ❌         |
 | `lstat`                | ❌                | ❌         | ❌         |
 | `owner`                | ❌                | ❌         | ❌         |
 | `readlink`             | ❌                | ❌         | ❌         |
 | `root`                 | ❌                | ❌         | ❌         |
 | `symlink_to`           | ❌                | ❌         | ❌         |
+| `as_url`               | ✅                | ✅         | ✅         |
 | `clear_cache`          | ✅                | ✅         | ✅         |
 | `cloud_prefix`         | ✅                | ✅         | ✅         |
 | `copy`                 | ✅                | ✅         | ✅         |
@@ -195,10 +194,13 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `download_to`          | ✅                | ✅         | ✅         |
 | `etag`                 | ✅                | ✅         | ✅         |
 | `fspath`               | ✅                | ✅         | ✅         |
+| `is_junction`          | ✅                | ✅         | ✅         |
 | `is_valid_cloudpath`   | ✅                | ✅         | ✅         |
 | `rmtree`               | ✅                | ✅         | ✅         |
 | `upload_from`          | ✅                | ✅         | ✅         |
 | `validate`             | ✅                | ✅         | ✅         |
+| `walk`                 | ✅                | ✅         | ✅         |
+| `with_segments`        | ✅                | ✅         | ✅         |
 | `blob`                 | ✅                | ❌         | ✅         |
 | `bucket`               | ❌                | ✅         | ✅         |
 | `container`            | ✅                | ❌         | ❌         |

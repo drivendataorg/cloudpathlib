@@ -135,6 +135,8 @@ To build the latest version of the documentation, you can run:
 make docs
 ```
 
+If you add/remove a method on the `CloudPath` class or any subclass, run `python docs/make_support_table.py` and paste the updated table into README.md.
+
 ### Serving
 
 While you are developing, you can serve a local version of the docs to see what your changes look like. This will auto-reload for most changes to the docs:
