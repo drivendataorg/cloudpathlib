@@ -137,7 +137,7 @@ class AzureBlobClient(Client):
 
         try:
             partial_local_path = self._partial_filename(local_path)
-            with open(partial_local_path, "wb") as data:
+            with partial_local_path.open("wb") as data:
                 download_stream.readinto(data)
 
             partial_local_path.rename(local_path)
@@ -287,7 +287,7 @@ class AzureBlobClient(Client):
 
         content_settings = ContentSettings(**extra_args)
 
-        with open(Path(local_path), "rb") as data:
+        with Path(local_path).open("rb") as data:
             blob.upload_blob(data, overwrite=True, content_settings=content_settings)  # type: ignore
 
         return cloud_path
