@@ -111,7 +111,7 @@ class MockBlobClient:
     def upload_blob(self, data, overwrite, content_settings=None):
         path = self.root / self.key
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data)
+        path.write_bytes(data.read())
 
         if content_settings is not None:
             self.service_client.metadata_cache[self.root / self.key] = (
@@ -129,6 +129,9 @@ class MockStorageStreamDownloader:
 
     def content_as_bytes(self):
         return self.readall()
+
+    def readinto(self, buffer):
+        buffer.write(self.readall())
 
 
 class MockContainerClient:
