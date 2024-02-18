@@ -20,6 +20,9 @@ def test_anypath_path():
     assert issubclass(WindowsPath, AnyPath)
     assert not issubclass(str, AnyPath)
 
+    # test `file:` scheme
+    assert AnyPath(path.resolve().as_uri()) == path.resolve()
+
 
 def test_anypath_cloudpath(rig):
     cloudpath = rig.create_cloud_path("a/b/c")
