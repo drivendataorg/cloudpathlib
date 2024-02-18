@@ -24,7 +24,8 @@ class AnyPath(ABC):
         except InvalidPrefixError as cloudpath_exception:
             try:
                 if isinstance(args[0], str) and args[0].startswith("file:"):
-                    return Path(url2pathname(args[0].removeprefix("file:")), *args[1:], **kwargs)
+                    no_prefix = args[0][5:]  # remove file: prefix
+                    return Path(url2pathname(no_prefix), *args[1:], **kwargs)
 
                 return Path(*args, **kwargs)
             except TypeError as path_exception:
