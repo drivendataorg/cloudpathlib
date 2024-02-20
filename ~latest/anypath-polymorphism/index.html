@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.9">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.10">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.f2e4d321.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e359304.min.css">
       
       
 
@@ -356,6 +356,15 @@
   <a href="#example" class="md-nav__link">
     <span class="md-ellipsis">
       Example
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-uri-scheme" class="md-nav__link">
+    <span class="md-ellipsis">
+      file: URI Scheme
     </span>
   </a>
   
@@ -1003,6 +1012,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#file-uri-scheme" class="md-nav__link">
+    <span class="md-ellipsis">
+      file: URI Scheme
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       How It Works
@@ -1047,6 +1065,26 @@
 <span class="c1">#&gt; True</span>
 <span class="nb">isinstance</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">AnyPath</span><span class="p">)</span>
 <span class="c1">#&gt; True</span>
+</code></pre></div>
+<h2 id="file-uri-scheme"><code>file:</code> URI Scheme<a class="headerlink" href="#file-uri-scheme" title="Permanent link">&para;</a></h2>
+<p><code>AnyPath</code> also supports the <a href="https://en.wikipedia.org/wiki/File_URI_scheme"><code>file:</code> URI scheme</a> <em>for paths that can be referenced with pathlib</em> and returns a <code>Path</code> instance for those paths. If you need to roundtrip back to a <code>file:</code> URI, you can use the <code>Path.as_uri</code> method after any path manipulations that you do.</p>
+<p>For example:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">cloudpathlib</span> <span class="kn">import</span> <span class="n">AnyPath</span>
+
+<span class="c1"># hostname omitted variant</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;file:/root/mydir/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">path</span>
+<span class="c1">#&gt; PosixPath(&#39;/root/mydir/myfile.txt&#39;)</span>
+
+<span class="c1"># explicit local path variant</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;file:///root/mydir/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">path</span>
+<span class="c1">#&gt; PosixPath(&#39;/root/mydir/myfile.txt&#39;)</span>
+
+<span class="c1"># manipulate the path and return the file:// URI</span>
+<span class="n">parent_uri</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">as_uri</span><span class="p">()</span>
+<span class="n">parent_uri</span>
+<span class="c1">#&gt; &#39;file:///root/mydir&#39;</span>
 </code></pre></div>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
 <p>The constructor for <code>AnyPath</code> will first attempt to run the input through the <code>CloudPath</code> base class' constructor, which will validate the input against registered concrete <code>CloudPath</code> implementations. This will accept inputs that are already a cloud path class or a string with the appropriate URI scheme prefix (e.g., <code>s3://</code>). If no implementation validates successfully, it will then try to run the input through the <code>Path</code> constructor. If the <code>Path</code> constructor fails and raises a <code>TypeError</code>, then the <code>AnyPath</code> constructor will raise an <code>AnyPathTypeError</code> exception.</p>
