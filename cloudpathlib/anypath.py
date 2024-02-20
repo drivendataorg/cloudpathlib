@@ -2,10 +2,10 @@ import os
 from abc import ABC
 from pathlib import Path
 from typing import Any, Union
-from urllib.request import url2pathname
 
 from .cloudpath import InvalidPrefixError, CloudPath
 from .exceptions import AnyPathTypeError
+from .url_utils import path_from_fileurl
 
 
 class AnyPath(ABC):
@@ -23,9 +23,11 @@ class AnyPath(ABC):
             return CloudPath(*args, **kwargs)  # type: ignore
         except InvalidPrefixError as cloudpath_exception:
             try:
-                if isinstance(args[0], str) and args[0].startswith("file:"):
-                    no_prefix = args[0][5:]  # remove file: prefix
-                    return Path(url2pathname(no_prefix), *args[1:], **kwargs)
+                if isinstance(args[0], str) and args[0].lower().startswith("file:"):
+                    path = path_from_fileurl(args[0], **kwargs)
+                    for part in args[1:]:
+                        path /= part
+                    return path
 
                 return Path(*args, **kwargs)
             except TypeError as path_exception:
