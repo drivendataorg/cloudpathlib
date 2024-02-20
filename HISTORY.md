@@ -4,6 +4,7 @@
 - Implement sliced downloads in GSClient. (Issue [#387](https://github.com/drivendataorg/cloudpathlib/issues/387), PR [#389](https://github.com/drivendataorg/cloudpathlib/pull/389))
 - Implement `as_url` with presigned parameter for all backends. (Issue [#235](https://github.com/drivendataorg/cloudpathlib/issues/235), PR [#236](https://github.com/drivendataorg/cloudpathlib/pull/236))
 - Stream to and from Azure Blob Storage. (PR [#403](https://github.com/drivendataorg/cloudpathlib/pull/403))
+- Implement `file:` URI scheme support for `AnyPath`. (Issue [#401](https://github.com/drivendataorg/cloudpathlib/issues/401), PR [#404](https://github.com/drivendataorg/cloudpathlib/pull/404))
 
 ## 0.17.0 (2023-12-21)
 

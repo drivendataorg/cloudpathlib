@@ -23,6 +23,31 @@ isinstance(cloud_path, AnyPath)
 #> True
 ```
 
+## `file:` URI Scheme
+
+`AnyPath` also supports the [`file:` URI scheme](https://en.wikipedia.org/wiki/File_URI_scheme) _for paths that can be referenced with pathlib_ and returns a `Path` instance for those paths. If you need to roundtrip back to a `file:` URI, you can use the `Path.as_uri` method after any path manipulations that you do.
+
+For example:
+
+```python
+from cloudpathlib import AnyPath
+
+# hostname omitted variant
+path = AnyPath("file:/root/mydir/myfile.txt")
+path
+#> PosixPath('/root/mydir/myfile.txt')
+
+# explicit local path variant
+path = AnyPath("file:///root/mydir/myfile.txt")
+path
+#> PosixPath('/root/mydir/myfile.txt')
+
+# manipulate the path and return the file:// URI
+parent_uri = path.parent.as_uri()
+parent_uri
+#> 'file:///root/mydir'
+```
+
 ## How It Works
 
 The constructor for `AnyPath` will first attempt to run the input through the `CloudPath` base class' constructor, which will validate the input against registered concrete `CloudPath` implementations. This will accept inputs that are already a cloud path class or a string with the appropriate URI scheme prefix (e.g., `s3://`). If no implementation validates successfully, it will then try to run the input through the `Path` constructor. If the `Path` constructor fails and raises a `TypeError`, then the `AnyPath` constructor will raise an `AnyPathTypeError` exception.
