@@ -1,6 +1,10 @@
 import builtins
+from contextlib import contextmanager
+import glob
 import os
 import os.path
+
+from cloudpathlib.exceptions import InvalidGlobArgumentsError
 
 from .cloudpath import CloudPath
 
@@ -11,6 +15,10 @@ def _check_first_arg(*args, **kwargs):
 
 def _check_first_arg_first_index(*args, **kwargs):
     return isinstance(args[0][0], CloudPath)
+
+
+def _check_first_arg_or_root_dir(*args, **kwargs):
+    return isinstance(args[0], CloudPath) or isinstance(kwargs.get("root_dir", None), CloudPath)
 
 
 def _patch_factory(original_version, cpl_version, cpl_check=_check_first_arg):
@@ -26,14 +34,29 @@ def _patch_factory(original_version, cpl_version, cpl_check=_check_first_arg):
     return _patched_version
 
 
+@contextmanager
 def patch_open():
     patched = _patch_factory(
         builtins.open,
         CloudPath.open,
     )
+    original_open = builtins.open
     builtins.open = patched
-    CloudPath.__fspath__ = lambda x: x  # turn off `fspath`
-    return patched
+
+    original_fspath = CloudPath.__fspath__
+    CloudPath.__fspath__ = (
+        lambda x: x
+    )  # turn off `fspath` -> str since we patch everything to handle CloudPath
+
+    try:
+        yield patched
+    finally:
+        builtins.open = original_open
+        CloudPath.__fspath__ = original_fspath
+
+
+def _cloudpath_fspath(path):
+    return path  # no op, since methods should all handle cloudpaths when patched
 
 
 def _cloudpath_os_listdir(path="."):
@@ -172,39 +195,152 @@ def _cloudpath_os_path_splitext(path):
     return str(path)[: -len(path.suffix)], path.suffix
 
 
+@contextmanager
 def patch_os_functions():
-    os.listdir = _patch_factory(os.listdir, _cloudpath_os_listdir)
-    os.lstat = _patch_factory(os.lstat, _cloudpath_lstat)
-    os.mkdir = _patch_factory(os.mkdir, _cloudpath_mkdir)
-    os.makedirs = _patch_factory(os.makedirs, _cloudpath_os_makedirs)
-    os.remove = _patch_factory(os.remove, _cloudpath_os_remove)
-    os.removedirs = _patch_factory(os.removedirs, _cloudpath_os_removedirs)
-    os.rename = _patch_factory(os.rename, _cloudpath_os_rename)
-    os.renames = _patch_factory(os.renames, _cloudpath_os_renames)
-    os.replace = _patch_factory(os.replace, _cloudpath_os_replace)
-    os.rmdir = _patch_factory(os.rmdir, _cloudpath_os_rmdir)
-    os.scandir = _patch_factory(os.scandir, _cloudpath_os_scandir)
-    os.stat = _patch_factory(os.stat, _cloudpath_os_stat)
-    os.unlink = _patch_factory(os.unlink, _cloudpath_os_unlink)
-    os.walk = _patch_factory(os.walk, _cloudpath_os_walk)
+    os_level = [
+        ("fspath", os.fspath, _cloudpath_fspath),
+        ("listdir", os.listdir, _cloudpath_os_listdir),
+        ("lstat", os.lstat, _cloudpath_lstat),
+        ("mkdir", os.mkdir, _cloudpath_mkdir),
+        ("makedirs", os.makedirs, _cloudpath_os_makedirs),
+        ("remove", os.remove, _cloudpath_os_remove),
+        ("removedirs", os.removedirs, _cloudpath_os_removedirs),
+        ("rename", os.rename, _cloudpath_os_rename),
+        ("renames", os.renames, _cloudpath_os_renames),
+        ("replace", os.replace, _cloudpath_os_replace),
+        ("rmdir", os.rmdir, _cloudpath_os_rmdir),
+        ("scandir", os.scandir, _cloudpath_os_scandir),
+        ("stat", os.stat, _cloudpath_os_stat),
+        ("unlink", os.unlink, _cloudpath_os_unlink),
+        ("walk", os.walk, _cloudpath_os_walk),
+    ]
 
-    os.path.basename = _patch_factory(os.path.basename, _cloudpath_os_path_basename)
-    os.path.commonpath = _patch_factory(
-        os.path.commonpath, _cloudpath_os_path_commonpath, cpl_check=_check_first_arg_first_index
+    os_originals = {}
+
+    for name, original, cloud in os_level:
+        os_originals[name] = original
+        patched = _patch_factory(original, cloud)
+        setattr(os, name, patched)
+
+    os_path_level = [
+        ("basename", os.path.basename, _cloudpath_os_path_basename, _check_first_arg),
+        (
+            "commonpath",
+            os.path.commonpath,
+            _cloudpath_os_path_commonpath,
+            _check_first_arg_first_index,
+        ),
+        (
+            "commonprefix",
+            os.path.commonprefix,
+            _cloudpath_os_path_commonprefix,
+            _check_first_arg_first_index,
+        ),
+        ("dirname", os.path.dirname, _cloudpath_os_path_dirname, _check_first_arg),
+        ("exists", os.path.exists, CloudPath.exists, _check_first_arg),
+        ("getatime", os.path.getatime, _cloudpath_os_path_getatime, _check_first_arg),
+        ("getmtime", os.path.getmtime, _cloudpath_os_path_getmtime, _check_first_arg),
+        ("getctime", os.path.getctime, _cloudpath_os_path_getctime, _check_first_arg),
+        ("getsize", os.path.getsize, _cloudpath_os_path_getsize, _check_first_arg),
+        ("isfile", os.path.isfile, CloudPath.is_file, _check_first_arg),
+        ("isdir", os.path.isdir, CloudPath.is_dir, _check_first_arg),
+        ("join", os.path.join, _cloudpath_os_path_join, _check_first_arg),
+        ("split", os.path.split, _cloudpath_os_path_split, _check_first_arg),
+        ("splitext", os.path.splitext, _cloudpath_os_path_splitext, _check_first_arg),
+    ]
+
+    os_path_originals = {}
+
+    for name, original, cloud, check in os_path_level:
+        os_path_originals[name] = original
+        patched = _patch_factory(original, cloud, cpl_check=check)
+        setattr(os.path, name, patched)
+
+    try:
+        yield
+    finally:
+        for name, original in os_originals.items():
+            setattr(os, name, original)
+
+        for name, original in os_path_originals.items():
+            setattr(os.path, name, original)
+
+
+def _get_root_dir_pattern_from_pathname(pathname):
+    # get first wildcard
+    for i, part in enumerate(pathname.parts):
+        if "*" in part:
+            root_parts = pathname.parts[:i]
+            pattern_parts = pathname.parts[i:]
+            break
+
+    root_dir = pathname._new_cloudpath(*root_parts)
+    pattern = "/".join(pattern_parts)
+
+    return root_dir, pattern
+
+
+def _cloudpath_glob_iglob(
+    pathname, *, root_dir=None, dir_fd=None, recursive=False, include_hidden=False
+):
+    # if both are cloudpath, root_dir and pathname must share a parent, otherwise we don't know
+    # where to start the pattern
+    if isinstance(pathname, CloudPath) and isinstance(root_dir, CloudPath):
+        if not pathname.is_relative_to(root_dir):
+            raise InvalidGlobArgumentsError(
+                f"If both are CloudPaths, root_dir ({root_dir}) must be a parent of pathname ({pathname})."
+            )
+
+        else:
+            pattern = pathname.relative_to(root_dir)
+
+    elif isinstance(pathname, CloudPath):
+        if root_dir is not None:
+            InvalidGlobArgumentsError(
+                "If pathname is a CloudPath, root_dir must also be a CloudPath or None."
+            )
+
+        root_dir, pattern = _get_root_dir_pattern_from_pathname(pathname)
+
+    elif isinstance(root_dir, CloudPath):
+        pattern = pathname
+
+    else:
+        raise InvalidGlobArgumentsError(
+            "At least one of pathname or root_dir must be a CloudPath."
+        )
+
+    return root_dir.glob(pattern)
+
+
+def _cloudpath_glob_glob(
+    pathname, *, root_dir=None, dir_fd=None, recursive=False, include_hidden=False
+):
+    return list(
+        _cloudpath_glob_iglob(
+            pathname,
+            root_dir=root_dir,
+            dir_fd=dir_fd,
+            recursive=recursive,
+            include_hidden=include_hidden,
+        )
     )
-    os.path.commonprefix = _patch_factory(
-        os.path.commonprefix,
-        _cloudpath_os_path_commonprefix,
-        cpl_check=_check_first_arg_first_index,
+
+
+@contextmanager
+def patch_glob():
+    original_glob = glob.glob
+    glob.glob = _patch_factory(
+        glob.glob, _cloudpath_glob_glob, cpl_check=_check_first_arg_or_root_dir
     )
-    os.path.dirname = _patch_factory(os.path.dirname, _cloudpath_os_path_dirname)
-    os.path.exists = _patch_factory(os.path.exists, CloudPath.exists)
-    os.path.getatime = _patch_factory(os.path.getatime, _cloudpath_os_path_getatime)
-    os.path.getmtime = _patch_factory(os.path.getmtime, _cloudpath_os_path_getmtime)
-    os.path.getctime = _patch_factory(os.path.getctime, _cloudpath_os_path_getctime)
-    os.path.getsize = _patch_factory(os.path.getsize, _cloudpath_os_path_getsize)
-    os.path.isfile = _patch_factory(os.path.isfile, CloudPath.is_file)
-    os.path.isdir = _patch_factory(os.path.isdir, CloudPath.is_dir)
-    os.path.join = _patch_factory(os.path.join, _cloudpath_os_path_join)
-    os.path.split = _patch_factory(os.path.split, _cloudpath_os_path_split)
-    os.path.splitext = _patch_factory(os.path.splitext, _cloudpath_os_path_splitext)
+
+    original_iglob = glob.iglob
+    glob.iglob = _patch_factory(
+        glob.iglob, _cloudpath_glob_iglob, cpl_check=_check_first_arg_or_root_dir
+    )
+
+    try:
+        yield
+    finally:
+        glob.glob = original_glob
+        glob.iglob = original_iglob
