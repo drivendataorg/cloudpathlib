@@ -81,6 +81,7 @@ from . import anypath
 from .exceptions import (
     ClientMismatchError,
     CloudPathFileExistsError,
+    CloudPathFileNotFoundError,
     CloudPathIsADirectoryError,
     CloudPathNotADirectoryError,
     CloudPathNotExistsError,
@@ -681,9 +682,16 @@ class CloudPath(metaclass=CloudPathMeta):
         force_overwrite_to_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
     ) -> "IO[Any]":
         # if trying to call open on a directory that exists
-        if self.exists() and not self.is_file():
+        exists_on_cloud = self.exists()
+
+        if exists_on_cloud and not self.is_file():
             raise CloudPathIsADirectoryError(
                 f"Cannot open directory, only files. Tried to open ({self})"
+            )
+
+        if not exists_on_cloud and any(m in mode for m in ("r", "a")):
+            raise CloudPathFileNotFoundError(
+                f"File opened for read or append, but it does not exist on cloud: {self}"
             )
 
         if mode == "x" and self.exists():
@@ -1255,7 +1263,7 @@ class CloudPath(metaclass=CloudPathMeta):
         """Cached local version of the file."""
         return self.client._local_cache_dir / self._no_prefix
 
-    def _new_cloudpath(self, path: Union[str, os.PathLike]) -> Self:
+    def _new_cloudpath(self, path: Union[str, os.PathLike], *parts: str) -> Self:
         """Use the scheme, client, cache dir of this cloudpath to instantiate
         a new cloudpath of the same type with the path passed.
 
@@ -1271,7 +1279,7 @@ class CloudPath(metaclass=CloudPathMeta):
         if not path.startswith(self.anchor):
             path = f"{self.anchor}{path}"
 
-        return self.client.CloudPath(path)
+        return self.client.CloudPath(path, *parts)
 
     def _refresh_cache(self, force_overwrite_from_cloud: Optional[bool] = None) -> None:
         try:

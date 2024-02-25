@@ -24,6 +24,10 @@ class CloudPathNotExistsError(CloudPathException):
     pass
 
 
+class CloudPathFileNotFoundError(CloudPathException, FileNotFoundError):
+    pass
+
+
 class CloudPathIsADirectoryError(CloudPathException, IsADirectoryError):
     pass
 
@@ -76,4 +80,8 @@ class OverwriteNewerCloudError(CloudPathException):
 
 
 class OverwriteNewerLocalError(CloudPathException):
+    pass
+
+
+class InvalidGlobArgumentsError(CloudPathException):
     pass
