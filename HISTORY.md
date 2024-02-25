@@ -2,7 +2,7 @@
 
 ## UNRELEASED
 
- - Drop support for Python 3.7; pin minimal `boto3` version to Python 3.8+ versions. (PR [#407](https://github.com/drivendataorg/cloudpathlib/pull/407))
+ - Drop support for Python 3.7. (PR [#407](https://github.com/drivendataorg/cloudpathlib/pull/407))
 
 
 ## 0.18.0 (2024-02-25)
