@@ -2,7 +2,7 @@
 
 ## v0.18.1 (2024-02-26)
 
-- Fixed import error due to incompatible google-cloud-strage by adding a version floor. ([Issue #408](https://github.com/drivendataorg/cloudpathlib/issues/408), (PR #410)[https://github.com/drivendataorg/cloudpathlib/pull/410]) 
+- Fixed import error due to incompatible `google-cloud-storage` by not using `transfer_manager` if it is not available. ([Issue #408](https://github.com/drivendataorg/cloudpathlib/issues/408), (PR #410)[https://github.com/drivendataorg/cloudpathlib/pull/410]) 
 
 Includes all changes from v0.18.0.
 
