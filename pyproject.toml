@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "cloudpathlib"
-version = "0.18.0"
+version = "0.18.1"
 description = "pathlib-style classes for cloud storage services."
 readme = "README.md"
 authors = [{ name = "DrivenData", email = "info@drivendata.org" }]
@@ -36,7 +36,7 @@ dependencies = [
 
 [project.optional-dependencies]
 azure = ["azure-storage-blob>=12"]
-gs = ["google-cloud-storage"]
+gs = ["google-cloud-storage>=2.7.0"]
 s3 = ["boto3"]
 all = ["cloudpathlib[azure]", "cloudpathlib[gs]", "cloudpathlib[s3]"]
 

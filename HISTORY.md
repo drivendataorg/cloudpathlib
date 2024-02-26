@@ -1,12 +1,17 @@
 # cloudpathlib Changelog
 
-## 0.18.0 (2024-02-25)
+## v0.18.1 (2024-02-26)
+
+- Fixed import error due to incompatible google-cloud-strage by adding a version floor. ([Issue #408](https://github.com/drivendataorg/cloudpathlib/issues/408)) 
+
+**Note: This is the last planned Python 3.7 compatible release version.**
+
+## 0.18.0 (2024-02-25) (Yanked)
+
 - Implement sliced downloads in GSClient. (Issue [#387](https://github.com/drivendataorg/cloudpathlib/issues/387), PR [#389](https://github.com/drivendataorg/cloudpathlib/pull/389))
 - Implement `as_url` with presigned parameter for all backends. (Issue [#235](https://github.com/drivendataorg/cloudpathlib/issues/235), PR [#236](https://github.com/drivendataorg/cloudpathlib/pull/236))
 - Stream to and from Azure Blob Storage. (PR [#403](https://github.com/drivendataorg/cloudpathlib/pull/403))
 - Implement `file:` URI scheme support for `AnyPath`. (Issue [#401](https://github.com/drivendataorg/cloudpathlib/issues/401), PR [#404](https://github.com/drivendataorg/cloudpathlib/pull/404))
-
-**Note: This is the last planned Python 3.7 compatible release version.**
 
 ## 0.17.0 (2023-12-21)
 
