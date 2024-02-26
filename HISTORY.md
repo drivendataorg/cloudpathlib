@@ -2,7 +2,7 @@
 
 ## v0.18.1 (2024-02-26)
 
-- Fixed import error due to incompatible google-cloud-strage by adding a version floor. ([Issue #408](https://github.com/drivendataorg/cloudpathlib/issues/408)) 
+- Fixed import error due to incompatible google-cloud-strage by adding a version floor. ([Issue #408](https://github.com/drivendataorg/cloudpathlib/issues/408), (PR #409)[https://github.com/drivendataorg/cloudpathlib/pull/409]) 
 
 **Note: This is the last planned Python 3.7 compatible release version.**
 
