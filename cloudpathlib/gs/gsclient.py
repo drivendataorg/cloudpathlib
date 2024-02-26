@@ -3,6 +3,7 @@ import mimetypes
 import os
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union
+import warnings
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
@@ -84,7 +85,7 @@ class GSClient(Client):
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
             download_chunks_concurrently_kwargs (Optional[Dict[str, Any]]): Keyword arguments to pass to
                 [`download_chunks_concurrently`](https://cloud.google.com/python/docs/reference/storage/latest/google.cloud.storage.transfer_manager#google_cloud_storage_transfer_manager_download_chunks_concurrently)
-                for sliced parallel downloads; Only available in `google-cloud-storage` version 2.7.0 or later, otherwise ignored.
+                for sliced parallel downloads; Only available in `google-cloud-storage` version 2.7.0 or later, otherwise ignored and a warning is emitted.
         """
         if application_credentials is None:
             application_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -134,6 +135,11 @@ class GSClient(Client):
                 blob, local_path, **self.download_chunks_concurrently_kwargs
             )
         else:
+            if transfer_manager is None and self.download_chunks_concurrently_kwargs is not None:
+                warnings.warn(
+                    "Ignoring `download_chunks_concurrently_kwargs` for version of google-cloud-storage that does not support them (<2.7.0)."
+                )
+
             blob.download_to_filename(local_path)
 
         return local_path
