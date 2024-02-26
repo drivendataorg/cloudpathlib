@@ -15,7 +15,7 @@ Includes all changes from v0.18.0.
 - Stream to and from Azure Blob Storage. (PR [#403](https://github.com/drivendataorg/cloudpathlib/pull/403))
 - Implement `file:` URI scheme support for `AnyPath`. (Issue [#401](https://github.com/drivendataorg/cloudpathlib/issues/401), PR [#404](https://github.com/drivendataorg/cloudpathlib/pull/404))
 
-**Note: This version was [yanked](https://pypi.org/help/#yanked) due to a missing version floor on the google-cloud-storage dependency that can cause an import error.**
+**Note: This version was [yanked](https://pypi.org/help/#yanked) due to incompatibility with google-cloud-storage <2.7.0 that causes an import error.**
 
 ## 0.17.0 (2023-12-21)
 
