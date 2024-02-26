@@ -1,6 +1,11 @@
 # cloudpathlib Changelog
 
+## UNRELEASED
+
+ - Drop support for Python 3.7; pin minimal `boto3` version to Python 3.8+ versions. (PR [#407](https://github.com/drivendataorg/cloudpathlib/pull/407))
+
 ## 0.18.0 (2024-02-25)
+
 - Implement sliced downloads in GSClient. (Issue [#387](https://github.com/drivendataorg/cloudpathlib/issues/387), PR [#389](https://github.com/drivendataorg/cloudpathlib/pull/389))
 - Implement `as_url` with presigned parameter for all backends. (Issue [#235](https://github.com/drivendataorg/cloudpathlib/issues/235), PR [#236](https://github.com/drivendataorg/cloudpathlib/pull/236))
 - Stream to and from Azure Blob Storage. (PR [#403](https://github.com/drivendataorg/cloudpathlib/pull/403))
