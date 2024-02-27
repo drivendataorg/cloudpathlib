@@ -462,9 +462,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#0180-2024-02-25" class="md-nav__link">
+  <a href="#v0181-2024-02-26" class="md-nav__link">
     <span class="md-ellipsis">
-      0.18.0 (2024-02-25)
+      v0.18.1 (2024-02-26)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0180-2024-02-25-yanked" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.18.0 (2024-02-25) (Yanked)
     </span>
   </a>
   
@@ -1264,9 +1273,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#0180-2024-02-25" class="md-nav__link">
+  <a href="#v0181-2024-02-26" class="md-nav__link">
     <span class="md-ellipsis">
-      0.18.0 (2024-02-25)
+      v0.18.1 (2024-02-26)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0180-2024-02-25-yanked" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.18.0 (2024-02-25) (Yanked)
     </span>
   </a>
   
@@ -1556,14 +1574,20 @@
 <ul>
 <li>Drop support for Python 3.7; pin minimal <code>boto3</code> version to Python 3.8+ versions. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/407">#407</a>)</li>
 </ul>
-<h2 id="0180-2024-02-25">0.18.0 (2024-02-25)<a class="headerlink" href="#0180-2024-02-25" title="Permanent link">&para;</a></h2>
+<h2 id="v0181-2024-02-26">v0.18.1 (2024-02-26)<a class="headerlink" href="#v0181-2024-02-26" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Fixed import error due to incompatible <code>google-cloud-storage</code> by not using <code>transfer_manager</code> if it is not available. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/408">Issue #408</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/410">PR #410</a>) </li>
+</ul>
+<p>Includes all changes from v0.18.0.</p>
+<p><strong>Note: This is the last planned Python 3.7 compatible release version.</strong></p>
+<h2 id="0180-2024-02-25-yanked">0.18.0 (2024-02-25) (Yanked)<a class="headerlink" href="#0180-2024-02-25-yanked" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Implement sliced downloads in GSClient. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/387">#387</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/389">#389</a>)</li>
 <li>Implement <code>as_url</code> with presigned parameter for all backends. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/235">#235</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/236">#236</a>)</li>
 <li>Stream to and from Azure Blob Storage. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/403">#403</a>)</li>
 <li>Implement <code>file:</code> URI scheme support for <code>AnyPath</code>. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/401">#401</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/404">#404</a>)</li>
 </ul>
-<p><strong>Note: This is the last planned Python 3.7 compatible release version.</strong></p>
+<p><strong>Note: This version was <a href="https://pypi.org/help/#yanked">yanked</a> due to incompatibility with google-cloud-storage &lt;2.7.0 that causes an import error.</strong></p>
 <h2 id="0170-2023-12-21">0.17.0 (2023-12-21)<a class="headerlink" href="#0170-2023-12-21" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Fix <code>S3Client</code> cleanup via <code>Client.__del__</code> when <code>S3Client</code> encounters an exception during initialization. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/372">#372</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/373">#373</a>, thanks to <a href="https://github.com/bryanwweber">@bryanwweber</a>)</li>
