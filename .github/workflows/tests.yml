@@ -70,9 +70,9 @@ jobs:
         shell: bash
         run: |
           make dist
-          uv pip install cloudpathlib@dist/cloudpathlib-*.whl --no-deps --force-reinstall
+          uv pip install cloudpathlib@$(find dist -name 'cloudpathlib*.whl') --no-deps --force-reinstall
           python -c "import cloudpathlib"
-          uv pip install cloudpathlib@dist/cloudpathlib-*.tar.gz --no-deps --force-reinstall
+          uv pip install cloudpathlib@$(find dist -name 'cloudpathlib*.tar.gz') --no-deps --force-reinstall
           python -c "import cloudpathlib"
 
       - name: Upload coverage to codecov
