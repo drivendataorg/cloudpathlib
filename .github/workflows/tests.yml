@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python and uv
-        uses: drivendataorg/setup-python-uv-action@main
+        uses: drivendataorg/setup-python-uv-action@v1
         with:
           python-version: "3.11"
 
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python and uv
-        uses: drivendataorg/setup-python-uv-action@main
+        uses: drivendataorg/setup-python-uv-action@v1
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -81,7 +81,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python and uv
-        uses: drivendataorg/setup-python-uv-action@main
+        uses: drivendataorg/setup-python-uv-action@v1
         with:
           python-version: "3.11"
 
@@ -137,7 +137,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Python and uv
-        uses: drivendataorg/setup-python-uv-action@main
+        uses: drivendataorg/setup-python-uv-action@v1
         with:
           python-version: "3.11"
 
