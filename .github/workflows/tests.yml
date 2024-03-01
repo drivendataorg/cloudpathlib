@@ -70,9 +70,9 @@ jobs:
         shell: bash
         run: |
           make dist
-          uv pip install dist/cloudpathlib-*.whl --no-deps --force-reinstall
+          uv pip install cloudpathlib@dist/cloudpathlib-*.whl --no-deps --force-reinstall
           python -c "import cloudpathlib"
-          uv pip install dist/cloudpathlib-*.tar.gz --no-deps --force-reinstall
+          uv pip install cloudpathlib@dist/cloudpathlib-*.tar.gz --no-deps --force-reinstall
           python -c "import cloudpathlib"
 
       - name: Upload coverage to codecov
@@ -172,7 +172,7 @@ jobs:
       - name: Install cloudpathlib[${{ matrix.extra }}]
         run: |
           source ${{ matrix.extra }}-env/bin/activate
-          uv pip install "$(find dist -name 'cloudpathlib*.whl')[${{ matrix.extra }}]"
+          uv pip install cloudpathlib@"$(find dist -name 'cloudpathlib*.whl')[${{ matrix.extra }}]"
 
       - name: Test ${{ matrix.extra }} usage
         run: |
