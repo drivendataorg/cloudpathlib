@@ -21,10 +21,6 @@ jobs:
         uses: drivendataorg/setup-python-uv-action@main
         with:
           python-version: "3.11"
-          cache: venv
-          cache-dependency-path: |
-            pyproject.toml
-            requirements-dev.txt
 
       - name: Install dependencies
         run: |
@@ -50,10 +46,6 @@ jobs:
         uses: drivendataorg/setup-python-uv-action@main
         with:
           python-version: ${{ matrix.python-version }}
-          cache: venv
-          cache-dependency-path: |
-            pyproject.toml
-            requirements-dev.txt
 
       - name: Install dependencies
         run: |
@@ -92,10 +84,6 @@ jobs:
         uses: drivendataorg/setup-python-uv-action@main
         with:
           python-version: "3.11"
-          cache: venv
-          cache-dependency-path: |
-            pyproject.toml
-            requirements-dev.txt
 
       - name: Install dependencies
         run: |
@@ -152,10 +140,6 @@ jobs:
         uses: drivendataorg/setup-python-uv-action@main
         with:
           python-version: "3.11"
-          cache: venv
-          cache-dependency-path: |
-            pyproject.toml
-            requirements-dev.txt
 
       - name: Build cloudpathlib
         run: |
