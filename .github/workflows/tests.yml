@@ -15,21 +15,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Set up Python and uv
+        uses: drivendataorg/setup-python-uv-action@main
         with:
-          python-version: 3.8
-          cache: "pip" # caching pip dependencies
+          python-version: "3.11"
+          cache: venv
           cache-dependency-path: |
             pyproject.toml
             requirements-dev.txt
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          uv pip install -r requirements-dev.txt
 
       - name: Lint package
         run: |
@@ -45,21 +44,20 @@ jobs:
         python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - name: Set up Python and uv
+        uses: drivendataorg/setup-python-uv-action@main
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip" # caching pip dependencies
+          cache: venv
           cache-dependency-path: |
             pyproject.toml
             requirements-dev.txt
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          uv pip install -r requirements-dev.txt
 
       - name: Run mocked tests
         run: |
@@ -69,9 +67,9 @@ jobs:
         shell: bash
         run: |
           make dist
-          python -m pip install dist/cloudpathlib-*.whl --no-deps --force-reinstall
+          uv pip install dist/cloudpathlib-*.whl --no-deps --force-reinstall
           python -c "import cloudpathlib"
-          python -m pip install dist/cloudpathlib-*.tar.gz --no-deps --force-reinstall
+          uv pip install dist/cloudpathlib-*.tar.gz --no-deps --force-reinstall
           python -c "import cloudpathlib"
 
       - name: Upload coverage to codecov
@@ -88,21 +86,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Set up Python and uv
+        uses: drivendataorg/setup-python-uv-action@main
         with:
-          python-version: 3.8
-          cache: "pip" # caching pip dependencies
+          python-version: "3.11"
+          cache: venv
           cache-dependency-path: |
             pyproject.toml
             requirements-dev.txt
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          uv pip install -r requirements-dev.txt
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0.2.0
@@ -127,8 +124,9 @@ jobs:
           CUSTOM_S3_ENDPOINT: ${{secrets.CUSTOM_S3_ENDPOINT}}
 
       - name: Upload coverage to codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
           fail_ci_if_error: true
 
@@ -148,30 +146,30 @@ jobs:
             extra: "gs"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Set up Python and uv
+        uses: drivendataorg/setup-python-uv-action@main
         with:
-          python-version: 3.8
-          cache: "pip"
+          python-version: "3.11"
+          cache: venv
           cache-dependency-path: |
             pyproject.toml
             requirements-dev.txt
 
       - name: Build cloudpathlib
         run: |
-          pip install --upgrade pip build
+          uv pip install build
           make dist  # build cloudpathlib wheel
 
       - name: Create empty venv
         run: |
-          python -m venv ${{ matrix.extra }}-env
+          uv venv ${{ matrix.extra }}-env
 
       - name: Install cloudpathlib[${{ matrix.extra }}]
         run: |
           source ${{ matrix.extra }}-env/bin/activate
-          pip install "$(find dist -name 'cloudpathlib*.whl')[${{ matrix.extra }}]"
+          uv pip install "$(find dist -name 'cloudpathlib*.whl')[${{ matrix.extra }}]"
 
       - name: Test ${{ matrix.extra }} usage
         run: |
