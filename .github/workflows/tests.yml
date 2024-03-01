@@ -169,7 +169,7 @@ jobs:
       - name: Install cloudpathlib[${{ matrix.extra }}]
         run: |
           source ${{ matrix.extra }}-env/bin/activate
-          uv pip install cloudpathlib@"$(find dist -name 'cloudpathlib*.whl')[${{ matrix.extra }}]"
+          uv pip install cloudpathlib[${{ matrix.extra }}]@"$(find dist -name 'cloudpathlib*.whl')"
 
       - name: Test ${{ matrix.extra }} usage
         run: |
