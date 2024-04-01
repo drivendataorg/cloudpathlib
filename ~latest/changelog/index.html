@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.12">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.16">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.7e359304.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.bcfcd587.min.css">
       
       
 
@@ -1572,6 +1572,7 @@
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
 <h2 id="unreleased">UNRELEASED<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <ul>
+<li>Fix <code>CloudPath</code> cleanup via <code>CloudPath.__del__</code> when <code>Client</code> encounters an exception during initialization and does not create a <code>file_cache_mode</code> attribute. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/372">#372</a>, thanks to <a href="https://github.com/bryanwweber">@bryanwweber</a>) </li>
 <li>Drop support for Python 3.7; pin minimal <code>boto3</code> version to Python 3.8+ versions. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/407">#407</a>)</li>
 </ul>
 <h2 id="v0181-2024-02-26">v0.18.1 (2024-02-26)<a class="headerlink" href="#v0181-2024-02-26" title="Permanent link">&para;</a></h2>
@@ -1815,7 +1816,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.expand"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.c8d2eff1.min.js"></script>
+      <script src="../assets/javascripts/bundle.bd41221c.min.js"></script>
       
     
   </body>
