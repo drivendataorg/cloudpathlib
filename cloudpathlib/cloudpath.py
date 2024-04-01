@@ -245,7 +245,7 @@ class CloudPath(metaclass=CloudPathMeta):
             self._handle.close()
 
         # ensure file removed from cache when cloudpath object deleted
-        client = getattr(self, "client", object)
+        client = getattr(self, "client", None)
         if getattr(client, "file_cache_mode", None) == FileCacheMode.cloudpath_object:
             self.clear_cache()
 
