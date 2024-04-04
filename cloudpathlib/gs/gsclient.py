@@ -169,15 +169,7 @@ class GSClient(Client):
                 return None
 
     def _exists(self, cloud_path: GSPath) -> bool:
-        # short-circuit the root-level bucket
-        if not cloud_path.blob:
-            try:
-                next(self.client.bucket(cloud_path.bucket).list_blobs())
-                return True
-            except NotFound:
-                return False
-
-        return self._is_file_or_dir(cloud_path) in ["file", "dir"]
+        return self.client.bucket(cloud_path.bucket).exists()
 
     def _list_dir(self, cloud_path: GSPath, recursive=False) -> Iterable[Tuple[GSPath, bool]]:
         # shortcut if listing all available buckets
