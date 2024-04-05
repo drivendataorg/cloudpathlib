@@ -132,6 +132,12 @@ class MockBucket:
         dst.parent.mkdir(exist_ok=True, parents=True)
         dst.write_bytes(data)
 
+    def exists(self):
+        if self.container_name == DEFAULT_GS_BUCKET_NAME :  # name used by passing tests
+            return True
+        else:
+            return False
+
     def get_blob(self, blob):
         if (self.name / blob).is_file():
             return MockBlob(self.name, blob, client=self.client)
