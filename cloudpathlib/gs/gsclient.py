@@ -14,7 +14,6 @@ try:
     if TYPE_CHECKING:
         from google.auth.credentials import Credentials
 
-    from google.api_core.exceptions import NotFound
     from google.auth.exceptions import DefaultCredentialsError
     from google.cloud.storage import Client as StorageClient
 
@@ -171,11 +170,7 @@ class GSClient(Client):
     def _exists(self, cloud_path: GSPath) -> bool:
         # short-circuit the root-level bucket
         if not cloud_path.blob:
-            try:
-                next(self.client.bucket(cloud_path.bucket).list_blobs())
-                return True
-            except NotFound:
-                return False
+            return self.client.bucket(cloud_path.bucket).exists()
 
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
