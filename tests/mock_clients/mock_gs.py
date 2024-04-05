@@ -133,7 +133,7 @@ class MockBucket:
         dst.write_bytes(data)
 
     def exists(self):
-        if self.container_name == DEFAULT_GS_BUCKET_NAME :  # name used by passing tests
+        if self.bucket_name == DEFAULT_GS_BUCKET_NAME:  # name used by passing tests
             return True
         else:
             return False
