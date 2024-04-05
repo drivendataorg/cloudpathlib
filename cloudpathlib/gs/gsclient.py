@@ -14,7 +14,6 @@ try:
     if TYPE_CHECKING:
         from google.auth.credentials import Credentials
 
-    from google.api_core.exceptions import NotFound
     from google.auth.exceptions import DefaultCredentialsError
     from google.cloud.storage import Client as StorageClient
 
