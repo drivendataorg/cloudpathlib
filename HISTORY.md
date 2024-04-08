@@ -2,6 +2,7 @@
 
 ## UNRELEASED
 
+- Fixes typo in `FileCacheMode` where values were being filled by envvar `CLOUPATHLIB_FILE_CACHE_MODE` instead of `CLOUDPATHLIB_FILE_CACHE_MODE`. (PR [#424](https://github.com/drivendataorg/cloudpathlib/pull/424)
 - Fix `CloudPath` cleanup via `CloudPath.__del__` when `Client` encounters an exception during initialization and does not create a `file_cache_mode` attribute. (Issue [#372](https://github.com/drivendataorg/cloudpathlib/issues/372), thanks to [@bryanwweber](https://github.com/bryanwweber)) 
 - Drop support for Python 3.7; pin minimal `boto3` version to Python 3.8+ versions. (PR [#407](https://github.com/drivendataorg/cloudpathlib/pull/407))
 - fix: use native `exists()` method in `GSClient`. (PR [#420](https://github.com/drivendataorg/cloudpathlib/pull/420))

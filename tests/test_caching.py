@@ -270,11 +270,31 @@ def test_string_instantiation(rig: CloudProviderTestRig, tmpdir):
         assert client.file_cache_mode == v
 
 
-def test_environment_variable_instantiation(rig: CloudProviderTestRig, tmpdir):
+def test_environment_variable_contentious_instantiation(rig: CloudProviderTestRig, tmpdir):
     # environment instantiation
     original_env_setting = os.environ.get("CLOUPATHLIB_FILE_CACHE_MODE", "")
+    original_env_setting = os.environ.get("CLOUDPATHLIB_FILE_CACHE_MODE", "")
+
+    v_old = FileCacheMode.persistent
+    try:
+        for v in FileCacheMode:
+            os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = v_old.value
+            os.environ["CLOUDPATHLIB_FILE_CACHE_MODE"] = v.value
+            local = tmpdir if v == FileCacheMode.persistent else None
+            client = rig.client_class(local_cache_dir=local, **rig.required_client_kwargs)
+            assert client.file_cache_mode == v
+
+    finally:
+        os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = original_env_setting
+
+
+def test_environment_variable_old_instantiation(rig: CloudProviderTestRig, tmpdir):
+    # environment instantiation
+    original_old_env_setting = os.environ.get("CLOUPATHLIB_FILE_CACHE_MODE", "")
+    original_env_setting = os.environ.get("CLOUDPATHLIB_FILE_CACHE_MODE", "")
 
     try:
+        os.environ["CLOUDPATHLIB_FILE_CACHE_MODE"] = ""
         for v in FileCacheMode:
             os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = v.value
             local = tmpdir if v == FileCacheMode.persistent else None
@@ -282,7 +302,23 @@ def test_environment_variable_instantiation(rig: CloudProviderTestRig, tmpdir):
             assert client.file_cache_mode == v
 
     finally:
-        os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = original_env_setting
+        os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = original_old_env_setting
+        os.environ["CLOUDPATHLIB_FILE_CACHE_MODE"] = original_env_setting
+
+
+def test_environment_variable_instantiation(rig: CloudProviderTestRig, tmpdir):
+    # environment instantiation
+    original_env_setting = os.environ.get("CLOUDPATHLIB_FILE_CACHE_MODE", "")
+
+    try:
+        for v in FileCacheMode:
+            os.environ["CLOUDPATHLIB_FILE_CACHE_MODE"] = v.value
+            local = tmpdir if v == FileCacheMode.persistent else None
+            client = rig.client_class(local_cache_dir=local, **rig.required_client_kwargs)
+            assert client.file_cache_mode == v
+
+    finally:
+        os.environ["CLOUDPATHLIB_FILE_CACHE_MODE"] = original_env_setting
 
 
 def test_environment_variable_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
