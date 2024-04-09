@@ -1572,6 +1572,7 @@
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
 <h2 id="unreleased">UNRELEASED<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <ul>
+<li>Fixes typo in <code>FileCacheMode</code> where values were being filled by envvar <code>CLOUPATHLIB_FILE_CACHE_MODE</code> instead of <code>CLOUDPATHLIB_FILE_CACHE_MODE</code>. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/424">#424</a></li>
 <li>Fix <code>CloudPath</code> cleanup via <code>CloudPath.__del__</code> when <code>Client</code> encounters an exception during initialization and does not create a <code>file_cache_mode</code> attribute. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/372">#372</a>, thanks to <a href="https://github.com/bryanwweber">@bryanwweber</a>) </li>
 <li>Drop support for Python 3.7; pin minimal <code>boto3</code> version to Python 3.8+ versions. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/407">#407</a>)</li>
 <li>fix: use native <code>exists()</code> method in <code>GSClient</code>. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/420">#420</a>)</li>

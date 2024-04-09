@@ -1130,7 +1130,7 @@ called by Python garbage collection.</p></td>
 use <code>CloudPath.open</code> whenever opening the file for this method to function.</p></td>
       </tr>
   </tbody>
-</table>      <p>Modes can be set by passing them to the Client or by setting the <code>CLOUPATHLIB_FILE_CACHE_MODE</code>
+</table>      <p>Modes can be set by passing them to the Client or by setting the <code>CLOUDPATHLIB_FILE_CACHE_MODE</code>
 environment variable.</p>
 <p>For more detail, see the <a href="../../caching">caching documentation page</a>.</p>
 
@@ -1149,7 +1149,7 @@ environment variable.</p>
 <span class="sd">        close_file (str): Cache for a `CloudPath` file is removed as soon as the file is closed. Note: you must</span>
 <span class="sd">            use `CloudPath.open` whenever opening the file for this method to function.</span>
 
-<span class="sd">    Modes can be set by passing them to the Client or by setting the `CLOUPATHLIB_FILE_CACHE_MODE`</span>
+<span class="sd">    Modes can be set by passing them to the Client or by setting the `CLOUDPATHLIB_FILE_CACHE_MODE`</span>
 <span class="sd">    environment variable.</span>
 
 <span class="sd">    For more detail, see the [caching documentation page](../../caching).</span>
@@ -1162,14 +1162,33 @@ environment variable.</p>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_environment</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;FileCacheMode&quot;</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parses the environment variable `CLOUPATHLIB_FILE_CACHE_MODE` into</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parses the environment variable `CLOUDPATHLIB_FILE_CACHE_MODE` into</span>
 <span class="sd">        an instance of this Enum.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            FileCacheMode enum value if the env var is defined, else None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">env_string</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CLOUPATHLIB_FILE_CACHE_MODE&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
+        <span class="n">env_string</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CLOUDPATHLIB_FILE_CACHE_MODE&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">env_string_typo</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CLOUPATHLIB_FILE_CACHE_MODE&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">env_string_typo</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;envvar CLOUPATHLIB_FILE_CACHE_MODE has been renamed to &quot;</span>
+                <span class="s2">&quot;CLOUDPATHLIB_FILE_CACHE_MODE. Reading from the old value &quot;</span>
+                <span class="s2">&quot;will become deprecated in version 0.20.0&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">env_string</span> <span class="ow">and</span> <span class="n">env_string_typo</span> <span class="ow">and</span> <span class="n">env_string</span> <span class="o">!=</span> <span class="n">env_string_typo</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;CLOUDPATHLIB_FILE_CACHE_MODE and CLOUPATHLIB_FILE_CACHE_MODE &quot;</span>
+                <span class="s2">&quot;envvars set to different values. Disregarding old value and &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;using CLOUDPATHLIB_FILE_CACHE_MODE = </span><span class="si">{</span><span class="n">env_string</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="ne">RuntimeWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="n">env_string</span> <span class="o">=</span> <span class="n">env_string</span> <span class="ow">or</span> <span class="n">env_string_typo</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">env_string</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
