@@ -272,7 +272,7 @@ def test_string_instantiation(rig: CloudProviderTestRig, tmpdir):
 
 def test_environment_variable_contentious_instantiation(rig: CloudProviderTestRig, tmpdir):
     # environment instantiation
-    original_env_setting = os.environ.get("CLOUPATHLIB_FILE_CACHE_MODE", "")
+    original_typo_env_setting = os.environ.get("CLOUPATHLIB_FILE_CACHE_MODE", "")
     original_env_setting = os.environ.get("CLOUDPATHLIB_FILE_CACHE_MODE", "")
 
     v_old = FileCacheMode.persistent
@@ -285,12 +285,13 @@ def test_environment_variable_contentious_instantiation(rig: CloudProviderTestRi
             assert client.file_cache_mode == v
 
     finally:
-        os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = original_env_setting
+        os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = original_typo_env_setting
+        os.environ["CLOUDPATHLIB_FILE_CACHE_MODE"] = original_env_setting
 
 
 def test_environment_variable_old_instantiation(rig: CloudProviderTestRig, tmpdir):
     # environment instantiation
-    original_old_env_setting = os.environ.get("CLOUPATHLIB_FILE_CACHE_MODE", "")
+    original_typo_env_setting = os.environ.get("CLOUPATHLIB_FILE_CACHE_MODE", "")
     original_env_setting = os.environ.get("CLOUDPATHLIB_FILE_CACHE_MODE", "")
 
     try:
@@ -302,7 +303,7 @@ def test_environment_variable_old_instantiation(rig: CloudProviderTestRig, tmpdi
             assert client.file_cache_mode == v
 
     finally:
-        os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = original_old_env_setting
+        os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = original_typo_env_setting
         os.environ["CLOUDPATHLIB_FILE_CACHE_MODE"] = original_env_setting
 
 
