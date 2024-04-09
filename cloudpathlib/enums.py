@@ -44,7 +44,7 @@ class FileCacheMode(str, Enum):
             warnings.warn(
                 "envvar CLOUPATHLIB_FILE_CACHE_MODE has been renamed to "
                 "CLOUDPATHLIB_FILE_CACHE_MODE. Reading from the old value "
-                "will become deprecated in the future.",
+                "will become deprecated in version 0.20.0",
                 DeprecationWarning,
             )
 
