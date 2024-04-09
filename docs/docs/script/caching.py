@@ -182,9 +182,9 @@ get_ipython().system('rm -rf data')
 # 
 # ### Setting the cache clearing method
 # 
-# You can set the cache clearing method either through the environment variable `CLOUPATHLIB_FILE_CACHE_MODE` or by passing the mode to the `*Client` when you instantiate it. See below for an example.
+# You can set the cache clearing method either through the environment variable `CLOUDPATHLIB_FILE_CACHE_MODE` or by passing the mode to the `*Client` when you instantiate it. See below for an example.
 # 
-# You can set `CLOUPATHLIB_FILE_CACHE_MODE` to any of the supported values, which are printed below.
+# You can set `CLOUDPATHLIB_FILE_CACHE_MODE` to any of the supported values, which are printed below.
 
 from cloudpathlib.enums import FileCacheMode
 
@@ -331,7 +331,7 @@ shutil.rmtree(client_cache_dir)
 import os
 
 # set the mode here so that it will be used when we instantiate the client
-os.environ["CLOUPATHLIB_FILE_CACHE_MODE"] = "persistent"
+os.environ["CLOUDPATHLIB_FILE_CACHE_MODE"] = "persistent"
 
 tmp_dir_client = S3Client()
 

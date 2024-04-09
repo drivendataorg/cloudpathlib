@@ -1,4 +1,5 @@
 from enum import Enum
+import warnings
 import os
 from typing import Optional
 
@@ -16,7 +17,7 @@ class FileCacheMode(str, Enum):
         close_file (str): Cache for a `CloudPath` file is removed as soon as the file is closed. Note: you must
             use `CloudPath.open` whenever opening the file for this method to function.
 
-    Modes can be set by passing them to the Client or by setting the `CLOUPATHLIB_FILE_CACHE_MODE`
+    Modes can be set by passing them to the Client or by setting the `CLOUDPATHLIB_FILE_CACHE_MODE`
     environment variable.
 
     For more detail, see the [caching documentation page](../../caching).
@@ -29,14 +30,33 @@ class FileCacheMode(str, Enum):
 
     @classmethod
     def from_environment(cls) -> Optional["FileCacheMode"]:
-        """Parses the environment variable `CLOUPATHLIB_FILE_CACHE_MODE` into
+        """Parses the environment variable `CLOUDPATHLIB_FILE_CACHE_MODE` into
         an instance of this Enum.
 
         Returns:
             FileCacheMode enum value if the env var is defined, else None.
         """
-        env_string = os.environ.get("CLOUPATHLIB_FILE_CACHE_MODE", "").lower()
 
+        env_string = os.environ.get("CLOUDPATHLIB_FILE_CACHE_MODE", "").lower()
+        env_string_typo = os.environ.get("CLOUPATHLIB_FILE_CACHE_MODE", "").lower()
+
+        if env_string_typo:
+            warnings.warn(
+                "envvar CLOUPATHLIB_FILE_CACHE_MODE has been renamed to "
+                "CLOUDPATHLIB_FILE_CACHE_MODE. Reading from the old value "
+                "will become deprecated in version 0.20.0",
+                DeprecationWarning,
+            )
+
+        if env_string and env_string_typo and env_string != env_string_typo:
+            warnings.warn(
+                "CLOUDPATHLIB_FILE_CACHE_MODE and CLOUPATHLIB_FILE_CACHE_MODE "
+                "envvars set to different values. Disregarding old value and "
+                f"using CLOUDPATHLIB_FILE_CACHE_MODE = {env_string}",
+                RuntimeWarning,
+            )
+
+        env_string = env_string or env_string_typo
         if not env_string:
             return None
         else:
