@@ -217,6 +217,7 @@ class CloudPath(metaclass=CloudPathMeta):
         self._client: Optional["Client"] = None
 
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
+        self._cloud_meta.validate_completeness()
 
         # versions of the raw string that provide useful methods
         self._str = str(cloud_path)
