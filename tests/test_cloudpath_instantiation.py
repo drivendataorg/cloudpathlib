@@ -59,6 +59,13 @@ def test_instantiation(rig, path):
         assert str(p._path) == expected.split(":/", 1)[-1]
 
 
+def test_default_client_lazy(rig):
+    cp = rig.path_class(rig.cloud_prefix + "testing/file.txt")
+    assert cp._client is None
+    assert cp.client is not None
+    assert cp._client is not None
+
+
 def test_instantiation_errors(rig):
     with pytest.raises(TypeError):
         rig.path_class()
