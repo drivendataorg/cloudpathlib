@@ -214,6 +214,7 @@ class CloudPath(metaclass=CloudPathMeta):
         # handle if local file gets opened. must be set at the top of the method in case any code
         # below raises an exception, this prevents __del__ from raising an AttributeError
         self._handle: Optional[IO] = None
+        self._client: Optional["Client"] = None
 
         self.is_valid_cloudpath(cloud_path, raise_on_error=True)
 
@@ -225,19 +226,26 @@ class CloudPath(metaclass=CloudPathMeta):
         # setup client
         if client is None:
             if isinstance(cloud_path, CloudPath):
-                client = cloud_path.client
-            else:
-                client = self._cloud_meta.client_class.get_default_client()
-        if not isinstance(client, self._cloud_meta.client_class):
+                self._client = cloud_path.client
+        else:
+            self._client = client
+
+        if client is not None and not isinstance(client, self._cloud_meta.client_class):
             raise ClientMismatchError(
                 f"Client of type [{client.__class__}] is not valid for cloud path of type "
                 f"[{self.__class__}]; must be instance of [{self._cloud_meta.client_class}], or "
                 f"None to use default client for this cloud path class."
             )
-        self.client: Client = client
 
         # track if local has been written to, if so it may need to be uploaded
         self._dirty = False
+
+    @property
+    def client(self):
+        if getattr(self, "_client", None) is None:
+            self._client = self._cloud_meta.client_class.get_default_client()
+
+        return self._client
 
     def __del__(self) -> None:
         # make sure that file handle to local path is closed
@@ -245,7 +253,7 @@ class CloudPath(metaclass=CloudPathMeta):
             self._handle.close()
 
         # ensure file removed from cache when cloudpath object deleted
-        client = getattr(self, "client", None)
+        client = getattr(self, "_client", None)
         if getattr(client, "file_cache_mode", None) == FileCacheMode.cloudpath_object:
             self.clear_cache()
 
@@ -253,13 +261,11 @@ class CloudPath(metaclass=CloudPathMeta):
         state = self.__dict__.copy()
 
         # don't pickle client
-        del state["client"]
+        del state["_client"]
 
         return state
 
     def __setstate__(self, state: Dict[str, Any]) -> None:
-        client = self._cloud_meta.client_class.get_default_client()
-        state["client"] = client
         self.__dict__.update(state)
 
     @property
