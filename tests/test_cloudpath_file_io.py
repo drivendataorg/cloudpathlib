@@ -10,6 +10,7 @@ import pytest
 from cloudpathlib import CloudPath
 
 from cloudpathlib.exceptions import (
+    CloudPathNotExistsError,
     CloudPathIsADirectoryError,
     CloudPathNotImplementedError,
     DirectoryNotEmptyError,
@@ -395,6 +396,9 @@ def test_file_read_writes(rig, tmp_path):
         [str(PurePosixPath(p.relative_to(dl_dir))) for p in dl_dir.glob("**/*")]
     )
     assert cloud_rel_paths == dled_rel_paths
+
+    with pytest.raises(CloudPathNotExistsError):
+        (p / "not_exists_file").download_to(dl_file)
 
 
 def test_dispatch_to_local_cache(rig):

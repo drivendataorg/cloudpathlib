@@ -63,6 +63,7 @@ from .exceptions import (
     CloudPathFileExistsError,
     CloudPathIsADirectoryError,
     CloudPathNotADirectoryError,
+    CloudPathNotExistsError,
     CloudPathNotImplementedError,
     DirectoryNotEmptyError,
     IncompleteImplementationError,
@@ -899,6 +900,10 @@ class CloudPath(metaclass=CloudPathMeta):
     # ===========  public cloud methods, not in pathlib ===============
     def download_to(self, destination: Union[str, os.PathLike]) -> Path:
         destination = Path(destination)
+
+        if not self.exists():
+            raise CloudPathNotExistsError(f"Cannot download because path does not exist: {self}")
+
         if self.is_file():
             if destination.is_dir():
                 destination = destination / self.name

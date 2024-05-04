@@ -20,6 +20,10 @@ class CloudPathFileExistsError(CloudPathException, FileExistsError):
     pass
 
 
+class CloudPathNotExistsError(CloudPathException):
+    pass
+
+
 class CloudPathIsADirectoryError(CloudPathException, IsADirectoryError):
     pass
 
