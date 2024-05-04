@@ -2776,6 +2776,10 @@ storage URI (e.g., <code>"s3://"</code>).</p>
     <span class="c1"># ===========  public cloud methods, not in pathlib ===============</span>
     <span class="k">def</span> <span class="nf">download_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
         <span class="n">destination</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">CloudPathNotExistsError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot download because path does not exist: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">destination</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
                 <span class="n">destination</span> <span class="o">=</span> <span class="n">destination</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
@@ -3710,6 +3714,10 @@ Use resolve() to get the canonical path to a file.
           <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">download_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
     <span class="n">destination</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">CloudPathNotExistsError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot download because path does not exist: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">destination</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
             <span class="n">destination</span> <span class="o">=</span> <span class="n">destination</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
