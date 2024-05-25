@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generator, Optional, Self
 
 from ..cloudpath import CloudPath, NoStatError
 
@@ -30,3 +30,11 @@ class LocalPath(CloudPath):
 
     def touch(self, exist_ok: bool = True):
         self.client._touch(self, exist_ok)
+
+    def glob(
+        self, pattern: str, case_sensitive: Optional[bool] = None
+    ) -> Generator[Self, None, None]:
+        try:
+            self._local.glob(pattern, case_sensitive=case_sensitive)
+        except FileNotFoundError:
+            yield from []
