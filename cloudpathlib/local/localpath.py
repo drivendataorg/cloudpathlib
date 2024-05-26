@@ -1,4 +1,10 @@
-from typing import TYPE_CHECKING, Generator, Optional, Self
+import sys
+from typing import TYPE_CHECKING, Generator, Optional
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from ..cloudpath import CloudPath, NoStatError
 
