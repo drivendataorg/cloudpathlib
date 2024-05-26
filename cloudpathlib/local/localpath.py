@@ -1,10 +1,5 @@
-import sys
-from typing import TYPE_CHECKING, Generator, Optional
+from typing import TYPE_CHECKING
 
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
 
 from ..cloudpath import CloudPath, NoStatError
 
@@ -36,11 +31,3 @@ class LocalPath(CloudPath):
 
     def touch(self, exist_ok: bool = True):
         self.client._touch(self, exist_ok)
-
-    def glob(
-        self, pattern: str, case_sensitive: Optional[bool] = None
-    ) -> Generator[Self, None, None]:
-        try:
-            super().glob(pattern, case_sensitive=case_sensitive)
-        except FileNotFoundError:
-            yield from []
