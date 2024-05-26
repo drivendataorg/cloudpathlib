@@ -49,6 +49,10 @@ class LocalClient(Client):
     @classmethod
     def reset_default_storage_dir(cls) -> Path:
         cls._default_storage_temp_dir = None
+
+        # Also reset default client so it gets recreated with new temp dir
+        cls._default_client = None
+
         return cls.get_default_storage_dir()
 
     def _cloud_path_to_local(self, cloud_path: "LocalPath") -> Path:
@@ -89,15 +93,9 @@ class LocalClient(Client):
     def _list_dir(
         self, cloud_path: "LocalPath", recursive=False
     ) -> Iterable[Tuple["LocalPath", bool]]:
-        if recursive:
-            return (
-                (self._local_to_cloud_path(obj), obj.is_dir())
-                for obj in self._cloud_path_to_local(cloud_path).glob("**/*")
-            )
-        return (
-            (self._local_to_cloud_path(obj), obj.is_dir())
-            for obj in self._cloud_path_to_local(cloud_path).iterdir()
-        )
+        pattern = "**/*" if recursive else "*"
+        for obj in self._cloud_path_to_local(cloud_path).glob(pattern):
+            yield (self._local_to_cloud_path(obj), obj.is_dir())
 
     def _md5(self, cloud_path: "LocalPath") -> str:
         return md5(self._cloud_path_to_local(cloud_path).read_bytes()).hexdigest()

@@ -8,6 +8,7 @@
 - fix: use native `exists()` method in `GSClient`. (PR [#420](https://github.com/drivendataorg/cloudpathlib/pull/420))
 - Enhancement: lazy instantiation of default client (PR [#432](https://github.com/drivendataorg/cloudpathlib/issues/432), Issue [#428](https://github.com/drivendataorg/cloudpathlib/issues/428))
 - Adds existence check before downloading in `download_to` (Issue [#430](https://github.com/drivendataorg/cloudpathlib/issues/430), PR [#432](https://github.com/drivendataorg/cloudpathlib/pull/432))
+- Have `glob` for local clients match behavior of cloud versions for parity in testing; make `reset_default_storage_dir` work with default client. (Issue [#414](https://github.com/drivendataorg/cloudpathlib/issues/414), Issue [#415](https://github.com/drivendataorg/cloudpathlib/issues/415), [PR #436](https://github.com/drivendataorg/cloudpathlib/pull/436))
 
 ## v0.18.1 (2024-02-26)
 
