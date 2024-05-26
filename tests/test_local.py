@@ -90,6 +90,18 @@ def test_reset_default_storage_dir(client_class, monkeypatch):
     # clean up
     client_class.reset_default_storage_dir()
 
+    # try default client instantiation
+    from cloudpathlib.local import LocalS3Path, LocalS3Client
+
+    s3p = LocalS3Path("s3://drive/file.txt")
+    assert not s3p.exists()
+    s3p.write_text("hello")
+    assert s3p.exists()
+
+    LocalS3Client.reset_default_storage_dir()
+    s3p2 = LocalS3Path("s3://drive/file.txt")
+    assert not s3p2.exists()
+
 
 @pytest.mark.parametrize("client_class", [LocalAzureBlobClient, LocalGSClient, LocalS3Client])
 def test_glob_matches(client_class, monkeypatch):
