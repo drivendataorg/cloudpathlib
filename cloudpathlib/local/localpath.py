@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Generator, Optional, Self, override
+from typing import TYPE_CHECKING, Generator, Optional, Self
 
 from ..cloudpath import CloudPath, NoStatError
 
@@ -31,7 +31,6 @@ class LocalPath(CloudPath):
     def touch(self, exist_ok: bool = True):
         self.client._touch(self, exist_ok)
 
-    @override
     def glob(
         self, pattern: str, case_sensitive: Optional[bool] = None
     ) -> Generator[Self, None, None]:
