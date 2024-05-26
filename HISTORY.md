@@ -8,6 +8,7 @@
 - fix: use native `exists()` method in `GSClient`. (PR [#420](https://github.com/drivendataorg/cloudpathlib/pull/420))
 - Enhancement: lazy instantiation of default client (PR [#432](https://github.com/drivendataorg/cloudpathlib/issues/432), Issue [#428](https://github.com/drivendataorg/cloudpathlib/issues/428))
 - Adds existence check before downloading in `download_to` (Issue [#430](https://github.com/drivendataorg/cloudpathlib/issues/430), PR [#432](https://github.com/drivendataorg/cloudpathlib/pull/432))
+- Add env vars `CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD` and `CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD`. (Issue [#393](https://github.com/drivendataorg/cloudpathlib/issues/393), PR [#437](https://github.com/drivendataorg/cloudpathlib/pull/437))
 
 ## v0.18.1 (2024-02-26)
 
