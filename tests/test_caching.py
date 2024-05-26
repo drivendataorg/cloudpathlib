@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from cloudpathlib.enums import FileCacheMode
-from cloudpathlib.exceptions import InvalidConfigurationException
+from cloudpathlib.exceptions import InvalidConfigurationException, OverwriteNewerLocalError
 from tests.conftest import CloudProviderTestRig
 
 
@@ -342,6 +342,41 @@ def test_environment_variable_local_cache_dir(rig: CloudProviderTestRig, tmpdir)
 
     finally:
         os.environ["CLOUDPATHLIB_LOCAL_CACHE_DIR"] = original_env_setting
+
+
+def test_environment_variables_force_overwrite(rig: CloudProviderTestRig, tmpdir):
+    # environment instantiation
+    original_env_setting = os.environ.get("CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD", "")
+
+    try:
+        # explicitly false overwrite
+        os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD"] = "False"
+
+        p = rig.create_cloud_path("dir_0/file0_0.txt")
+        p._refresh_cache()  # dl to cache
+        p._local.touch()  # update mod time
+
+        with pytest.raises(OverwriteNewerLocalError):
+            p._refresh_cache()
+
+        for val in ["1", "True", "TRUE"]:
+            os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD"] = val
+
+            p = rig.create_cloud_path("dir_0/file0_0.txt")
+
+            orig_mod_time = p.stat().st_mtime
+
+            p._refresh_cache()  # dl to cache
+            p._local.touch()  # update mod time
+
+            new_mod_time = p._local.stat().st_mtime
+
+            p._refresh_cache()
+            assert p._local.stat().st_mtime == orig_mod_time
+            assert p._local.stat().st_mtime < new_mod_time
+
+    finally:
+        os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD"] = original_env_setting
 
 
 def test_manual_cache_clearing(rig: CloudProviderTestRig):
