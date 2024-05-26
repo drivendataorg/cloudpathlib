@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 
-
 from ..cloudpath import CloudPath, NoStatError
 
 
