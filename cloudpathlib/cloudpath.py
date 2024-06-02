@@ -550,7 +550,7 @@ class CloudPath(metaclass=CloudPathMeta):
         errors: Optional[str] = None,
         newline: Optional[str] = None,
         force_overwrite_from_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
-        force_overwrite_to_cloud: bool = False,  # extra kwarg not in pathlib
+        force_overwrite_to_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
     ) -> IO[Any]:
         # if trying to call open on a directory that exists
         if self.exists() and not self.is_file():
@@ -931,7 +931,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def upload_from(
         self,
         source: Union[str, os.PathLike],
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Self:
         """Upload a file or directory to the cloud path."""
         source = Path(source)
@@ -956,24 +956,24 @@ class CloudPath(metaclass=CloudPathMeta):
     def copy(
         self,
         destination: Self,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Self: ...
 
     @overload
     def copy(
         self,
         destination: Path,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Path: ...
 
     @overload
     def copy(
         self,
         destination: str,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Union[Path, "CloudPath"]: ...
 
-    def copy(self, destination, force_overwrite_to_cloud=False):
+    def copy(self, destination, force_overwrite_to_cloud=None):
         """Copy self to destination folder of file, if self is a file."""
         if not self.exists() or not self.is_file():
             raise ValueError(
@@ -991,6 +991,11 @@ class CloudPath(metaclass=CloudPathMeta):
         if self.client is destination.client:
             if destination.exists() and destination.is_dir():
                 destination = destination / self.name
+
+            if force_overwrite_to_cloud is None:
+                force_overwrite_to_cloud = os.environ.get(
+                    "CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD", "False"
+                ).lower() in ["1", "true"]
 
             if (
                 not force_overwrite_to_cloud
@@ -1019,7 +1024,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def copytree(
         self,
         destination: Self,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
         ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
     ) -> Self: ...
 
@@ -1027,7 +1032,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def copytree(
         self,
         destination: Path,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
         ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
     ) -> Path: ...
 
@@ -1035,11 +1040,11 @@ class CloudPath(metaclass=CloudPathMeta):
     def copytree(
         self,
         destination: str,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
         ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
     ) -> Union[Path, "CloudPath"]: ...
 
-    def copytree(self, destination, force_overwrite_to_cloud=False, ignore=None):
+    def copytree(self, destination, force_overwrite_to_cloud=None, ignore=None):
         """Copy self to a directory, if self is a directory."""
         if not self.is_dir():
             raise CloudPathNotADirectoryError(
