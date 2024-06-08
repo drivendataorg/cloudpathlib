@@ -398,8 +398,8 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
         new_also_cloud = rig.create_cloud_path("dir_0/another_cloud_file.txt")
         new_also_cloud.write_text("newer")
 
-        p.write_text("updated")
         # make cloud newer than local or other cloud file
+        p.write_text("updated")
 
         with pytest.raises(OverwriteNewerCloudError):
             p._upload_file_to_cloud(new_local)
@@ -418,15 +418,16 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
 
             new_local.write_text("updated")
 
-            sleep(0.01)  # give time so not equal
+            sleep(0.01)
             p.write_text("updated")
-            cloud_mod_time = p.stat().st_mtime
 
-            local_mod_time = new_local.stat().st_mtime
+            orig_cloud_mod_time = p.stat().st_mtime
 
-            assert p.stat().st_mtime >= local_mod_time  # would raise if not set
+            sleep(0.01)
+
+            assert p.stat().st_mtime >= new_local.stat().st_mtime  # would raise if not set
             p._upload_file_to_cloud(new_local)
-            assert p.stat().st_mtime > cloud_mod_time
+            assert p.stat().st_mtime > orig_cloud_mod_time  # cloud now overwritten
 
             new_also_cloud = rig.create_cloud_path("dir_0/another_cloud_file.txt")
             sleep(0.01)  # give time so not equal
@@ -435,7 +436,7 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
             new_cloud_mod_time = new_also_cloud.stat().st_mtime
 
             assert p.stat().st_mtime < new_cloud_mod_time  # would raise if not set
-            p.copy(new_local)
+            p.copy(new_also_cloud)
             assert new_also_cloud.stat().st_mtime >= new_cloud_mod_time
 
     finally:
