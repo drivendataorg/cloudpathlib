@@ -432,7 +432,7 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
             assert p.stat().st_mtime > orig_cloud_mod_time  # cloud now overwritten
 
             new_also_cloud = rig.create_cloud_path("dir_0/another_cloud_file.txt")
-            sleep(0.01)  # give time so not equal
+            sleep(0.51)  # give time so not equal when rounded
             new_also_cloud.write_text("newer")
 
             new_cloud_mod_time = new_also_cloud.stat().st_mtime
