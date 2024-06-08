@@ -399,6 +399,7 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
         new_also_cloud.write_text("newer")
 
         # make cloud newer than local or other cloud file
+        sleep(0.01)
         p.write_text("updated")
 
         with pytest.raises(OverwriteNewerCloudError):
@@ -409,6 +410,7 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
 
             # raises if destination is newer
             new_also_cloud.write_text("newest")
+            sleep(0.01)
             p.copy(new_also_cloud)
 
         for val in ["1", "True", "TRUE"]:
