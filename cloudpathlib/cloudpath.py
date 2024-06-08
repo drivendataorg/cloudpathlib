@@ -315,7 +315,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def __fspath__(self) -> str:
         if self.is_file():
-            self._refresh_cache(force_overwrite_from_cloud=False)
+            self._refresh_cache()
         return str(self._local)
 
     def __lt__(self, other: Any) -> bool:
@@ -549,8 +549,8 @@ class CloudPath(metaclass=CloudPathMeta):
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
         newline: Optional[str] = None,
-        force_overwrite_from_cloud: bool = False,  # extra kwarg not in pathlib
-        force_overwrite_to_cloud: bool = False,  # extra kwarg not in pathlib
+        force_overwrite_from_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
+        force_overwrite_to_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
     ) -> IO[Any]:
         # if trying to call open on a directory that exists
         if self.exists() and not self.is_file():
@@ -931,7 +931,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def upload_from(
         self,
         source: Union[str, os.PathLike],
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Self:
         """Upload a file or directory to the cloud path."""
         source = Path(source)
@@ -956,24 +956,24 @@ class CloudPath(metaclass=CloudPathMeta):
     def copy(
         self,
         destination: Self,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Self: ...
 
     @overload
     def copy(
         self,
         destination: Path,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Path: ...
 
     @overload
     def copy(
         self,
         destination: str,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Union[Path, "CloudPath"]: ...
 
-    def copy(self, destination, force_overwrite_to_cloud=False):
+    def copy(self, destination, force_overwrite_to_cloud=None):
         """Copy self to destination folder of file, if self is a file."""
         if not self.exists() or not self.is_file():
             raise ValueError(
@@ -991,6 +991,11 @@ class CloudPath(metaclass=CloudPathMeta):
         if self.client is destination.client:
             if destination.exists() and destination.is_dir():
                 destination = destination / self.name
+
+            if force_overwrite_to_cloud is None:
+                force_overwrite_to_cloud = os.environ.get(
+                    "CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD", "False"
+                ).lower() in ["1", "true"]
 
             if (
                 not force_overwrite_to_cloud
@@ -1019,7 +1024,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def copytree(
         self,
         destination: Self,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
         ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
     ) -> Self: ...
 
@@ -1027,7 +1032,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def copytree(
         self,
         destination: Path,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
         ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
     ) -> Path: ...
 
@@ -1035,11 +1040,11 @@ class CloudPath(metaclass=CloudPathMeta):
     def copytree(
         self,
         destination: str,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
         ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
     ) -> Union[Path, "CloudPath"]: ...
 
-    def copytree(self, destination, force_overwrite_to_cloud=False, ignore=None):
+    def copytree(self, destination, force_overwrite_to_cloud=None, ignore=None):
         """Copy self to a directory, if self is a directory."""
         if not self.is_dir():
             raise CloudPathNotADirectoryError(
@@ -1112,7 +1117,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
         return self.client.CloudPath(path)
 
-    def _refresh_cache(self, force_overwrite_from_cloud: bool = False) -> None:
+    def _refresh_cache(self, force_overwrite_from_cloud: Optional[bool] = None) -> None:
         try:
             stats = self.stat()
         except NoStatError:
@@ -1120,11 +1125,16 @@ class CloudPath(metaclass=CloudPathMeta):
             # new files that will be uploaded
             return
 
+        if force_overwrite_from_cloud is None:
+            force_overwrite_from_cloud = os.environ.get(
+                "CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD", "False"
+            ).lower() in ["1", "true"]
+
         # if not exist or cloud newer
         if (
-            not self._local.exists()
+            force_overwrite_from_cloud
+            or not self._local.exists()
             or (self._local.stat().st_mtime < stats.st_mtime)
-            or force_overwrite_from_cloud
         ):
             # ensure there is a home for the file
             self._local.parent.mkdir(parents=True, exist_ok=True)
@@ -1138,7 +1148,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"Local file ({self._local}) for cloud path ({self}) has been changed by your code, but "
                 f"is being requested for download from cloud. Either (1) push your changes to the cloud, "
                 f"(2) remove the local file, or (3) pass `force_overwrite_from_cloud=True` to "
-                f"overwrite."
+                f"overwrite; or set env var CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD=1."
             )
 
         # if local newer but not dirty, it was updated
@@ -1148,12 +1158,12 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"Local file ({self._local}) for cloud path ({self}) is newer on disk, but "
                 f"is being requested for download from cloud. Either (1) push your changes to the cloud, "
                 f"(2) remove the local file, or (3) pass `force_overwrite_from_cloud=True` to "
-                f"overwrite."
+                f"overwrite; or set env var CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD=1."
             )
 
     def _upload_local_to_cloud(
         self,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Self:
         """Uploads cache file at self._local to the cloud"""
         # We should never try to be syncing entire directories; we should only
@@ -1178,11 +1188,16 @@ class CloudPath(metaclass=CloudPathMeta):
     def _upload_file_to_cloud(
         self,
         local_path: Path,
-        force_overwrite_to_cloud: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Self:
         """Uploads file at `local_path` to the cloud if there is not a newer file
         already there.
         """
+        if force_overwrite_to_cloud is None:
+            force_overwrite_to_cloud = os.environ.get(
+                "CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD", "False"
+            ).lower() in ["1", "true"]
+
         if force_overwrite_to_cloud:
             # If we are overwriting no need to perform any checks, so we can save time
             self.client._upload_file(
@@ -1210,7 +1225,7 @@ class CloudPath(metaclass=CloudPathMeta):
             f"Local file ({self._local}) for cloud path ({self}) is newer in the cloud disk, but "
             f"is being requested to be uploaded to the cloud. Either (1) redownload changes from the cloud or "
             f"(2) pass `force_overwrite_to_cloud=True` to "
-            f"overwrite."
+            f"overwrite; or set env var CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD=1."
         )
 
     # ===========  pydantic integration special methods ===============

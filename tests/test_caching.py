@@ -5,7 +5,11 @@ from pathlib import Path
 import pytest
 
 from cloudpathlib.enums import FileCacheMode
-from cloudpathlib.exceptions import InvalidConfigurationException
+from cloudpathlib.exceptions import (
+    InvalidConfigurationException,
+    OverwriteNewerCloudError,
+    OverwriteNewerLocalError,
+)
 from tests.conftest import CloudProviderTestRig
 
 
@@ -342,6 +346,103 @@ def test_environment_variable_local_cache_dir(rig: CloudProviderTestRig, tmpdir)
 
     finally:
         os.environ["CLOUDPATHLIB_LOCAL_CACHE_DIR"] = original_env_setting
+
+
+def test_environment_variables_force_overwrite_from(rig: CloudProviderTestRig, tmpdir):
+    # environment instantiation
+    original_env_setting = os.environ.get("CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD", "")
+
+    try:
+        # explicitly false overwrite
+        os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD"] = "False"
+
+        p = rig.create_cloud_path("dir_0/file0_0.txt")
+        p._refresh_cache()  # dl to cache
+        p._local.touch()  # update mod time
+
+        with pytest.raises(OverwriteNewerLocalError):
+            p._refresh_cache()
+
+        for val in ["1", "True", "TRUE"]:
+            os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD"] = val
+
+            p = rig.create_cloud_path("dir_0/file0_0.txt")
+
+            orig_mod_time = p.stat().st_mtime
+
+            p._refresh_cache()  # dl to cache
+            p._local.touch()  # update mod time
+
+            new_mod_time = p._local.stat().st_mtime
+
+            p._refresh_cache()
+            assert p._local.stat().st_mtime == orig_mod_time
+            assert p._local.stat().st_mtime < new_mod_time
+
+    finally:
+        os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD"] = original_env_setting
+
+
+def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmpdir):
+    # environment instantiation
+    original_env_setting = os.environ.get("CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD", "")
+
+    try:
+        # explicitly false overwrite
+        os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD"] = "False"
+
+        p = rig.create_cloud_path("dir_0/file0_0.txt")
+
+        new_local = Path((tmpdir / "new_content.txt").strpath)
+        new_local.write_text("hello")
+        new_also_cloud = rig.create_cloud_path("dir_0/another_cloud_file.txt")
+        new_also_cloud.write_text("newer")
+
+        # make cloud newer than local or other cloud file
+        sleep(0.01)
+        p.write_text("updated")
+
+        with pytest.raises(OverwriteNewerCloudError):
+            p._upload_file_to_cloud(new_local)
+
+        with pytest.raises(OverwriteNewerCloudError):
+            # copy short-circuits upload if same client, so we test separately
+
+            # raises if destination is newer
+            new_also_cloud.write_text("newest")
+            sleep(0.01)
+            p.copy(new_also_cloud)
+
+        for val in ["1", "True", "TRUE"]:
+            os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD"] = val
+
+            p = rig.create_cloud_path("dir_0/file0_0.txt")
+
+            new_local.write_text("updated")
+
+            sleep(0.01)  # give time so not equal when rounded
+            p.write_text("updated")
+
+            orig_cloud_mod_time = p.stat().st_mtime
+
+            sleep(0.51)
+
+            assert p.stat().st_mtime >= new_local.stat().st_mtime  # would raise if not set
+            p._upload_file_to_cloud(new_local)
+            assert p.stat().st_mtime > orig_cloud_mod_time  # cloud now overwritten
+
+            new_also_cloud = rig.create_cloud_path("dir_0/another_cloud_file.txt")
+            sleep(0.51)  # give time so not equal when rounded
+            new_also_cloud.write_text("newer")
+
+            new_cloud_mod_time = new_also_cloud.stat().st_mtime
+
+            assert p.stat().st_mtime < new_cloud_mod_time  # would raise if not set
+            p.copy(new_also_cloud)
+            assert new_also_cloud.stat().st_mtime >= new_cloud_mod_time
+
+    finally:
+        os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD"] = original_env_setting
 
 
 def test_manual_cache_clearing(rig: CloudProviderTestRig):
