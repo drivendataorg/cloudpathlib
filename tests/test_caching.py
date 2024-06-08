@@ -418,6 +418,7 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
 
             new_local.write_text("updated")
 
+            sleep(0.01)  # give time so not equal
             p.write_text("updated")
             cloud_mod_time = p.stat().st_mtime
 
@@ -428,6 +429,7 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
             assert p.stat().st_mtime > cloud_mod_time
 
             new_also_cloud = rig.create_cloud_path("dir_0/another_cloud_file.txt")
+            sleep(0.01)  # give time so not equal
             new_also_cloud.write_text("newer")
 
             new_cloud_mod_time = new_also_cloud.stat().st_mtime
