@@ -420,12 +420,12 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
 
             new_local.write_text("updated")
 
-            sleep(0.01)
+            sleep(0.01)  # give time so not equal when rounded
             p.write_text("updated")
 
             orig_cloud_mod_time = p.stat().st_mtime
 
-            sleep(0.01)
+            sleep(0.51)
 
             assert p.stat().st_mtime >= new_local.stat().st_mtime  # would raise if not set
             p._upload_file_to_cloud(new_local)
