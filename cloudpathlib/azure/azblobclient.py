@@ -2,8 +2,7 @@ from datetime import datetime, timedelta
 import mimetypes
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
-
+from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union, cast
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
@@ -155,7 +154,20 @@ class AzureBlobClient(Client):
             return "dir"
 
         try:
-            self._get_metadata(cloud_path)
+            # the result of get_blob_properties is a BlobProperties object (dict mixin)
+            metadata = cast(BlobProperties, self._get_metadata(cloud_path))
+
+            # content_type and content_md5 are never None for files in Azure Blob Storage
+            # if they are None, then the given path is a directory
+            # https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-properties?tabs=microsoft-entra-id#response-headers
+            is_folder = (
+                metadata.content_settings.content_type is None
+                and metadata.content_settings.content_md5 is None
+            )
+
+            if is_folder:
+                return "dir"
+
             return "file"
         except ResourceNotFoundError:
             prefix = cloud_path.blob
