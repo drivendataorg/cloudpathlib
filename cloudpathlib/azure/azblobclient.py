@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import mimetypes
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
 
 
@@ -20,6 +20,7 @@ try:
         BlobProperties,
         ContentSettings,
         generate_blob_sas,
+        BlobPrefix,
     )
 except ModuleNotFoundError:
     implementation_registry["azure"].dependencies_loaded = False
@@ -181,17 +182,14 @@ class AzureBlobClient(Client):
     def _list_dir(
         self, cloud_path: AzureBlobPath, recursive: bool = False
     ) -> Iterable[Tuple[AzureBlobPath, bool]]:
-        # shortcut if listing all available containers
         if not cloud_path.container:
-            if recursive:
-                raise NotImplementedError(
-                    "Cannot recursively list all containers and contents; you can get all the containers then recursively list each separately."
-                )
+            for container in self.service_client.list_containers():
+                yield self.CloudPath(f"az://{container.name}"), True
 
-            yield from (
-                (self.CloudPath(f"az://{c.name}"), True)
-                for c in self.service_client.list_containers()
-            )
+                if not recursive:
+                    continue
+
+                yield from self._list_dir(self.CloudPath(f"az://{container.name}"), recursive=True)
             return
 
         container_client = self.service_client.get_container_client(cloud_path.container)
@@ -200,30 +198,30 @@ class AzureBlobClient(Client):
         if prefix and not prefix.endswith("/"):
             prefix += "/"
 
-        yielded_dirs = set()
+        if not recursive:
+            blobs = container_client.walk_blobs(name_starts_with=prefix)
+        else:
+            blobs = container_client.list_blobs(name_starts_with=prefix)
 
-        # NOTE: Not recursive may be slower than necessary since it just filters
-        #   the recursive implementation
-        for o in container_client.list_blobs(name_starts_with=prefix):
-            # get directory from this path
-            for parent in PurePosixPath(o.name[len(prefix) :]).parents:
-                # if we haven't surfaced this directory already
-                if parent not in yielded_dirs and str(parent) != ".":
-                    # skip if not recursive and this is beyond our depth
-                    if not recursive and "/" in str(parent):
-                        continue
+        def is_dir(blob: Union[BlobProperties, BlobPrefix]) -> bool:
+            # walk_blobs returns a BlobPrefix object for directories
+            # https://learn.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobprefix?view=azure-python
+            if isinstance(blob, BlobPrefix):
+                return True
 
-                    yield (
-                        self.CloudPath(f"az://{cloud_path.container}/{prefix}{parent}"),
-                        True,  # is a directory
-                    )
-                    yielded_dirs.add(parent)
+            # content_type and content_md5 are never None for files in Azure Blob Storage
+            # if they are None, then the given path is a directory
+            # https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-properties?tabs=microsoft-entra-id#response-headers
+            return (
+                blob.content_settings.content_md5 is None
+                and blob.content_settings.content_type is None
+            )
 
-            # skip file if not recursive and this is beyond our depth
-            if not recursive and "/" in o.name[len(prefix) :]:
-                continue
-
-            yield (self.CloudPath(f"az://{cloud_path.container}/{o.name}"), False)  # is a file
+        for blob in blobs:
+            # walk_blobs returns folders with a trailing slash
+            blob_path = blob.name.rstrip("/")
+            blob_cloud_path = self.CloudPath(f"az://{cloud_path.container}/{blob_path}")
+            yield blob_cloud_path, is_dir(blob)
 
     def _move_file(
         self, src: AzureBlobPath, dst: AzureBlobPath, remove_src: bool = True
