@@ -250,24 +250,32 @@ class AzureBlobClient(Client):
 
         return dst
 
-    def _remove(self, cloud_path: AzureBlobPath, missing_ok: bool = True) -> None:
+    def _remove(self, cloud_path: AzureBlobPath, missing_ok: bool = True) -> None:  # type: ignore
+        container_client = self.service_client.get_container_client(cloud_path.container)
         file_or_dir = self._is_file_or_dir(cloud_path)
-        if file_or_dir == "dir":
-            blobs = [
-                b.blob for b, is_dir in self._list_dir(cloud_path, recursive=True) if not is_dir
-            ]
-            container_client = self.service_client.get_container_client(cloud_path.container)
-            container_client.delete_blobs(*blobs)
-        elif file_or_dir == "file":
-            blob = self.service_client.get_blob_client(
-                container=cloud_path.container, blob=cloud_path.blob
-            )
 
-            blob.delete_blob()
-        else:
-            # Does not exist
-            if not missing_ok:
-                raise FileNotFoundError(f"File does not exist: {cloud_path}")
+        if not file_or_dir:
+            if missing_ok:
+                return
+
+            raise FileNotFoundError(f"File does not exist: {cloud_path}")
+
+        if file_or_dir == "dir":
+            blobs = [(blob, is_dir) for blob, is_dir in self._list_dir(cloud_path, recursive=True)]
+
+            # need to delete files first to allow deleting the folders
+            files = [blob.blob for blob, is_dir in blobs if not is_dir]
+            container_client.delete_blobs(*files)
+
+            # folders need to be deleted from the deepest to the shallowest
+            folders = sorted(
+                (blob.blob for blob, is_dir in blobs if is_dir and blob.exists()), reverse=True
+            )
+            container_client.delete_blobs(*folders)
+
+        # delete the cloud_path itself
+        if cloud_path.exists():
+            container_client.delete_blob(cloud_path.blob)
 
     def _upload_file(
         self, local_path: Union[str, os.PathLike], cloud_path: AzureBlobPath
