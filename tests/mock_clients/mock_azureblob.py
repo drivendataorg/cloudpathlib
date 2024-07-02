@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from datetime import datetime
 from pathlib import Path, PurePosixPath
 import shutil
@@ -25,7 +25,12 @@ def mocked_client_class_factory(test_dir: str):
             self.tmp_path = Path(self.tmp.name) / "test_case_copy"
             shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
 
-            self.metadata_cache = {}
+            self.metadata_cache = defaultdict(
+                lambda: {
+                    "content_type": "application/octet-stream",
+                    "content_md5": "some_md5_hash",
+                }
+            )
 
         @classmethod
         def from_connection_string(cls, *args, **kwargs):
@@ -77,15 +82,22 @@ class MockBlobClient:
 
     def get_blob_properties(self):
         path = self.root / self.key
-        if path.exists() and path.is_file():
+        if path.exists():
+            # replicates the behavior of the Azure Blob API
+            # files always have content_type and content_md5
+            # directories never have content_type and content_md5
+            # https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-properties?tabs=microsoft-entra-id#response-headers
+            if path.is_file():
+                metadata = self.service_client.metadata_cache[path]
+            else:
+                metadata = {"content_type": None, "content_md5": None}
+
             return BlobProperties(
                 **{
                     "name": self.key,
                     "Last-Modified": datetime.fromtimestamp(path.stat().st_mtime),
                     "ETag": "etag",
-                    "content_type": self.service_client.metadata_cache.get(
-                        self.root / self.key, None
-                    ),
+                    **metadata,
                 }
             )
         else:
@@ -114,9 +126,13 @@ class MockBlobClient:
         path.write_bytes(data.read())
 
         if content_settings is not None:
-            self.service_client.metadata_cache[self.root / self.key] = (
-                content_settings.content_type
+            # content_type and content_md5 are never None for files in Azure Blob Storage
+            # https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-properties?tabs=microsoft-entra-id#response-headers
+            content_settings.content_type = (
+                content_settings.content_type or "application/octet-stream"
             )
+            content_settings.content_md5 = content_settings.content_md5 or "some_md5_hash"
+            self.service_client.metadata_cache[path].update(content_settings)
 
 
 class MockStorageStreamDownloader:
@@ -148,24 +164,31 @@ class MockContainerClient:
     def list_blobs(self, name_starts_with=None):
         return mock_item_paged(self.root, name_starts_with)
 
+    def walk_blobs(self, name_starts_with=None):
+        return mock_item_paged(self.root, name_starts_with, recursive=False)
+
     def delete_blobs(self, *blobs):
         for blob in blobs:
             (self.root / blob).unlink()
             delete_empty_parents_up_to_root(path=self.root / blob, root=self.root)
 
 
-def mock_item_paged(root, name_starts_with=None):
-    items = []
-
+def mock_item_paged(root, name_starts_with=None, recursive=True):
     if not name_starts_with:
         name_starts_with = ""
-    for f in root.glob("**/*"):
-        if (
-            (not f.name.startswith("."))
-            and f.is_file()
-            and (root / name_starts_with) in [f, *f.parents]
-        ):
-            items.append((PurePosixPath(f), f))
+
+    if recursive:
+        items = [
+            (PurePosixPath(f), f)
+            for f in root.glob("**/*")
+            if (
+                (not f.name.startswith("."))
+                and f.is_file()
+                and (root / name_starts_with) in [f, *f.parents]
+            )
+        ]
+    else:
+        items = [(PurePosixPath(f), f) for f in (root / name_starts_with).iterdir()]
 
     for mocked, local in items:
         # BlobProperties
@@ -175,5 +198,7 @@ def mock_item_paged(root, name_starts_with=None):
                 "name": str(mocked.relative_to(PurePosixPath(root))),
                 "Last-Modified": datetime.fromtimestamp(local.stat().st_mtime),
                 "ETag": "etag",
+                "content_type": "application/octet-stream" if local.is_file() else None,
+                "content_md5": "some_md5_hash" if not local.is_file() else None,
             }
         )
