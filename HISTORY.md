@@ -12,6 +12,7 @@
 ## v0.18.1 (2024-02-26)
 
 - Fixed import error due to incompatible `google-cloud-storage` by not using `transfer_manager` if it is not available. ([Issue #408](https://github.com/drivendataorg/cloudpathlib/issues/408), [PR #410](https://github.com/drivendataorg/cloudpathlib/pull/410)) 
+- fix(az): correctly remove nested file structures ([Issue #448](https://github.com/drivendataorg/cloudpathlib/issues/448), [PR #449](https://github.com/drivendataorg/cloudpathlib/pull/449)) 
 
 Includes all changes from v0.18.0.
 
