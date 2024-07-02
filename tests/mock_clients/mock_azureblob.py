@@ -148,6 +148,10 @@ class MockContainerClient:
     def list_blobs(self, name_starts_with=None):
         return mock_item_paged(self.root, name_starts_with)
 
+    def delete_blob(self, blob):
+        (self.root / blob).unlink()
+        delete_empty_parents_up_to_root(path=self.root / blob, root=self.root)
+
     def delete_blobs(self, *blobs):
         for blob in blobs:
             (self.root / blob).unlink()
