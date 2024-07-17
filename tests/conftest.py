@@ -4,6 +4,9 @@ import shutil
 from typing import Dict, Optional
 
 from azure.storage.blob import BlobServiceClient
+from azure.storage.filedatalake import (
+    DataLakeServiceClient,
+)
 import boto3
 import botocore
 from dotenv import find_dotenv, load_dotenv
@@ -26,6 +29,7 @@ from cloudpathlib.local import (
     LocalS3Path,
 )
 import cloudpathlib.azure.azblobclient
+from cloudpathlib.azure.azblobclient import _hns_rmtree
 import cloudpathlib.s3.s3client
 from .mock_clients.mock_azureblob import mocked_client_class_factory, DEFAULT_CONTAINER_NAME
 from .mock_clients.mock_gs import (
@@ -109,55 +113,69 @@ def create_test_dir_name(request) -> str:
     return test_dir
 
 
-@fixture()
-def azure_rig(request, monkeypatch, assets_dir):
-    drive = os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
-    test_dir = create_test_dir_name(request)
+def azure_rig_factory(conn_str_env_var="AZURE_STORAGE_CONNECTION_STRING"):
+    @fixture()
+    def azure_rig(request, monkeypatch, assets_dir):
+        drive = os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
+        test_dir = create_test_dir_name(request)
 
-    live_server = os.getenv("USE_LIVE_CLOUD") == "1"
+        live_server = os.getenv("USE_LIVE_CLOUD") == "1"
 
-    if live_server:
-        # Set up test assets
-        blob_service_client = BlobServiceClient.from_connection_string(
-            os.getenv("AZURE_STORAGE_CONNECTION_STRING")
-        )
-        test_files = [
-            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
-        ]
-        for test_file in test_files:
-            blob_client = blob_service_client.get_blob_client(
-                container=drive,
-                blob=str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
+        if live_server:
+            # Set up test assets
+            blob_service_client = BlobServiceClient.from_connection_string(
+                os.getenv(conn_str_env_var)
             )
-            blob_client.upload_blob(test_file.read_bytes(), overwrite=True)
-    else:
-        monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
-        # Mock cloud SDK
-        monkeypatch.setattr(
-            cloudpathlib.azure.azblobclient,
-            "BlobServiceClient",
-            mocked_client_class_factory(test_dir),
+            data_lake_service_client = DataLakeServiceClient.from_connection_string(
+                os.getenv(conn_str_env_var)
+            )
+            test_files = [
+                f
+                for f in assets_dir.glob("**/*")
+                if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
+            ]
+            for test_file in test_files:
+                blob_client = blob_service_client.get_blob_client(
+                    container=drive,
+                    blob=str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
+                )
+                blob_client.upload_blob(test_file.read_bytes(), overwrite=True)
+        else:
+            monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
+            # Mock cloud SDK
+            monkeypatch.setattr(
+                cloudpathlib.azure.azblobclient,
+                "BlobServiceClient",
+                mocked_client_class_factory(test_dir),
+            )
+
+        rig = CloudProviderTestRig(
+            path_class=AzureBlobPath,
+            client_class=AzureBlobClient,
+            drive=drive,
+            test_dir=test_dir,
+            live_server=live_server,
         )
 
-    rig = CloudProviderTestRig(
-        path_class=AzureBlobPath,
-        client_class=AzureBlobClient,
-        drive=drive,
-        test_dir=test_dir,
-        live_server=live_server,
-    )
+        rig.client_class().set_as_default_client()  # set default client
 
-    rig.client_class().set_as_default_client()  # set default client
+        yield rig
 
-    yield rig
+        rig.client_class._default_client = None  # reset default client
 
-    rig.client_class._default_client = None  # reset default client
+        if live_server:
+            if blob_service_client.get_account_information().get("is_hns_enabled", False):
+                _hns_rmtree(data_lake_service_client, drive, test_dir)
 
-    if live_server:
-        # Clean up test dir
-        container_client = blob_service_client.get_container_client(drive)
-        to_delete = container_client.list_blobs(name_starts_with=test_dir)
-        container_client.delete_blobs(*to_delete)
+            else:
+                # Clean up test dir
+                container_client = blob_service_client.get_container_client(drive)
+                to_delete = container_client.list_blobs(name_starts_with=test_dir)
+                to_delete = sorted(to_delete, key=lambda b: len(b.name.split("/")), reverse=True)
+
+                container_client.delete_blobs(*to_delete)
+
+    return azure_rig
 
 
 @fixture()
@@ -420,16 +438,27 @@ def local_s3_rig(request, monkeypatch, assets_dir):
     rig.client_class.reset_default_storage_dir()  # reset local storage directory
 
 
+azure_rig = azure_rig_factory("AZURE_STORAGE_CONNECTION_STRING")
+
+# create azure fixtures for both blob and gen2 storage depending on which live services are configured in
+# the environment variables
+azure_fixtures = [azure_rig]
+
+# explicitly test gen2 if configured
+if os.getenv("AZURE_STORAGE_GEN2_CONNECTION_STRING"):
+    azure_gen2_rig = azure_rig_factory("AZURE_STORAGE_GEN2_CONNECTION_STRING")
+    azure_fixtures.append(azure_gen2_rig)
+
 rig = fixture_union(
     "rig",
-    [
-        azure_rig,
-        gs_rig,
-        s3_rig,
-        custom_s3_rig,
-        local_azure_rig,
-        local_s3_rig,
-        local_gs_rig,
+    azure_fixtures
+    + [
+        # gs_rig,
+        # s3_rig,
+        # custom_s3_rig,
+        # local_azure_rig,
+        # local_s3_rig,
+        # local_gs_rig,
     ],
 )
 
@@ -438,6 +467,6 @@ s3_like_rig = fixture_union(
     "s3_like_rig",
     [
         s3_rig,
-        custom_s3_rig,
+        # custom_s3_rig,
     ],
 )

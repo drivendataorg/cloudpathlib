@@ -81,6 +81,15 @@ Finally, you may want to run your tests against live servers to ensure that the 
 make test-live-cloud
 ```
 
+#### Azure live backend tests
+
+For Azure, you can test both against Azure Blob Storage backends and Azure Data Lake Storage Gen2 backends. To run these tests, you need to set connection strings for both of the backends by setting the following environment variables (in your `.env` file for local development). If `AZURE_STORAGE_GEN2_CONNECTION_STRING` is not set, only the blob storage backend will be tested.
+
+```bash
+AZURE_STORAGE_CONNECTION_STRING=your_connection_string
+AZURE_STORAGE_GEN2_CONNECTION_STRING=your_connection_string
+```
+
 You can copy `.env.example` to `.env` and fill in the credentials and bucket/container names for the providers you want to test against.  **Note that the live tests will create and delete files on the cloud provider.**
 
 You can also skip providers you do not have accounts for by commenting them out in the `rig` and `s3_like_rig` variables defined at the end of `tests/conftest.py`. 

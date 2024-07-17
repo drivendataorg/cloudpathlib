@@ -15,6 +15,7 @@
     - Changed `LocalClient` so that client instances using the default storage access the default local storage directory through the `get_default_storage_dir` rather than having an explicit reference to the path set at instantiation. This means that calling `get_default_storage_dir` will reset the local storage for all clients using the default local storage, whether the client has already been instantiated or is instantiated after resetting. This fixes unintuitive behavior where `reset_local_storage` did not reset local storage when using the default client. (Issue [#414](https://github.com/drivendataorg/cloudpathlib/issues/414))
     - Added a new `local_storage_dir` property to `LocalClient`. This will return the current local storage directory used by that client instance.
     by reference through the `get_default_ rather than with an explicit.
+- Add Azure Data Lake Storage Gen2 support (Issue [#161](https://github.com/drivendataorg/cloudpathlib/issues/161), PR [#450](https://github.com/drivendataorg/cloudpathlib/pull/450)), thanks to [@M0dEx](https://github.com/M0dEx) for PR [#447](https://github.com/drivendataorg/cloudpathlib/pull/447) and PR [#449](https://github.com/drivendataorg/cloudpathlib/pull/449)
 
 ## v0.18.1 (2024-02-26)
 
