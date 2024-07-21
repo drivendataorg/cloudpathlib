@@ -263,7 +263,8 @@ class CloudPath(metaclass=CloudPathMeta):
         state = self.__dict__.copy()
 
         # don't pickle client
-        del state["_client"]
+        if "_client" in state:
+            del state["_client"]
 
         return state
 
