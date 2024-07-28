@@ -118,9 +118,9 @@ def test_joins(rig):
 
 
 def test_with_segments(rig):
-    assert rig.create_cloud_path("a/b/c/d").with_segments(
-        "x", "y", "z"
-    ) == rig.client_class(**rig.required_client_kwargs).CloudPath(f"{rig.cloud_prefix}x/y/z")
+    assert rig.create_cloud_path("a/b/c/d").with_segments("x", "y", "z") == rig.client_class(
+        **rig.required_client_kwargs
+    ).CloudPath(f"{rig.cloud_prefix}x/y/z")
 
 
 def test_is_junction(rig):

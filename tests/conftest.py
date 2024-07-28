@@ -122,16 +122,12 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
 
     if live_server:
         # Set up test assets
-        blob_service_client = BlobServiceClient.from_connection_string(
-            os.getenv(conn_str_env_var)
-        )
+        blob_service_client = BlobServiceClient.from_connection_string(os.getenv(conn_str_env_var))
         data_lake_service_client = DataLakeServiceClient.from_connection_string(
             os.getenv(conn_str_env_var)
         )
         test_files = [
-            f
-            for f in assets_dir.glob("**/*")
-            if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
+            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
         ]
         for test_file in test_files:
             blob_client = blob_service_client.get_blob_client(
@@ -164,10 +160,14 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
-        required_client_kwargs=dict(connection_string=os.getenv(conn_str_env_var)),  # switch on/off adls gen2
+        required_client_kwargs=dict(
+            connection_string=os.getenv(conn_str_env_var)
+        ),  # switch on/off adls gen2
     )
 
-    rig.client_class(connection_string=os.getenv(conn_str_env_var)).set_as_default_client()  # set default client
+    rig.client_class(
+        connection_string=os.getenv(conn_str_env_var)
+    ).set_as_default_client()  # set default client
 
     # add flag for adls gen2 rig to skip some tests
     rig.is_adls_gen2 = adls_gen2
@@ -191,11 +191,16 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
 
 @fixture()
 def azure_rig(request, monkeypatch, assets_dir):
-    yield from _azure_fixture("AZURE_STORAGE_CONNECTION_STRING", False, request, monkeypatch, assets_dir)
+    yield from _azure_fixture(
+        "AZURE_STORAGE_CONNECTION_STRING", False, request, monkeypatch, assets_dir
+    )
+
 
 @fixture()
 def azure_gen2_rig(request, monkeypatch, assets_dir):
-    yield from _azure_fixture("AZURE_STORAGE_GEN2_CONNECTION_STRING", True, request, monkeypatch, assets_dir)
+    yield from _azure_fixture(
+        "AZURE_STORAGE_GEN2_CONNECTION_STRING", True, request, monkeypatch, assets_dir
+    )
 
 
 @fixture()
