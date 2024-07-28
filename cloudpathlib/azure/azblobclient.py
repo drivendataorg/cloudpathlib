@@ -139,18 +139,21 @@ class AzureBlobClient(Client):
         self.hns_cache: Dict[str, bool] = {}
 
     def _check_hns(self, cloud_path: AzureBlobPath) -> bool:
-        if cloud_path.container not in self.hns_cache:
+        hns_key = self.service_client.account_name + "__" + cloud_path.container
+
+        if hns_key not in self.hns_cache:
             hns_enabled: bool = self.service_client.get_account_information().get(
                 "is_hns_enabled", False
             )  # type: ignore
-            self.hns_cache[cloud_path.container] = hns_enabled
+            self.hns_cache[hns_key] = hns_enabled
 
-        return self.hns_cache[cloud_path.container]
+        return self.hns_cache[hns_key]
 
     def _get_metadata(
         self, cloud_path: AzureBlobPath
     ) -> Union["BlobProperties", "FileProperties", Dict[str, Any]]:
         if self._check_hns(cloud_path):
+
             # works on both files and directories
             fsc = self.data_lake_client.get_file_system_client(cloud_path.container)  # type: ignore
 

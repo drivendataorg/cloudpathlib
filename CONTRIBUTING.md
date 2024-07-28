@@ -83,7 +83,7 @@ make test-live-cloud
 
 #### Azure live backend tests
 
-For Azure, you can test both against Azure Blob Storage backends and Azure Data Lake Storage Gen2 backends. To run these tests, you need to set connection strings for both of the backends by setting the following environment variables (in your `.env` file for local development). If `AZURE_STORAGE_GEN2_CONNECTION_STRING` is not set, only the blob storage backend will be tested.
+For Azure, you can test both against Azure Blob Storage backends and Azure Data Lake Storage Gen2 backends. To run these tests, you need to set connection strings for both of the backends by setting the following environment variables (in your `.env` file for local development). If `AZURE_STORAGE_GEN2_CONNECTION_STRING` is not set, only the blob storage backend will be tested. To set up a storage account with ADLS Gen2, go through the normal creation flow for a storage account in the Azure portal and select "Enable Hierarchical Namespace" in the "Advanced" tab of the settings when configuring the account.
 
 ```bash
 AZURE_STORAGE_CONNECTION_STRING=your_connection_string

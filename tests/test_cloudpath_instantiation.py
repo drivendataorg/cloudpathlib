@@ -77,7 +77,7 @@ def test_instantiation_errors(rig):
 def test_idempotency(rig):
     rig.client_class._default_client = None
 
-    client = rig.client_class()
+    client = rig.client_class(**rig.required_client_kwargs)
     p = client.CloudPath(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/dir_0/file0_0.txt")
 
     p2 = CloudPath(p)

@@ -114,81 +114,88 @@ def create_test_dir_name(request) -> str:
     return test_dir
 
 
-def azure_rig_factory(conn_str_env_var):
-    adls_gen2 = conn_str_env_var == "AZURE_STORAGE_GEN2_CONNECTION_STRING"
+def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir):
+    drive = os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
+    test_dir = create_test_dir_name(request)
 
-    @fixture()
-    def azure_rig(request, monkeypatch, assets_dir):
-        drive = os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
-        test_dir = create_test_dir_name(request)
+    live_server = os.getenv("USE_LIVE_CLOUD") == "1"
 
-        live_server = os.getenv("USE_LIVE_CLOUD") == "1"
-
-        if live_server:
-            # Set up test assets
-            blob_service_client = BlobServiceClient.from_connection_string(
-                os.getenv(conn_str_env_var)
+    if live_server:
+        # Set up test assets
+        blob_service_client = BlobServiceClient.from_connection_string(
+            os.getenv(conn_str_env_var)
+        )
+        data_lake_service_client = DataLakeServiceClient.from_connection_string(
+            os.getenv(conn_str_env_var)
+        )
+        test_files = [
+            f
+            for f in assets_dir.glob("**/*")
+            if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
+        ]
+        for test_file in test_files:
+            blob_client = blob_service_client.get_blob_client(
+                container=drive,
+                blob=str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
             )
-            data_lake_service_client = DataLakeServiceClient.from_connection_string(
-                os.getenv(conn_str_env_var)
-            )
-            test_files = [
-                f
-                for f in assets_dir.glob("**/*")
-                if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
-            ]
-            for test_file in test_files:
-                blob_client = blob_service_client.get_blob_client(
-                    container=drive,
-                    blob=str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
-                )
-                blob_client.upload_blob(test_file.read_bytes(), overwrite=True)
-        else:
-            monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
-            monkeypatch.setenv("AZURE_STORAGE_GEN2_CONNECTION_STRING", "")
+            blob_client.upload_blob(test_file.read_bytes(), overwrite=True)
+    else:
+        monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
+        monkeypatch.setenv("AZURE_STORAGE_GEN2_CONNECTION_STRING", "")
 
-            # need shared client so both blob and adls APIs can point to same temp directory
-            shared_client = mocked_client_class_factory(test_dir, adls_gen2=adls_gen2)()
+        # need shared client so both blob and adls APIs can point to same temp directory
+        shared_client = mocked_client_class_factory(test_dir, adls_gen2=adls_gen2)()
 
-            monkeypatch.setattr(
-                cloudpathlib.azure.azblobclient,
-                "BlobServiceClient",
-                shared_client,
-            )
-
-            monkeypatch.setattr(
-                cloudpathlib.azure.azblobclient,
-                "DataLakeServiceClient",
-                mocked_adls_factory(test_dir, shared_client),
-            )
-
-        rig = CloudProviderTestRig(
-            path_class=AzureBlobPath,
-            client_class=AzureBlobClient,
-            drive=drive,
-            test_dir=test_dir,
-            live_server=live_server,
+        monkeypatch.setattr(
+            cloudpathlib.azure.azblobclient,
+            "BlobServiceClient",
+            shared_client,
         )
 
-        rig.client_class().set_as_default_client()  # set default client
+        monkeypatch.setattr(
+            cloudpathlib.azure.azblobclient,
+            "DataLakeServiceClient",
+            mocked_adls_factory(test_dir, shared_client),
+        )
 
-        yield rig
+    rig = CloudProviderTestRig(
+        path_class=AzureBlobPath,
+        client_class=AzureBlobClient,
+        drive=drive,
+        test_dir=test_dir,
+        live_server=live_server,
+        required_client_kwargs=dict(connection_string=os.getenv(conn_str_env_var)),  # switch on/off adls gen2
+    )
 
-        rig.client_class._default_client = None  # reset default client
+    rig.client_class(connection_string=os.getenv(conn_str_env_var)).set_as_default_client()  # set default client
 
-        if live_server:
-            if blob_service_client.get_account_information().get("is_hns_enabled", False):
-                _hns_rmtree(data_lake_service_client, drive, test_dir)
+    # add flag for adls gen2 rig to skip some tests
+    rig.is_adls_gen2 = adls_gen2
 
-            else:
-                # Clean up test dir
-                container_client = blob_service_client.get_container_client(drive)
-                to_delete = container_client.list_blobs(name_starts_with=test_dir)
-                to_delete = sorted(to_delete, key=lambda b: len(b.name.split("/")), reverse=True)
+    yield rig
 
-                container_client.delete_blobs(*to_delete)
+    rig.client_class._default_client = None  # reset default client
 
-    return azure_rig
+    if live_server:
+        if blob_service_client.get_account_information().get("is_hns_enabled", False):
+            _hns_rmtree(data_lake_service_client, drive, test_dir)
+
+        else:
+            # Clean up test dir
+            container_client = blob_service_client.get_container_client(drive)
+            to_delete = container_client.list_blobs(name_starts_with=test_dir)
+            to_delete = sorted(to_delete, key=lambda b: len(b.name.split("/")), reverse=True)
+
+            container_client.delete_blobs(*to_delete)
+
+
+@fixture()
+def azure_rig(request, monkeypatch, assets_dir):
+    yield from _azure_fixture("AZURE_STORAGE_CONNECTION_STRING", False, request, monkeypatch, assets_dir)
+
+@fixture()
+def azure_gen2_rig(request, monkeypatch, assets_dir):
+    yield from _azure_fixture("AZURE_STORAGE_GEN2_CONNECTION_STRING", True, request, monkeypatch, assets_dir)
 
 
 @fixture()
@@ -450,9 +457,6 @@ def local_s3_rig(request, monkeypatch, assets_dir):
     rig.client_class._default_client = None  # reset default client
     rig.client_class.reset_default_storage_dir()  # reset local storage directory
 
-
-azure_rig = azure_rig_factory("AZURE_STORAGE_CONNECTION_STRING")
-azure_gen2_rig = azure_rig_factory("AZURE_STORAGE_GEN2_CONNECTION_STRING")
 
 # create azure fixtures for both blob and gen2 storage
 azure_rigs = fixture_union(
