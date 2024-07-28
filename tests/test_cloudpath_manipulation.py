@@ -43,7 +43,7 @@ def test_no_op_actions(rig):
     assert path.is_absolute()
 
 
-def test_relative_to(rig, azure_rig, gs_rig):
+def test_relative_to(rig, azure_rigs, gs_rig):
     assert rig.create_cloud_path("bucket/path/to/file.txt").relative_to(
         rig.create_cloud_path("bucket/path")
     ) == PurePosixPath("to/file.txt")
@@ -59,7 +59,7 @@ def test_relative_to(rig, azure_rig, gs_rig):
 
     with pytest.raises(ValueError):
         assert rig.create_cloud_path("a/b/c/d.file").relative_to(PurePosixPath("/a/b/c"))
-    other_rig = azure_rig if rig.cloud_prefix != azure_rig.cloud_prefix else gs_rig
+    other_rig = azure_rigs if rig.cloud_prefix != azure_rigs.cloud_prefix else gs_rig
     path = CloudPath(f"{rig.cloud_prefix}bucket/path/to/file.txt")
     other_cloud_path = CloudPath(f"{other_rig.cloud_prefix}bucket/path")
     with pytest.raises(ValueError):

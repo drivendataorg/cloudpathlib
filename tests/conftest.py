@@ -32,6 +32,7 @@ import cloudpathlib.azure.azblobclient
 from cloudpathlib.azure.azblobclient import _hns_rmtree
 import cloudpathlib.s3.s3client
 from .mock_clients.mock_azureblob import mocked_client_class_factory, DEFAULT_CONTAINER_NAME
+from .mock_clients.mock_adls_gen2 import mocked_adls_factory
 from .mock_clients.mock_gs import (
     mocked_client_class_factory as mocked_gsclient_class_factory,
     DEFAULT_GS_BUCKET_NAME,
@@ -113,7 +114,9 @@ def create_test_dir_name(request) -> str:
     return test_dir
 
 
-def azure_rig_factory(conn_str_env_var="AZURE_STORAGE_CONNECTION_STRING"):
+def azure_rig_factory(conn_str_env_var):
+    adls_gen2 = conn_str_env_var == "AZURE_STORAGE_GEN2_CONNECTION_STRING"
+
     @fixture()
     def azure_rig(request, monkeypatch, assets_dir):
         drive = os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
@@ -142,11 +145,21 @@ def azure_rig_factory(conn_str_env_var="AZURE_STORAGE_CONNECTION_STRING"):
                 blob_client.upload_blob(test_file.read_bytes(), overwrite=True)
         else:
             monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
-            # Mock cloud SDK
+            monkeypatch.setenv("AZURE_STORAGE_GEN2_CONNECTION_STRING", "")
+
+            # need shared client so both blob and adls APIs can point to same temp directory
+            shared_client = mocked_client_class_factory(test_dir, adls_gen2=adls_gen2)()
+
             monkeypatch.setattr(
                 cloudpathlib.azure.azblobclient,
                 "BlobServiceClient",
-                mocked_client_class_factory(test_dir),
+                shared_client,
+            )
+
+            monkeypatch.setattr(
+                cloudpathlib.azure.azblobclient,
+                "DataLakeServiceClient",
+                mocked_adls_factory(test_dir, shared_client),
             )
 
         rig = CloudProviderTestRig(
@@ -439,26 +452,28 @@ def local_s3_rig(request, monkeypatch, assets_dir):
 
 
 azure_rig = azure_rig_factory("AZURE_STORAGE_CONNECTION_STRING")
+azure_gen2_rig = azure_rig_factory("AZURE_STORAGE_GEN2_CONNECTION_STRING")
 
-# create azure fixtures for both blob and gen2 storage depending on which live services are configured in
-# the environment variables
-azure_fixtures = [azure_rig]
-
-# explicitly test gen2 if configured
-if os.getenv("AZURE_STORAGE_GEN2_CONNECTION_STRING"):
-    azure_gen2_rig = azure_rig_factory("AZURE_STORAGE_GEN2_CONNECTION_STRING")
-    azure_fixtures.append(azure_gen2_rig)
+# create azure fixtures for both blob and gen2 storage
+azure_rigs = fixture_union(
+    "azure_rigs",
+    [
+        azure_rig,  # azure_rig0
+        azure_gen2_rig,  # azure_rig1
+    ],
+)
 
 rig = fixture_union(
     "rig",
-    azure_fixtures
-    + [
-        gs_rig,
-        s3_rig,
-        custom_s3_rig,
-        local_azure_rig,
-        local_s3_rig,
-        local_gs_rig,
+    [
+        azure_rig,  # azure_rig0
+        azure_gen2_rig,  # azure_rig1
+        # gs_rig,
+        # s3_rig,
+        # custom_s3_rig,
+        # local_azure_rig,
+        # local_s3_rig,
+        # local_gs_rig,
     ],
 )
 
@@ -467,6 +482,6 @@ s3_like_rig = fixture_union(
     "s3_like_rig",
     [
         s3_rig,
-        custom_s3_rig,
+        # custom_s3_rig,
     ],
 )

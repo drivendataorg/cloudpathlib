@@ -17,15 +17,18 @@ TEST_ASSETS = Path(__file__).parent.parent / "assets"
 DEFAULT_CONTAINER_NAME = "container"
 
 
-def mocked_client_class_factory(test_dir: str):
+def mocked_client_class_factory(test_dir: str, adls_gen2: bool = False, tmp_dir: Path = None):
+    """If tmp_dir is not None, use that one so that it can be shared with a MockedDataLakeServiceClient."""
+
     class MockBlobServiceClient:
         def __init__(self, *args, **kwargs):
             # copy test assets for reference in tests without affecting assets
-            self.tmp = TemporaryDirectory()
+            self.tmp = TemporaryDirectory() if not tmp_dir else tmp_dir
             self.tmp_path = Path(self.tmp.name) / "test_case_copy"
             shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
 
             self.metadata_cache = {}
+            self.adls_gen2 = adls_gen2
 
         @classmethod
         def from_connection_string(cls, *args, **kwargs):
@@ -61,6 +64,9 @@ def mocked_client_class_factory(test_dir: str):
             Container = namedtuple("Container", "name")
             return [Container(name=DEFAULT_CONTAINER_NAME)]
 
+        def get_account_information(self):
+            return {"is_hns_enabled": self.adls_gen2}
+
     return MockBlobServiceClient
 
 
@@ -86,6 +92,7 @@ class MockBlobClient:
                     "content_type": self.service_client.metadata_cache.get(
                         self.root / self.key, None
                     ),
+                    "metadata": dict(),
                 }
             )
         else:
@@ -148,24 +155,30 @@ class MockContainerClient:
     def list_blobs(self, name_starts_with=None):
         return mock_item_paged(self.root, name_starts_with)
 
+    def walk_blobs(self, name_starts_with=None):
+        return mock_item_paged(self.root, name_starts_with, recursive=False)
+
     def delete_blobs(self, *blobs):
         for blob in blobs:
             (self.root / blob).unlink()
             delete_empty_parents_up_to_root(path=self.root / blob, root=self.root)
 
 
-def mock_item_paged(root, name_starts_with=None):
+def mock_item_paged(root, name_starts_with=None, recursive=True):
     items = []
 
-    if not name_starts_with:
-        name_starts_with = ""
-    for f in root.glob("**/*"):
-        if (
-            (not f.name.startswith("."))
-            and f.is_file()
-            and (root / name_starts_with) in [f, *f.parents]
-        ):
-            items.append((PurePosixPath(f), f))
+    if recursive:
+        items = [
+            (PurePosixPath(f), f)
+            for f in root.glob("**/*")
+            if (
+                (not f.name.startswith("."))
+                and f.is_file()
+                and (root / name_starts_with) in [f, *f.parents]
+            )
+        ]
+    else:
+        items = [(PurePosixPath(f), f) for f in (root / name_starts_with).iterdir()]
 
     for mocked, local in items:
         # BlobProperties

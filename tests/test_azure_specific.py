@@ -32,8 +32,8 @@ def test_azureblobpath_nocreds(client_class, monkeypatch):
         client_class()
 
 
-def test_as_url(azure_rig):
-    p: AzureBlobPath = azure_rig.create_cloud_path("dir_0/file0_0.txt")
+def test_as_url(azure_rigs):
+    p: AzureBlobPath = azure_rigs.create_cloud_path("dir_0/file0_0.txt")
 
     public_url = str(p.as_url())
     public_parts = urlparse(public_url)
@@ -50,8 +50,8 @@ def test_as_url(azure_rig):
     assert "sig" in query_params
 
 
-def test_partial_download(azure_rig, monkeypatch):
-    p: AzureBlobPath = azure_rig.create_cloud_path("dir_0/file0_0.txt")
+def test_partial_download(azure_rigs, monkeypatch):
+    p: AzureBlobPath = azure_rigs.create_cloud_path("dir_0/file0_0.txt")
 
     # no partial after successful download
     p.read_text()  # downloads
@@ -69,7 +69,7 @@ def test_partial_download(azure_rig, monkeypatch):
             buffer.write(b"partial")
             raise Exception("boom")
 
-        if azure_rig.live_server:
+        if azure_rigs.live_server:
             m.setattr(StorageStreamDownloader, "readinto", _patched)
         else:
             m.setattr(MockStorageStreamDownloader, "readinto", _patched)
