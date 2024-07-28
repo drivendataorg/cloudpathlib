@@ -468,12 +468,12 @@ rig = fixture_union(
     [
         azure_rig,  # azure_rig0
         azure_gen2_rig,  # azure_rig1
-        # gs_rig,
-        # s3_rig,
-        # custom_s3_rig,
-        # local_azure_rig,
-        # local_s3_rig,
-        # local_gs_rig,
+        gs_rig,
+        s3_rig,
+        custom_s3_rig,
+        local_azure_rig,
+        local_s3_rig,
+        local_gs_rig,
     ],
 )
 
@@ -482,6 +482,6 @@ s3_like_rig = fixture_union(
     "s3_like_rig",
     [
         s3_rig,
-        # custom_s3_rig,
+        custom_s3_rig,
     ],
 )

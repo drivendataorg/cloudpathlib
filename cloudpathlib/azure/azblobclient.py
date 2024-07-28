@@ -277,7 +277,12 @@ class AzureBlobClient(Client):
                 # walk_blobs returns folders with a trailing slash
                 blob_path = blob.name.rstrip("/")
                 blob_cloud_path = self.CloudPath(f"az://{cloud_path.container}/{blob_path}")
-                yield blob_cloud_path, isinstance(blob, BlobPrefix)
+
+                yield blob_cloud_path, (
+                    isinstance(blob, BlobPrefix)
+                    if not recursive
+                    else False  # no folders from list_blobs in non-hns storage accounts
+                )
 
     def _move_file(
         self, src: AzureBlobPath, dst: AzureBlobPath, remove_src: bool = True
