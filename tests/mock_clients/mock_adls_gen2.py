@@ -1,5 +1,5 @@
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from shutil import rmtree
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.filedatalake import FileProperties
@@ -41,7 +41,7 @@ class MockedFileSystemClient:
     def get_paths(self, path, recursive=False):
         yield from (
             MockedFileClient(
-                f.relative_to(self.root), self.root, self.metadata_cache
+                PurePosixPath(f.relative_to(self.root)), self.root, self.metadata_cache
             ).get_file_properties()
             for f in (self.root / path).glob("**/*" if recursive else "*")
         )
