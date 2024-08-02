@@ -102,7 +102,7 @@ def test_content_type_setting(rig, tmpdir):
     mimes.append((".potato", "application/potato"))
 
     # see if testing custom s3 endpoint, make sure to pass the url to the constructor
-    kwargs = {}
+    kwargs = rig.required_client_kwargs.copy()
     custom_endpoint = os.getenv("CUSTOM_S3_ENDPOINT", "https://s3.us-west-1.drivendatabws.com")
     if (
         rig.client_class is S3Client

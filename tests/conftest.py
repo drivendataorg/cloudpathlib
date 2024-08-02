@@ -1,6 +1,7 @@
 import os
 from pathlib import Path, PurePosixPath
 import shutil
+from tempfile import TemporaryDirectory
 from typing import Dict, Optional
 
 from azure.storage.blob import BlobServiceClient
@@ -31,8 +32,8 @@ from cloudpathlib.local import (
 import cloudpathlib.azure.azblobclient
 from cloudpathlib.azure.azblobclient import _hns_rmtree
 import cloudpathlib.s3.s3client
-from .mock_clients.mock_azureblob import mocked_client_class_factory, DEFAULT_CONTAINER_NAME
-from .mock_clients.mock_adls_gen2 import mocked_adls_factory
+from .mock_clients.mock_azureblob import MockBlobServiceClient, DEFAULT_CONTAINER_NAME
+from .mock_clients.mock_adls_gen2 import MockedDataLakeServiceClient
 from .mock_clients.mock_gs import (
     mocked_client_class_factory as mocked_gsclient_class_factory,
     DEFAULT_GS_BUCKET_NAME,
@@ -120,6 +121,9 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
 
     live_server = os.getenv("USE_LIVE_CLOUD") == "1"
 
+    connection_kwargs = dict()
+    tmpdir = TemporaryDirectory()
+
     if live_server:
         # Set up test assets
         blob_service_client = BlobServiceClient.from_connection_string(os.getenv(conn_str_env_var))
@@ -135,23 +139,25 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
                 blob=str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
             )
             blob_client.upload_blob(test_file.read_bytes(), overwrite=True)
-    else:
-        monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
-        monkeypatch.setenv("AZURE_STORAGE_GEN2_CONNECTION_STRING", "")
 
-        # need shared client so both blob and adls APIs can point to same temp directory
-        shared_client = mocked_client_class_factory(test_dir, adls_gen2=adls_gen2)()
+        connection_kwargs["connection_string"] = os.getenv(conn_str_env_var)
+    else:
+        # pass key mocked params to clients via connection string
+        monkeypatch.setenv(
+            "AZURE_STORAGE_CONNECTION_STRING", f"{Path(tmpdir.name) / test_dir};{adls_gen2}"
+        )
+        monkeypatch.setenv("AZURE_STORAGE_GEN2_CONNECTION_STRING", "")
 
         monkeypatch.setattr(
             cloudpathlib.azure.azblobclient,
             "BlobServiceClient",
-            shared_client,
+            MockBlobServiceClient,
         )
 
         monkeypatch.setattr(
             cloudpathlib.azure.azblobclient,
             "DataLakeServiceClient",
-            mocked_adls_factory(test_dir, shared_client),
+            MockedDataLakeServiceClient,
         )
 
     rig = CloudProviderTestRig(
@@ -160,14 +166,10 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
-        required_client_kwargs=dict(
-            connection_string=os.getenv(conn_str_env_var)
-        ),  # switch on/off adls gen2
+        required_client_kwargs=connection_kwargs,
     )
 
-    rig.client_class(
-        connection_string=os.getenv(conn_str_env_var)
-    ).set_as_default_client()  # set default client
+    rig.client_class(**connection_kwargs).set_as_default_client()  # set default client
 
     # add flag for adls gen2 rig to skip some tests
     rig.is_adls_gen2 = adls_gen2
@@ -187,6 +189,9 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
             to_delete = sorted(to_delete, key=lambda b: len(b.name.split("/")), reverse=True)
 
             container_client.delete_blobs(*to_delete)
+
+    else:
+        tmpdir.cleanup()
 
 
 @fixture()

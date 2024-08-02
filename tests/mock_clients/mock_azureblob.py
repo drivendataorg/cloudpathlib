@@ -1,8 +1,8 @@
 from collections import namedtuple
 from datetime import datetime
+import json
 from pathlib import Path, PurePosixPath
 import shutil
-from tempfile import TemporaryDirectory
 
 
 from azure.storage.blob import BlobProperties
@@ -17,57 +17,82 @@ TEST_ASSETS = Path(__file__).parent.parent / "assets"
 DEFAULT_CONTAINER_NAME = "container"
 
 
-def mocked_client_class_factory(test_dir: str, adls_gen2: bool = False, tmp_dir: Path = None):
-    """If tmp_dir is not None, use that one so that it can be shared with a MockedDataLakeServiceClient."""
+class _JsonCache:
+    def __init__(self, path: Path):
+        self.path = path
 
-    class MockBlobServiceClient:
-        def __init__(self, *args, **kwargs):
-            # copy test assets for reference in tests without affecting assets
-            self.tmp = TemporaryDirectory() if not tmp_dir else tmp_dir
-            self.tmp_path = Path(self.tmp.name) / "test_case_copy"
-            shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
+        # initialize to empty
+        with self.path.open("w") as f:
+            json.dump({}, f)
 
-            self.metadata_cache = {}
-            self.adls_gen2 = adls_gen2
+    def __getitem__(self, key):
+        with self.path.open("r") as f:
+            return json.load(f)[str(key)]
 
-        @classmethod
-        def from_connection_string(cls, *args, **kwargs):
-            return cls()
+    def __setitem__(self, key, value):
+        with self.path.open("r") as f:
+            data = json.load(f)
 
-        @property
-        def account_name(self) -> str:
-            """Returns well-known account name used by Azurite
-            See: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#well-known-storage-account-and-key
-            """
-            return "devstoreaccount1"
+        with self.path.open("w") as f:
+            data[str(key)] = value
+            json.dump(data, f)
 
-        @property
-        def credential(self):
-            """Returns well-known account key used by Azurite
-            See: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#well-known-storage-account-and-key
-            """
-            return SharedKeyCredentialPolicy(
-                self.account_name,
-                "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==",
-            )
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
-        def __del__(self):
-            self.tmp.cleanup()
 
-        def get_blob_client(self, container, blob):
-            return MockBlobClient(self.tmp_path, blob, service_client=self)
+class MockBlobServiceClient:
+    def __init__(self, test_dir, adls):
+        # copy test assets for reference in tests without affecting assets
+        shutil.copytree(TEST_ASSETS, test_dir, dirs_exist_ok=True)
 
-        def get_container_client(self, container):
-            return MockContainerClient(self.tmp_path, container_name=container)
+        # root is parent of the test specific directort
+        self.root = test_dir.parent
+        self.test_dir = test_dir
 
-        def list_containers(self):
-            Container = namedtuple("Container", "name")
-            return [Container(name=DEFAULT_CONTAINER_NAME)]
+        self.metadata_cache = _JsonCache(self.root / ".metadata")
+        self.adls_gen2 = adls
 
-        def get_account_information(self):
-            return {"is_hns_enabled": self.adls_gen2}
+    @classmethod
+    def from_connection_string(cls, conn_str, credential):
+        # configured in conftest.py
+        test_dir, adls = conn_str.split(";")
+        adls = adls == "True"
+        test_dir = Path(test_dir)
+        return cls(test_dir, adls)
 
-    return MockBlobServiceClient
+    @property
+    def account_name(self) -> str:
+        """Returns well-known account name used by Azurite
+        See: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#well-known-storage-account-and-key
+        """
+        return "devstoreaccount1"
+
+    @property
+    def credential(self):
+        """Returns well-known account key used by Azurite
+        See: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#well-known-storage-account-and-key
+        """
+        return SharedKeyCredentialPolicy(
+            self.account_name,
+            "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==",
+        )
+
+    def get_blob_client(self, container, blob):
+        return MockBlobClient(self.root, blob, service_client=self)
+
+    def get_container_client(self, container):
+        return MockContainerClient(self.root, container_name=container)
+
+    def list_containers(self):
+        Container = namedtuple("Container", "name")
+        return [Container(name=DEFAULT_CONTAINER_NAME)]
+
+    def get_account_information(self):
+        return {"is_hns_enabled": self.adls_gen2}
 
 
 class MockBlobClient:
