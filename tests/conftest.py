@@ -173,6 +173,7 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
 
     # add flag for adls gen2 rig to skip some tests
     rig.is_adls_gen2 = adls_gen2
+    rig.connection_string = os.getenv(conn_str_env_var)  # used for client instantiation tests
 
     yield rig
 

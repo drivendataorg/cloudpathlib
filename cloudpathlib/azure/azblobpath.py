@@ -3,6 +3,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 
+from cloudpathlib.exceptions import CloudPathIsADirectoryError
+
 try:
     from azure.core.exceptions import ResourceNotFoundError
 except ImportError:
@@ -44,8 +46,7 @@ class AzureBlobPath(CloudPath):
         return self.client._is_file_or_dir(self) == "file"
 
     def mkdir(self, parents=False, exist_ok=False):
-        # not possible to make empty directory on blob storage
-        pass
+        self.client._mkdir(self, parents=parents, exist_ok=exist_ok)
 
     def touch(self, exist_ok: bool = True):
         if self.exists():
@@ -83,6 +84,17 @@ class AzureBlobPath(CloudPath):
                 None,  # ctime,
             )
         )
+
+    def replace(self, target: "AzureBlobPath") -> "AzureBlobPath":
+        try:
+            return super().replace(target)
+
+        # we can rename directories on ADLS Gen2
+        except CloudPathIsADirectoryError:
+            if self.client._check_hns():
+                return self.client._move_file(self, target)
+            else:
+                raise
 
     @property
     def container(self) -> str:

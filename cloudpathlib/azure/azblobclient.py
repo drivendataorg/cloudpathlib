@@ -14,6 +14,7 @@ from .azblobpath import AzureBlobPath
 
 try:
     from azure.core.exceptions import ResourceNotFoundError
+    from azure.core.credentials import AzureNamedKeyCredential
     from azure.storage.blob import (
         BlobPrefix,
         BlobSasPermissions,
@@ -54,12 +55,13 @@ class AzureBlobClient(Client):
         - Environment variable `""AZURE_STORAGE_CONNECTION_STRING"` containing connecting string
         with account credentials. See [Azure Storage SDK documentation](
         https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).
-        - Account URL via `account_url`, authenticated either with an embedded SAS token, or with
-        credentials passed to `credentials`.
         - Connection string via `connection_string`, authenticated either with an embedded SAS
         token or with credentials passed to `credentials`.
+        - Account URL via `account_url`, authenticated either with an embedded SAS token, or with
+        credentials passed to `credentials`.
         - Instantiated and already authenticated [`BlobServiceClient`](
-        https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
+        https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python) or
+        [`DataLakeServiceClient`](https://learn.microsoft.com/en-us/python/api/azure-storage-file-datalake/azure.storage.filedatalake.datalakeserviceclient).
 
         If multiple methods are used, priority order is reverse of list above (later in list takes
         priority). If no methods are used, a [`MissingCredentialsError`][cloudpathlib.exceptions.MissingCredentialsError]
@@ -102,8 +104,7 @@ class AzureBlobClient(Client):
         if connection_string is None:
             connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING", None)
 
-        self.blob_service_client = None
-        self.data_lake_client = None
+        self.data_lake_client = None  # only needs to end up being set if HNS is enabled
 
         if blob_service_client is not None:
             self.service_client = blob_service_client
@@ -111,12 +112,26 @@ class AzureBlobClient(Client):
             # create from blob service client if not passed
             if data_lake_client is None:
                 self.data_lake_client = DataLakeServiceClient(
-                    account_url=f"https://{self.service_client.account_name}.dfs.core.windows.net",
-                    credential=blob_service_client.credential,
+                    account_url=self.service_client.url.replace(".blob.", ".dfs.", 1),
+                    credential=AzureNamedKeyCredential(
+                        blob_service_client.credential.account_name,
+                        blob_service_client.credential.account_key,
+                    ),
                 )
+            else:
+                self.data_lake_client = data_lake_client
 
-        if data_lake_client is not None:
+        elif data_lake_client is not None:
             self.data_lake_client = data_lake_client
+
+            if blob_service_client is None:
+                self.service_client = BlobServiceClient(
+                    account_url=self.data_lake_client.url.replace(".dfs.", ".blob.", 1),
+                    credential=AzureNamedKeyCredential(
+                        data_lake_client.credential.account_name,
+                        data_lake_client.credential.account_key,
+                    ),
+                )
 
         elif connection_string is not None:
             self.service_client = BlobServiceClient.from_connection_string(
@@ -126,33 +141,45 @@ class AzureBlobClient(Client):
                 conn_str=connection_string, credential=credential
             )
         elif account_url is not None:
-            self.service_client = BlobServiceClient(account_url=account_url, credential=credential)
-            self.data_lake_client = DataLakeServiceClient(
-                account_url=account_url, credential=credential
-            )
+            if ".dfs." in account_url:
+                self.service_client = BlobServiceClient(
+                    account_url=account_url.replace(".dfs.", ".blob."), credential=credential
+                )
+                self.data_lake_client = DataLakeServiceClient(
+                    account_url=account_url, credential=credential
+                )
+            elif ".blob." in account_url:
+                self.service_client = BlobServiceClient(
+                    account_url=account_url, credential=credential
+                )
+                self.data_lake_client = DataLakeServiceClient(
+                    account_url=account_url.replace(".blob.", ".dfs."), credential=credential
+                )
+            else:
+                # assume default to blob; HNS not supported
+                self.service_client = BlobServiceClient(
+                    account_url=account_url, credential=credential
+                )
+
         else:
             raise MissingCredentialsError(
                 "AzureBlobClient does not support anonymous instantiation. "
                 "Credentials are required; see docs for options."
             )
 
-        self.hns_cache: Dict[str, bool] = {}
+        self._hns_enabled = None
 
-    def _check_hns(self, cloud_path: AzureBlobPath) -> bool:
-        hns_key = self.service_client.account_name + "__" + cloud_path.container
+    def _check_hns(self) -> Optional[bool]:
+        if not self._hns_enabled:
+            account_info = self.service_client.get_account_information()  # type: ignore
+            self._hns_enabled = account_info.get("is_hns_enabled", False)  # type: ignore
 
-        if hns_key not in self.hns_cache:
-            hns_enabled: bool = self.service_client.get_account_information().get(
-                "is_hns_enabled", False
-            )  # type: ignore
-            self.hns_cache[hns_key] = hns_enabled
-
-        return self.hns_cache[hns_key]
+        return self._hns_enabled
 
     def _get_metadata(
         self, cloud_path: AzureBlobPath
     ) -> Union["BlobProperties", "FileProperties", Dict[str, Any]]:
-        if self._check_hns(cloud_path):
+        if self._check_hns():
 
             # works on both files and directories
             fsc = self.data_lake_client.get_file_system_client(cloud_path.container)  # type: ignore
@@ -263,7 +290,7 @@ class AzureBlobClient(Client):
         if prefix and not prefix.endswith("/"):
             prefix += "/"
 
-        if self._check_hns(cloud_path):
+        if self._check_hns():
             file_system_client = self.data_lake_client.get_file_system_client(cloud_path.container)  # type: ignore
             paths = file_system_client.get_paths(path=cloud_path.blob, recursive=recursive)
 
@@ -300,6 +327,16 @@ class AzureBlobClient(Client):
                 metadata=dict(last_modified=str(datetime.utcnow().timestamp()))
             )
 
+        # we can use rename API same account and container on adls gen2
+        elif remove_src and (src.client is dst.client) and self._check_hns():
+            fsc = self.data_lake_client.get_file_system_client(src.container)  # type: ignore
+
+            if src.is_dir():
+                fsc.get_directory_client(src.blob).rename_directory(f"{dst.container}/{dst.blob}")
+            else:
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                fsc.get_file_client(src.blob).rename_file(f"{dst.container}/{dst.blob}")
+
         else:
             target = self.service_client.get_blob_client(container=dst.container, blob=dst.blob)
 
@@ -312,10 +349,31 @@ class AzureBlobClient(Client):
 
         return dst
 
+    def _mkdir(
+        self, cloud_path: AzureBlobPath, parents: bool = False, exist_ok: bool = False
+    ) -> None:
+        if self._check_hns():
+            file_system_client = self.data_lake_client.get_file_system_client(cloud_path.container)  # type: ignore
+            directory_client = file_system_client.get_directory_client(cloud_path.blob)
+
+            if not exist_ok and directory_client.exists():
+                raise FileExistsError(f"Directory already exists: {cloud_path}")
+
+            if not parents:
+                if not self._exists(cloud_path.parent):
+                    raise FileNotFoundError(
+                        f"Parent directory does not exist ({cloud_path.parent}). To create parent directories, use `parents=True`."
+                    )
+
+            directory_client.create_directory()
+        else:
+            # consistent with other mkdir no-op behavior on other backends if not supported
+            pass
+
     def _remove(self, cloud_path: AzureBlobPath, missing_ok: bool = True) -> None:
         file_or_dir = self._is_file_or_dir(cloud_path)
         if file_or_dir == "dir":
-            if self._check_hns(cloud_path):
+            if self._check_hns():
                 _hns_rmtree(self.data_lake_client, cloud_path.container, cloud_path.blob)
                 return
 
