@@ -500,6 +500,8 @@ def test_manual_cache_clearing(rig: CloudProviderTestRig):
     del cp
     del client
 
+    sleep(0.5)  # give time to delete
+
     assert not local_cache_path.exists()
     assert not client_cache_folder.exists()
 
