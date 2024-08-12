@@ -1,3 +1,4 @@
+import gc
 import os
 from time import sleep
 from pathlib import Path
@@ -500,6 +501,7 @@ def test_manual_cache_clearing(rig: CloudProviderTestRig):
     del cp
     del client
 
+    gc.collect()  # force gc before asserting
     sleep(0.5)  # give time to delete
 
     assert not local_cache_path.exists()
