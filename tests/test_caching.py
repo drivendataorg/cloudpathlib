@@ -4,6 +4,7 @@ from time import sleep
 from pathlib import Path
 
 import pytest
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from cloudpathlib.enums import FileCacheMode
 from cloudpathlib.exceptions import (
@@ -501,11 +502,19 @@ def test_manual_cache_clearing(rig: CloudProviderTestRig):
     del cp
     del client
 
-    gc.collect()  # force gc before asserting
-    sleep(0.5)  # give time to delete
+    # in CI there can be a lag before the cleanup actually happens
+    @retry(
+        retry=retry_if_exception_type(AssertionError),
+        wait=wait_fixed(1),
+        stop=stop_after_attempt(5),
+    )
+    def _resilient_assert():
+        gc.collect()  # force gc before asserting
 
-    assert not local_cache_path.exists()
-    assert not client_cache_folder.exists()
+        assert not local_cache_path.exists()
+        assert not client_cache_folder.exists()
+
+    _resilient_assert()
 
 
 def test_reuse_cache_after_manual_cache_clear(rig: CloudProviderTestRig):

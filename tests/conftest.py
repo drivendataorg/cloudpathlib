@@ -10,6 +10,7 @@ from dotenv import find_dotenv, load_dotenv
 from google.cloud import storage as google_storage
 from pytest_cases import fixture, fixture_union
 from shortuuid import uuid
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
 from cloudpathlib.cloudpath import implementation_registry
@@ -282,9 +283,24 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
         # idempotent and our test server on heroku only has ephemeral storage
         # so we need to try to create each time
         try:
-            s3.meta.client.head_bucket(Bucket=drive)
+            #  try a few times to spin up the bucket since the heroku worker needs some time to wake up
+            @retry(
+                stop=stop_after_attempt(5),
+                wait=wait_fixed(2),
+                retry=retry_if_exception_type(botocore.exceptions.ClientError),
+                reraise=True,
+            )
+            def _spin_up_bucket():
+                s3.meta.client.head_bucket(Bucket=drive)
+
+            _spin_up_bucket()
         except botocore.exceptions.ClientError:
-            s3.create_bucket(Bucket=drive)
+            try:
+                s3.create_bucket(Bucket=drive)
+            except botocore.exceptions.ClientError as e:
+                # ok if bucket already exists
+                if e.response["Error"]["Code"] != "BucketAlreadyOwnedByYou":
+                    raise
 
         bucket = s3.Bucket(drive)
 

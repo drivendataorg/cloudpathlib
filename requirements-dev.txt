@@ -28,6 +28,7 @@ pywin32; sys_platform == 'win32'
 rich
 shortuuid
 tabulate
+tenacity
 tqdm
 typer
 wheel
