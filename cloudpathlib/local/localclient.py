@@ -51,7 +51,7 @@ class LocalClient(Client):
         cls._default_storage_temp_dir = None
 
         # Also reset storage on default client so it uses the new temp dir
-        cls.get_default_client()._local_storage_dir = cls.get_default_storage_dir()
+        cls.get_default_client()._local_storage_dir = cls.get_default_storage_dir()  # type: ignore
 
         return cls.get_default_storage_dir()
 
