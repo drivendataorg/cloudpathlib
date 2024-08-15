@@ -512,7 +512,6 @@ def test_manual_cache_clearing(rig: CloudProviderTestRig):
     del client
 
     def _debug(path):
-        import subprocess
         import psutil
 
         # file handles on windows
