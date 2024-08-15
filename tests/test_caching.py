@@ -1,6 +1,5 @@
 import gc
 import os
-import sys
 from time import sleep
 from pathlib import Path
 
@@ -513,14 +512,6 @@ def test_manual_cache_clearing(rig: CloudProviderTestRig):
 
     def _debug(path):
         import psutil
-
-        # file handles on windows
-        if sys.platform == "win32":
-            import subprocess
-
-            result = subprocess.run(["handle.exe", path], capture_output=True, text=True)
-            print(f" HANDLES FOR {path}")
-            print(result.stdout)
 
         # processes with open files
         open_files = []
