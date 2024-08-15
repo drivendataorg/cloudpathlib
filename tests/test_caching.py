@@ -4,7 +4,12 @@ from time import sleep
 from pathlib import Path
 
 import pytest
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_random_exponential
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_random_exponential,
+)
 
 from cloudpathlib.enums import FileCacheMode
 from cloudpathlib.exceptions import (
