@@ -170,7 +170,7 @@ class AzureBlobClient(Client):
         self._hns_enabled = None
 
     def _check_hns(self) -> Optional[bool]:
-        if not self._hns_enabled:
+        if self._hns_enabled is None:
             account_info = self.service_client.get_account_information()  # type: ignore
             self._hns_enabled = account_info.get("is_hns_enabled", False)  # type: ignore
 
@@ -327,7 +327,7 @@ class AzureBlobClient(Client):
                 metadata=dict(last_modified=str(datetime.utcnow().timestamp()))
             )
 
-        # we can use rename API same account and container on adls gen2
+        # we can use rename API when the same account on adls gen2
         elif remove_src and (src.client is dst.client) and self._check_hns():
             fsc = self.data_lake_client.get_file_system_client(src.container)  # type: ignore
 

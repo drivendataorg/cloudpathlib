@@ -215,7 +215,7 @@ cp3 = CloudPath("s3://cloudpathlib-test-bucket/")
 
 Some Azure storage accounts are configured with "hierarchical namespace" enabled. This means that the storage account is backed by the Azure DataLake Storage Gen2 product rather than Azure Blob Storage. For many operations, the two are the same and one can use the Azure Blob Storage API. However, for some operations, a developer will need to use the Azure DataLake Storage API. The `AzureBlobClient` class implemented in cloudpathlib is designed to detect if hierarchical namespace is enabled and use the Azure DataLake Storage API in the places where it is necessary or it provides a performance improvement. Usually, a user of cloudpathlib will not need to know if hierarchical namespace is enabled and the storage account is backed by Azure DataLake Storage Gen2 or Azure Blob Storage.
 
-If needed, the Azure SDK provided `DataLakeServiceClient` object can be accessed via the `AzureBlobClient.data_lake_client`. The Azure SDK provided `BlobServiceClient` object can be accessed via `AzureBlobClient.blob_client`.
+If needed, the Azure SDK provided `DataLakeServiceClient` object can be accessed via the `AzureBlobClient.data_lake_client`. The Azure SDK provided `BlobServiceClient` object can be accessed via `AzureBlobClient.service_client`.
 
 
 ## Pickling `CloudPath` objects

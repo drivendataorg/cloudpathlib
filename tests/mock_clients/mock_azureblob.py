@@ -18,6 +18,10 @@ DEFAULT_CONTAINER_NAME = "container"
 
 
 class _JsonCache:
+    """Used to mock file metadata store on cloud storage; saves/writes to disk so
+    different clients can access the same metadata store.
+    """
+
     def __init__(self, path: Path):
         self.path = path
 
@@ -49,7 +53,7 @@ class MockBlobServiceClient:
         # copy test assets for reference in tests without affecting assets
         shutil.copytree(TEST_ASSETS, test_dir, dirs_exist_ok=True)
 
-        # root is parent of the test specific directort
+        # root is parent of the test specific directory
         self.root = test_dir.parent
         self.test_dir = test_dir
 
