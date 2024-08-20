@@ -452,6 +452,8 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
 
             new_also_cloud = rig.create_cloud_path("dir_0/another_cloud_file.txt")
 
+            sleep(0.1)  # at least a little different
+
             @retry(
                 retry=retry_if_exception_type(OverwriteNewerLocalError),
                 wait=wait_random_exponential(multiplier=0.5, max=5),
