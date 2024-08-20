@@ -438,13 +438,30 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
             assert p.stat().st_mtime >= new_local.stat().st_mtime
 
             # would raise if not set
-            sleep(1.01)  # give time so not equal when rounded
-            p._upload_file_to_cloud(new_local)
-            assert p.stat().st_mtime > orig_cloud_mod_time  # cloud now overwritten
+            @retry(
+                retry=retry_if_exception_type(AssertionError),
+                wait=wait_random_exponential(multiplier=0.5, max=5),
+                stop=stop_after_attempt(10),
+                reraise=True,
+            )
+            def _wait_for_cloud_newer():
+                p._upload_file_to_cloud(new_local)
+                assert p.stat().st_mtime > orig_cloud_mod_time  # cloud now overwritten
+
+            _wait_for_cloud_newer()
 
             new_also_cloud = rig.create_cloud_path("dir_0/another_cloud_file.txt")
-            sleep(1.01)  # give time so not equal when rounded
-            new_also_cloud.write_text("newer")
+
+            @retry(
+                retry=retry_if_exception_type(OverwriteNewerLocalError),
+                wait=wait_random_exponential(multiplier=0.5, max=5),
+                stop=stop_after_attempt(10),
+                reraise=True,
+            )
+            def _retry_write_until_old_enough():
+                new_also_cloud.write_text("newer")
+
+            _retry_write_until_old_enough()
 
             new_cloud_mod_time = new_also_cloud.stat().st_mtime
 
