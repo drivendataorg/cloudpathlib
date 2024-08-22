@@ -1161,7 +1161,40 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="cloudpathlib.local.localclient.LocalClient">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.local.localclient.LocalClient-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.local.localclient.LocalClient.local_storage_dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      local_storage_dir
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.local.localclient.LocalClient-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Methods
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Methods">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1778,7 +1811,40 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="cloudpathlib.local.localclient.LocalClient">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.local.localclient.LocalClient-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cloudpathlib.local.localclient.LocalClient.local_storage_dir" class="md-nav__link">
+    <span class="md-ellipsis">
+      local_storage_dir
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudpathlib.local.localclient.LocalClient-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Methods
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Methods">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -3238,7 +3304,12 @@ substitutes for normal Client subclasses when writing tests.</p>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract client for accessing objects the local filesystem. Subclasses are as a monkeypatch</span>
 <span class="sd">    substitutes for normal Client subclasses when writing tests.&quot;&quot;&quot;</span>
 
-    <span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># Class-level variable to tracks the default storage directory for this client class</span>
+    <span class="c1"># that is used if a client is instantiated without a directory being explicitly provided</span>
+    <span class="n">_default_storage_temp_dir</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">TemporaryDirectory</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Instance-level variable that tracks the local storage directory for this client</span>
+    <span class="n">_local_storage_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -3249,10 +3320,7 @@ substitutes for normal Client subclasses when writing tests.</p>
         <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="c1"># setup caching and local versions of file. use default temp dir if not provided</span>
-        <span class="k">if</span> <span class="n">local_storage_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">local_storage_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_storage_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">local_storage_dir</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span>
@@ -3262,6 +3330,10 @@ substitutes for normal Client subclasses when writing tests.</p>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_default_storage_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the default storage directory for this client class. This is used if a client</span>
+<span class="sd">        is instantiated without a storage directory being explicitly provided. In this usage,</span>
+<span class="sd">        &quot;storage&quot; refers to the local storage that simulates the cloud.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="n">TemporaryDirectory</span><span class="p">()</span>
             <span class="n">_temp_dirs_to_clean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span><span class="p">)</span>
@@ -3269,17 +3341,34 @@ substitutes for normal Client subclasses when writing tests.</p>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">reset_default_storage_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the default storage directly. This tears down and recreates the directory used by</span>
+<span class="sd">        default for this client class when instantiating a client without explicitly providing</span>
+<span class="sd">        a storage directory. In this usage, &quot;storage&quot; refers to the local storage that simulates</span>
+<span class="sd">        the cloud.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">local_storage_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The local directory where files are stored for this client. This storage directory is</span>
+<span class="sd">        the one that simulates the cloud. If no storage directory was provided on instantiating the</span>
+<span class="sd">        client, the default storage directory for this client class is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># No explicit local storage was provided on instantiating the client.</span>
+            <span class="c1"># Use the default storage directory for this class.</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_cloud_path_to_local</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">/</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">_no_prefix</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_storage_dir</span> <span class="o">/</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">_no_prefix</span>
 
     <span class="k">def</span> <span class="nf">_local_to_cloud_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">:</span>
         <span class="n">local_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
         <span class="n">cloud_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">path_class</span><span class="o">.</span><span class="n">cloud_prefix</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">PurePosixPath</span><span class="p">(</span><span class="n">local_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">PurePosixPath</span><span class="p">(</span><span class="n">local_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_storage_dir</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_download_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
@@ -3310,15 +3399,9 @@ substitutes for normal Client subclasses when writing tests.</p>
     <span class="k">def</span> <span class="nf">_list_dir</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;LocalPath&quot;</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
-        <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span>
-                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_to_cloud_path</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dir</span><span class="p">())</span>
-                <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*&quot;</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_to_cloud_path</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dir</span><span class="p">())</span>
-            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span>
-        <span class="p">)</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="s2">&quot;**/*&quot;</span> <span class="k">if</span> <span class="n">recursive</span> <span class="k">else</span> <span class="s2">&quot;*&quot;</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">pattern</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_to_cloud_path</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dir</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">_md5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">md5</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
@@ -3405,17 +3488,42 @@ substitutes for normal Client subclasses when writing tests.</p>
 
 
 
+<h6 id="cloudpathlib.local.localclient.LocalClient-attributes">Attributes<a href="#cloudpathlib.local.localclient.LocalClient-attributes" class="headerlink" title="Permanent link">&para;</a></h6>
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h7 id="cloudpathlib.local.localclient.LocalClient.local_storage_dir" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Path</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.local.localclient.LocalClient.local_storage_dir" class="headerlink" title="Permanent link">&para;</a></h7>
+
+    <div class="doc doc-contents ">
+
+      <p>The local directory where files are stored for this client. This storage directory is
+the one that simulates the cloud. If no storage directory was provided on instantiating the
+client, the default storage directory for this client class is used.</p>
+    </div>
+
+  </div>
 
 
 
 
+<h6 id="cloudpathlib.local.localclient.LocalClient-methods">Methods<a href="#cloudpathlib.local.localclient.LocalClient-methods" class="headerlink" title="Permanent link">&para;</a></h6>
 
   <div class="doc doc-object doc-method">
 
 
 
 <h7 id="cloudpathlib.local.localclient.LocalClient.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">cloudpathlib</span><span class="o">.</span><span class="n">enums</span><span class="o">.</span><span class="n">FileCacheMode</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7f71efc8c700</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">cloudpathlib</span><span class="o">.</span><span class="n">enums</span><span class="o">.</span><span class="n">FileCacheMode</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7f19d61a0700</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -3437,10 +3545,7 @@ substitutes for normal Client subclasses when writing tests.</p>
     <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="c1"># setup caching and local versions of file. use default temp dir if not provided</span>
-    <span class="k">if</span> <span class="n">local_storage_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">local_storage_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_storage_dir</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">local_storage_dir</span>
 
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
         <span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span>
@@ -3470,11 +3575,18 @@ substitutes for normal Client subclasses when writing tests.</p>
 
     <div class="doc doc-contents ">
 
+      <p>Return the default storage directory for this client class. This is used if a client
+is instantiated without a storage directory being explicitly provided. In this usage,
+"storage" refers to the local storage that simulates the cloud.</p>
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/local/localclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">get_default_storage_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the default storage directory for this client class. This is used if a client</span>
+<span class="sd">    is instantiated without a storage directory being explicitly provided. In this usage,</span>
+<span class="sd">    &quot;storage&quot; refers to the local storage that simulates the cloud.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="n">TemporaryDirectory</span><span class="p">()</span>
         <span class="n">_temp_dirs_to_clean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span><span class="p">)</span>
@@ -3502,11 +3614,20 @@ substitutes for normal Client subclasses when writing tests.</p>
 
     <div class="doc doc-contents ">
 
+      <p>Reset the default storage directly. This tears down and recreates the directory used by
+default for this client class when instantiating a client without explicitly providing
+a storage directory. In this usage, "storage" refers to the local storage that simulates
+the cloud.</p>
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/local/localclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">reset_default_storage_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reset the default storage directly. This tears down and recreates the directory used by</span>
+<span class="sd">    default for this client class when instantiating a client without explicitly providing</span>
+<span class="sd">    a storage directory. In this usage, &quot;storage&quot; refers to the local storage that simulates</span>
+<span class="sd">    the cloud.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
 </code></pre></div>
@@ -4153,7 +4274,12 @@ substitutes for normal Client subclasses when writing tests.</p>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract client for accessing objects the local filesystem. Subclasses are as a monkeypatch</span>
 <span class="sd">    substitutes for normal Client subclasses when writing tests.&quot;&quot;&quot;</span>
 
-    <span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># Class-level variable to tracks the default storage directory for this client class</span>
+    <span class="c1"># that is used if a client is instantiated without a directory being explicitly provided</span>
+    <span class="n">_default_storage_temp_dir</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">TemporaryDirectory</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Instance-level variable that tracks the local storage directory for this client</span>
+    <span class="n">_local_storage_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -4164,10 +4290,7 @@ substitutes for normal Client subclasses when writing tests.</p>
         <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="c1"># setup caching and local versions of file. use default temp dir if not provided</span>
-        <span class="k">if</span> <span class="n">local_storage_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">local_storage_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_storage_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">local_storage_dir</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span>
@@ -4177,6 +4300,10 @@ substitutes for normal Client subclasses when writing tests.</p>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_default_storage_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the default storage directory for this client class. This is used if a client</span>
+<span class="sd">        is instantiated without a storage directory being explicitly provided. In this usage,</span>
+<span class="sd">        &quot;storage&quot; refers to the local storage that simulates the cloud.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="n">TemporaryDirectory</span><span class="p">()</span>
             <span class="n">_temp_dirs_to_clean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span><span class="p">)</span>
@@ -4184,17 +4311,34 @@ substitutes for normal Client subclasses when writing tests.</p>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">reset_default_storage_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the default storage directly. This tears down and recreates the directory used by</span>
+<span class="sd">        default for this client class when instantiating a client without explicitly providing</span>
+<span class="sd">        a storage directory. In this usage, &quot;storage&quot; refers to the local storage that simulates</span>
+<span class="sd">        the cloud.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">local_storage_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The local directory where files are stored for this client. This storage directory is</span>
+<span class="sd">        the one that simulates the cloud. If no storage directory was provided on instantiating the</span>
+<span class="sd">        client, the default storage directory for this client class is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># No explicit local storage was provided on instantiating the client.</span>
+            <span class="c1"># Use the default storage directory for this class.</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_cloud_path_to_local</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">/</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">_no_prefix</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_storage_dir</span> <span class="o">/</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">_no_prefix</span>
 
     <span class="k">def</span> <span class="nf">_local_to_cloud_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">:</span>
         <span class="n">local_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
         <span class="n">cloud_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">path_class</span><span class="o">.</span><span class="n">cloud_prefix</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">PurePosixPath</span><span class="p">(</span><span class="n">local_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">PurePosixPath</span><span class="p">(</span><span class="n">local_path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">local_storage_dir</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_download_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
@@ -4225,15 +4369,9 @@ substitutes for normal Client subclasses when writing tests.</p>
     <span class="k">def</span> <span class="nf">_list_dir</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="s2">&quot;LocalPath&quot;</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
-        <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span>
-                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_to_cloud_path</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dir</span><span class="p">())</span>
-                <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;**/*&quot;</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_to_cloud_path</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dir</span><span class="p">())</span>
-            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span>
-        <span class="p">)</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="s2">&quot;**/*&quot;</span> <span class="k">if</span> <span class="n">recursive</span> <span class="k">else</span> <span class="s2">&quot;*&quot;</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">pattern</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_local_to_cloud_path</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dir</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">_md5</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="s2">&quot;LocalPath&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">md5</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cloud_path_to_local</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
@@ -4320,17 +4458,42 @@ substitutes for normal Client subclasses when writing tests.</p>
 
 
 
+<h2 id="cloudpathlib.local.localclient.LocalClient-attributes">Attributes<a href="#cloudpathlib.local.localclient.LocalClient-attributes" class="headerlink" title="Permanent link">&para;</a></h2>
+
+  <div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="cloudpathlib.local.localclient.LocalClient.local_storage_dir" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Path</span></code>
+
+  <span class="doc doc-properties">
+      <small class="doc doc-property doc-property-property"><code>property</code></small>
+      <small class="doc doc-property doc-property-readonly"><code>readonly</code></small>
+  </span>
+
+<a href="#cloudpathlib.local.localclient.LocalClient.local_storage_dir" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+      <p>The local directory where files are stored for this client. This storage directory is
+the one that simulates the cloud. If no storage directory was provided on instantiating the
+client, the default storage directory for this client class is used.</p>
+    </div>
+
+  </div>
 
 
 
 
+<h2 id="cloudpathlib.local.localclient.LocalClient-methods">Methods<a href="#cloudpathlib.local.localclient.LocalClient-methods" class="headerlink" title="Permanent link">&para;</a></h2>
 
   <div class="doc doc-object doc-method">
 
 
 
 <h3 id="cloudpathlib.local.localclient.LocalClient.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">cloudpathlib</span><span class="o">.</span><span class="n">enums</span><span class="o">.</span><span class="n">FileCacheMode</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7f71efc8c700</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">local_storage_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">cloudpathlib</span><span class="o">.</span><span class="n">enums</span><span class="o">.</span><span class="n">FileCacheMode</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7f19d61a0700</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -4352,10 +4515,7 @@ substitutes for normal Client subclasses when writing tests.</p>
     <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="c1"># setup caching and local versions of file. use default temp dir if not provided</span>
-    <span class="k">if</span> <span class="n">local_storage_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">local_storage_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_storage_dir</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_local_storage_dir</span> <span class="o">=</span> <span class="n">local_storage_dir</span>
 
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
         <span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span>
@@ -4385,11 +4545,18 @@ substitutes for normal Client subclasses when writing tests.</p>
 
     <div class="doc doc-contents ">
 
+      <p>Return the default storage directory for this client class. This is used if a client
+is instantiated without a storage directory being explicitly provided. In this usage,
+"storage" refers to the local storage that simulates the cloud.</p>
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/local/localclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">get_default_storage_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the default storage directory for this client class. This is used if a client</span>
+<span class="sd">    is instantiated without a storage directory being explicitly provided. In this usage,</span>
+<span class="sd">    &quot;storage&quot; refers to the local storage that simulates the cloud.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="n">TemporaryDirectory</span><span class="p">()</span>
         <span class="n">_temp_dirs_to_clean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span><span class="p">)</span>
@@ -4417,11 +4584,20 @@ substitutes for normal Client subclasses when writing tests.</p>
 
     <div class="doc doc-contents ">
 
+      <p>Reset the default storage directly. This tears down and recreates the directory used by
+default for this client class when instantiating a client without explicitly providing
+a storage directory. In this usage, "storage" refers to the local storage that simulates
+the cloud.</p>
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/local/localclient.py</code></summary>
           <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span> <span class="nf">reset_default_storage_dir</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reset the default storage directly. This tears down and recreates the directory used by</span>
+<span class="sd">    default for this client class when instantiating a client without explicitly providing</span>
+<span class="sd">    a storage directory. In this usage, &quot;storage&quot; refers to the local storage that simulates</span>
+<span class="sd">    the cloud.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="bp">cls</span><span class="o">.</span><span class="n">_default_storage_temp_dir</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_default_storage_dir</span><span class="p">()</span>
 </code></pre></div>

@@ -1574,16 +1574,23 @@
 <ul>
 <li>Allow <code>CloudPath</code> objects to be loaded/dumped through pickle format repeatedly. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/450">#450</a>)</li>
 <li>Fixes typo in <code>FileCacheMode</code> where values were being filled by envvar <code>CLOUPATHLIB_FILE_CACHE_MODE</code> instead of <code>CLOUDPATHLIB_FILE_CACHE_MODE</code>. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/424">#424</a></li>
-<li>Fix <code>CloudPath</code> cleanup via <code>CloudPath.__del__</code> when <code>Client</code> encounters an exception during initialization and does not create a <code>file_cache_mode</code> attribute. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/372">#372</a>, thanks to <a href="https://github.com/bryanwweber">@bryanwweber</a>) </li>
+<li>Fix <code>CloudPath</code> cleanup via <code>CloudPath.__del__</code> when <code>Client</code> encounters an exception during initialization and does not create a <code>file_cache_mode</code> attribute. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/372">#372</a>, thanks to <a href="https://github.com/bryanwweber">@bryanwweber</a>)</li>
 <li>Drop support for Python 3.7; pin minimal <code>boto3</code> version to Python 3.8+ versions. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/407">#407</a>)</li>
 <li>fix: use native <code>exists()</code> method in <code>GSClient</code>. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/420">#420</a>)</li>
 <li>Enhancement: lazy instantiation of default client (PR <a href="https://github.com/drivendataorg/cloudpathlib/issues/432">#432</a>, Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/428">#428</a>)</li>
 <li>Adds existence check before downloading in <code>download_to</code> (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/430">#430</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/432">#432</a>)</li>
 <li>Add env vars <code>CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD</code> and <code>CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD</code>. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/393">#393</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/437">#437</a>)</li>
+<li>Fixed <code>glob</code> for <code>cloudpathlib.local.LocalPath</code> and subclass implementations to match behavior of cloud versions for parity in testing. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/415">#415</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/436">PR #436</a>)</li>
+<li>Changed how <code>cloudpathlib.local.LocalClient</code> and subclass implementations track the default local storage directory (used to simulate the cloud) used when no local storage directory is explicitly provided. (<a href="https://github.com/drivendataorg/cloudpathlib/pull/436">PR #436</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/462">PR #462</a>)<ul>
+<li>Changed <code>LocalClient</code> so that client instances using the default storage access the default local storage directory through the <code>get_default_storage_dir</code> rather than having an explicit reference to the path set at instantiation. This means that calling <code>get_default_storage_dir</code> will reset the local storage for all clients using the default local storage, whether the client has already been instantiated or is instantiated after resetting. This fixes unintuitive behavior where <code>reset_local_storage</code> did not reset local storage when using the default client. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/414">#414</a>)</li>
+<li>Added a new <code>local_storage_dir</code> property to <code>LocalClient</code>. This will return the current local storage directory used by that client instance.
+by reference through the `get_default_ rather than with an explicit.</li>
+</ul>
+</li>
 </ul>
 <h2 id="v0181-2024-02-26">v0.18.1 (2024-02-26)<a class="headerlink" href="#v0181-2024-02-26" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Fixed import error due to incompatible <code>google-cloud-storage</code> by not using <code>transfer_manager</code> if it is not available. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/408">Issue #408</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/410">PR #410</a>) </li>
+<li>Fixed import error due to incompatible <code>google-cloud-storage</code> by not using <code>transfer_manager</code> if it is not available. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/408">Issue #408</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/410">PR #410</a>)</li>
 </ul>
 <p>Includes all changes from v0.18.0.</p>
 <p><strong>Note: This is the last planned Python 3.7 compatible release version.</strong></p>
