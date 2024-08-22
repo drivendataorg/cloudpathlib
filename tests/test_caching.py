@@ -520,27 +520,11 @@ def test_manual_cache_clearing(rig: CloudProviderTestRig):
 
     assert len(list(filter(lambda x: x.is_file(), client._local_cache_dir.rglob("*")))) == 0
 
-    # Enable debugging for garbage collection
-    gc.callbacks.append(lambda event, args: print(f"GC {event} - {args}"))
-
     # also removes containing folder on client cleanted up
     local_cache_path = cp._local
     client_cache_folder = client._local_cache_dir
     del cp
     del client
-
-    def _debug(path):
-        import psutil
-
-        # processes with open files
-        open_files = []
-        for proc in psutil.process_iter(["pid", "name", "open_files"]):
-            for file in proc.info["open_files"] or []:
-                if path in file.path:
-                    open_files.append((proc.info["pid"], proc.info["name"], file.path))
-
-        print(f" OPEN FILES INFO FOR {path}")
-        print(open_files)
 
     # in CI there can be a lag before the cleanup actually happens
     @retry(
@@ -550,17 +534,12 @@ def test_manual_cache_clearing(rig: CloudProviderTestRig):
         reraise=True,
     )
     def _resilient_assert():
-        _debug(str(local_cache_path.resolve()))
-        _debug(str(client_cache_folder.resolve()))
-
         gc.collect()  # force gc before asserting
 
         assert not local_cache_path.exists()
         assert not client_cache_folder.exists()
 
     _resilient_assert()
-
-    gc.callbacks.pop()
 
 
 def test_reuse_cache_after_manual_cache_clear(rig: CloudProviderTestRig):
