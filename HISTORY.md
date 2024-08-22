@@ -1,17 +1,17 @@
 # cloudpathlib Changelog
 
-## v0.19.0
+## v0.19.0 (2024-08-22)
 
-- Allow `CloudPath` objects to be loaded/dumped through pickle format repeatedly. (Issue [#450](https://github.com/drivendataorg/cloudpathlib/issues/450))
-- Fixes typo in `FileCacheMode` where values were being filled by envvar `CLOUPATHLIB_FILE_CACHE_MODE` instead of `CLOUDPATHLIB_FILE_CACHE_MODE`. (PR [#424](https://github.com/drivendataorg/cloudpathlib/pull/424)
-- Fix `CloudPath` cleanup via `CloudPath.__del__` when `Client` encounters an exception during initialization and does not create a `file_cache_mode` attribute. (Issue [#372](https://github.com/drivendataorg/cloudpathlib/issues/372), thanks to [@bryanwweber](https://github.com/bryanwweber))
-- Drop support for Python 3.7; pin minimal `boto3` version to Python 3.8+ versions. (PR [#407](https://github.com/drivendataorg/cloudpathlib/pull/407))
-- fix: use native `exists()` method in `GSClient`. (PR [#420](https://github.com/drivendataorg/cloudpathlib/pull/420))
-- Enhancement: lazy instantiation of default client (PR [#432](https://github.com/drivendataorg/cloudpathlib/issues/432), Issue [#428](https://github.com/drivendataorg/cloudpathlib/issues/428))
-- Adds existence check before downloading in `download_to` (Issue [#430](https://github.com/drivendataorg/cloudpathlib/issues/430), PR [#432](https://github.com/drivendataorg/cloudpathlib/pull/432))
-- Add env vars `CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD` and `CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD`. (Issue [#393](https://github.com/drivendataorg/cloudpathlib/issues/393), PR [#437](https://github.com/drivendataorg/cloudpathlib/pull/437))
-- Fixed `glob` for `cloudpathlib.local.LocalPath` and subclass implementations to match behavior of cloud versions for parity in testing. (Issue [#415](https://github.com/drivendataorg/cloudpathlib/issues/415), [PR #436](https://github.com/drivendataorg/cloudpathlib/pull/436))
-- Changed how `cloudpathlib.local.LocalClient` and subclass implementations track the default local storage directory (used to simulate the cloud) used when no local storage directory is explicitly provided. ([PR #436](https://github.com/drivendataorg/cloudpathlib/pull/436), [PR #462](https://github.com/drivendataorg/cloudpathlib/pull/462))
+- Fixed an error that occurred when loading and dumping `CloudPath` objects using pickle multiple times. (Issue [#450](https://github.com/drivendataorg/cloudpathlib/issues/450), PR [#454](https://github.com/drivendataorg/cloudpathlib/pull/454), thanks to [@kujenga](https://github.com/kujenga))
+- Fixed typo in `FileCacheMode` where values were being filled by environment variable `CLOUPATHLIB_FILE_CACHE_MODE` instead of `CLOUDPATHLIB_FILE_CACHE_MODE`. (PR [#424](https://github.com/drivendataorg/cloudpathlib/pull/424), thanks to [@mynameisfiber](https://github.com/drivendataorg/cloudpathlib/pull/424))
+- Fixed `CloudPath` cleanup via `CloudPath.__del__` when `Client` encounters an exception during initialization and does not create a `file_cache_mode` attribute. (Issue [#372](https://github.com/drivendataorg/cloudpathlib/issues/372), thanks to [@bryanwweber](https://github.com/bryanwweber))
+- Removed support for Python 3.7 and pinned minimal `boto3` version to Python 3.8+ versions. (PR [#407](https://github.com/drivendataorg/cloudpathlib/pull/407))
+- Changed `GSClient` to use the native `exists()` method from the Google Cloud Storage SDK. (PR [#420](https://github.com/drivendataorg/cloudpathlib/pull/420), thanks to [@bachya](https://github.com/bachya))
+- Changed default clients to be lazily instantiated (Issue [#428](https://github.com/drivendataorg/cloudpathlib/issues/428), PR [#432](https://github.com/drivendataorg/cloudpathlib/issues/432))
+- Fixed `download_to` to check for the existence of the cloud file (Issue [#430](https://github.com/drivendataorg/cloudpathlib/issues/430), PR [#433](https://github.com/drivendataorg/cloudpathlib/pull/433))
+- Added env vars `CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD` and `CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD`. (Issue [#393](https://github.com/drivendataorg/cloudpathlib/issues/393), PR [#437](https://github.com/drivendataorg/cloudpathlib/pull/437))
+- Fixed `glob` for `cloudpathlib.local.LocalPath` and subclass implementations to match behavior of cloud versions for parity in testing. (Issue [#415](https://github.com/drivendataorg/cloudpathlib/issues/415), PR [#436](https://github.com/drivendataorg/cloudpathlib/pull/436))
+- Changed how `cloudpathlib.local.LocalClient` and subclass implementations track the default local storage directory (used to simulate the cloud) used when no local storage directory is explicitly provided. (PR [#436](https://github.com/drivendataorg/cloudpathlib/pull/436), PR [#462](https://github.com/drivendataorg/cloudpathlib/pull/462))
     - Changed `LocalClient` so that client instances using the default storage access the default local storage directory through the `get_default_storage_dir` rather than having an explicit reference to the path set at instantiation. This means that calling `get_default_storage_dir` will reset the local storage for all clients using the default local storage, whether the client has already been instantiated or is instantiated after resetting. This fixes unintuitive behavior where `reset_local_storage` did not reset local storage when using the default client. (Issue [#414](https://github.com/drivendataorg/cloudpathlib/issues/414))
     - Added a new `local_storage_dir` property to `LocalClient`. This will return the current local storage directory used by that client instance.
     by reference through the `get_default_ rather than with an explicit.
