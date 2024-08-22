@@ -59,6 +59,8 @@ def test_default_storage_dir(client_class, monkeypatch):
     p1.write_text("hello")
     assert p1.exists()
     assert p1.read_text() == "hello"
+
+    # p2 uses a new client, but the simulated "cloud" should be the same
     assert p2.exists()
     assert p2.read_text() == "hello"
 
@@ -76,16 +78,51 @@ def test_reset_default_storage_dir(client_class, monkeypatch):
     cloud_prefix = client_class._cloud_meta.path_class.cloud_prefix
 
     p1 = client_class().CloudPath(f"{cloud_prefix}drive/file.txt")
-    client_class.reset_default_storage_dir()
-    p2 = client_class().CloudPath(f"{cloud_prefix}drive/file.txt")
-
     assert not p1.exists()
-    assert not p2.exists()
-
     p1.write_text("hello")
     assert p1.exists()
     assert p1.read_text() == "hello"
+
+    client_class.reset_default_storage_dir()
+
+    # We've reset the default storage directory, so the file should be gone
+    assert not p1.exists()
+
+    # Also should be gone for p2, which uses a new client that is still using default storage dir
+    p2 = client_class().CloudPath(f"{cloud_prefix}drive/file.txt")
     assert not p2.exists()
 
     # clean up
     client_class.reset_default_storage_dir()
+
+
+def test_reset_default_storage_dir_with_default_client():
+    """Test that reset_default_storage_dir resets the storage used by all clients that are using
+    the default storage directory, such as the default client.
+
+    Regression test for https://github.com/drivendataorg/cloudpathlib/issues/414
+    """
+    # try default client instantiation
+    from cloudpathlib.local import LocalS3Path, LocalS3Client
+
+    s3p = LocalS3Path("s3://drive/file.txt")
+    assert not s3p.exists()
+    s3p.write_text("hello")
+    assert s3p.exists()
+
+    LocalS3Client.reset_default_storage_dir()
+    s3p2 = LocalS3Path("s3://drive/file.txt")
+    assert not s3p2.exists()
+
+
+@pytest.mark.parametrize("client_class", [LocalAzureBlobClient, LocalGSClient, LocalS3Client])
+def test_glob_matches(client_class, monkeypatch):
+    if client_class is LocalAzureBlobClient:
+        monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
+
+    cloud_prefix = client_class._cloud_meta.path_class.cloud_prefix
+    p = client_class().CloudPath(f"{cloud_prefix}drive/not/exist")
+    p.mkdir(parents=True)
+
+    # match CloudPath, which returns empty; not glob module, which raises
+    assert list(p.glob("*")) == []

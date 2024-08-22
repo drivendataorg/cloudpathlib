@@ -6,7 +6,7 @@ from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
 from time import sleep
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
 
 from ..client import Client
 from ..enums import FileCacheMode
@@ -17,7 +17,12 @@ class LocalClient(Client):
     """Abstract client for accessing objects the local filesystem. Subclasses are as a monkeypatch
     substitutes for normal Client subclasses when writing tests."""
 
-    _default_storage_temp_dir = None
+    # Class-level variable to tracks the default storage directory for this client class
+    # that is used if a client is instantiated without a directory being explicitly provided
+    _default_storage_temp_dir: ClassVar[Optional[TemporaryDirectory]] = None
+
+    # Instance-level variable that tracks the local storage directory for this client
+    _local_storage_dir: Optional[Union[str, os.PathLike]]
 
     def __init__(
         self,
@@ -28,10 +33,7 @@ class LocalClient(Client):
         content_type_method: Optional[Callable] = mimetypes.guess_type,
         **kwargs,
     ):
-        # setup caching and local versions of file. use default temp dir if not provided
-        if local_storage_dir is None:
-            local_storage_dir = self.get_default_storage_dir()
-        self._local_storage_dir = Path(local_storage_dir)
+        self._local_storage_dir = local_storage_dir
 
         super().__init__(
             local_cache_dir=local_cache_dir,
@@ -41,6 +43,10 @@ class LocalClient(Client):
 
     @classmethod
     def get_default_storage_dir(cls) -> Path:
+        """Return the default storage directory for this client class. This is used if a client
+        is instantiated without a storage directory being explicitly provided. In this usage,
+        "storage" refers to the local storage that simulates the cloud.
+        """
         if cls._default_storage_temp_dir is None:
             cls._default_storage_temp_dir = TemporaryDirectory()
             _temp_dirs_to_clean.append(cls._default_storage_temp_dir)
@@ -48,17 +54,34 @@ class LocalClient(Client):
 
     @classmethod
     def reset_default_storage_dir(cls) -> Path:
+        """Reset the default storage directly. This tears down and recreates the directory used by
+        default for this client class when instantiating a client without explicitly providing
+        a storage directory. In this usage, "storage" refers to the local storage that simulates
+        the cloud.
+        """
         cls._default_storage_temp_dir = None
         return cls.get_default_storage_dir()
 
+    @property
+    def local_storage_dir(self) -> Path:
+        """The local directory where files are stored for this client. This storage directory is
+        the one that simulates the cloud. If no storage directory was provided on instantiating the
+        client, the default storage directory for this client class is used.
+        """
+        if self._local_storage_dir is None:
+            # No explicit local storage was provided on instantiating the client.
+            # Use the default storage directory for this class.
+            return self.get_default_storage_dir()
+        return Path(self._local_storage_dir)
+
     def _cloud_path_to_local(self, cloud_path: "LocalPath") -> Path:
-        return self._local_storage_dir / cloud_path._no_prefix
+        return self.local_storage_dir / cloud_path._no_prefix
 
     def _local_to_cloud_path(self, local_path: Union[str, os.PathLike]) -> "LocalPath":
         local_path = Path(local_path)
         cloud_prefix = self._cloud_meta.path_class.cloud_prefix
         return self.CloudPath(
-            f"{cloud_prefix}{PurePosixPath(local_path.relative_to(self._local_storage_dir))}"
+            f"{cloud_prefix}{PurePosixPath(local_path.relative_to(self.local_storage_dir))}"
         )
 
     def _download_file(self, cloud_path: "LocalPath", local_path: Union[str, os.PathLike]) -> Path:
@@ -89,15 +112,9 @@ class LocalClient(Client):
     def _list_dir(
         self, cloud_path: "LocalPath", recursive=False
     ) -> Iterable[Tuple["LocalPath", bool]]:
-        if recursive:
-            return (
-                (self._local_to_cloud_path(obj), obj.is_dir())
-                for obj in self._cloud_path_to_local(cloud_path).glob("**/*")
-            )
-        return (
-            (self._local_to_cloud_path(obj), obj.is_dir())
-            for obj in self._cloud_path_to_local(cloud_path).iterdir()
-        )
+        pattern = "**/*" if recursive else "*"
+        for obj in self._cloud_path_to_local(cloud_path).glob(pattern):
+            yield (self._local_to_cloud_path(obj), obj.is_dir())
 
     def _md5(self, cloud_path: "LocalPath") -> str:
         return md5(self._cloud_path_to_local(cloud_path).read_bytes()).hexdigest()

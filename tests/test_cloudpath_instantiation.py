@@ -92,6 +92,9 @@ def test_dependencies_not_loaded(rig, monkeypatch):
     with pytest.raises(MissingDependenciesError):
         rig.create_cloud_path("dir_0/file0_0.txt")
 
+    # manual reset for teardown order so teardown doesn't fail
+    monkeypatch.setattr(rig.path_class._cloud_meta, "dependencies_loaded", True)
+
 
 def test_is_pathlike(rig):
     p = rig.create_cloud_path("dir_0")
