@@ -1,6 +1,6 @@
 # cloudpathlib Changelog
 
-## UNRELEASED
+## v0.19.0
 
 - Allow `CloudPath` objects to be loaded/dumped through pickle format repeatedly. (Issue [#450](https://github.com/drivendataorg/cloudpathlib/issues/450))
 - Fixes typo in `FileCacheMode` where values were being filled by envvar `CLOUPATHLIB_FILE_CACHE_MODE` instead of `CLOUDPATHLIB_FILE_CACHE_MODE`. (PR [#424](https://github.com/drivendataorg/cloudpathlib/pull/424)
