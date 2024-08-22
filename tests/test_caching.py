@@ -455,19 +455,19 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
             sleep(0.1)  # at least a little different
 
             @retry(
-                retry=retry_if_exception_type(OverwriteNewerLocalError),
+                retry=retry_if_exception_type((OverwriteNewerLocalError, AssertionError)),
                 wait=wait_random_exponential(multiplier=0.5, max=5),
                 stop=stop_after_attempt(10),
                 reraise=True,
             )
             def _retry_write_until_old_enough():
                 new_also_cloud.write_text("newer")
+                new_cloud_mod_time = new_also_cloud.stat().st_mtime
+                assert p.stat().st_mtime < new_cloud_mod_time  # would raise if not set
+                return new_cloud_mod_time
 
-            _retry_write_until_old_enough()
+            new_cloud_mod_time = _retry_write_until_old_enough()
 
-            new_cloud_mod_time = new_also_cloud.stat().st_mtime
-
-            assert p.stat().st_mtime < new_cloud_mod_time  # would raise if not set
             p.copy(new_also_cloud)
             assert new_also_cloud.stat().st_mtime >= new_cloud_mod_time
 
