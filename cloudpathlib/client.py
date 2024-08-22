@@ -5,7 +5,9 @@ from pathlib import Path
 import shutil
 from tempfile import TemporaryDirectory
 from typing import Generic, Callable, Iterable, Optional, Tuple, TypeVar, Union
+import weakref
 
+from .cache_utils import _clear_cache
 from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 from .enums import FileCacheMode
 from .exceptions import InvalidConfigurationException
@@ -24,6 +26,18 @@ def register_client_class(key: str) -> Callable:
         return cls
 
     return decorator
+
+
+def _client_finalizer(file_cache_mode: FileCacheMode, _local_cache_dir) -> None:
+    if file_cache_mode in [
+        FileCacheMode.tmp_dir,
+        FileCacheMode.close_file,
+        FileCacheMode.cloudpath_object,
+    ]:
+        _clear_cache(_local_cache_dir)
+
+        if _local_cache_dir.exists():
+            _local_cache_dir.rmdir()
 
 
 class Client(abc.ABC, Generic[BoundedCloudPath]):
@@ -82,18 +96,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
 
         self.file_cache_mode = file_cache_mode
 
-    def __del__(self) -> None:
-        # remove containing dir, even if a more aggressive strategy
-        # removed the actual files
-        if getattr(self, "file_cache_mode", None) in [
-            FileCacheMode.tmp_dir,
-            FileCacheMode.close_file,
-            FileCacheMode.cloudpath_object,
-        ]:
-            self.clear_cache()
-
-            if self._local_cache_dir.exists():
-                self._local_cache_dir.rmdir()
+        weakref.finalize(self, _client_finalizer, self.file_cache_mode, self._local_cache_dir)
 
     @classmethod
     def get_default_client(cls) -> "Client":
