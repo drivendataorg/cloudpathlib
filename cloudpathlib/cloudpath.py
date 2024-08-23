@@ -2,6 +2,7 @@ import abc
 from collections import defaultdict
 import collections.abc
 from contextlib import contextmanager
+from io import BufferedRandom, BufferedReader, BufferedWriter, FileIO, TextIOWrapper
 import os
 from pathlib import (  # type: ignore
     Path,
@@ -14,6 +15,8 @@ from pathlib import (  # type: ignore
 import shutil
 import sys
 from typing import (
+    BinaryIO,
+    Literal,
     overload,
     Any,
     Callable,
@@ -33,6 +36,14 @@ from typing import (
 )
 from urllib.parse import urlparse
 from warnings import warn
+
+from cloudpathlib.typing import (
+    OpenBinaryMode,
+    OpenBinaryModeReading,
+    OpenBinaryModeUpdating,
+    OpenBinaryModeWriting,
+    OpenTextMode,
+)
 
 if sys.version_info >= (3, 10):
     from typing import TypeGuard
@@ -542,6 +553,90 @@ class CloudPath(metaclass=CloudPathMeta):
                 on_error(e)
             else:
                 raise
+
+    @overload
+    def open(
+        self,
+        mode: OpenTextMode = "r",
+        buffering: int = -1,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
+        newline: Optional[str] = None,
+        force_overwrite_from_cloud: Optional[bool] = None,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> TextIOWrapper: ...
+
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryMode,
+        buffering: Literal[0],
+        encoding: None = None,
+        errors: None = None,
+        newline: None = None,
+        force_overwrite_from_cloud: Optional[bool] = None,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> FileIO: ...
+
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryModeUpdating,
+        buffering: Literal[-1, 1] = -1,
+        encoding: None = None,
+        errors: None = None,
+        newline: None = None,
+        force_overwrite_from_cloud: Optional[bool] = None,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> BufferedRandom: ...
+
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryModeWriting,
+        buffering: Literal[-1, 1] = -1,
+        encoding: None = None,
+        errors: None = None,
+        newline: None = None,
+        force_overwrite_from_cloud: Optional[bool] = None,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> BufferedWriter: ...
+
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryModeReading,
+        buffering: Literal[-1, 1] = -1,
+        encoding: None = None,
+        errors: None = None,
+        newline: None = None,
+        force_overwrite_from_cloud: Optional[bool] = None,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> BufferedReader: ...
+
+    @overload
+    def open(
+        self,
+        mode: OpenBinaryMode,
+        buffering: int = -1,
+        encoding: None = None,
+        errors: None = None,
+        newline: None = None,
+        force_overwrite_from_cloud: Optional[bool] = None,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> BinaryIO: ...
+
+    @overload
+    def open(
+        self,
+        mode: str,
+        buffering: int = -1,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
+        newline: Optional[str] = None,
+        force_overwrite_from_cloud: Optional[bool] = None,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> IO[Any]: ...
 
     def open(
         self,
