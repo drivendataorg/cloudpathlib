@@ -1,6 +1,6 @@
 from typing import Literal, TypeAlias
 
-
+# The following type aliases are copied from typeshed:
 OpenTextModeUpdating: TypeAlias = Literal[
     "r+",
     "+r",
