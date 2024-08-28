@@ -267,19 +267,6 @@ class CloudPath(metaclass=CloudPathMeta):
 
         return self._client
 
-<<<<<<< HEAD
-    def __del__(self) -> None:
-        # make sure that file handle to local path is closed
-        if self._handle is not None and self._local.exists():
-            self._handle.close()
-
-        # ensure file removed from cache when cloudpath object deleted
-        client = getattr(self, "_client", None)
-        if getattr(client, "file_cache_mode", None) == FileCacheMode.cloudpath_object:
-            self.clear_cache()
-
-=======
->>>>>>> e33b583 (weakref finalize instead of __del__)
     def __getstate__(self) -> Dict[str, Any]:
         state = self.__dict__.copy()
 
