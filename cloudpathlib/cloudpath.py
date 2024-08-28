@@ -11,6 +11,7 @@ from pathlib import (  # type: ignore
     _PathParents,
 )
 
+import shutil
 import sys
 from typing import (
     overload,
@@ -32,7 +33,6 @@ from typing import (
 )
 from urllib.parse import urlparse
 from warnings import warn
-import weakref
 
 if sys.version_info >= (3, 10):
     from typing import TypeGuard
@@ -58,7 +58,6 @@ from cloudpathlib.enums import FileCacheMode
 
 from . import anypath
 
-from .cache_utils import _clear_cache
 from .exceptions import (
     ClientMismatchError,
     CloudPathFileExistsError,
@@ -189,20 +188,6 @@ class CloudPathMeta(abc.ABCMeta):
                     getattr(cls, attr).fget.__doc__ = docstring
 
 
-def _cloudpath_finalizer(handle: Optional[IO], client: Optional["Client"], _no_prefix: str):
-    """Use weakref.finalizer instead of __del__ since it is more reliable (does
-    not wait for garbage collection to actually run).
-    """
-    # make sure that file handle to local path is closed
-    if handle is not None:
-        handle.close()
-
-    # ensure file removed from cache when cloudpath object deleted
-    if client is not None:
-        if getattr(client, "file_cache_mode", None) == FileCacheMode.cloudpath_object:
-            _clear_cache(client._local_cache_dir / _no_prefix)
-
-
 # Abstract base class
 class CloudPath(metaclass=CloudPathMeta):
     """Base class for cloud storage file URIs, in the style of the Python standard library's
@@ -257,15 +242,22 @@ class CloudPath(metaclass=CloudPathMeta):
         # track if local has been written to, if so it may need to be uploaded
         self._dirty = False
 
-        # register cache cleanup method when this object is marked for garbage collection
-        weakref.finalize(self, _cloudpath_finalizer, self._handle, self._client, self._no_prefix)
-
     @property
     def client(self):
         if getattr(self, "_client", None) is None:
             self._client = self._cloud_meta.client_class.get_default_client()
 
         return self._client
+
+    def __del__(self) -> None:
+        # make sure that file handle to local path is closed
+        if self._handle is not None and self._local.exists():
+            self._handle.close()
+
+        # ensure file removed from cache when cloudpath object deleted
+        client = getattr(self, "_client", None)
+        if getattr(client, "file_cache_mode", None) == FileCacheMode.cloudpath_object:
+            self.clear_cache()
 
     def __getstate__(self) -> Dict[str, Any]:
         state = self.__dict__.copy()
@@ -1096,7 +1088,11 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def clear_cache(self):
         """Removes cache if it exists"""
-        _clear_cache(self._local)
+        if self._local.exists():
+            if self._local.is_file():
+                self._local.unlink()
+            else:
+                shutil.rmtree(self._local)
 
     # ===========  private cloud methods ===============
     @property
