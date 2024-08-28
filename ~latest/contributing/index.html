@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.32">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.33">
     
     
       
@@ -1578,6 +1578,11 @@ perf                 run performance measurement suite for s3 and save results t
 <p>Finally, you may want to run your tests against live servers to ensure that the behavior against a provider's server is not different from the mocked provider. You will need credentials configured for each of the providers you run against. You can run the live tests with:</p>
 <div class="highlight"><pre><span></span><code>make<span class="w"> </span>test-live-cloud
 </code></pre></div>
+<h4 id="azure-live-backend-tests">Azure live backend tests<a class="headerlink" href="#azure-live-backend-tests" title="Permanent link">&para;</a></h4>
+<p>For Azure, you can test both against Azure Blob Storage backends and Azure Data Lake Storage Gen2 backends. To run these tests, you need to set connection strings for both of the backends by setting the following environment variables (in your <code>.env</code> file for local development). If <code>AZURE_STORAGE_GEN2_CONNECTION_STRING</code> is not set, only the blob storage backend will be tested. To set up a storage account with ADLS Gen2, go through the normal creation flow for a storage account in the Azure portal and select "Enable Hierarchical Namespace" in the "Advanced" tab of the settings when configuring the account.</p>
+<div class="highlight"><pre><span></span><code><span class="nv">AZURE_STORAGE_CONNECTION_STRING</span><span class="o">=</span>your_connection_string
+<span class="nv">AZURE_STORAGE_GEN2_CONNECTION_STRING</span><span class="o">=</span>your_connection_string
+</code></pre></div>
 <p>You can copy <code>.env.example</code> to <code>.env</code> and fill in the credentials and bucket/container names for the providers you want to test against.  <strong>Note that the live tests will create and delete files on the cloud provider.</strong></p>
 <p>You can also skip providers you do not have accounts for by commenting them out in the <code>rig</code> and <code>s3_like_rig</code> variables defined at the end of <code>tests/conftest.py</code>. </p>
 <h3 id="test-rigs">Test rigs<a class="headerlink" href="#test-rigs" title="Permanent link">&para;</a></h3>
@@ -1824,7 +1829,7 @@ perf                 run performance measurement suite for s3 and save results t
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.expand"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.471ce7a9.min.js"></script>
+      <script src="../assets/javascripts/bundle.af256bd8.min.js"></script>
       
     
   </body>

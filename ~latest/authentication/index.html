@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.32">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.33">
     
     
       
@@ -352,6 +352,15 @@
   <a href="#accessing-custom-s3-compatible-object-stores" class="md-nav__link">
     <span class="md-ellipsis">
       Accessing custom S3-compatible object stores
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accessing-azure-datalake-storage-gen2-adls-gen2-storage-with-hierarchical-namespace-enabled" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accessing Azure DataLake Storage Gen2 (ADLS Gen2) storage with hierarchical namespace enabled
     </span>
   </a>
   
@@ -1075,6 +1084,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#accessing-azure-datalake-storage-gen2-adls-gen2-storage-with-hierarchical-namespace-enabled" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accessing Azure DataLake Storage Gen2 (ADLS Gen2) storage with hierarchical namespace enabled
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#pickling-cloudpath-objects" class="md-nav__link">
     <span class="md-ellipsis">
       Pickling CloudPath objects
@@ -1302,6 +1320,9 @@ provinding http/https URL including port.</p>
 <span class="n">client</span><span class="o">.</span><span class="n">set_as_default_client</span><span class="p">()</span>
 <span class="n">cp3</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://cloudpathlib-test-bucket/&quot;</span><span class="p">)</span>
 </code></pre></div>
+<h2 id="accessing-azure-datalake-storage-gen2-adls-gen2-storage-with-hierarchical-namespace-enabled">Accessing Azure DataLake Storage Gen2 (ADLS Gen2) storage with hierarchical namespace enabled<a class="headerlink" href="#accessing-azure-datalake-storage-gen2-adls-gen2-storage-with-hierarchical-namespace-enabled" title="Permanent link">&para;</a></h2>
+<p>Some Azure storage accounts are configured with "hierarchical namespace" enabled. This means that the storage account is backed by the Azure DataLake Storage Gen2 product rather than Azure Blob Storage. For many operations, the two are the same and one can use the Azure Blob Storage API. However, for some operations, a developer will need to use the Azure DataLake Storage API. The <code>AzureBlobClient</code> class implemented in cloudpathlib is designed to detect if hierarchical namespace is enabled and use the Azure DataLake Storage API in the places where it is necessary or it provides a performance improvement. Usually, a user of cloudpathlib will not need to know if hierarchical namespace is enabled and the storage account is backed by Azure DataLake Storage Gen2 or Azure Blob Storage.</p>
+<p>If needed, the Azure SDK provided <code>DataLakeServiceClient</code> object can be accessed via the <code>AzureBlobClient.data_lake_client</code>. The Azure SDK provided <code>BlobServiceClient</code> object can be accessed via <code>AzureBlobClient.service_client</code>.</p>
 <h2 id="pickling-cloudpath-objects">Pickling <code>CloudPath</code> objects<a class="headerlink" href="#pickling-cloudpath-objects" title="Permanent link">&para;</a></h2>
 <p>You can pickle and unpickle <code>CloudPath</code> objects normally, for example:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
@@ -1404,7 +1425,7 @@ before unpickling:</p>
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.expand"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.471ce7a9.min.js"></script>
+      <script src="../assets/javascripts/bundle.af256bd8.min.js"></script>
       
     
   </body>
