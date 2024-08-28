@@ -9,7 +9,7 @@ from cloudpathlib.s3.s3client import S3Client
 
 
 def test_default_client_instantiation(rig):
-    if not getattr(rig, "is_custom_s3", False):
+    if not getattr(rig, "is_custom_s3", False) and not (getattr(rig, "is_adls_gen2", False)):
         # Skip resetting the default client for custom S3 endpoint, but keep the other tests,
         # since they're still useful.
         rig.client_class._default_client = None
@@ -43,7 +43,7 @@ def test_default_client_instantiation(rig):
 def test_different_clients(rig):
     p = rig.create_cloud_path("dir_0/file0_0.txt")
 
-    new_client = rig.client_class()
+    new_client = rig.client_class(**rig.required_client_kwargs)
     p2 = new_client.CloudPath(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/dir_0/file0_0.txt")
 
     assert p.client is not p2.client
@@ -102,7 +102,7 @@ def test_content_type_setting(rig, tmpdir):
     mimes.append((".potato", "application/potato"))
 
     # see if testing custom s3 endpoint, make sure to pass the url to the constructor
-    kwargs = {}
+    kwargs = rig.required_client_kwargs.copy()
     custom_endpoint = os.getenv("CUSTOM_S3_ENDPOINT", "https://s3.us-west-1.drivendatabws.com")
     if (
         rig.client_class is S3Client
