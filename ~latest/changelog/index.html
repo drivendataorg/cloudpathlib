@@ -1587,6 +1587,7 @@
 by reference through the `get_default_ rather than with an explicit.</li>
 </ul>
 </li>
+<li>Refined the return type annotations for <code>CloudPath.open()</code> to match the behavior of <code>pathlib.Path.open()</code>. The method now returns specific types (<code>TextIOWrapper</code>, <code>FileIO</code>, <code>BufferedRandom</code>, <code>BufferedWriter</code>, <code>BufferedReader</code>, <code>BinaryIO</code>, <code>IO[Any]</code>) based on the provided <code>mode</code>, <code>buffering</code>, and <code>encoding</code> arguments. (<a href="https://github.com/drivendataorg/cloudpathlib/issues/465">Issue #465</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/464">PR #464</a>)</li>
 <li>Added Azure Data Lake Storage Gen2 support (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/161">#161</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/450">#450</a>), thanks to <a href="https://github.com/M0dEx">@M0dEx</a> for PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/447">#447</a> and PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/449">#449</a></li>
 </ul>
 <h2 id="v0181-2024-02-26">v0.18.1 (2024-02-26)<a class="headerlink" href="#v0181-2024-02-26" title="Permanent link">&para;</a></h2>
