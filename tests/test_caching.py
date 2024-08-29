@@ -3,8 +3,14 @@ import os
 from time import sleep
 from pathlib import Path
 
+from google.api_core.exceptions import TooManyRequests
 import pytest
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_random_exponential
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_random_exponential,
+)
 
 from cloudpathlib.enums import FileCacheMode
 from cloudpathlib.exceptions import (
@@ -433,17 +439,38 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
             assert p.stat().st_mtime >= new_local.stat().st_mtime
 
             # would raise if not set
-            sleep(1.01)  # give time so not equal when rounded
-            p._upload_file_to_cloud(new_local)
-            assert p.stat().st_mtime > orig_cloud_mod_time  # cloud now overwritten
+            @retry(
+                retry=retry_if_exception_type((AssertionError, TooManyRequests)),
+                wait=wait_random_exponential(multiplier=0.5, max=5),
+                stop=stop_after_attempt(10),
+                reraise=True,
+            )
+            def _wait_for_cloud_newer():
+                p._upload_file_to_cloud(new_local)
+                assert p.stat().st_mtime > orig_cloud_mod_time  # cloud now overwritten
+
+            _wait_for_cloud_newer()
 
             new_also_cloud = rig.create_cloud_path("dir_0/another_cloud_file.txt")
-            sleep(1.01)  # give time so not equal when rounded
-            new_also_cloud.write_text("newer")
 
-            new_cloud_mod_time = new_also_cloud.stat().st_mtime
+            sleep(0.1)  # at least a little different
 
-            assert p.stat().st_mtime < new_cloud_mod_time  # would raise if not set
+            @retry(
+                retry=retry_if_exception_type(
+                    (OverwriteNewerLocalError, AssertionError, TooManyRequests)
+                ),
+                wait=wait_random_exponential(multiplier=0.5, max=5),
+                stop=stop_after_attempt(10),
+                reraise=True,
+            )
+            def _retry_write_until_old_enough():
+                new_also_cloud.write_text("newer")
+                new_cloud_mod_time = new_also_cloud.stat().st_mtime
+                assert p.stat().st_mtime < new_cloud_mod_time  # would raise if not set
+                return new_cloud_mod_time
+
+            new_cloud_mod_time = _retry_write_until_old_enough()
+
             p.copy(new_also_cloud)
             assert new_also_cloud.stat().st_mtime >= new_cloud_mod_time
 

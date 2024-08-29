@@ -19,9 +19,11 @@ pandas
 pillow
 psutil
 pydantic
-pytest<8
-pytest-cases>=3.7.0
+pytest
+pytest-cases
 pytest-cov
+pytest-duration-insights
+pytest-reportlog
 pytest-xdist
 python-dotenv
 pywin32; sys_platform == 'win32'

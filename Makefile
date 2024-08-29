@@ -86,5 +86,8 @@ test-debug:  ## rerun tests that failed in last run and stop with pdb at failure
 test-live-cloud:  ## run tests on live cloud backends
 	USE_LIVE_CLOUD=1 python -m pytest -vv
 
+test-time-report:
+	pytest-duration-insights explore --no-trim reportlog.jsonl
+
 perf:  ## run performance measurement suite for s3 and save results to perf-results.csv
 	python tests/performance/cli.py s3 --save-csv=perf-results.csv
