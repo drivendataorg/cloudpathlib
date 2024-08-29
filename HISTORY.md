@@ -1,6 +1,6 @@
 # cloudpathlib Changelog
 
-## v0.19.0 (2024-08-22)
+## v0.19.0 (2024-08-29)
 
 - Fixed an error that occurred when loading and dumping `CloudPath` objects using pickle multiple times. (Issue [#450](https://github.com/drivendataorg/cloudpathlib/issues/450), PR [#454](https://github.com/drivendataorg/cloudpathlib/pull/454), thanks to [@kujenga](https://github.com/kujenga))
 - Fixed typo in `FileCacheMode` where values were being filled by environment variable `CLOUPATHLIB_FILE_CACHE_MODE` instead of `CLOUDPATHLIB_FILE_CACHE_MODE`. (PR [#424](https://github.com/drivendataorg/cloudpathlib/pull/424), thanks to [@mynameisfiber](https://github.com/drivendataorg/cloudpathlib/pull/424))
