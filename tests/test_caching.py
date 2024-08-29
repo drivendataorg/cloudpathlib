@@ -3,6 +3,7 @@ import os
 from time import sleep
 from pathlib import Path
 
+from google.api_core.exceptions import TooManyRequests
 import pytest
 from tenacity import (
     retry,
@@ -439,7 +440,7 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
 
             # would raise if not set
             @retry(
-                retry=retry_if_exception_type(AssertionError),
+                retry=retry_if_exception_type((AssertionError, TooManyRequests)),
                 wait=wait_random_exponential(multiplier=0.5, max=5),
                 stop=stop_after_attempt(10),
                 reraise=True,
@@ -455,7 +456,9 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
             sleep(0.1)  # at least a little different
 
             @retry(
-                retry=retry_if_exception_type((OverwriteNewerLocalError, AssertionError)),
+                retry=retry_if_exception_type(
+                    (OverwriteNewerLocalError, AssertionError, TooManyRequests)
+                ),
                 wait=wait_random_exponential(multiplier=0.5, max=5),
                 stop=stop_after_attempt(10),
                 reraise=True,
