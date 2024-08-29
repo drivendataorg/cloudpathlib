@@ -37,8 +37,14 @@ from typing import (
 from urllib.parse import urlparse
 from warnings import warn
 
-if TYPE_CHECKING:  
-    from _typeshed import OpenBinaryMode, OpenBinaryModeReading, OpenBinaryModeUpdating, OpenBinaryModeWriting, OpenTextMode
+if TYPE_CHECKING:
+    from _typeshed import (
+        OpenBinaryMode,
+        OpenBinaryModeReading,
+        OpenBinaryModeUpdating,
+        OpenBinaryModeWriting,
+        OpenTextMode,
+    )
 
 if sys.version_info >= (3, 10):
     from typing import TypeGuard
