@@ -40,8 +40,9 @@ def test_file_discovery(rig):
     with pytest.raises(CloudPathIsADirectoryError):
         p3.unlink()
 
-    with pytest.raises(CloudPathIsADirectoryError):
-        p3.rename(rig.create_cloud_path("dir_2/"))
+    if not getattr(rig, "is_adls_gen2", False):
+        with pytest.raises(CloudPathIsADirectoryError):
+            p3.rename(rig.create_cloud_path("dir_2/"))
 
     with pytest.raises(DirectoryNotEmptyError):
         p3.rmdir()
@@ -360,7 +361,8 @@ def test_file_read_writes(rig, tmp_path):
         assert datetime.fromtimestamp(p.stat().st_mtime) > before_touch
 
     # no-op
-    p.mkdir()
+    if not getattr(rig, "is_adls_gen2", False):
+        p.mkdir()
 
     assert p.etag is not None
 

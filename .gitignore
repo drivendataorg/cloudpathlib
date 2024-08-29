@@ -6,7 +6,7 @@ docs/docs/changelog.md
 docs/docs/contributing.md
 
 # perf output
-perf-results.csv
+perf-*.csv
 
 ## GitHub Python .gitignore ##
 # https://github.com/github/gitignore/blob/master/Python.gitignore

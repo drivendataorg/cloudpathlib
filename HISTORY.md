@@ -16,6 +16,7 @@
     - Added a new `local_storage_dir` property to `LocalClient`. This will return the current local storage directory used by that client instance.
     by reference through the `get_default_ rather than with an explicit.
 - Refined the return type annotations for `CloudPath.open()` to match the behavior of `pathlib.Path.open()`. The method now returns specific types (`TextIOWrapper`, `FileIO`, `BufferedRandom`, `BufferedWriter`, `BufferedReader`, `BinaryIO`, `IO[Any]`) based on the provided `mode`, `buffering`, and `encoding` arguments. ([Issue #465](https://github.com/drivendataorg/cloudpathlib/issues/465), [PR #464](https://github.com/drivendataorg/cloudpathlib/pull/464))
+- Added Azure Data Lake Storage Gen2 support (Issue [#161](https://github.com/drivendataorg/cloudpathlib/issues/161), PR [#450](https://github.com/drivendataorg/cloudpathlib/pull/450)), thanks to [@M0dEx](https://github.com/M0dEx) for PR [#447](https://github.com/drivendataorg/cloudpathlib/pull/447) and PR [#449](https://github.com/drivendataorg/cloudpathlib/pull/449)
 
 ## v0.18.1 (2024-02-26)
 

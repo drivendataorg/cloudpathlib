@@ -1,8 +1,8 @@
 from collections import namedtuple
 from datetime import datetime
+import json
 from pathlib import Path, PurePosixPath
 import shutil
-from tempfile import TemporaryDirectory
 
 
 from azure.storage.blob import BlobProperties
@@ -17,51 +17,86 @@ TEST_ASSETS = Path(__file__).parent.parent / "assets"
 DEFAULT_CONTAINER_NAME = "container"
 
 
-def mocked_client_class_factory(test_dir: str):
-    class MockBlobServiceClient:
-        def __init__(self, *args, **kwargs):
-            # copy test assets for reference in tests without affecting assets
-            self.tmp = TemporaryDirectory()
-            self.tmp_path = Path(self.tmp.name) / "test_case_copy"
-            shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
+class _JsonCache:
+    """Used to mock file metadata store on cloud storage; saves/writes to disk so
+    different clients can access the same metadata store.
+    """
 
-            self.metadata_cache = {}
+    def __init__(self, path: Path):
+        self.path = path
 
-        @classmethod
-        def from_connection_string(cls, *args, **kwargs):
-            return cls()
+        # initialize to empty
+        with self.path.open("w") as f:
+            json.dump({}, f)
 
-        @property
-        def account_name(self) -> str:
-            """Returns well-known account name used by Azurite
-            See: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#well-known-storage-account-and-key
-            """
-            return "devstoreaccount1"
+    def __getitem__(self, key):
+        with self.path.open("r") as f:
+            return json.load(f)[str(key)]
 
-        @property
-        def credential(self):
-            """Returns well-known account key used by Azurite
-            See: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#well-known-storage-account-and-key
-            """
-            return SharedKeyCredentialPolicy(
-                self.account_name,
-                "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==",
-            )
+    def __setitem__(self, key, value):
+        with self.path.open("r") as f:
+            data = json.load(f)
 
-        def __del__(self):
-            self.tmp.cleanup()
+        with self.path.open("w") as f:
+            data[str(key)] = value
+            json.dump(data, f)
 
-        def get_blob_client(self, container, blob):
-            return MockBlobClient(self.tmp_path, blob, service_client=self)
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
-        def get_container_client(self, container):
-            return MockContainerClient(self.tmp_path, container_name=container)
 
-        def list_containers(self):
-            Container = namedtuple("Container", "name")
-            return [Container(name=DEFAULT_CONTAINER_NAME)]
+class MockBlobServiceClient:
+    def __init__(self, test_dir, adls):
+        # copy test assets for reference in tests without affecting assets
+        shutil.copytree(TEST_ASSETS, test_dir, dirs_exist_ok=True)
 
-    return MockBlobServiceClient
+        # root is parent of the test specific directory
+        self.root = test_dir.parent
+        self.test_dir = test_dir
+
+        self.metadata_cache = _JsonCache(self.root / ".metadata")
+        self.adls_gen2 = adls
+
+    @classmethod
+    def from_connection_string(cls, conn_str, credential):
+        # configured in conftest.py
+        test_dir, adls = conn_str.split(";")
+        adls = adls == "True"
+        test_dir = Path(test_dir)
+        return cls(test_dir, adls)
+
+    @property
+    def account_name(self) -> str:
+        """Returns well-known account name used by Azurite
+        See: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#well-known-storage-account-and-key
+        """
+        return "devstoreaccount1"
+
+    @property
+    def credential(self):
+        """Returns well-known account key used by Azurite
+        See: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#well-known-storage-account-and-key
+        """
+        return SharedKeyCredentialPolicy(
+            self.account_name,
+            "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==",
+        )
+
+    def get_blob_client(self, container, blob):
+        return MockBlobClient(self.root, blob, service_client=self)
+
+    def get_container_client(self, container):
+        return MockContainerClient(self.root, container_name=container)
+
+    def list_containers(self):
+        Container = namedtuple("Container", "name")
+        return [Container(name=DEFAULT_CONTAINER_NAME)]
+
+    def get_account_information(self):
+        return {"is_hns_enabled": self.adls_gen2}
 
 
 class MockBlobClient:
@@ -86,6 +121,7 @@ class MockBlobClient:
                     "content_type": self.service_client.metadata_cache.get(
                         self.root / self.key, None
                     ),
+                    "metadata": dict(),
                 }
             )
         else:
@@ -148,24 +184,30 @@ class MockContainerClient:
     def list_blobs(self, name_starts_with=None):
         return mock_item_paged(self.root, name_starts_with)
 
+    def walk_blobs(self, name_starts_with=None):
+        return mock_item_paged(self.root, name_starts_with, recursive=False)
+
     def delete_blobs(self, *blobs):
         for blob in blobs:
             (self.root / blob).unlink()
             delete_empty_parents_up_to_root(path=self.root / blob, root=self.root)
 
 
-def mock_item_paged(root, name_starts_with=None):
+def mock_item_paged(root, name_starts_with=None, recursive=True):
     items = []
 
-    if not name_starts_with:
-        name_starts_with = ""
-    for f in root.glob("**/*"):
-        if (
-            (not f.name.startswith("."))
-            and f.is_file()
-            and (root / name_starts_with) in [f, *f.parents]
-        ):
-            items.append((PurePosixPath(f), f))
+    if recursive:
+        items = [
+            (PurePosixPath(f), f)
+            for f in root.glob("**/*")
+            if (
+                (not f.name.startswith("."))
+                and f.is_file()
+                and (root / name_starts_with) in [f, *f.parents]
+            )
+        ]
+    else:
+        items = [(PurePosixPath(f), f) for f in (root / name_starts_with).iterdir()]
 
     for mocked, local in items:
         # BlobProperties

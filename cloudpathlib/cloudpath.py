@@ -258,7 +258,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def __del__(self) -> None:
         # make sure that file handle to local path is closed
-        if self._handle is not None:
+        if self._handle is not None and self._local.exists():
             self._handle.close()
 
         # ensure file removed from cache when cloudpath object deleted

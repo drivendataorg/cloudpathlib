@@ -38,7 +38,14 @@ def test_interface(cloud_class, local_class):
 
         assert type(cloud_attr) is type(local_attr)
         if callable(cloud_attr):
-            assert signature(cloud_attr).parameters == signature(local_attr).parameters
+            # does not check type annotations, which can vary semantically, but are the same (e.g., Self != AzureBlobPath)
+            assert all(
+                a.name == b.name
+                for a, b in zip(
+                    signature(cloud_attr).parameters.values(),
+                    signature(local_attr).parameters.values(),
+                )
+            )
 
 
 @pytest.mark.parametrize("client_class", [LocalAzureBlobClient, LocalGSClient, LocalS3Client])

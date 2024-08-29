@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-azure = ["azure-storage-blob>=12"]
+azure = ["azure-storage-blob>=12", "azure-storage-file-datalake>=12"]
 gs = ["google-cloud-storage"]
 s3 = ["boto3>=1.34.0"]
 all = ["cloudpathlib[azure]", "cloudpathlib[gs]", "cloudpathlib[s3]"]
