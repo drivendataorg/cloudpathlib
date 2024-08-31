@@ -12,6 +12,7 @@ class LocalGSClient(LocalClient):
     substitute when writing tests.
     """
 
+    cloud_prefix: str = "gs://"
     _cloud_meta = local_gs_implementation
 
 

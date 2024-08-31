@@ -37,6 +37,8 @@ class AzureBlobClient(Client):
     authentication options.
     """
 
+    cloud_prefix: str = "az://"
+
     def __init__(
         self,
         account_url: Optional[str] = None,
@@ -276,12 +278,14 @@ class AzureBlobClient(Client):
     ) -> Iterable[Tuple[AzureBlobPath, bool]]:
         if not cloud_path.container:
             for container in self.service_client.list_containers():
-                yield self.CloudPath(f"az://{container.name}"), True
+                yield self.CloudPath(f"{self.cloud_prefix}{container.name}"), True
 
                 if not recursive:
                     continue
 
-                yield from self._list_dir(self.CloudPath(f"az://{container.name}"), recursive=True)
+                yield from self._list_dir(
+                    self.CloudPath(f"{self.cloud_prefix}{container.name}"), recursive=True
+                )
             return
 
         container_client = self.service_client.get_container_client(cloud_path.container)
@@ -295,7 +299,9 @@ class AzureBlobClient(Client):
             paths = file_system_client.get_paths(path=cloud_path.blob, recursive=recursive)
 
             for path in paths:
-                yield self.CloudPath(f"az://{cloud_path.container}/{path.name}"), path.is_directory
+                yield self.CloudPath(
+                    f"{self.cloud_prefix}{cloud_path.container}/{path.name}"
+                ), path.is_directory
 
         else:
             if not recursive:
@@ -306,7 +312,9 @@ class AzureBlobClient(Client):
             for blob in blobs:
                 # walk_blobs returns folders with a trailing slash
                 blob_path = blob.name.rstrip("/")
-                blob_cloud_path = self.CloudPath(f"az://{cloud_path.container}/{blob_path}")
+                blob_cloud_path = self.CloudPath(
+                    f"{self.cloud_prefix}{cloud_path.container}/{blob_path}"
+                )
 
                 yield blob_cloud_path, (
                     isinstance(blob, BlobPrefix)

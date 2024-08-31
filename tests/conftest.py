@@ -17,7 +17,8 @@ from shortuuid import uuid
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
-from cloudpathlib.cloudpath import implementation_registry
+from cloudpathlib.client import register_client_class
+from cloudpathlib.cloudpath import implementation_registry, register_path_class
 from cloudpathlib.local import (
     local_azure_blob_implementation,
     LocalAzureBlobClient,
@@ -307,8 +308,7 @@ def s3_rig(request, monkeypatch, assets_dir):
         bucket.objects.filter(Prefix=test_dir).delete()
 
 
-@fixture()
-def custom_s3_rig(request, monkeypatch, assets_dir):
+def _custom_s3_rig_helper(request, monkeypatch, assets_dir, path_class, client_class):
     """
     Custom S3 rig used to test the integrations with non-AWS S3-compatible object storages like
         - MinIO (https://min.io/)
@@ -370,8 +370,8 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
         )
 
     rig = CloudProviderTestRig(
-        path_class=S3Path,
-        client_class=S3Client,
+        path_class=path_class,
+        client_class=client_class,
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
@@ -391,6 +391,43 @@ def custom_s3_rig(request, monkeypatch, assets_dir):
 
     if live_server:
         bucket.objects.filter(Prefix=test_dir).delete()
+
+
+@fixture()
+def custom_s3_rig(request, monkeypatch, assets_dir):
+    """
+    Custom S3 rig used to test the integrations with non-AWS S3-compatible object storages like
+        - MinIO (https://min.io/)
+        - CEPH  (https://ceph.io/ceph-storage/object-storage/)
+        - others
+    """
+    yield from _custom_s3_rig_helper(request, monkeypatch, assets_dir, S3Path, S3Client)
+
+
+@register_path_class("mys3")
+class MyS3Path(S3Path):
+    cloud_prefix: str = "mys3://"
+
+
+@register_client_class("mys3")
+class MyS3Client(S3Client):
+    cloud_prefix: str = "mys3://"
+
+
+# Mirrors the definition of the S3Client class
+MyS3Client.MyS3Path = MyS3Client.CloudPath  # type: ignore
+
+
+@fixture()
+def custom_scheme_s3_rig(request, monkeypatch, assets_dir):
+    """
+    Custom S3 rig used to test the integrations with non-AWS S3-compatible object storages like
+        - MinIO (https://min.io/)
+        - CEPH  (https://ceph.io/ceph-storage/object-storage/)
+        - others
+    with the addition of a custom scheme being used.
+    """
+    yield from _custom_s3_rig_helper(request, monkeypatch, assets_dir, MyS3Path, MyS3Client)
 
 
 @fixture()
@@ -486,6 +523,7 @@ rig = fixture_union(
         gs_rig,
         s3_rig,
         custom_s3_rig,
+        custom_scheme_s3_rig,
         local_azure_rig,
         local_s3_rig,
         local_gs_rig,
@@ -498,5 +536,6 @@ s3_like_rig = fixture_union(
     [
         s3_rig,
         custom_s3_rig,
+        custom_scheme_s3_rig,
     ],
 )
