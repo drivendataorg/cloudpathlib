@@ -3,6 +3,7 @@ from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
 from typing import Dict, Optional
+from urllib.parse import urlparse
 
 from azure.storage.blob import BlobServiceClient
 from azure.storage.filedatalake import (
@@ -18,6 +19,8 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
 from cloudpathlib.cloudpath import implementation_registry
+from cloudpathlib.http.httpclient import HttpClient
+from cloudpathlib.http.httppath import HttpPath
 from cloudpathlib.local import (
     local_azure_blob_implementation,
     LocalAzureBlobClient,
@@ -41,6 +44,8 @@ from .mock_clients.mock_gs import (
 )
 from .mock_clients.mock_s3 import mocked_session_class_factory, DEFAULT_S3_BUCKET_NAME
 
+
+from .http_fixtures import http_server  # noqa: F401
 
 if os.getenv("USE_LIVE_CLOUD") == "1":
     load_dotenv(find_dotenv())
@@ -469,6 +474,44 @@ def local_s3_rig(request, monkeypatch, assets_dir):
     rig.client_class.reset_default_storage_dir()  # reset local storage directory
 
 
+class HttpProviderTestRig(CloudProviderTestRig):
+    def create_cloud_path(self, path: str, client=None):
+        """Http version needs to include netloc as well"""
+        if client:
+            return client.CloudPath(
+                cloud_path=f"{self.path_class.cloud_prefix}{self.drive}/{self.test_dir}/{path}"
+            )
+        else:
+            return self.path_class(
+                cloud_path=f"{self.path_class.cloud_prefix}{self.drive}/{self.test_dir}/{path}"
+            )
+
+
+@fixture()
+def http_rig(request, assets_dir, http_server):  # noqa: F811
+    test_dir = create_test_dir_name(request)
+
+    host, server_dir = http_server
+    drive = urlparse(host).netloc
+
+    # copy test assets
+    shutil.copytree(assets_dir, server_dir / test_dir)
+
+    rig = CloudProviderTestRig(
+        path_class=HttpPath,
+        client_class=HttpClient,
+        drive=drive,
+        test_dir=test_dir,
+    )
+
+    rig.http_server_dir = server_dir
+
+    yield rig
+
+    rig.client_class._default_client = None  # reset default client
+    shutil.rmtree(server_dir)
+
+
 # create azure fixtures for both blob and gen2 storage
 azure_rigs = fixture_union(
     "azure_rigs",
@@ -489,6 +532,7 @@ rig = fixture_union(
         local_azure_rig,
         local_s3_rig,
         local_gs_rig,
+        http_rig,
     ],
 )
 
