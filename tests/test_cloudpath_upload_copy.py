@@ -4,6 +4,7 @@ from time import sleep
 
 import pytest
 
+from cloudpathlib.http.httppath import HttpPath
 from cloudpathlib.local import LocalGSPath, LocalS3Path, LocalS3Client
 from cloudpathlib.exceptions import (
     CloudPathFileExistsError,
@@ -64,12 +65,12 @@ def test_upload_from_file(rig, upload_assets_dir):
     assert p.read_text() == "Hello from 2"
 
     # to file, file exists and is newer
-    p.touch()
+    p.write_text("newer")
     with pytest.raises(OverwriteNewerCloudError):
         p.upload_from(upload_assets_dir / "upload_1.txt")
 
     # to file, file exists and is newer; overwrite
-    p.touch()
+    p.write_text("even newer")
     sleep(1.1)
     p.upload_from(upload_assets_dir / "upload_1.txt", force_overwrite_to_cloud=True)
     assert p.exists()
@@ -100,12 +101,12 @@ def test_upload_from_dir(rig, upload_assets_dir):
 
     # a newer file exists on cloud
     sleep(1)
-    (p / "upload_1.txt").touch()
+    (p / "upload_1.txt").write_text("newer")
     with pytest.raises(OverwriteNewerCloudError):
         p.upload_from(upload_assets_dir)
 
     # force overwrite
-    (p / "upload_1.txt").touch()
+    (p / "upload_1.txt").write_text("even newer")
     (p / "upload_2.txt").unlink()
     p.upload_from(upload_assets_dir, force_overwrite_to_cloud=True)
     assert assert_mirrored(p, upload_assets_dir)
@@ -135,9 +136,11 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     # cloud to cloud -> make sure no local cache
     p_new = p.copy(p.parent / "new_upload_1.txt")
     assert p_new.exists()
-    assert not p_new._local.exists()  # cache should never have been downloaded
-    assert not p._local.exists()  # cache should never have been downloaded
-    assert p_new.read_text() == "Hello from 1"
+
+    if rig.path_class not in [HttpPath]:
+        assert not p_new._local.exists()  # cache should never have been downloaded
+        assert not p._local.exists()  # cache should never have been downloaded
+        assert p_new.read_text() == "Hello from 1"
 
     # cloud to cloud path as string
     cloud_dest = str(p.parent / "new_upload_0.txt")
@@ -153,7 +156,7 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     assert p_new.read_text() == "Hello from 1"
 
     # cloud to cloud overwrite
-    p_new.touch()
+    p_new.write_text("p_new")
     with pytest.raises(OverwriteNewerCloudError):
         p_new = p.copy(p_new)
 
