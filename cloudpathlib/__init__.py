@@ -4,9 +4,11 @@ from .anypath import AnyPath
 from .azure.azblobclient import AzureBlobClient
 from .azure.azblobpath import AzureBlobPath
 from .cloudpath import CloudPath, implementation_registry
-from .s3.s3client import S3Client
-from .gs.gspath import GSPath
 from .gs.gsclient import GSClient
+from .gs.gspath import GSPath
+from .http.httpclient import HttpClient
+from .http.httppath import HttpPath
+from .s3.s3client import S3Client
 from .s3.s3path import S3Path
 
 
@@ -27,6 +29,8 @@ __all__ = [
     "implementation_registry",
     "GSClient",
     "GSPath",
+    "HttpClient",
+    "HttpPath",
     "S3Client",
     "S3Path",
 ]

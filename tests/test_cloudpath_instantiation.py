@@ -7,6 +7,7 @@ import pytest
 
 from cloudpathlib import AzureBlobPath, CloudPath, GSPath, S3Path
 from cloudpathlib.exceptions import InvalidPrefixError, MissingDependenciesError
+from cloudpathlib.http.httppath import HttpPath
 
 
 @pytest.mark.parametrize(
@@ -45,6 +46,9 @@ def test_dispatch_error():
 
 @pytest.mark.parametrize("path", ["b/k", "b/k", "b/k.file", "b/k", "b"])
 def test_instantiation(rig, path):
+    if rig.path_class in [HttpPath]:
+        path = "example-url.com/" + path
+
     # check two cases of prefix
     for prefix in [rig.cloud_prefix.lower(), rig.cloud_prefix.upper()]:
         expected = prefix + path
@@ -52,12 +56,16 @@ def test_instantiation(rig, path):
         assert repr(p) == f"{rig.path_class.__name__}('{expected}')"
         assert str(p) == expected
 
-        assert p._no_prefix == expected.split("://", 1)[-1]
+        if rig.path_class in [HttpPath]:
+            assert p._no_prefix == path.replace("example-url.com/", "")
+            assert str(p._path) == path.replace("example-url.com", "")
+
+        else:
+            assert p._no_prefix == expected.split("://", 1)[-1]
+            assert str(p._path) == expected.split(":/", 1)[-1]
 
         assert p._url.scheme == expected.split("://", 1)[0].lower()
         assert p._url.netloc == expected.split("://", 1)[-1].split("/")[0]
-
-        assert str(p._path) == expected.split(":/", 1)[-1]
 
 
 def test_default_client_lazy(rig):

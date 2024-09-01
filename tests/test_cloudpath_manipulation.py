@@ -5,6 +5,7 @@ import sys
 import pytest
 
 from cloudpathlib import CloudPath
+from cloudpathlib.http.httppath import HttpPath
 
 
 def test_properties(rig):
@@ -84,16 +85,27 @@ def test_joins(rig):
     if sys.version_info >= (3, 12):
         assert rig.create_cloud_path("a/b/c/d").match("A/*/C/D", case_sensitive=False)
 
-    assert rig.create_cloud_path("a/b/c/d").anchor == rig.cloud_prefix
+    if rig.path_class not in [HttpPath]:
+        assert rig.create_cloud_path("a/b/c/d").anchor == rig.cloud_prefix
+
     assert rig.create_cloud_path("a/b/c/d").parent == rig.create_cloud_path("a/b/c")
 
-    assert rig.create_cloud_path("a/b/c/d").parents == (
-        rig.create_cloud_path("a/b/c"),
-        rig.create_cloud_path("a/b"),
-        rig.create_cloud_path("a"),
-        rig.path_class(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}"),
-        rig.path_class(f"{rig.cloud_prefix}{rig.drive}"),
-    )
+    if rig.path_class not in [HttpPath]:
+        assert rig.create_cloud_path("a/b/c/d").parents == (
+            rig.create_cloud_path("a/b/c"),
+            rig.create_cloud_path("a/b"),
+            rig.create_cloud_path("a"),
+            rig.path_class(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}"),
+            rig.path_class(f"{rig.cloud_prefix}{rig.drive}"),
+        )
+    else:
+        assert rig.create_cloud_path("a/b/c/d").parents == (
+            rig.create_cloud_path("a/b/c"),
+            rig.create_cloud_path("a/b"),
+            rig.create_cloud_path("a"),
+            rig.path_class(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}"),
+            rig.path_class(f"{rig.cloud_prefix}{rig.drive}/"),
+        )
 
     assert rig.create_cloud_path("a").joinpath("b", "c") == rig.create_cloud_path("a/b/c")
     assert rig.create_cloud_path("a").joinpath(PurePosixPath("b"), "c") == rig.create_cloud_path(
@@ -107,21 +119,32 @@ def test_joins(rig):
         == f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/a/b/c"
     )
 
-    assert rig.create_cloud_path("a/b/c/d").parts == (
-        rig.cloud_prefix,
-        rig.drive,
-        rig.test_dir,
-        "a",
-        "b",
-        "c",
-        "d",
-    )
+    if rig.path_class in [HttpPath]:
+        assert rig.create_cloud_path("a/b/c/d").parts == (
+            rig.cloud_prefix + rig.drive + "/",
+            rig.test_dir,
+            "a",
+            "b",
+            "c",
+            "d",
+        )
+    else:
+        assert rig.create_cloud_path("a/b/c/d").parts == (
+            rig.cloud_prefix,
+            rig.drive,
+            rig.test_dir,
+            "a",
+            "b",
+            "c",
+            "d",
+        )
 
 
 def test_with_segments(rig):
-    assert rig.create_cloud_path("a/b/c/d").with_segments("x", "y", "z") == rig.client_class(
-        **rig.required_client_kwargs
-    ).CloudPath(f"{rig.cloud_prefix}x/y/z")
+    to_test = rig.create_cloud_path("a/b/c/d").with_segments("x", "y", "z")
+    assert to_test == rig.client_class(**rig.required_client_kwargs).CloudPath(
+        f"{to_test.anchor}x/y/z"
+    )
 
 
 def test_is_junction(rig):
