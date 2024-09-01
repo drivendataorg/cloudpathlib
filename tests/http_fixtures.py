@@ -1,7 +1,6 @@
 from datetime import datetime
 from functools import partial
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-from io import BytesIO
 import os
 from pathlib import Path
 import shutil
@@ -46,9 +45,6 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
             self.send_response(404)
 
         self.end_headers()
-
-    def list_directory(self, path: str | os.PathLike[str]) -> BytesIO | None:
-        return super().list_directory(path)
 
 
 @fixture(scope="module")
