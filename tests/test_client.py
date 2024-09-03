@@ -1,11 +1,14 @@
 import mimetypes
 import os
-from pathlib import Path
 import random
 import string
+from pathlib import Path
 
 from cloudpathlib import CloudPath
+from cloudpathlib.client import register_client_class
+from cloudpathlib.cloudpath import register_path_class
 from cloudpathlib.s3.s3client import S3Client
+from cloudpathlib.s3.s3path import S3Path
 
 
 def test_default_client_instantiation(rig):
@@ -116,3 +119,34 @@ def test_content_type_setting(rig, tmpdir):
 
     for suffix, content_type in mimes:
         _test_write_content_type(suffix, content_type, rig)
+
+
+@register_path_class("mys3")
+class MyS3Path(S3Path):
+    cloud_prefix: str = "mys3://"
+
+
+@register_client_class("mys3")
+class MyS3Client(S3Client):
+    pass
+
+
+def test_custom_mys3path_instantiation():
+    path = MyS3Path("mys3://bucket/dir/file.txt")
+    assert isinstance(path, MyS3Path)
+    assert path.cloud_prefix == "mys3://"
+    assert path.bucket == "bucket"
+    assert path.key == "dir/file.txt"
+
+
+def test_custom_mys3client_instantiation():
+    client = MyS3Client()
+    assert isinstance(client, MyS3Client)
+    assert client.CloudPath("mys3://bucket/dir/file.txt").cloud_prefix == "mys3://"
+
+
+def test_custom_mys3client_default_client():
+    MyS3Client().set_as_default_client()
+    path = CloudPath("mys3://bucket/dir/file.txt")
+    assert isinstance(path.client, MyS3Client)
+    assert path.cloud_prefix == "mys3://"

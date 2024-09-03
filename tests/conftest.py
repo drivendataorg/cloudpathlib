@@ -1,56 +1,46 @@
 import os
-import shutil
 from pathlib import Path, PurePosixPath
+import shutil
 from tempfile import TemporaryDirectory
 from typing import Dict, Optional
 
-import boto3
-import botocore
 from azure.storage.blob import BlobServiceClient
 from azure.storage.filedatalake import (
     DataLakeServiceClient,
 )
+import boto3
+import botocore
 from dotenv import find_dotenv, load_dotenv
 from google.cloud import storage as google_storage
 from pytest_cases import fixture, fixture_union
 from shortuuid import uuid
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-import cloudpathlib.azure.azblobclient
-import cloudpathlib.s3.s3client
-from cloudpathlib import (
-    AzureBlobClient,
-    AzureBlobPath,
-    GSClient,
-    GSPath,
-    S3Client,
-    S3Path,
-)
-from cloudpathlib.azure.azblobclient import _hns_rmtree
-from cloudpathlib.client import register_client_class
-from cloudpathlib.cloudpath import implementation_registry, register_path_class
+from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
+from cloudpathlib.cloudpath import implementation_registry
 from cloudpathlib.local import (
+    local_azure_blob_implementation,
     LocalAzureBlobClient,
     LocalAzureBlobPath,
+    local_gs_implementation,
     LocalGSClient,
     LocalGSPath,
+    local_s3_implementation,
     LocalS3Client,
     LocalS3Path,
-    local_azure_blob_implementation,
-    local_gs_implementation,
-    local_s3_implementation,
 )
-
+import cloudpathlib.azure.azblobclient
+from cloudpathlib.azure.azblobclient import _hns_rmtree
+import cloudpathlib.s3.s3client
+from .mock_clients.mock_azureblob import MockBlobServiceClient, DEFAULT_CONTAINER_NAME
 from .mock_clients.mock_adls_gen2 import MockedDataLakeServiceClient
-from .mock_clients.mock_azureblob import DEFAULT_CONTAINER_NAME, MockBlobServiceClient
 from .mock_clients.mock_gs import (
+    mocked_client_class_factory as mocked_gsclient_class_factory,
     DEFAULT_GS_BUCKET_NAME,
     MockTransferManager,
 )
-from .mock_clients.mock_gs import (
-    mocked_client_class_factory as mocked_gsclient_class_factory,
-)
-from .mock_clients.mock_s3 import DEFAULT_S3_BUCKET_NAME, mocked_session_class_factory
+from .mock_clients.mock_s3 import mocked_session_class_factory, DEFAULT_S3_BUCKET_NAME
+
 
 if os.getenv("USE_LIVE_CLOUD") == "1":
     load_dotenv(find_dotenv())
@@ -317,7 +307,8 @@ def s3_rig(request, monkeypatch, assets_dir):
         bucket.objects.filter(Prefix=test_dir).delete()
 
 
-def _custom_s3_rig_helper(request, monkeypatch, assets_dir, path_class, client_class):
+@fixture()
+def custom_s3_rig(request, monkeypatch, assets_dir):
     """
     Custom S3 rig used to test the integrations with non-AWS S3-compatible object storages like
         - MinIO (https://min.io/)
@@ -379,8 +370,8 @@ def _custom_s3_rig_helper(request, monkeypatch, assets_dir, path_class, client_c
         )
 
     rig = CloudProviderTestRig(
-        path_class=path_class,
-        client_class=client_class,
+        path_class=S3Path,
+        client_class=S3Client,
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
@@ -400,43 +391,6 @@ def _custom_s3_rig_helper(request, monkeypatch, assets_dir, path_class, client_c
 
     if live_server:
         bucket.objects.filter(Prefix=test_dir).delete()
-
-
-@fixture()
-def custom_s3_rig(request, monkeypatch, assets_dir):
-    """
-    Custom S3 rig used to test the integrations with non-AWS S3-compatible object storages like
-        - MinIO (https://min.io/)
-        - CEPH  (https://ceph.io/ceph-storage/object-storage/)
-        - others
-    """
-    yield from _custom_s3_rig_helper(request, monkeypatch, assets_dir, S3Path, S3Client)
-
-
-@register_path_class("mys3")
-class MyS3Path(S3Path):
-    cloud_prefix: str = "mys3://"
-
-
-@register_client_class("mys3")
-class MyS3Client(S3Client):
-    pass
-
-
-# Mirrors the definition of the S3Client class
-MyS3Client.MyS3Path = MyS3Client.CloudPath  # type: ignore
-
-
-@fixture()
-def custom_scheme_s3_rig(request, monkeypatch, assets_dir):
-    """
-    Custom S3 rig used to test the integrations with non-AWS S3-compatible object storages like
-        - MinIO (https://min.io/)
-        - CEPH  (https://ceph.io/ceph-storage/object-storage/)
-        - others
-    with the addition of a custom scheme being used.
-    """
-    yield from _custom_s3_rig_helper(request, monkeypatch, assets_dir, MyS3Path, MyS3Client)
 
 
 @fixture()
@@ -532,7 +486,6 @@ rig = fixture_union(
         gs_rig,
         s3_rig,
         custom_s3_rig,
-        custom_scheme_s3_rig,
         local_azure_rig,
         local_s3_rig,
         local_gs_rig,
@@ -545,6 +498,5 @@ s3_like_rig = fixture_union(
     [
         s3_rig,
         custom_s3_rig,
-        custom_scheme_s3_rig,
     ],
 )
