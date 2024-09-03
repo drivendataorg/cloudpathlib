@@ -12,7 +12,6 @@ class LocalS3Client(LocalClient):
     substitute when writing tests.
     """
 
-    cloud_prefix: str = "s3://"
     _cloud_meta = local_s3_implementation
 
 

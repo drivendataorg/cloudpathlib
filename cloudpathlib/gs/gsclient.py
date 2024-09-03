@@ -35,8 +35,6 @@ class GSClient(Client):
     options.
     """
 
-    cloud_prefix: str = "gs://"
-
     def __init__(
         self,
         application_credentials: Optional[Union[str, os.PathLike]] = None,
@@ -185,7 +183,7 @@ class GSClient(Client):
                 )
 
             yield from (
-                (self.CloudPath(f"{self.cloud_prefix}{str(b)}"), True)
+                (self.CloudPath(f"{cloud_path.cloud_prefix}{str(b)}"), True)
                 for b in self.client.list_buckets()
             )
             return
@@ -204,13 +202,13 @@ class GSClient(Client):
                     if parent not in yielded_dirs and str(parent) != ".":
                         yield (
                             self.CloudPath(
-                                f"{self.cloud_prefix}{cloud_path.bucket}/{prefix}{parent}"
+                                f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{prefix}{parent}"
                             ),
                             True,  # is a directory
                         )
                         yielded_dirs.add(parent)
                 yield (
-                    self.CloudPath(f"{self.cloud_prefix}{cloud_path.bucket}/{o.name}"),
+                    self.CloudPath(f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{o.name}"),
                     False,
                 )  # is a file
         else:
@@ -220,13 +218,13 @@ class GSClient(Client):
             #   see: https://github.com/googleapis/python-storage/issues/863
             for file in iterator:
                 yield (
-                    self.CloudPath(f"{self.cloud_prefix}{cloud_path.bucket}/{file.name}"),
+                    self.CloudPath(f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{file.name}"),
                     False,  # is a file
                 )
 
             for directory in iterator.prefixes:
                 yield (
-                    self.CloudPath(f"{self.cloud_prefix}{cloud_path.bucket}/{directory}"),
+                    self.CloudPath(f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{directory}"),
                     True,  # is a directory
                 )
 

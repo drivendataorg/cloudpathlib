@@ -25,8 +25,6 @@ class S3Client(Client):
     instances. See documentation for the [`__init__` method][cloudpathlib.s3.s3client.S3Client.__init__]
     for detailed authentication options."""
 
-    cloud_prefix: str = "s3://"
-
     def __init__(
         self,
         aws_access_key_id: Optional[str] = None,
@@ -219,7 +217,7 @@ class S3Client(Client):
                 )
 
             yield from (
-                (self.CloudPath(f"{self.cloud_prefix}{b['Name']}"), True)
+                (self.CloudPath(f"{cloud_path.cloud_prefix}{b['Name']}"), True)
                 for b in self.client.list_buckets().get("Buckets", [])
             )
             return
@@ -243,7 +241,9 @@ class S3Client(Client):
                 canonical = result_prefix.get("Prefix").rstrip("/")  # keep a canonical form
                 if canonical not in yielded_dirs:
                     yield (
-                        self.CloudPath(f"{self.cloud_prefix}{cloud_path.bucket}/{canonical}"),
+                        self.CloudPath(
+                            f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{canonical}"
+                        ),
                         True,
                     )
                     yielded_dirs.add(canonical)
@@ -257,7 +257,7 @@ class S3Client(Client):
                     if parent_canonical not in yielded_dirs and str(parent) != ".":
                         yield (
                             self.CloudPath(
-                                f"{self.cloud_prefix}{cloud_path.bucket}/{parent_canonical}"
+                                f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{parent_canonical}"
                             ),
                             True,
                         )
@@ -271,7 +271,9 @@ class S3Client(Client):
                 # s3 fake directories have 0 size and end with "/"
                 if result_key.get("Key").endswith("/") and result_key.get("Size") == 0:
                     yield (
-                        self.CloudPath(f"{self.cloud_prefix}{cloud_path.bucket}/{canonical}"),
+                        self.CloudPath(
+                            f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{canonical}"
+                        ),
                         True,
                     )
                     yielded_dirs.add(canonical)
@@ -280,7 +282,7 @@ class S3Client(Client):
                 else:
                     yield (
                         self.CloudPath(
-                            f"{self.cloud_prefix}{cloud_path.bucket}/{result_key.get('Key')}"
+                            f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{result_key.get('Key')}"
                         ),
                         False,
                     )

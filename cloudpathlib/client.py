@@ -30,8 +30,6 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     _cloud_meta: CloudImplementation
     _default_client = None
 
-    cloud_prefix: str
-
     def __init__(
         self,
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,

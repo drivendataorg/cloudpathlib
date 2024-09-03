@@ -1,47 +1,56 @@
 import os
-from pathlib import Path, PurePosixPath
 import shutil
+from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 from typing import Dict, Optional
 
+import boto3
+import botocore
 from azure.storage.blob import BlobServiceClient
 from azure.storage.filedatalake import (
     DataLakeServiceClient,
 )
-import boto3
-import botocore
 from dotenv import find_dotenv, load_dotenv
 from google.cloud import storage as google_storage
 from pytest_cases import fixture, fixture_union
 from shortuuid import uuid
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
+import cloudpathlib.azure.azblobclient
+import cloudpathlib.s3.s3client
+from cloudpathlib import (
+    AzureBlobClient,
+    AzureBlobPath,
+    GSClient,
+    GSPath,
+    S3Client,
+    S3Path,
+)
+from cloudpathlib.azure.azblobclient import _hns_rmtree
 from cloudpathlib.client import register_client_class
 from cloudpathlib.cloudpath import implementation_registry, register_path_class
 from cloudpathlib.local import (
-    local_azure_blob_implementation,
     LocalAzureBlobClient,
     LocalAzureBlobPath,
-    local_gs_implementation,
     LocalGSClient,
     LocalGSPath,
-    local_s3_implementation,
     LocalS3Client,
     LocalS3Path,
+    local_azure_blob_implementation,
+    local_gs_implementation,
+    local_s3_implementation,
 )
-import cloudpathlib.azure.azblobclient
-from cloudpathlib.azure.azblobclient import _hns_rmtree
-import cloudpathlib.s3.s3client
-from .mock_clients.mock_azureblob import MockBlobServiceClient, DEFAULT_CONTAINER_NAME
+
 from .mock_clients.mock_adls_gen2 import MockedDataLakeServiceClient
+from .mock_clients.mock_azureblob import DEFAULT_CONTAINER_NAME, MockBlobServiceClient
 from .mock_clients.mock_gs import (
-    mocked_client_class_factory as mocked_gsclient_class_factory,
     DEFAULT_GS_BUCKET_NAME,
     MockTransferManager,
 )
-from .mock_clients.mock_s3 import mocked_session_class_factory, DEFAULT_S3_BUCKET_NAME
-
+from .mock_clients.mock_gs import (
+    mocked_client_class_factory as mocked_gsclient_class_factory,
+)
+from .mock_clients.mock_s3 import DEFAULT_S3_BUCKET_NAME, mocked_session_class_factory
 
 if os.getenv("USE_LIVE_CLOUD") == "1":
     load_dotenv(find_dotenv())
@@ -411,7 +420,7 @@ class MyS3Path(S3Path):
 
 @register_client_class("mys3")
 class MyS3Client(S3Client):
-    cloud_prefix: str = "mys3://"
+    pass
 
 
 # Mirrors the definition of the S3Client class

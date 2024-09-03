@@ -16,7 +16,6 @@ class LocalAzureBlobClient(LocalClient):
     substitute when writing tests.
     """
 
-    cloud_prefix: str = "az://"
     _cloud_meta = local_azure_blob_implementation
 
     def __init__(self, *args, **kwargs):
