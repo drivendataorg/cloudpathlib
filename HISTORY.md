@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## UNRELEASED
+
+- Added support for custom schemes in CloudPath and Client subclases. (Issue [#466](https://github.com/drivendataorg/cloudpathlib/issues/466), PR [#467](https://github.com/drivendataorg/cloudpathlib/pull/467))
+
 ## v0.19.0 (2024-08-29)
 
 - Fixed an error that occurred when loading and dumping `CloudPath` objects using pickle multiple times. (Issue [#450](https://github.com/drivendataorg/cloudpathlib/issues/450), PR [#454](https://github.com/drivendataorg/cloudpathlib/pull/454), thanks to [@kujenga](https://github.com/kujenga))
