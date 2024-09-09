@@ -1,11 +1,16 @@
 import mimetypes
 import os
-from pathlib import Path
 import random
 import string
+from pathlib import Path
+
+import pytest
 
 from cloudpathlib import CloudPath
+from cloudpathlib.client import register_client_class
+from cloudpathlib.cloudpath import implementation_registry, register_path_class
 from cloudpathlib.s3.s3client import S3Client
+from cloudpathlib.s3.s3path import S3Path
 
 
 def test_default_client_instantiation(rig):
@@ -116,3 +121,49 @@ def test_content_type_setting(rig, tmpdir):
 
     for suffix, content_type in mimes:
         _test_write_content_type(suffix, content_type, rig)
+
+
+@pytest.fixture
+def custom_s3_path():
+    # A fixture isolates these classes as they modify the global registry of
+    # implementations.
+    @register_path_class("mys3")
+    class MyS3Path(S3Path):
+        cloud_prefix: str = "mys3://"
+
+    @register_client_class("mys3")
+    class MyS3Client(S3Client):
+        pass
+
+    yield (MyS3Path, MyS3Client)
+
+    # cleanup after use
+    implementation_registry.pop("mys3")
+
+
+def test_custom_mys3path_instantiation(custom_s3_path):
+    CustomPath, _ = custom_s3_path
+
+    path = CustomPath("mys3://bucket/dir/file.txt")
+    assert isinstance(path, CustomPath)
+    assert path.cloud_prefix == "mys3://"
+    assert path.bucket == "bucket"
+    assert path.key == "dir/file.txt"
+
+
+def test_custom_mys3client_instantiation(custom_s3_path):
+    _, CustomClient = custom_s3_path
+
+    client = CustomClient()
+    assert isinstance(client, CustomClient)
+    assert client.CloudPath("mys3://bucket/dir/file.txt").cloud_prefix == "mys3://"
+
+
+def test_custom_mys3client_default_client(custom_s3_path):
+    _, CustomClient = custom_s3_path
+
+    CustomClient().set_as_default_client()
+
+    path = CloudPath("mys3://bucket/dir/file.txt")
+    assert isinstance(path.client, CustomClient)
+    assert path.cloud_prefix == "mys3://"
