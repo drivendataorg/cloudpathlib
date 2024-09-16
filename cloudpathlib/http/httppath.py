@@ -128,3 +128,8 @@ class HttpPath(CloudPath):
 
     def head(self, **kwargs):
         return self.client.request(self, "HEAD", **kwargs)
+
+
+@register_path_class("https")
+class HttpsPath(HttpPath):
+    cloud_prefix: str = "https://"
