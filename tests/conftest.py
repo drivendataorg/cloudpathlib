@@ -1,9 +1,11 @@
 import os
 from pathlib import Path, PurePosixPath
 import shutil
+import ssl
 from tempfile import TemporaryDirectory
 from typing import Dict, Optional
 from urllib.parse import urlparse
+from urllib.request import HTTPSHandler
 
 from azure.storage.blob import BlobServiceClient
 from azure.storage.filedatalake import (
@@ -19,8 +21,8 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
 from cloudpathlib.cloudpath import implementation_registry
-from cloudpathlib.http.httpclient import HttpClient
-from cloudpathlib.http.httppath import HttpPath
+from cloudpathlib.http.httpclient import HttpClient, HttpsClient
+from cloudpathlib.http.httppath import HttpPath, HttpsPath
 from cloudpathlib.local import (
     local_azure_blob_implementation,
     LocalAzureBlobClient,
@@ -45,7 +47,7 @@ from .mock_clients.mock_gs import (
 from .mock_clients.mock_s3 import mocked_session_class_factory, DEFAULT_S3_BUCKET_NAME
 
 
-from .http_fixtures import http_server  # noqa: F401
+from .http_fixtures import http_server, https_server, utilities_dir  # noqa: F401
 
 if os.getenv("USE_LIVE_CLOUD") == "1":
     load_dotenv(find_dotenv())
@@ -505,6 +507,40 @@ def http_rig(request, assets_dir, http_server):  # noqa: F811
     )
 
     rig.http_server_dir = server_dir
+    rig.client_class(**rig.required_client_kwargs).set_as_default_client()  # set default client
+
+    yield rig
+
+    rig.client_class._default_client = None  # reset default client
+    shutil.rmtree(server_dir)
+
+
+@fixture()
+def https_rig(request, assets_dir, https_server):  # noqa: F811
+    test_dir = create_test_dir_name(request)
+
+    host, server_dir = https_server
+    drive = urlparse(host).netloc
+
+    # copy test assets
+    shutil.copytree(assets_dir, server_dir / test_dir)
+
+    skip_verify_ctx = ssl.SSLContext()
+    skip_verify_ctx.check_hostname = False
+    skip_verify_ctx.load_verify_locations(utilities_dir / "insecure-test.pem")
+
+    rig = CloudProviderTestRig(
+        path_class=HttpsPath,
+        client_class=HttpsClient,
+        drive=drive,
+        test_dir=test_dir,
+        required_client_kwargs=dict(
+            auth=HTTPSHandler(context=skip_verify_ctx, check_hostname=False)
+        ),
+    )
+
+    rig.http_server_dir = server_dir
+    rig.client_class(**rig.required_client_kwargs).set_as_default_client()  # set default client
 
     yield rig
 
