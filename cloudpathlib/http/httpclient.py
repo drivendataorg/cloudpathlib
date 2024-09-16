@@ -34,7 +34,7 @@ class HttpClient(Client):
         if self.auth is None:
             self.opener = urllib.request.build_opener()
         else:
-            self.openener = urllib.request.build_opener(self.auth)
+            self.opener = urllib.request.build_opener(self.auth)
 
         self.custom_list_page_parser = custom_list_page_parser
 
@@ -103,9 +103,9 @@ class HttpClient(Client):
                     if recursive and is_dir:
                         yield from self._list_dir(path, recursive=True)
 
-        except:  # noqa E722
+        except Exception as e:  # noqa E722
             raise NotImplementedError(
-                "Unable to parse response as a listing of files; please provide a custom parser as `custom_list_page_parser`."
+                f"Unable to parse response as a listing of files; please provide a custom parser as `custom_list_page_parser`. Error raised: {e}"
             )
 
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: HttpPath) -> HttpPath:
@@ -158,3 +158,11 @@ class HttpClient(Client):
 
 
 HttpClient.HttpPath = HttpClient.CloudPath  # type: ignore
+
+
+@register_client_class("https")
+class HttpsClient(HttpClient):
+    pass
+
+
+HttpsClient.HttpsPath = HttpsClient.CloudPath  # type: ignore
