@@ -4,11 +4,15 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 import os
 from pathlib import Path
 import shutil
+import ssl
 import threading
 import time
 from urllib.request import urlopen
 
 from pytest import fixture
+
+
+utilities_dir = Path(__file__).parent / "utilities"
 
 
 class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
@@ -47,40 +51,91 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.end_headers()
 
 
-@fixture(scope="module")
-def http_server(tmp_path_factory, worker_id):
-    hostname = "localhost"
-    port = (
-        9077 + int(worker_id.lstrip("gw")) if worker_id != "master" else 0
-    )  # don't collide if tests running in parallel with multiple servers
+def _http_server(
+    root_dir, port, hostname="localhost", use_ssl=False, certfile=None, keyfile=None, threaded=True
+):
+    root_dir.mkdir(exist_ok=True)
 
-    # Create a temporary directory to serve files from
-    server_dir = tmp_path_factory.mktemp("server_files").resolve()
-    server_dir.mkdir(exist_ok=True)
+    scheme = "http" if not use_ssl else "https"
 
-    # Function to start the server
     def start_server():
-        handler = partial(TestHTTPRequestHandler, directory=str(server_dir))
+        handler = partial(TestHTTPRequestHandler, directory=str(root_dir))
         httpd = HTTPServer((hostname, port), handler)
+
+        if use_ssl:
+            if not certfile or not keyfile:
+                raise ValueError("certfile and keyfile must be provided if `ssl=True`")
+
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.load_cert_chain(certfile=certfile, keyfile=keyfile)
+            context.check_hostname = False
+            httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
+
         httpd.serve_forever()
 
-    # Start the server in a separate thread
-    server_thread = threading.Thread(target=start_server, daemon=True)
-    server_thread.start()
+    if threaded:
+        server_thread = threading.Thread(target=start_server, daemon=True)
+        server_thread.start()
+
+    else:
+        start_server()
 
     # Wait for the server to start
     for _ in range(10):
         try:
-            urlopen(f"http://{hostname}:{port}")
+            if use_ssl:
+                req_context = ssl.SSLContext()
+                req_context.check_hostname = False
+                req_context.verify_mode = ssl.CERT_NONE
+            else:
+                req_context = None
+
+            urlopen(f"{scheme}://{hostname}:{port}", context=req_context)
+
             break
         except Exception:
             time.sleep(0.1)
 
-    yield f"http://{hostname}:{port}", server_dir
+    return f"{scheme}://{hostname}:{port}", server_thread
 
-    # Stop the server by exiting the thread
+
+@fixture(scope="module")
+def http_server(tmp_path_factory, worker_id):
+    port = 9077 + (
+        int(worker_id.lstrip("gw")) if worker_id != "master" else 0
+    )  # don't collide if tests running in parallel with multiple servers
+
+    server_dir = tmp_path_factory.mktemp("server_files").resolve()
+
+    host, server_thread = _http_server(server_dir, port)
+
+    yield host, server_dir
+
     server_thread.join(0)
 
-    # Clean up the temporary directory if it still exists
+    if server_dir.exists():
+        shutil.rmtree(server_dir)
+
+
+@fixture(scope="module")
+def https_server(tmp_path_factory, worker_id):
+    port = 4443 + (
+        int(worker_id.lstrip("gw")) if worker_id != "master" else 0
+    )  # don't collide if tests running in parallel with multiple servers
+
+    server_dir = tmp_path_factory.mktemp("server_files").resolve()
+
+    host, server_thread = _http_server(
+        server_dir,
+        port,
+        use_ssl=True,
+        certfile=utilities_dir / "insecure-test.pem",
+        keyfile=utilities_dir / "insecure-test.key",
+    )
+
+    yield host, server_dir
+
+    server_thread.join(0)
+
     if server_dir.exists():
         shutil.rmtree(server_dir)
