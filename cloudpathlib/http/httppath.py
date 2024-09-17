@@ -38,7 +38,7 @@ class HttpPath(CloudPath):
         # for http paths, we need to keep them to indicate directories
         if func == "__truediv__" and str(args[0]).endswith("/"):
             return self._new_cloudpath(str(sup) + "/")
-            
+
         else:
             return sup
 
