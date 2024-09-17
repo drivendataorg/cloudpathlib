@@ -38,11 +38,9 @@ class HttpClient(Client):
             self.opener = urllib.request.build_opener(self.auth)
 
         self.custom_list_page_parser = custom_list_page_parser
-        
+
         self.dir_matcher = (
-            custom_dir_matcher
-            if custom_dir_matcher is not None else
-            lambda x: x.endswith("/")
+            custom_dir_matcher if custom_dir_matcher is not None else lambda x: x.endswith("/")
         )
 
     def _get_metadata(self, cloud_path: HttpPath) -> dict:
