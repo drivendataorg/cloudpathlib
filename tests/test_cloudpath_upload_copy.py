@@ -77,7 +77,7 @@ def test_upload_from_file(rig, upload_assets_dir):
     assert p.read_text() == "Hello from 1"
 
     # to dir, dir exists
-    p = rig.create_cloud_path("dir_0")  # created by fixtures
+    p = rig.create_cloud_path("dir_0/")  # created by fixtures
     assert p.exists()
     p.upload_from(upload_assets_dir / "upload_1.txt")
     assert (p / "upload_1.txt").exists()
@@ -93,7 +93,7 @@ def test_upload_from_dir(rig, upload_assets_dir):
     assert assert_mirrored(p, upload_assets_dir)
 
     # to dir, dir exists
-    p2 = rig.create_cloud_path("dir_0")  # created by fixtures
+    p2 = rig.create_cloud_path("dir_0/")  # created by fixtures
     assert p2.exists()
 
     p2.upload_from(upload_assets_dir)
@@ -149,7 +149,7 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     assert p_new.read_text() == "Hello from 1"
 
     # cloud to cloud directory
-    cloud_dest = rig.create_cloud_path("dir_1")  # created by fixtures
+    cloud_dest = rig.create_cloud_path("dir_1/")  # created by fixtures
     p_new = p.copy(cloud_dest)
     assert str(p_new) == str(p_new.parent / p.name)  # file created
     assert p_new.exists()
@@ -196,7 +196,7 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     (other_dir / p2.name).unlink()
 
     # cloud dir raises
-    cloud_dir = rig.create_cloud_path("dir_1")  # created by fixtures
+    cloud_dir = rig.create_cloud_path("dir_1/")  # created by fixtures
     with pytest.raises(ValueError) as e:
         p_new = cloud_dir.copy(Path(tmpdir.mkdir("test_copy_dir_fails")))
         assert "use the method copytree" in str(e)
@@ -210,12 +210,12 @@ def test_copytree(rig, tmpdir):
         p.copytree(local_out)
 
     with pytest.raises(CloudPathFileExistsError):
-        p = rig.create_cloud_path("dir_0")
+        p = rig.create_cloud_path("dir_0/")
         p_out = rig.create_cloud_path("dir_0/file0_0.txt")
         p.copytree(p_out)
 
     # cloud dir to local dir that exists
-    p = rig.create_cloud_path("dir_1")
+    p = rig.create_cloud_path("dir_1/")
     local_out = Path(tmpdir.mkdir("copytree_from_cloud"))
     p.copytree(local_out)
     assert assert_mirrored(p, local_out)
@@ -231,12 +231,12 @@ def test_copytree(rig, tmpdir):
     assert assert_mirrored(p, local_out)
 
     # cloud dir to cloud dir that does not exist
-    p2 = rig.create_cloud_path("new_dir")
+    p2 = rig.create_cloud_path("new_dir/")
     p.copytree(p2)
     assert assert_mirrored(p2, p)
 
     # cloud dir to cloud dir that exists
-    p2 = rig.create_cloud_path("new_dir2")
+    p2 = rig.create_cloud_path("new_dir2/")
     (p2 / "existing_file.txt").write_text("asdf")  # ensures p2 exists
     p.copytree(p2)
     assert assert_mirrored(p2, p, check_no_extra=False)
@@ -254,7 +254,7 @@ def test_copytree(rig, tmpdir):
     (p / "dir2" / "file2.txt").write_text("ignore")
 
     # cloud dir to local dir but ignoring files (shutil.ignore_patterns)
-    p3 = rig.create_cloud_path("new_dir3")
+    p3 = rig.create_cloud_path("new_dir3/")
     p.copytree(p3, ignore=ignore_patterns("*.py", "dir*"))
     assert assert_mirrored(p, p3, check_no_extra=False)
     assert not (p3 / "ignored.py").exists()
@@ -262,7 +262,7 @@ def test_copytree(rig, tmpdir):
     assert not (p3 / "dir2").exists()
 
     # cloud dir to local dir but ignoring files (custom function)
-    p4 = rig.create_cloud_path("new_dir4")
+    p4 = rig.create_cloud_path("new_dir4/")
 
     def _custom_ignore(path, names):
         ignore = []

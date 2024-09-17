@@ -1,5 +1,5 @@
 from pathlib import PurePosixPath
-from typing import Tuple, Union, Optional
+from typing import Any, Tuple, Union, Optional
 
 import os
 from pathlib import Path
@@ -31,6 +31,17 @@ class HttpPath(CloudPath):
             else PurePosixPath(f"/{self._url.path}")
         )
 
+    def _dispatch_to_path(self, func: str, *args, **kwargs) -> Any:
+        sup = super()._dispatch_to_path(func, *args, **kwargs)
+
+        # some dispatch methods like "__truediv__" strip trailing slashes;
+        # for http paths, we need to keep them to indicate directories
+        if func == "__truediv__" and str(args[0]).endswith("/"):
+            return self._new_cloudpath(str(sup) + "/")
+            
+        else:
+            return sup
+
     @property
     def drive(self) -> str:
         # For HTTP paths, no drive; use .anchor for scheme + netloc
@@ -49,16 +60,14 @@ class HttpPath(CloudPath):
         if not self.exists():
             return False
 
-        # HTTP doesn't really have directories, but some servers might list files if treated as such
-        # Here we'll assume paths without are dirs
-        return self._path.suffix == ""
+        # Use client default to iden
+        return self.client.dir_matcher(str(self))
 
     def is_file(self) -> bool:
         if not self.exists():
             return False
 
-        # HTTP doesn't have a direct file check, but we assume if it has a suffix, it's a file
-        return self._path.suffix != ""
+        return not self.client.dir_matcher(str(self))
 
     def mkdir(self, parents: bool = False, exist_ok: bool = False) -> None:
         pass  # no-op for HTTP Paths

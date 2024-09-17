@@ -98,12 +98,12 @@ def glob_test_dirs(rig, tmp_path):
         (root / "dirC" / "fileC.txt").write_text("fileC")
         (root / "fileA.txt").write_text("fileA")
 
-    cloud_root = rig.create_cloud_path("glob-tests")
+    cloud_root = rig.create_cloud_path("glob-tests/")
     cloud_root.mkdir()
 
     _make_glob_directory(cloud_root)
 
-    local_root = tmp_path / "glob-tests"
+    local_root = tmp_path / "glob-tests/"
     local_root.mkdir()
 
     _make_glob_directory(local_root)
@@ -116,7 +116,7 @@ def glob_test_dirs(rig, tmp_path):
 
 def _lstrip_path_root(path, root):
     rel_path = str(path)[len(str(root)) :]
-    return rel_path.rstrip("/")  # agnostic to trailing slash
+    return rel_path.strip("/")
 
 
 def _assert_glob_results_match(cloud_results, local_results, cloud_root, local_root):
@@ -342,6 +342,10 @@ def test_is_dir_is_file(rig, tmp_path):
     dir_nested_no_slash = rig.create_cloud_path("dir_1/dir_1_0")
 
     for test_case in [dir_slash, dir_no_slash, dir_nested_slash, dir_nested_no_slash]:
+        # skip no-slash cases, which are interpreted as files for http paths
+        if not str(test_case).endswith("/") and rig.path_class in [HttpPath]:
+            continue
+
         assert test_case.is_dir()
         assert not test_case.is_file()
 
@@ -472,7 +476,7 @@ def test_cloud_path_download_to(rig, tmp_path):
 
 
 def test_fspath(rig):
-    p = rig.create_cloud_path("dir_0")
+    p = rig.create_cloud_path("dir_0/")
     assert os.fspath(p) == p.fspath
 
 

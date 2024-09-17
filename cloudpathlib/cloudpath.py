@@ -1223,7 +1223,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 )
             elif subpath.is_dir():
                 subpath.copytree(
-                    destination / subpath.name,
+                    destination / (subpath.name + ("" if subpath.name.endswith("/") else "/")), 
                     force_overwrite_to_cloud=force_overwrite_to_cloud,
                     ignore=ignore,
                 )

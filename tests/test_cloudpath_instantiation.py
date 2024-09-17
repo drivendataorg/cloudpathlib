@@ -114,7 +114,7 @@ def test_dependencies_not_loaded(rig, monkeypatch):
 
 
 def test_is_pathlike(rig):
-    p = rig.create_cloud_path("dir_0")
+    p = rig.create_cloud_path("dir_0/")
     assert isinstance(p, os.PathLike)
 
 
