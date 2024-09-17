@@ -27,6 +27,7 @@ class HttpClient(Client):
         content_type_method: Optional[Callable] = mimetypes.guess_type,
         auth: Optional[urllib.request.BaseHandler] = None,
         custom_list_page_parser: Optional[Callable[[str], Iterable[str]]] = None,
+        custom_dir_matcher: Optional[Callable[[str], bool]] = None,
     ):
         super().__init__(file_cache_mode, local_cache_dir, content_type_method)
         self.auth = auth
@@ -37,6 +38,12 @@ class HttpClient(Client):
             self.opener = urllib.request.build_opener(self.auth)
 
         self.custom_list_page_parser = custom_list_page_parser
+        
+        self.dir_matcher = (
+            custom_dir_matcher
+            if custom_dir_matcher is not None else
+            lambda x: x.endswith("/")
+        )
 
     def _get_metadata(self, cloud_path: HttpPath) -> dict:
         with self.opener.open(cloud_path.as_url()) as response:
@@ -147,7 +154,7 @@ class HttpClient(Client):
         )
 
         yield from (
-            (self.CloudPath((urllib.parse.urljoin(base_url, match))), Path(match).suffix == "")
+            (self.CloudPath((urllib.parse.urljoin(base_url, match))), self.dir_matcher(match))
             for match in parser(response)
         )
 
