@@ -33,4 +33,5 @@ tabulate
 tenacity
 tqdm
 typer
+types-pytz
 wheel
