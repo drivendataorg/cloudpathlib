@@ -9,7 +9,6 @@ from pathlib import (  # type: ignore
     PosixPath,
     PurePosixPath,
     WindowsPath,
-    _PathParents,
 )
 
 import shutil
@@ -56,15 +55,25 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Self
 
-if sys.version_info >= (3, 12):
+if sys.version_info == (3, 12):
     from pathlib import posixpath as _posix_flavour  # type: ignore[attr-defined]
     from pathlib import _make_selector  # type: ignore[attr-defined]
-else:
-    from pathlib import _posix_flavour  # type: ignore[attr-defined]
-    from pathlib import _make_selector as _make_selector_pathlib  # type: ignore[attr-defined]
 
-    def _make_selector(pattern_parts, _flavour, case_sensitive=True):
+if sys.version_info < (3, 12):
+    from pathlib import _posix_flavour  # type: ignore[attr-defined] # noqa: F811
+    from pathlib import _make_selector as _make_selector_pathlib  # type: ignore[attr-defined] # noqa: F811
+
+    def _make_selector(pattern_parts, _flavour, case_sensitive=True):  # noqa: F811
         return _make_selector_pathlib(tuple(pattern_parts), _flavour)
+
+
+if sys.version_info >= (3, 13):
+    from pathlib._local import _PathParents
+    import posixpath as _posix_flavour  # type: ignore[attr-defined]   # noqa: F811
+
+    from .legacy.glob import _make_selector  # noqa: F811
+else:
+    from pathlib import _PathParents
 
 
 from cloudpathlib.enums import FileCacheMode
@@ -384,16 +393,6 @@ class CloudPath(metaclass=CloudPathMeta):
         pass
 
     @abc.abstractmethod
-    def is_dir(self) -> bool:
-        """Should be implemented without requiring a dir is downloaded"""
-        pass
-
-    @abc.abstractmethod
-    def is_file(self) -> bool:
-        """Should be implemented without requiring that the file is downloaded"""
-        pass
-
-    @abc.abstractmethod
     def mkdir(self, parents: bool = False, exist_ok: bool = False) -> None:
         """Should be implemented using the client API without requiring a dir is downloaded"""
         pass
@@ -427,9 +426,18 @@ class CloudPath(metaclass=CloudPathMeta):
     def exists(self) -> bool:
         return self.client._exists(self)
 
+    def is_dir(self, follow_symlinks=True) -> bool:
+        return self.client._is_file_or_dir(self) == "dir"
+
+    def is_file(self, follow_symlinks=True) -> bool:
+        return self.client._is_file_or_dir(self) == "file"
+
     @property
     def fspath(self) -> str:
         return self.__fspath__()
+
+    def from_uri(self, uri: str) -> Self:
+        return self._new_cloudpath(uri)
 
     def _glob_checks(self, pattern: str) -> None:
         if ".." in pattern:
@@ -812,8 +820,13 @@ class CloudPath(metaclass=CloudPathMeta):
         with self.open(mode="rb") as f:
             return f.read()
 
-    def read_text(self, encoding: Optional[str] = None, errors: Optional[str] = None) -> str:
-        with self.open(mode="r", encoding=encoding, errors=errors) as f:
+    def read_text(
+        self,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
+        newline: Optional[str] = None,
+    ) -> str:
+        with self.open(mode="r", encoding=encoding, errors=errors, newline=newline) as f:
             return f.read()
 
     def is_junction(self):
@@ -904,6 +917,13 @@ class CloudPath(metaclass=CloudPathMeta):
     def name(self) -> str:
         return self._dispatch_to_path("name")
 
+    def full_match(self, pattern: str, case_sensitive: Optional[bool] = None) -> bool:
+        # strip scheme from start of pattern before testing
+        if pattern.startswith(self.anchor + self.drive + "/"):
+            pattern = pattern[len(self.anchor + self.drive + "/") :]
+
+        return self._dispatch_to_path("full_match", pattern, case_sensitive=case_sensitive)
+
     def match(self, path_pattern: str, case_sensitive: Optional[bool] = None) -> bool:
         # strip scheme from start of pattern before testing
         if path_pattern.startswith(self.anchor + self.drive + "/"):
@@ -915,6 +935,10 @@ class CloudPath(metaclass=CloudPathMeta):
             kwargs.pop("case_sensitive")
 
         return self._dispatch_to_path("match", path_pattern, **kwargs)
+
+    @property
+    def parser(self) -> Self:
+        return self._dispatch_to_path("parser")
 
     @property
     def parent(self) -> Self:
