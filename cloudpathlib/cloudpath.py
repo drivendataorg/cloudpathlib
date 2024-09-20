@@ -73,7 +73,7 @@ if sys.version_info >= (3, 13):
 
     from .legacy.glob import _make_selector  # noqa: F811
 else:
-    from pathlib import _PathParents
+    from pathlib import _PathParents  # type: ignore[attr-defined]
 
 
 from cloudpathlib.enums import FileCacheMode
