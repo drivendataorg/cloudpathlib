@@ -39,12 +39,6 @@ class AzureBlobPath(CloudPath):
     def drive(self) -> str:
         return self.container
 
-    def is_dir(self) -> bool:
-        return self.client._is_file_or_dir(self) == "dir"
-
-    def is_file(self) -> bool:
-        return self.client._is_file_or_dir(self) == "file"
-
     def mkdir(self, parents=False, exist_ok=False):
         self.client._mkdir(self, parents=parents, exist_ok=exist_ok)
 
