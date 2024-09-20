@@ -13,11 +13,11 @@ class LocalPath(CloudPath):
 
     client: "LocalClient"
 
-    def is_dir(self) -> bool:
-        return self.client._is_dir(self)
+    def is_dir(self, follow_symlinks=True) -> bool:
+        return self.client._is_dir(self, follow_symlinks=follow_symlinks)
 
-    def is_file(self) -> bool:
-        return self.client._is_file(self)
+    def is_file(self, follow_symlinks=True) -> bool:
+        return self.client._is_file(self, follow_symlinks=follow_symlinks)
 
     def stat(self):
         try:
