@@ -91,7 +91,7 @@ class AzureBlobPath(CloudPath):
 
         # we can rename directories on ADLS Gen2
         except CloudPathIsADirectoryError:
-            if self.client._check_hns():
+            if self.client._check_hns(self):
                 return self.client._move_file(self, target)
             else:
                 raise

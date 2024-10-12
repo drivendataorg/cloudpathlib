@@ -15,6 +15,7 @@ from .azblobpath import AzureBlobPath
 try:
     from azure.core.exceptions import ResourceNotFoundError
     from azure.core.credentials import AzureNamedKeyCredential
+
     from azure.storage.blob import (
         BlobPrefix,
         BlobSasPermissions,
@@ -24,7 +25,15 @@ try:
         generate_blob_sas,
     )
 
+    from azure.storage.blob._shared.authentication import (
+        SharedKeyCredentialPolicy as BlobSharedKeyCredentialPolicy,
+    )
+
     from azure.storage.filedatalake import DataLakeServiceClient, FileProperties
+    from azure.storage.filedatalake._shared.authentication import (
+        SharedKeyCredentialPolicy as DataLakeSharedKeyCredentialPolicy,
+    )
+
 except ModuleNotFoundError:
     implementation_registry["azure"].dependencies_loaded = False
 
@@ -111,12 +120,20 @@ class AzureBlobClient(Client):
 
             # create from blob service client if not passed
             if data_lake_client is None:
-                self.data_lake_client = DataLakeServiceClient(
-                    account_url=self.service_client.url.replace(".blob.", ".dfs.", 1),
-                    credential=AzureNamedKeyCredential(
+                credential = (
+                    blob_service_client.credential
+                    if not isinstance(
+                        blob_service_client.credential, BlobSharedKeyCredentialPolicy
+                    )
+                    else AzureNamedKeyCredential(
                         blob_service_client.credential.account_name,
                         blob_service_client.credential.account_key,
-                    ),
+                    )
+                )
+
+                self.data_lake_client = DataLakeServiceClient(
+                    account_url=self.service_client.url.replace(".blob.", ".dfs.", 1),
+                    credential=credential,
                 )
             else:
                 self.data_lake_client = data_lake_client
@@ -125,12 +142,21 @@ class AzureBlobClient(Client):
             self.data_lake_client = data_lake_client
 
             if blob_service_client is None:
-                self.service_client = BlobServiceClient(
-                    account_url=self.data_lake_client.url.replace(".dfs.", ".blob.", 1),
-                    credential=AzureNamedKeyCredential(
+
+                credential = (
+                    data_lake_client.credential
+                    if not isinstance(
+                        data_lake_client.credential, DataLakeSharedKeyCredentialPolicy
+                    )
+                    else AzureNamedKeyCredential(
                         data_lake_client.credential.account_name,
                         data_lake_client.credential.account_key,
-                    ),
+                    )
+                )
+
+                self.service_client = BlobServiceClient(
+                    account_url=self.data_lake_client.url.replace(".dfs.", ".blob.", 1),
+                    credential=credential,
                 )
 
         elif connection_string is not None:
@@ -167,19 +193,34 @@ class AzureBlobClient(Client):
                 "Credentials are required; see docs for options."
             )
 
-        self._hns_enabled = None
+        self._hns_enabled: Optional[bool] = None
 
-    def _check_hns(self) -> Optional[bool]:
+    def _check_hns(self, cloud_path: AzureBlobPath) -> Optional[bool]:
         if self._hns_enabled is None:
-            account_info = self.service_client.get_account_information()  # type: ignore
-            self._hns_enabled = account_info.get("is_hns_enabled", False)  # type: ignore
+            try:
+                account_info = self.service_client.get_account_information()  # type: ignore
+                self._hns_enabled = account_info.get("is_hns_enabled", False)  # type: ignore
+            except ResourceNotFoundError:
+                # get_account_information() not supported with this credential; we have to fallback to finding a folder
+                # and see if 'metadata': {'hdi_isfolder': 'true'} is present
+                blob_props = self.service_client.get_blob_client(
+                    container=cloud_path.container, blob=cloud_path.blob
+                ).get_blob_properties()
+
+                if blob_props.get("metadata", {}).get("hdi_isfolder", False):
+                    self._hns_enabled = True
+                else:
+                    parent_props = self.service_client.get_blob_client(
+                        container=cloud_path.container, blob=cloud_path.parent.blob
+                    ).get_blob_properties()
+                    self._hns_enabled = parent_props.get("metadata", {}).get("hdi_isfolder", False)
 
         return self._hns_enabled
 
     def _get_metadata(
         self, cloud_path: AzureBlobPath
     ) -> Union["BlobProperties", "FileProperties", Dict[str, Any]]:
-        if self._check_hns():
+        if self._check_hns(cloud_path):
 
             # works on both files and directories
             fsc = self.data_lake_client.get_file_system_client(cloud_path.container)  # type: ignore
@@ -292,7 +333,7 @@ class AzureBlobClient(Client):
         if prefix and not prefix.endswith("/"):
             prefix += "/"
 
-        if self._check_hns():
+        if self._check_hns(cloud_path):
             file_system_client = self.data_lake_client.get_file_system_client(cloud_path.container)  # type: ignore
             paths = file_system_client.get_paths(path=cloud_path.blob, recursive=recursive)
 
@@ -334,7 +375,7 @@ class AzureBlobClient(Client):
             )
 
         # we can use rename API when the same account on adls gen2
-        elif remove_src and (src.client is dst.client) and self._check_hns():
+        elif remove_src and (src.client is dst.client) and self._check_hns(src):
             fsc = self.data_lake_client.get_file_system_client(src.container)  # type: ignore
 
             if src.is_dir():
@@ -358,7 +399,7 @@ class AzureBlobClient(Client):
     def _mkdir(
         self, cloud_path: AzureBlobPath, parents: bool = False, exist_ok: bool = False
     ) -> None:
-        if self._check_hns():
+        if self._check_hns(cloud_path):
             file_system_client = self.data_lake_client.get_file_system_client(cloud_path.container)  # type: ignore
             directory_client = file_system_client.get_directory_client(cloud_path.blob)
 
@@ -379,7 +420,7 @@ class AzureBlobClient(Client):
     def _remove(self, cloud_path: AzureBlobPath, missing_ok: bool = True) -> None:
         file_or_dir = self._is_file_or_dir(cloud_path)
         if file_or_dir == "dir":
-            if self._check_hns():
+            if self._check_hns(cloud_path):
                 _hns_rmtree(self.data_lake_client, cloud_path.container, cloud_path.blob)
                 return
 
