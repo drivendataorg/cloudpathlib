@@ -1,6 +1,7 @@
 import os
 
 from azure.core.credentials import AzureNamedKeyCredential
+from azure.identity import DefaultAzureCredential
 from azure.storage.blob import (
     BlobServiceClient,
     StorageStreamDownloader,
@@ -132,6 +133,12 @@ def test_client_instantiation(azure_rigs, monkeypatch):
             bsc.credential.account_name, bsc.credential.account_key
         ),
     )
+    _check_access(cl, gen2=azure_rigs.is_adls_gen2)
+
+    # discover and use credentials for service principal by having set:
+    # AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID
+    credential = DefaultAzureCredential()
+    cl = azure_rigs.client_class(credential=credential, account_url=bsc.url)
     _check_access(cl, gen2=azure_rigs.is_adls_gen2)
 
 
