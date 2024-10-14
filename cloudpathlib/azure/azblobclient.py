@@ -113,7 +113,9 @@ class AzureBlobClient(Client):
         if connection_string is None:
             connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING", None)
 
-        self.data_lake_client = None  # only needs to end up being set if HNS is enabled
+        self.data_lake_client: Optional[DataLakeServiceClient] = (
+            None  # only needs to end up being set if HNS is enabled
+        )
 
         if blob_service_client is not None:
             self.service_client = blob_service_client
@@ -201,19 +203,16 @@ class AzureBlobClient(Client):
                 account_info = self.service_client.get_account_information()  # type: ignore
                 self._hns_enabled = account_info.get("is_hns_enabled", False)  # type: ignore
             except ResourceNotFoundError:
-                # get_account_information() not supported with this credential; we have to fallback to finding a folder
-                # and see if 'metadata': {'hdi_isfolder': 'true'} is present
-                blob_props = self.service_client.get_blob_client(
-                    container=cloud_path.container, blob=cloud_path.blob
-                ).get_blob_properties()
-
-                if blob_props.get("metadata", {}).get("hdi_isfolder", False):
-                    self._hns_enabled = True
-                else:
-                    parent_props = self.service_client.get_blob_client(
-                        container=cloud_path.container, blob=cloud_path.parent.blob
-                    ).get_blob_properties()
-                    self._hns_enabled = parent_props.get("metadata", {}).get("hdi_isfolder", False)
+                # get_account_information() not supported with this credential; we have to fallback to
+                # checking if the root directory exists and is a has 'metadata': {'hdi_isfolder': 'true'}
+                root_dir = self.service_client.get_blob_client(
+                    container=cloud_path.container, blob="/"
+                )
+                self._hns_enabled = (
+                    root_dir.exists()
+                    and root_dir.get_blob_properties().metadata.get("hdi_isfolder", False)
+                    == "true"
+                )
 
         return self._hns_enabled
 
