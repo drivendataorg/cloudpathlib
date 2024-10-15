@@ -3,6 +3,8 @@
 ## UNRELEASED
 
 - Added support for custom schemes in CloudPath and Client subclases. (Issue [#466](https://github.com/drivendataorg/cloudpathlib/issues/466), PR [#467](https://github.com/drivendataorg/cloudpathlib/pull/467))
+- Add support for Python 3.13; remove support for Python 3.8 (Issue [#472](https://github.com/drivendataorg/cloudpathlib/issues/472), [PR #474](https://github.com/drivendataorg/cloudpathlib/pull/474))
+
 
 ## v0.19.0 (2024-08-29)
 
