@@ -936,7 +936,7 @@ class CloudPath(metaclass=CloudPathMeta):
         # remove drive, which is kept on normal dispatch to pathlib
         return PurePosixPath(self._no_prefix_no_drive).full_match(
             pattern, case_sensitive=case_sensitive
-        )
+        )  # type: ignore[attr-defined]
 
     def match(self, path_pattern: str, case_sensitive: Optional[bool] = None) -> bool:
         # strip scheme from start of pattern before testing
