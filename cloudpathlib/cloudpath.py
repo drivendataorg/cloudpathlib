@@ -55,7 +55,7 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Self
 
-if sys.version_info == (3, 12):
+if sys.version_info[:2] == (3, 12):
     from pathlib import posixpath as _posix_flavour  # type: ignore[attr-defined]
     from pathlib import _make_selector  # type: ignore[attr-defined]
 
