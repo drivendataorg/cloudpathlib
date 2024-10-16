@@ -106,14 +106,14 @@ class LocalClient(Client):
 
     def _is_dir(self, cloud_path: "LocalPath", follow_symlinks=True) -> bool:
         kwargs = dict(follow_symlinks=follow_symlinks)
-        if sys.version_info <= (3, 12):
+        if sys.version_info < (3, 13):
             kwargs.pop("follow_symlinks")
 
         return self._cloud_path_to_local(cloud_path).is_dir(**kwargs)
 
     def _is_file(self, cloud_path: "LocalPath", follow_symlinks=True) -> bool:
         kwargs = dict(follow_symlinks=follow_symlinks)
-        if sys.version_info <= (3, 12):
+        if sys.version_info < (3, 13):
             kwargs.pop("follow_symlinks")
 
         return self._cloud_path_to_local(cloud_path).is_file(**kwargs)
