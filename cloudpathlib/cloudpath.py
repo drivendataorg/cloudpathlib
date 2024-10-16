@@ -13,6 +13,7 @@ from pathlib import (  # type: ignore
 
 import shutil
 import sys
+from types import MethodType
 from typing import (
     BinaryIO,
     Literal,
@@ -79,7 +80,7 @@ else:
 from cloudpathlib.enums import FileCacheMode
 
 from . import anypath
-
+from .decorators import class_or_instancemethod
 from .exceptions import (
     ClientMismatchError,
     CloudPathFileExistsError,
@@ -203,7 +204,12 @@ class CloudPathMeta(abc.ABCMeta):
                 and getattr(getattr(Path, attr), "__doc__", None)
             ):
                 docstring = getattr(Path, attr).__doc__ + " _(Docstring copied from pathlib.Path)_"
-                getattr(cls, attr).__doc__ = docstring
+
+                if isinstance(getattr(cls, attr), (MethodType)):
+                    getattr(cls, attr).__func__.__doc__ = docstring
+                else:
+                    getattr(cls, attr).__doc__ = docstring
+
                 if isinstance(getattr(cls, attr), property):
                     # Properties have __doc__ duplicated under fget, and at least some parsers
                     # read it from there.
@@ -436,8 +442,13 @@ class CloudPath(metaclass=CloudPathMeta):
     def fspath(self) -> str:
         return self.__fspath__()
 
-    def from_uri(self, uri: str) -> Self:
-        return self._new_cloudpath(uri)
+    @class_or_instancemethod
+    def from_uri(cls, uri: str) -> Self:
+        if isinstance(cls, type):
+            return cls(uri)
+        else:
+            # called on instance, use new_cloudpath to keep same client
+            return cls._new_cloudpath(uri)
 
     def _glob_checks(self, pattern: str) -> None:
         if ".." in pattern:
@@ -919,10 +930,13 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def full_match(self, pattern: str, case_sensitive: Optional[bool] = None) -> bool:
         # strip scheme from start of pattern before testing
-        if pattern.startswith(self.anchor + self.drive + "/"):
-            pattern = pattern[len(self.anchor + self.drive + "/") :]
+        if pattern.startswith(self.anchor + self.drive):
+            pattern = pattern[len(self.anchor + self.drive) :]
 
-        return self._dispatch_to_path("full_match", pattern, case_sensitive=case_sensitive)
+        # remove drive, which is kept on normal dispatch to pathlib
+        return PurePosixPath(self._no_prefix_no_drive).full_match(
+            pattern, case_sensitive=case_sensitive
+        )
 
     def match(self, path_pattern: str, case_sensitive: Optional[bool] = None) -> bool:
         # strip scheme from start of pattern before testing

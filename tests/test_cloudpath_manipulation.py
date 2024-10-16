@@ -177,3 +177,16 @@ def test_sorting(rig):
         assert cp1 > str(cp1)
     with pytest.raises(TypeError):
         assert cp1 >= str(cp1)
+
+
+def test_full_match(rig):
+    if sys.version_info > (3, 13):
+        assert rig.create_cloud_path("a/b/c").full_match("**/a/b/c")
+        assert not rig.create_cloud_path("a/b/c").full_match("**/a/b/c/d")
+        assert rig.create_cloud_path("a/b.py").full_match("**/a/*.py")
+        assert not rig.create_cloud_path("a/b.py").full_match("*.py")
+        assert rig.create_cloud_path("/a/b/c.py").full_match("**/a/**")
+
+        cp: CloudPath = rig.create_cloud_path("file.txt")
+        assert cp.full_match(cp._no_prefix_no_drive)
+        assert cp.full_match(str(cp))
