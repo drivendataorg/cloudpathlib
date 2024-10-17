@@ -4,6 +4,7 @@ import mimetypes
 import os
 from pathlib import Path, PurePosixPath
 import shutil
+import sys
 from tempfile import TemporaryDirectory
 from time import sleep
 from typing import Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
@@ -103,11 +104,19 @@ class LocalClient(Client):
     def _exists(self, cloud_path: "LocalPath") -> bool:
         return self._cloud_path_to_local(cloud_path).exists()
 
-    def _is_dir(self, cloud_path: "LocalPath") -> bool:
-        return self._cloud_path_to_local(cloud_path).is_dir()
+    def _is_dir(self, cloud_path: "LocalPath", follow_symlinks=True) -> bool:
+        kwargs = dict(follow_symlinks=follow_symlinks)
+        if sys.version_info < (3, 13):
+            kwargs.pop("follow_symlinks")
 
-    def _is_file(self, cloud_path: "LocalPath") -> bool:
-        return self._cloud_path_to_local(cloud_path).is_file()
+        return self._cloud_path_to_local(cloud_path).is_dir(**kwargs)
+
+    def _is_file(self, cloud_path: "LocalPath", follow_symlinks=True) -> bool:
+        kwargs = dict(follow_symlinks=follow_symlinks)
+        if sys.version_info < (3, 13):
+            kwargs.pop("follow_symlinks")
+
+        return self._cloud_path_to_local(cloud_path).is_file(**kwargs)
 
     def _list_dir(
         self, cloud_path: "LocalPath", recursive=False

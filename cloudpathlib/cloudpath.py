@@ -9,11 +9,11 @@ from pathlib import (  # type: ignore
     PosixPath,
     PurePosixPath,
     WindowsPath,
-    _PathParents,
 )
 
 import shutil
 import sys
+from types import MethodType
 from typing import (
     BinaryIO,
     Literal,
@@ -56,21 +56,31 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Self
 
-if sys.version_info >= (3, 12):
+if sys.version_info[:2] == (3, 12):
     from pathlib import posixpath as _posix_flavour  # type: ignore[attr-defined]
     from pathlib import _make_selector  # type: ignore[attr-defined]
-else:
-    from pathlib import _posix_flavour  # type: ignore[attr-defined]
-    from pathlib import _make_selector as _make_selector_pathlib  # type: ignore[attr-defined]
 
-    def _make_selector(pattern_parts, _flavour, case_sensitive=True):
+if sys.version_info < (3, 12):
+    from pathlib import _posix_flavour  # type: ignore[attr-defined] # noqa: F811
+    from pathlib import _make_selector as _make_selector_pathlib  # type: ignore[attr-defined] # noqa: F811
+
+    def _make_selector(pattern_parts, _flavour, case_sensitive=True):  # noqa: F811
         return _make_selector_pathlib(tuple(pattern_parts), _flavour)
+
+
+if sys.version_info >= (3, 13):
+    from pathlib._local import _PathParents
+    import posixpath as _posix_flavour  # type: ignore[attr-defined]   # noqa: F811
+
+    from .legacy.glob import _make_selector  # noqa: F811
+else:
+    from pathlib import _PathParents  # type: ignore[attr-defined]
 
 
 from cloudpathlib.enums import FileCacheMode
 
 from . import anypath
-
+from .decorators import class_or_instancemethod
 from .exceptions import (
     ClientMismatchError,
     CloudPathFileExistsError,
@@ -194,7 +204,12 @@ class CloudPathMeta(abc.ABCMeta):
                 and getattr(getattr(Path, attr), "__doc__", None)
             ):
                 docstring = getattr(Path, attr).__doc__ + " _(Docstring copied from pathlib.Path)_"
-                getattr(cls, attr).__doc__ = docstring
+
+                if isinstance(getattr(cls, attr), (MethodType)):
+                    getattr(cls, attr).__func__.__doc__ = docstring
+                else:
+                    getattr(cls, attr).__doc__ = docstring
+
                 if isinstance(getattr(cls, attr), property):
                     # Properties have __doc__ duplicated under fget, and at least some parsers
                     # read it from there.
@@ -384,16 +399,6 @@ class CloudPath(metaclass=CloudPathMeta):
         pass
 
     @abc.abstractmethod
-    def is_dir(self) -> bool:
-        """Should be implemented without requiring a dir is downloaded"""
-        pass
-
-    @abc.abstractmethod
-    def is_file(self) -> bool:
-        """Should be implemented without requiring that the file is downloaded"""
-        pass
-
-    @abc.abstractmethod
     def mkdir(self, parents: bool = False, exist_ok: bool = False) -> None:
         """Should be implemented using the client API without requiring a dir is downloaded"""
         pass
@@ -427,23 +432,52 @@ class CloudPath(metaclass=CloudPathMeta):
     def exists(self) -> bool:
         return self.client._exists(self)
 
+    def is_dir(self, follow_symlinks=True) -> bool:
+        return self.client._is_file_or_dir(self) == "dir"
+
+    def is_file(self, follow_symlinks=True) -> bool:
+        return self.client._is_file_or_dir(self) == "file"
+
     @property
     def fspath(self) -> str:
         return self.__fspath__()
 
-    def _glob_checks(self, pattern: str) -> None:
-        if ".." in pattern:
+    @class_or_instancemethod
+    def from_uri(cls, uri: str) -> Self:
+        if isinstance(cls, type):
+            return cls(uri)
+        else:
+            # called on instance, use new_cloudpath to keep same client
+            return cls._new_cloudpath(uri)
+
+    def _glob_checks(self, pattern: Union[str, os.PathLike]) -> str:
+        if isinstance(pattern, os.PathLike):
+            if isinstance(pattern, CloudPath):
+                str_pattern = str(pattern.relative_to(self))
+            else:
+                str_pattern = os.fspath(pattern)
+        else:
+            str_pattern = str(pattern)
+
+        # in py313, patterns ending with "**" return all files in subdirectories
+        # previously, it is just directories, so we emulate that behavior
+        if sys.version_info >= (3, 13) and str_pattern.endswith("**"):
+            str_pattern += "/*"
+
+        if ".." in str_pattern:
             raise CloudPathNotImplementedError(
                 "Relative paths with '..' not supported in glob patterns."
             )
 
-        if pattern.startswith(self.cloud_prefix) or pattern.startswith("/"):
+        if str_pattern.startswith(self.cloud_prefix) or str_pattern.startswith("/"):
             raise CloudPathNotImplementedError("Non-relative patterns are unsupported")
 
         if self.drive == "":
             raise CloudPathNotImplementedError(
                 ".glob is only supported within a bucket or container; you can use `.iterdir` to list buckets; for example, CloudPath('s3://').iterdir()"
             )
+
+        return str_pattern
 
     def _build_subtree(self, recursive):
         # build a tree structure for all files out of default dicts
@@ -488,9 +522,9 @@ class CloudPath(metaclass=CloudPathMeta):
             yield (self / str(p)[len(self.name) + 1 :])
 
     def glob(
-        self, pattern: str, case_sensitive: Optional[bool] = None
+        self, pattern: Union[str, os.PathLike], case_sensitive: Optional[bool] = None
     ) -> Generator[Self, None, None]:
-        self._glob_checks(pattern)
+        pattern = self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
         selector = _make_selector(
@@ -505,9 +539,9 @@ class CloudPath(metaclass=CloudPathMeta):
         )
 
     def rglob(
-        self, pattern: str, case_sensitive: Optional[bool] = None
+        self, pattern: Union[str, os.PathLike], case_sensitive: Optional[bool] = None
     ) -> Generator[Self, None, None]:
-        self._glob_checks(pattern)
+        pattern = self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
         selector = _make_selector(
@@ -812,8 +846,13 @@ class CloudPath(metaclass=CloudPathMeta):
         with self.open(mode="rb") as f:
             return f.read()
 
-    def read_text(self, encoding: Optional[str] = None, errors: Optional[str] = None) -> str:
-        with self.open(mode="r", encoding=encoding, errors=errors) as f:
+    def read_text(
+        self,
+        encoding: Optional[str] = None,
+        errors: Optional[str] = None,
+        newline: Optional[str] = None,
+    ) -> str:
+        with self.open(mode="r", encoding=encoding, errors=errors, newline=newline) as f:
             return f.read()
 
     def is_junction(self):
@@ -904,6 +943,16 @@ class CloudPath(metaclass=CloudPathMeta):
     def name(self) -> str:
         return self._dispatch_to_path("name")
 
+    def full_match(self, pattern: str, case_sensitive: Optional[bool] = None) -> bool:
+        # strip scheme from start of pattern before testing
+        if pattern.startswith(self.anchor + self.drive):
+            pattern = pattern[len(self.anchor + self.drive) :]
+
+        # remove drive, which is kept on normal dispatch to pathlib
+        return PurePosixPath(self._no_prefix_no_drive).full_match(  # type: ignore[attr-defined]
+            pattern, case_sensitive=case_sensitive
+        )
+
     def match(self, path_pattern: str, case_sensitive: Optional[bool] = None) -> bool:
         # strip scheme from start of pattern before testing
         if path_pattern.startswith(self.anchor + self.drive + "/"):
@@ -915,6 +964,10 @@ class CloudPath(metaclass=CloudPathMeta):
             kwargs.pop("case_sensitive")
 
         return self._dispatch_to_path("match", path_pattern, **kwargs)
+
+    @property
+    def parser(self) -> Self:
+        return self._dispatch_to_path("parser")
 
     @property
     def parent(self) -> Self:
