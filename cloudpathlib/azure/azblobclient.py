@@ -472,7 +472,7 @@ class AzureBlobClient(Client):
         self, cloud_path: AzureBlobPath, expire_seconds: int = 60 * 60
     ) -> str:
         sas_token = generate_blob_sas(
-            self.service_client.account_name,
+            self.service_client.account_name,  # type: ignore[arg-type]
             container_name=cloud_path.container,
             blob_name=cloud_path.blob,
             account_key=self.service_client.credential.account_key,
