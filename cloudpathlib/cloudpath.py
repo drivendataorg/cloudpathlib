@@ -456,6 +456,8 @@ class CloudPath(metaclass=CloudPathMeta):
                 str_pattern = str(pattern.relative_to(self))
             else:
                 str_pattern = os.fspath(pattern)
+        else:
+            str_pattern = str(pattern)
 
         if ".." in str_pattern:
             raise CloudPathNotImplementedError(
