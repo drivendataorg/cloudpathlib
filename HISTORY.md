@@ -3,7 +3,7 @@
 ## v0.20.0 (2024-10-18)
 
 - Added support for custom schemes in CloudPath and Client subclases. (Issue [#466](https://github.com/drivendataorg/cloudpathlib/issues/466), PR [#467](https://github.com/drivendataorg/cloudpathlib/pull/467))
-- Add check for HNS that works in more scenarios and with different kinds of credentials. (Issue [#470](https://github.com/drivendataorg/cloudpathlib/issues/470), Issue [#476](https://github.com/drivendataorg/cloudpathlib/issues/476), PR [#478](https://github.com/drivendataorg/cloudpathlib/pull/478))
+- Fixed `ResourceNotFoundError` on Azure gen2 storage accounts with HNS enabled and issue that some Azure credentials do not have `account_name`. (Issue [#470](https://github.com/drivendataorg/cloudpathlib/issues/470), Issue [#476](https://github.com/drivendataorg/cloudpathlib/issues/476), PR [#478](https://github.com/drivendataorg/cloudpathlib/pull/478))
 
 ## v0.19.0 (2024-08-29)
 
