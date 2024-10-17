@@ -218,8 +218,10 @@ def test_glob(glob_test_dirs):
     _check_glob("*A", "glob")
     _check_glob("*B/*", "glob")
     _check_glob("*/fileB", "glob")
-    _check_glob(PurePosixPath("**/*"), "glob")
     _check_glob(cloud_root / "**/*", "glob", local_pattern="**/*")
+
+    if sys.version_info >= (3, 13):
+        _check_glob(PurePosixPath("**/*"), "glob")
 
     # rglob_common
     _check_glob("*", "rglob")
@@ -228,8 +230,10 @@ def test_glob(glob_test_dirs):
     _check_glob("*/fileA", "rglob")
     _check_glob("*/fileB", "rglob")
     _check_glob("file*", "rglob")
-    _check_glob(PurePosixPath("*"), "rglob")
     _check_glob(cloud_root / "*", "rglob", local_pattern="*")
+
+    if sys.version_info >= (3, 13):
+        _check_glob(PurePosixPath("*"), "rglob")
 
     dir_c_cloud = cloud_root / "dirC"
     dir_c_local = local_root / "dirC"

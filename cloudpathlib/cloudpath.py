@@ -459,6 +459,11 @@ class CloudPath(metaclass=CloudPathMeta):
         else:
             str_pattern = str(pattern)
 
+        # in py313, patterns ending with "**" return all files in subdirectories
+        # previously, it is just directories, so we emulate that behavior
+        if sys.version_info >= (3, 13) and str_pattern.endswith("**"):
+            str_pattern += "/*"
+
         if ".." in str_pattern:
             raise CloudPathNotImplementedError(
                 "Relative paths with '..' not supported in glob patterns."
