@@ -4,7 +4,7 @@
 
 - Added support for custom schemes in CloudPath and Client subclases. (Issue [#466](https://github.com/drivendataorg/cloudpathlib/issues/466), PR [#467](https://github.com/drivendataorg/cloudpathlib/pull/467))
 - Fixed `ResourceNotFoundError` on Azure gen2 storage accounts with HNS enabled and issue that some Azure credentials do not have `account_name`. (Issue [#470](https://github.com/drivendataorg/cloudpathlib/issues/470), Issue [#476](https://github.com/drivendataorg/cloudpathlib/issues/476), PR [#478](https://github.com/drivendataorg/cloudpathlib/pull/478))
-- Add support for Python 3.13; remove support for Python 3.8 (Issue [#472](https://github.com/drivendataorg/cloudpathlib/issues/472), [PR #474](https://github.com/drivendataorg/cloudpathlib/pull/474))
+- Add support for Python 3.13 (Issue [#472](https://github.com/drivendataorg/cloudpathlib/issues/472), [PR #474](https://github.com/drivendataorg/cloudpathlib/pull/474))
 
 
 ## v0.19.0 (2024-08-29)
