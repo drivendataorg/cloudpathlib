@@ -1,6 +1,7 @@
 import os
 
 from azure.core.credentials import AzureNamedKeyCredential
+from azure.identity import DefaultAzureCredential
 from azure.storage.blob import (
     BlobServiceClient,
     StorageStreamDownloader,
@@ -133,6 +134,20 @@ def test_client_instantiation(azure_rigs, monkeypatch):
         ),
     )
     _check_access(cl, gen2=azure_rigs.is_adls_gen2)
+
+    # discover and use credentials for service principal by having set:
+    # AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID
+    credential = DefaultAzureCredential()
+    cl: AzureBlobClient = azure_rigs.client_class(credential=credential, account_url=bsc.url)
+    _check_access(cl, gen2=azure_rigs.is_adls_gen2)
+
+    # add basic checks for gen2 to exercise limited-privilege access scenarios
+    p = azure_rigs.create_cloud_path("new_dir/new_file.txt", client=cl)
+    assert cl._check_hns(p) == azure_rigs.is_adls_gen2
+    p.write_text("Hello")
+    assert p.exists()
+    assert p.read_text() == "Hello"
+    assert list(p.parent.iterdir()) == [p]
 
 
 def test_adls_gen2_mkdir(azure_gen2_rig):
