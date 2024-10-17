@@ -450,19 +450,27 @@ class CloudPath(metaclass=CloudPathMeta):
             # called on instance, use new_cloudpath to keep same client
             return cls._new_cloudpath(uri)
 
-    def _glob_checks(self, pattern: str) -> None:
-        if ".." in pattern:
+    def _glob_checks(self, pattern: Union[str, os.PathLike]) -> str:
+        if isinstance(pattern, os.PathLike):
+            if isinstance(pattern, CloudPath):
+                str_pattern = str(pattern.relative_to(self))
+            else:
+                str_pattern = os.fspath(pattern)
+
+        if ".." in str_pattern:
             raise CloudPathNotImplementedError(
                 "Relative paths with '..' not supported in glob patterns."
             )
 
-        if pattern.startswith(self.cloud_prefix) or pattern.startswith("/"):
+        if str_pattern.startswith(self.cloud_prefix) or str_pattern.startswith("/"):
             raise CloudPathNotImplementedError("Non-relative patterns are unsupported")
 
         if self.drive == "":
             raise CloudPathNotImplementedError(
                 ".glob is only supported within a bucket or container; you can use `.iterdir` to list buckets; for example, CloudPath('s3://').iterdir()"
             )
+
+        return str_pattern
 
     def _build_subtree(self, recursive):
         # build a tree structure for all files out of default dicts
@@ -507,9 +515,9 @@ class CloudPath(metaclass=CloudPathMeta):
             yield (self / str(p)[len(self.name) + 1 :])
 
     def glob(
-        self, pattern: str, case_sensitive: Optional[bool] = None
+        self, pattern: Union[str, os.PathLike], case_sensitive: Optional[bool] = None
     ) -> Generator[Self, None, None]:
-        self._glob_checks(pattern)
+        pattern = self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
         selector = _make_selector(
@@ -524,9 +532,9 @@ class CloudPath(metaclass=CloudPathMeta):
         )
 
     def rglob(
-        self, pattern: str, case_sensitive: Optional[bool] = None
+        self, pattern: Union[str, os.PathLike], case_sensitive: Optional[bool] = None
     ) -> Generator[Self, None, None]:
-        self._glob_checks(pattern)
+        pattern = self._glob_checks(pattern)
 
         pattern_parts = PurePosixPath(pattern).parts
         selector = _make_selector(
