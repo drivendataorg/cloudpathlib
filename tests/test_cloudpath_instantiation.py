@@ -35,6 +35,7 @@ def test_dispatch(path_class, cloud_path, monkeypatch):
         monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "fake-project")
 
     assert isinstance(CloudPath(cloud_path), path_class)
+    assert isinstance(CloudPath.from_uri(cloud_path), path_class)
 
 
 def test_dispatch_error():
@@ -72,6 +73,14 @@ def test_instantiation_errors(rig):
 
     with pytest.raises(InvalidPrefixError):
         rig.path_class("NOT_S3_PATH")
+
+
+def test_from_uri(rig):
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
+
+    # classmethod uses default client
+    assert rig.path_class.from_uri(str(p)) == p
+    assert rig.path_class.from_uri(str(p)).client == p.client
 
 
 def test_idempotency(rig):

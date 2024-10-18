@@ -4,6 +4,18 @@
 
 - Added support for custom schemes in CloudPath and Client subclases. (Issue [#466](https://github.com/drivendataorg/cloudpathlib/issues/466), PR [#467](https://github.com/drivendataorg/cloudpathlib/pull/467))
 - Fixed `ResourceNotFoundError` on Azure gen2 storage accounts with HNS enabled and issue that some Azure credentials do not have `account_name`. (Issue [#470](https://github.com/drivendataorg/cloudpathlib/issues/470), Issue [#476](https://github.com/drivendataorg/cloudpathlib/issues/476), PR [#478](https://github.com/drivendataorg/cloudpathlib/pull/478))
+- Added support for Python 3.13 (Issue [#472](https://github.com/drivendataorg/cloudpathlib/issues/472), [PR #474](https://github.com/drivendataorg/cloudpathlib/pull/474)):
+  - [`.full_match` added](https://docs.python.org/3.13/library/pathlib.html#pathlib.PurePath.full_match)
+  - [`.from_uri` added](https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.from_uri)
+  - [`follow_symlinks` kwarg added to `is_file`](https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.is_file) added as no-op
+  - [`follow_symlinks` kwarg added to `is_dir`](https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.is_dir) added as no-op
+  - [`newline` kwarg added to `read_text`](https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.read_text)
+  - [`recurse_symlinks` kwarg added to `glob`](https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.glob) added as no-op
+  - [`pattern` parameter for `glob` can be PathLike](https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.glob)
+  - [`recurse_symlinks` kwarg added to `rglob`](https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.rglob) added as no-op
+  - [`pattern` parameter for `rglob` can be PathLike](https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.rglob)
+  - [`.parser` property added](https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.parser)
+
 
 ## v0.19.0 (2024-08-29)
 

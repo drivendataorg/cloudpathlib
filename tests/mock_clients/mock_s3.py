@@ -156,13 +156,9 @@ class MockObjects:
         path = self.root / Prefix
 
         if path.is_file():
-            return MockCollection([PurePosixPath(path)], self.root, session=self.session)
+            return MockCollection([path], self.root, session=self.session)
 
-        items = [
-            PurePosixPath(f)
-            for f in path.glob("**/*")
-            if f.is_file() and not f.name.startswith(".")
-        ]
+        items = [f for f in path.glob("**/*") if f.is_file() and not f.name.startswith(".")]
         return MockCollection(items, self.root, session=self.session)
 
 
@@ -174,7 +170,9 @@ class MockCollection:
 
         self.full_paths = items
         self.s3_obj_paths = [
-            s3_obj(bucket_name=DEFAULT_S3_BUCKET_NAME, key=str(i.relative_to(self.root)))
+            s3_obj(
+                bucket_name=DEFAULT_S3_BUCKET_NAME, key=str(i.relative_to(self.root).as_posix())
+            )
             for i in items
         ]
 

@@ -32,12 +32,6 @@ class S3Path(CloudPath):
     def drive(self) -> str:
         return self.bucket
 
-    def is_dir(self) -> bool:
-        return self.client._is_file_or_dir(self) == "dir"
-
-    def is_file(self) -> bool:
-        return self.client._is_file_or_dir(self) == "file"
-
     def mkdir(self, parents=False, exist_ok=False):
         # not possible to make empty directory on s3
         pass
