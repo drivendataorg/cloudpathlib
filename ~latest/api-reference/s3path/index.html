@@ -785,24 +785,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cloudpathlib.s3.s3path.S3Path.is_dir" class="md-nav__link">
-    <span class="md-ellipsis">
-      is_dir()
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#cloudpathlib.s3.s3path.S3Path.is_file" class="md-nav__link">
-    <span class="md-ellipsis">
-      is_file()
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#cloudpathlib.s3.s3path.S3Path.mkdir" class="md-nav__link">
     <span class="md-ellipsis">
       mkdir()
@@ -1184,24 +1166,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cloudpathlib.s3.s3path.S3Path.is_dir" class="md-nav__link">
-    <span class="md-ellipsis">
-      is_dir()
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#cloudpathlib.s3.s3path.S3Path.is_file" class="md-nav__link">
-    <span class="md-ellipsis">
-      is_file()
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#cloudpathlib.s3.s3path.S3Path.mkdir" class="md-nav__link">
     <span class="md-ellipsis">
       mkdir()
@@ -1272,7 +1236,8 @@ documentation for more details.</p>
 
         <details class="quote">
           <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">class</span> <span class="nc">S3Path</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">):</span>
+          <div class="highlight"><pre><span></span><code><span class="nd">@register_path_class</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">S3Path</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for representing and operating on AWS S3 URIs, in the style of the Python standard</span>
 <span class="sd">    library&#39;s [`pathlib` module](https://docs.python.org/3/library/pathlib.html). Instances</span>
 <span class="sd">    represent a path in S3 with filesystem path semantics, and convenient methods allow for basic</span>
@@ -1292,12 +1257,6 @@ documentation for more details.</p>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">drive</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bucket</span>
-
-    <span class="k">def</span> <span class="nf">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;dir&quot;</span>
-
-    <span class="k">def</span> <span class="nf">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span>
 
     <span class="k">def</span> <span class="nf">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="c1"># not possible to make empty directory on s3</span>
@@ -1479,61 +1438,6 @@ documentation for more details.</p>
 
 
 <h2 id="cloudpathlib.s3.s3path.S3Path-methods">Methods<a href="#cloudpathlib.s3.s3path.S3Path-methods" class="headerlink" title="Permanent link">&para;</a></h2>
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h3 id="cloudpathlib.s3.s3path.S3Path.is_dir" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span></code>
-
-
-<a href="#cloudpathlib.s3.s3path.S3Path.is_dir" class="headerlink" title="Permanent link">&para;</a></h3>
-
-    <div class="doc doc-contents ">
-
-      <p>Whether this path is a directory.
- <em>(Docstring copied from pathlib.Path)</em></p>
-
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">is_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;dir&quot;</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h3 id="cloudpathlib.s3.s3path.S3Path.is_file" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span></code>
-
-
-<a href="#cloudpathlib.s3.s3path.S3Path.is_file" class="headerlink" title="Permanent link">&para;</a></h3>
-
-    <div class="doc doc-contents ">
-
-      <p>Whether this path is a regular file (also True for symlinks pointing
-to regular files).
- <em>(Docstring copied from pathlib.Path)</em></p>
-
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/s3/s3path.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">def</span> <span class="nf">is_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span>
-</code></pre></div>
-        </details>
-    </div>
-
-  </div>
-
-
 
   <div class="doc doc-object doc-method">
 

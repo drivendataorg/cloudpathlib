@@ -1592,6 +1592,17 @@
 <ul>
 <li>Added support for custom schemes in CloudPath and Client subclases. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/466">#466</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/467">#467</a>)</li>
 <li>Fixed <code>ResourceNotFoundError</code> on Azure gen2 storage accounts with HNS enabled and issue that some Azure credentials do not have <code>account_name</code>. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/470">#470</a>, Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/476">#476</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/478">#478</a>)</li>
+<li>Added support for Python 3.13 (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/472">#472</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/474">PR #474</a>):</li>
+<li><a href="https://docs.python.org/3.13/library/pathlib.html#pathlib.PurePath.full_match"><code>.full_match</code> added</a></li>
+<li><a href="https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.from_uri"><code>.from_uri</code> added</a></li>
+<li><a href="https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.is_file"><code>follow_symlinks</code> kwarg added to <code>is_file</code></a> added as no-op</li>
+<li><a href="https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.is_dir"><code>follow_symlinks</code> kwarg added to <code>is_dir</code></a> added as no-op</li>
+<li><a href="https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.read_text"><code>newline</code> kwarg added to <code>read_text</code></a></li>
+<li><a href="https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.glob"><code>recurse_symlinks</code> kwarg added to <code>glob</code></a> added as no-op</li>
+<li><a href="https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.glob"><code>pattern</code> parameter for <code>glob</code> can be PathLike</a></li>
+<li><a href="https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.rglob"><code>recurse_symlinks</code> kwarg added to <code>rglob</code></a> added as no-op</li>
+<li><a href="https://docs.python.org/3.13/library/pathlib.html#pathlib.Path.rglob"><code>pattern</code> parameter for <code>rglob</code> can be PathLike</a></li>
+<li><a href="https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.parser"><code>.parser</code> property added</a></li>
 </ul>
 <h2 id="v0190-2024-08-29">v0.19.0 (2024-08-29)<a class="headerlink" href="#v0190-2024-08-29" title="Permanent link">&para;</a></h2>
 <ul>
