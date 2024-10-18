@@ -933,6 +933,9 @@ class CloudPath(metaclass=CloudPathMeta):
         return self._dispatch_to_path("name")
 
     def full_match(self, pattern: str, case_sensitive: Optional[bool] = None) -> bool:
+        if sys.version_info < (3, 13):
+            raise NotImplementedError("full_match requires Python 3.13 or higher")
+
         # strip scheme from start of pattern before testing
         if pattern.startswith(self.anchor + self.drive):
             pattern = pattern[len(self.anchor + self.drive) :]
@@ -956,6 +959,9 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @property
     def parser(self) -> Self:
+        if sys.version_info < (3, 13):
+            raise NotImplementedError("parser requires Python 3.13 or higher")
+
         return self._dispatch_to_path("parser")
 
     @property
