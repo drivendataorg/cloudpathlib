@@ -71,3 +71,4 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 source = ["cloudpathlib"]
+omit = ["cloudpathlib/legacy/glob.py"]
