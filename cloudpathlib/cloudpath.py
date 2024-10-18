@@ -56,31 +56,29 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Self
 
-if sys.version_info[:2] == (3, 12):
-    from pathlib import posixpath as _posix_flavour  # type: ignore[attr-defined]
-    from pathlib import _make_selector  # type: ignore[attr-defined]
 
 if sys.version_info < (3, 12):
     from pathlib import _posix_flavour  # type: ignore[attr-defined] # noqa: F811
     from pathlib import _make_selector as _make_selector_pathlib  # type: ignore[attr-defined] # noqa: F811
+    from pathlib import _PathParents  # type: ignore[attr-defined]
 
     def _make_selector(pattern_parts, _flavour, case_sensitive=True):  # noqa: F811
         return _make_selector_pathlib(tuple(pattern_parts), _flavour)
 
-
-if sys.version_info >= (3, 13):
+elif sys.version_info[:2] == (3, 12):
+    from pathlib import _PathParents  # type: ignore[attr-defined]
+    from pathlib import posixpath as _posix_flavour  # type: ignore[attr-defined]
+    from pathlib import _make_selector  # type: ignore[attr-defined]
+elif sys.version_info >= (3, 13):
     from pathlib._local import _PathParents
     import posixpath as _posix_flavour  # type: ignore[attr-defined]   # noqa: F811
 
     from .legacy.glob import _make_selector  # noqa: F811
-else:
-    from pathlib import _PathParents  # type: ignore[attr-defined]
 
 
 from cloudpathlib.enums import FileCacheMode
 
 from . import anypath
-from .decorators import class_or_instancemethod
 from .exceptions import (
     ClientMismatchError,
     CloudPathFileExistsError,
@@ -442,13 +440,9 @@ class CloudPath(metaclass=CloudPathMeta):
     def fspath(self) -> str:
         return self.__fspath__()
 
-    @class_or_instancemethod
+    @classmethod
     def from_uri(cls, uri: str) -> Self:
-        if isinstance(cls, type):
-            return cls(uri)
-        else:
-            # called on instance, use new_cloudpath to keep same client
-            return cls._new_cloudpath(uri)
+        return cls(uri)
 
     def _glob_checks(self, pattern: Union[str, os.PathLike]) -> str:
         if isinstance(pattern, os.PathLike):
@@ -458,11 +452,6 @@ class CloudPath(metaclass=CloudPathMeta):
                 str_pattern = os.fspath(pattern)
         else:
             str_pattern = str(pattern)
-
-        # in py313, patterns ending with "**" return all files in subdirectories
-        # previously, it is just directories, so we emulate that behavior
-        if sys.version_info >= (3, 13) and str_pattern.endswith("**"):
-            str_pattern += "/*"
 
         if ".." in str_pattern:
             raise CloudPathNotImplementedError(

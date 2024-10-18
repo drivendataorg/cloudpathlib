@@ -78,16 +78,9 @@ def test_instantiation_errors(rig):
 def test_from_uri(rig):
     p = rig.create_cloud_path("dir_0/file0_0.txt")
 
-    new_client = rig.client_class(**rig.required_client_kwargs)
-    p2 = new_client.CloudPath(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/dir_0/file0_0.txt")
-
     # classmethod uses default client
     assert rig.path_class.from_uri(str(p)) == p
     assert rig.path_class.from_uri(str(p)).client == p.client
-
-    # instance method uses same client
-    assert p2.from_uri(str(p2)) == p2
-    assert p2.from_uri(str(p2)).client == new_client
 
 
 def test_idempotency(rig):
