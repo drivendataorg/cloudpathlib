@@ -204,3 +204,28 @@ def test_parser(rig):
     else:
         # always posixpath since our dispath goes to PurePosixPath
         assert rig.create_cloud_path("a/b/c").parser == posixpath
+
+
+def test_truediv_fallback(rig):
+    """Another class with __rtruediv__ method should be able to use / operator with CloudPath."""
+
+    class CustomClassSupportsCloudPath:
+        def __init__(self, value: str):
+            self.value = value
+
+        def __rtruediv__(self, other):
+            if isinstance(other, CloudPath):
+                return other / self.value
+            return NotImplemented
+
+    assert rig.create_cloud_path("a/b") / CustomClassSupportsCloudPath(
+        "c"
+    ) == rig.create_cloud_path("a/b/c")
+
+    # Expect TypeError if / operation with CloudPath is not supported
+    class CustomClassDoesNotSupportCloudPath:
+        def __init__(self, value: str):
+            self.value = value
+
+    with pytest.raises(TypeError):
+        rig.create_cloud_path("a/b") / CustomClassDoesNotSupportCloudPath("c")

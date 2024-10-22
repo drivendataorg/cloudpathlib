@@ -888,7 +888,7 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def __truediv__(self, other: Union[str, PurePosixPath]) -> Self:
         if not isinstance(other, (str, PurePosixPath)):
-            raise TypeError(f"Can only join path {repr(self)} with strings or posix paths.")
+            return NotImplemented
 
         return self._dispatch_to_path("__truediv__", other)
 
