@@ -95,3 +95,7 @@ class GSPath(CloudPath):
     @property
     def etag(self):
         return self.client._get_metadata(self).get("etag")
+
+    @property
+    def md5(self) -> str:
+        return self.client._get_metadata(self).get("md5_hash")
