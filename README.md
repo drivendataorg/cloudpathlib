@@ -205,7 +205,7 @@ Most methods and properties from `pathlib.Path` are supported except for the one
 | `bucket`               | ❌                | ✅         | ✅         |
 | `container`            | ✅                | ❌         | ❌         |
 | `key`                  | ❌                | ✅         | ❌         |
-| `md5`                  | ✅                | ❌         | ❌         |
+| `md5`                  | ✅                | ❌         | ✅         |
 
 ----
 
