@@ -98,7 +98,7 @@ class GSPath(CloudPath):
 
     @property
     def md5(self) -> str | None:
-        _metadata = self.client._get_metadata(self)
-        if not _metadata:
+        meta = self.client._get_metadata(self)
+        if not meta:
             return None
-        return _metadata.get("md5_hash", None)
+        return meta.get("md5_hash", None)
