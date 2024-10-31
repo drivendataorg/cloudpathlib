@@ -97,5 +97,8 @@ class GSPath(CloudPath):
         return self.client._get_metadata(self).get("etag")
 
     @property
-    def md5(self) -> str:
-        return self.client._get_metadata(self).get("md5_hash")
+    def md5(self) -> str | None:
+        _metadata = self.client._get_metadata(self)
+        if not _metadata:
+            return None
+        return _metadata.get("md5_hash", None)
