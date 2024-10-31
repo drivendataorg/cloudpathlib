@@ -96,6 +96,10 @@ class MockBlob:
         return "etag"
 
     @property
+    def md5_hash(self):
+        return "md5_hash"
+
+    @property
     def size(self):
         path = self.bucket / self.name
         return path.stat().st_size
