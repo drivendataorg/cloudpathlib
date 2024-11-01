@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import os
 from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
@@ -97,7 +98,7 @@ class MockBlob:
 
     @property
     def md5_hash(self):
-        return "md5_hash"
+        return os.environ.get("MOCK_EXPECTED_MD5_HASH", "md5_hash")
 
     @property
     def size(self):

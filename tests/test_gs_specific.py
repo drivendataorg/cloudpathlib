@@ -1,3 +1,4 @@
+import os
 import pytest
 
 from urllib.parse import urlparse, parse_qs
@@ -49,3 +50,18 @@ def test_as_url(gs_rig):
     assert "X-Goog-Date" in query_params
     assert "X-Goog-SignedHeaders" in query_params
     assert "X-Goog-Signature" in query_params
+
+@pytest.mark.parametrize(
+    "content, expected_hash",
+    [
+        ("hello world", "5eb63bbbe01eeed093cb22bb8f5acdc3"),
+        ("another test case", "4f8182cd9856777ebe3c4f5dc58dacea")
+    ]
+)
+def test_md5_property(content, expected_hash, gs_rig, monkeypatch):
+    # if USE_LIVE_CLOUD this doesnt have any effect
+    monkeypatch.setenv("MOCK_EXPECTED_MD5_HASH", expected_hash)
+
+    p: GSPath = gs_rig.create_cloud_path("dir_0/file0_0.txt")
+    p.write_text(content)
+    assert p.md5 == expected_hash
