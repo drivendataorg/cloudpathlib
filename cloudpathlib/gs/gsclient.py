@@ -45,7 +45,7 @@ class GSClient(Client):
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
         download_chunks_concurrently_kwargs: Optional[Dict[str, Any]] = None,
-        timeout: float = None,
+        timeout: Optional[float] = None,
     ):
         """Class constructor. Sets up a [`Storage
         Client`](https://googleapis.dev/python/storage/latest/client.html).
@@ -86,7 +86,7 @@ class GSClient(Client):
             download_chunks_concurrently_kwargs (Optional[Dict[str, Any]]): Keyword arguments to pass to
                 [`download_chunks_concurrently`](https://cloud.google.com/python/docs/reference/storage/latest/google.cloud.storage.transfer_manager#google_cloud_storage_transfer_manager_download_chunks_concurrently)
                 for sliced parallel downloads; Only available in `google-cloud-storage` version 2.7.0 or later, otherwise ignored and a warning is emitted.
-            timeout (float): Cloud Storage [timeout value](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout)
+            timeout (Optional[float]): Cloud Storage [timeout value](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout)
         """
         if application_credentials is None:
             application_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
