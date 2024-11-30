@@ -218,14 +218,11 @@ class AzureBlobClient(Client):
         return self._hns_enabled
 
     def _check_hns_root_metadata(self, cloud_path: AzureBlobPath) -> bool:
-        root_dir = self.service_client.get_blob_client(
-            container=cloud_path.container, blob="/"
-        )
+        root_dir = self.service_client.get_blob_client(container=cloud_path.container, blob="/")
 
         self._hns_enabled = (
             root_dir.exists()
-            and root_dir.get_blob_properties().metadata.get("hdi_isfolder", False)
-            == "true"
+            and root_dir.get_blob_properties().metadata.get("hdi_isfolder", False) == "true"
         )
 
         return cast(bool, self._hns_enabled)
