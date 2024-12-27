@@ -96,7 +96,11 @@ class AzureBlobPath(CloudPath):
 
     @property
     def blob(self) -> str:
-        key = self._no_prefix_no_drive
+        key = (
+            Path(self._no_prefix_no_drive).resolve().as_posix()
+            if self._no_prefix_no_drive
+            else self._no_prefix_no_drive
+        )
 
         # key should never have starting slash for
         if key.startswith("/"):

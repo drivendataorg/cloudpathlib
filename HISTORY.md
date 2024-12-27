@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fixed `CloudPath(...) / other` to correctly attempt to fall back on `other`'s `__rtruediv__` implementation, in order to support classes that explicitly support the `/` with a `CloudPath` instance. Previously, this would always raise a `TypeError` if `other` were not a `str` or `PurePosixPath`. (PR [#479](https://github.com/drivendataorg/cloudpathlib/pull/479))
+- Fixed `AzureBlobPath(...).blob` to correctly resolves path to the blob for situations when specified path contains `..`.
 
 ## v0.20.0 (2024-10-18)
 
