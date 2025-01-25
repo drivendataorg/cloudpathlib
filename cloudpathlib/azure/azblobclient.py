@@ -214,7 +214,7 @@ class AzureBlobClient(Client):
                 return self._check_hns_root_metadata(cloud_path)
             except HttpResponseError as error:
                 if error.status_code == HTTPStatus.FORBIDDEN:
-                    self._check_hns_root_metadata(cloud_path)
+                    return self._check_hns_root_metadata(cloud_path)
                 else:
                     raise
 
