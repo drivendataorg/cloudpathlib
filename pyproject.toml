@@ -30,7 +30,7 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-  "typing_extensions>4 ; python_version < '3.11'",
+  "typing-extensions>4 ; python_version < '3.11'",
 ]
 
 [project.optional-dependencies]

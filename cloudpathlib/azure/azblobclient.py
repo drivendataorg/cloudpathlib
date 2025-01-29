@@ -1,9 +1,14 @@
 from datetime import datetime, timedelta
 import mimetypes
 import os
+from http import HTTPStatus
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
 
+try:
+    from typing import cast
+except ImportError:
+    from typing_extensions import cast
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
@@ -13,7 +18,7 @@ from .azblobpath import AzureBlobPath
 
 
 try:
-    from azure.core.exceptions import ResourceNotFoundError
+    from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
     from azure.core.credentials import AzureNamedKeyCredential
 
     from azure.storage.blob import (
@@ -202,19 +207,28 @@ class AzureBlobClient(Client):
             try:
                 account_info = self.service_client.get_account_information()  # type: ignore
                 self._hns_enabled = account_info.get("is_hns_enabled", False)  # type: ignore
+
+            # get_account_information() not supported with this credential; we have to fallback to
+            # checking if the root directory exists and is a has 'metadata': {'hdi_isfolder': 'true'}
             except ResourceNotFoundError:
-                # get_account_information() not supported with this credential; we have to fallback to
-                # checking if the root directory exists and is a has 'metadata': {'hdi_isfolder': 'true'}
-                root_dir = self.service_client.get_blob_client(
-                    container=cloud_path.container, blob="/"
-                )
-                self._hns_enabled = (
-                    root_dir.exists()
-                    and root_dir.get_blob_properties().metadata.get("hdi_isfolder", False)
-                    == "true"
-                )
+                return self._check_hns_root_metadata(cloud_path)
+            except HttpResponseError as error:
+                if error.status_code == HTTPStatus.FORBIDDEN:
+                    return self._check_hns_root_metadata(cloud_path)
+                else:
+                    raise
 
         return self._hns_enabled
+
+    def _check_hns_root_metadata(self, cloud_path: AzureBlobPath) -> bool:
+        root_dir = self.service_client.get_blob_client(container=cloud_path.container, blob="/")
+
+        self._hns_enabled = (
+            root_dir.exists()
+            and root_dir.get_blob_properties().metadata.get("hdi_isfolder", False) == "true"
+        )
+
+        return cast(bool, self._hns_enabled)
 
     def _get_metadata(
         self, cloud_path: AzureBlobPath
