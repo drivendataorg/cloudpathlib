@@ -53,6 +53,10 @@ class LocalGSPath(LocalPath):
     def etag(self):
         return self.client._md5(self)
 
+    @property
+    def md5(self) -> str:
+        return self.client._md5(self)
+
 
 LocalGSPath.__name__ = "GSPath"
 

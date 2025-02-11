@@ -121,6 +121,7 @@ class GSClient(Client):
                 "size": blob.size,
                 "updated": blob.updated,
                 "content_type": blob.content_type,
+                "md5_hash": blob.md5_hash,
             }
 
     def _download_file(self, cloud_path: GSPath, local_path: Union[str, os.PathLike]) -> Path:

@@ -49,3 +49,29 @@ def test_as_url(gs_rig):
     assert "X-Goog-Date" in query_params
     assert "X-Goog-SignedHeaders" in query_params
     assert "X-Goog-Signature" in query_params
+
+
+@pytest.mark.parametrize(
+    "contents",
+    [
+        "hello world",
+        "another test case",
+    ],
+)
+def test_md5_property(contents, gs_rig, monkeypatch):
+    def _calculate_b64_wrapped_md5_hash(contents: str) -> str:
+        # https://cloud.google.com/storage/docs/json_api/v1/objects
+        from base64 import b64encode
+        from hashlib import md5
+
+        contents_md5_bytes = md5(contents.encode()).digest()
+        b64string = b64encode(contents_md5_bytes).decode()
+        return b64string
+
+    # if USE_LIVE_CLOUD this doesnt have any effect
+    expected_hash = _calculate_b64_wrapped_md5_hash(contents)
+    monkeypatch.setenv("MOCK_EXPECTED_MD5_HASH", expected_hash)
+
+    p: GSPath = gs_rig.create_cloud_path("dir_0/file0_0.txt")
+    p.write_text(contents)
+    assert p.md5 == expected_hash

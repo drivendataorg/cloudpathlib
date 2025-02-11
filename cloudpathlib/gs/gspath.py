@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ..cloudpath import CloudPath, NoStatError, register_path_class
 
@@ -95,3 +95,10 @@ class GSPath(CloudPath):
     @property
     def etag(self):
         return self.client._get_metadata(self).get("etag")
+
+    @property
+    def md5(self) -> Optional[str]:
+        meta = self.client._get_metadata(self)
+        if not meta:
+            return None
+        return meta.get("md5_hash", None)
