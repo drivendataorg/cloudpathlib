@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.50">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.3">
     
     
       
@@ -28,7 +28,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.a40c8224.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.d7758b05.min.css">
       
       
 
@@ -232,6 +232,7 @@
   
   <span class="md-ellipsis">
     Home
+    
   </span>
   
 
@@ -252,6 +253,7 @@
   
   <span class="md-ellipsis">
     Why cloudpathlib?
+    
   </span>
   
 
@@ -272,6 +274,7 @@
   
   <span class="md-ellipsis">
     Authentication
+    
   </span>
   
 
@@ -292,6 +295,7 @@
   
   <span class="md-ellipsis">
     Caching
+    
   </span>
   
 
@@ -312,6 +316,7 @@
   
   <span class="md-ellipsis">
     AnyPath
+    
   </span>
   
 
@@ -332,6 +337,7 @@
   
   <span class="md-ellipsis">
     Other Client settings
+    
   </span>
   
 
@@ -352,6 +358,7 @@
   
   <span class="md-ellipsis">
     Testing code that uses cloudpathlib
+    
   </span>
   
 
@@ -372,6 +379,7 @@
   
   <span class="md-ellipsis">
     Integrations
+    
   </span>
   
 
@@ -392,6 +400,7 @@
   
   <span class="md-ellipsis">
     Contributing
+    
   </span>
   
 
@@ -412,6 +421,7 @@
   
   <span class="md-ellipsis">
     Changelog
+    
   </span>
   
 
@@ -449,6 +459,7 @@
   
   <span class="md-ellipsis">
     API Reference
+    
   </span>
   
 
@@ -474,6 +485,7 @@
   
   <span class="md-ellipsis">
     CloudPath
+    
   </span>
   
 
@@ -495,6 +507,7 @@
   
   <span class="md-ellipsis">
     AnyPath
+    
   </span>
   
 
@@ -530,6 +543,7 @@
   
   <span class="md-ellipsis">
     Azure
+    
   </span>
   
 
@@ -555,6 +569,7 @@
   
   <span class="md-ellipsis">
     AzureBlobClient
+    
   </span>
   
 
@@ -576,6 +591,7 @@
   
   <span class="md-ellipsis">
     AzureBlobPath
+    
   </span>
   
 
@@ -619,6 +635,7 @@
   
   <span class="md-ellipsis">
     S3
+    
   </span>
   
 
@@ -644,6 +661,7 @@
   
   <span class="md-ellipsis">
     S3Client
+    
   </span>
   
 
@@ -665,6 +683,7 @@
   
   <span class="md-ellipsis">
     S3Path
+    
   </span>
   
 
@@ -708,6 +727,7 @@
   
   <span class="md-ellipsis">
     GS
+    
   </span>
   
 
@@ -742,6 +762,7 @@
   
   <span class="md-ellipsis">
     GSClient
+    
   </span>
   
 
@@ -753,6 +774,7 @@
   
   <span class="md-ellipsis">
     GSClient
+    
   </span>
   
 
@@ -836,6 +858,7 @@
   
   <span class="md-ellipsis">
     GSPath
+    
   </span>
   
 
@@ -879,6 +902,7 @@
   
   <span class="md-ellipsis">
     Submodules
+    
   </span>
   
 
@@ -904,6 +928,7 @@
   
   <span class="md-ellipsis">
     cloudpathlib.client
+    
   </span>
   
 
@@ -925,6 +950,7 @@
   
   <span class="md-ellipsis">
     cloudpathlib.enums
+    
   </span>
   
 
@@ -946,6 +972,7 @@
   
   <span class="md-ellipsis">
     cloudpathlib.exceptions
+    
   </span>
   
 
@@ -967,6 +994,7 @@
   
   <span class="md-ellipsis">
     cloudpathlib.local
+    
   </span>
   
 
@@ -1072,6 +1100,7 @@
               <article class="md-content__inner md-typeset">
                 
                   
+
 
   
   
@@ -1186,6 +1215,7 @@ options.</p>
                 <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
                 <span class="s2">&quot;updated&quot;</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">updated</span><span class="p">,</span>
                 <span class="s2">&quot;content_type&quot;</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">content_type</span><span class="p">,</span>
+                <span class="s2">&quot;md5_hash&quot;</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">md5_hash</span><span class="p">,</span>
             <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_download_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
@@ -1404,7 +1434,7 @@ options.</p>
 
 
 <h3 id="cloudpathlib.gs.gsclient.GSClient.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application_credentials</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Credentials</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">storage_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">StorageClient</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">cloudpathlib</span><span class="o">.</span><span class="n">enums</span><span class="o">.</span><span class="n">FileCacheMode</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7f819ec67ce0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">download_chunks_concurrently_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application_credentials</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Credentials</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">storage_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">StorageClient</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">cloudpathlib</span><span class="o">.</span><span class="n">enums</span><span class="o">.</span><span class="n">FileCacheMode</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">function</span> <span class="n">guess_type</span> <span class="n">at</span> <span class="mh">0x7fc5329e7ce0</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">download_chunks_concurrently_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span></code>
 
   <span class="doc doc-properties">
       <small class="doc doc-property doc-property-special"><code>special</code></small>
@@ -1490,7 +1520,7 @@ the <code>CLOUDPATHLIB_LOCAL_CACHE_DIR</code> environment variable.</p></td>
         <td><code>Optional[Callable]</code></td>
         <td><p>Function to call to guess media type (mimetype) when
 writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must return a tuple (content type, content encoding).</p></td>
-        <td><code>&lt;function guess_type at 0x7f819ec67ce0&gt;</code></td>
+        <td><code>&lt;function guess_type at 0x7fc5329e7ce0&gt;</code></td>
       </tr>
       <tr>
         <td><code>download_chunks_concurrently_kwargs</code></td>
@@ -1641,7 +1671,7 @@ for sliced parallel downloads; Only available in <code>google-cloud-storage</cod
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.60a45f97.min.js"></script>
+      <script src="../../assets/javascripts/bundle.f1b6f286.min.js"></script>
       
     
   </body>
