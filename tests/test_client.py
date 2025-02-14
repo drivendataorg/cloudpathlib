@@ -9,7 +9,7 @@ import pytest
 from cloudpathlib import CloudPath
 from cloudpathlib.client import register_client_class
 from cloudpathlib.cloudpath import implementation_registry, register_path_class
-from cloudpathlib.http.httpclient import HttpClient
+from cloudpathlib.http.httpclient import HttpClient, HttpsClient
 from cloudpathlib.s3.s3client import S3Client
 from cloudpathlib.s3.s3path import S3Path
 
@@ -97,7 +97,7 @@ def test_content_type_setting(rig, tmpdir):
     for suffix, content_type in mimes:
         _test_write_content_type(suffix, content_type, rig, check=False)
 
-    if rig.client_class is HttpClient:
+    if rig.client_class in [HttpClient, HttpsClient]:
         # HTTP client doesn't support custom content types
         return
 

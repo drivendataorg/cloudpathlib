@@ -5,7 +5,7 @@ import sys
 import pytest
 
 from cloudpathlib import CloudPath
-from cloudpathlib.http.httppath import HttpPath
+from cloudpathlib.http.httppath import HttpPath, HttpsPath
 
 
 def test_properties(rig):
@@ -85,12 +85,12 @@ def test_joins(rig):
     if sys.version_info >= (3, 12):
         assert rig.create_cloud_path("a/b/c/d").match("A/*/C/D", case_sensitive=False)
 
-    if rig.path_class not in [HttpPath]:
+    if rig.path_class not in [HttpPath, HttpsPath]:
         assert rig.create_cloud_path("a/b/c/d").anchor == rig.cloud_prefix
 
     assert rig.create_cloud_path("a/b/c/d").parent == rig.create_cloud_path("a/b/c")
 
-    if rig.path_class not in [HttpPath]:
+    if rig.path_class not in [HttpPath, HttpsPath]:
         assert rig.create_cloud_path("a/b/c/d").parents == (
             rig.create_cloud_path("a/b/c"),
             rig.create_cloud_path("a/b"),
@@ -119,7 +119,7 @@ def test_joins(rig):
         == f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/a/b/c"
     )
 
-    if rig.path_class in [HttpPath]:
+    if rig.path_class in [HttpPath, HttpsPath]:
         assert rig.create_cloud_path("a/b/c/d").parts == (
             rig.cloud_prefix + rig.drive + "/",
             rig.test_dir,

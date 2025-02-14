@@ -4,7 +4,7 @@ from time import sleep
 
 import pytest
 
-from cloudpathlib.http.httppath import HttpPath
+from cloudpathlib.http.httppath import HttpPath, HttpsPath
 from cloudpathlib.local import LocalGSPath, LocalS3Path, LocalS3Client
 from cloudpathlib.exceptions import (
     CloudPathFileExistsError,
@@ -137,7 +137,7 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     p_new = p.copy(p.parent / "new_upload_1.txt")
     assert p_new.exists()
 
-    if rig.path_class not in [HttpPath]:
+    if rig.path_class not in [HttpPath, HttpsPath]:
         assert not p_new._local.exists()  # cache should never have been downloaded
         assert not p._local.exists()  # cache should never have been downloaded
         assert p_new.read_text() == "Hello from 1"

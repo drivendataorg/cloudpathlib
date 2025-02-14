@@ -125,6 +125,14 @@ def https_server(tmp_path_factory, worker_id):
 
     server_dir = tmp_path_factory.mktemp("server_files").resolve()
 
+    # Command for generating self-signed localhost cert
+    # openssl req -x509 -out localhost.crt -keyout localhost.key \
+    #   -newkey rsa:2048 -nodes -sha256 \
+    #   -subj '/CN=localhost' -extensions EXT -config <( \
+    #    printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+    #
+    # openssl x509 -in localhost.crt -out localhost.pem -outform PEM
+
     host, server_thread = _http_server(
         server_dir,
         port,
@@ -133,7 +141,23 @@ def https_server(tmp_path_factory, worker_id):
         keyfile=utilities_dir / "insecure-test.key",
     )
 
+    # Add this self-signed cert at the library level so it is used in tests
+    _original_create_context = ssl._create_default_https_context
+
+    def _create_context_with_self_signed_cert(*args, **kwargs):
+        context = _original_create_context(*args, **kwargs)
+        context.load_cert_chain(
+            certfile=utilities_dir / "insecure-test.pem",
+            keyfile=utilities_dir / "insecure-test.key",
+        )
+        context.load_verify_locations(cafile=utilities_dir / "insecure-test.pem")
+        return context
+
+    ssl._create_default_https_context = _create_context_with_self_signed_cert
+
     yield host, server_dir
+
+    ssl._create_default_https_context = _original_create_context
 
     server_thread.join(0)
 
