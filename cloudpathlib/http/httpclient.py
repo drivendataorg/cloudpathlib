@@ -163,7 +163,7 @@ class HttpClient(Client):
         request = urllib.request.Request(url.as_url(), method=method, **kwargs)
         with self.opener.open(request) as response:
             # eager read of response content, which is not available
-            # after the connection is closed when we exit the 
+            # after the connection is closed when we exit the
             # context manager.
             return response, response.read()
 
