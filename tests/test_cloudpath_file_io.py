@@ -14,8 +14,8 @@ from cloudpathlib.exceptions import (
     CloudPathNotImplementedError,
     DirectoryNotEmptyError,
 )
-from cloudpathlib.http.httpclient import HttpClient
-from cloudpathlib.http.httppath import HttpPath
+from cloudpathlib.http.httpclient import HttpClient, HttpsClient
+from cloudpathlib.http.httppath import HttpPath, HttpsPath
 
 
 def test_file_discovery(rig):
@@ -27,7 +27,7 @@ def test_file_discovery(rig):
     p2.touch()
     assert p2.exists()
 
-    if rig.client_class not in [HttpClient]:  # not supported to touch existing
+    if rig.client_class not in [HttpClient, HttpsClient]:  # not supported to touch existing
         p2.touch(exist_ok=True)
     else:
         with pytest.raises(NotImplementedError):
@@ -189,7 +189,7 @@ def test_walk(glob_test_dirs):
 
 
 def test_list_buckets(rig):
-    if rig.path_class in [HttpPath]:
+    if rig.path_class in [HttpPath, HttpsPath]:
         return  # no bucket listing for HTTP
 
     # test we can list buckets
@@ -343,7 +343,7 @@ def test_is_dir_is_file(rig, tmp_path):
 
     for test_case in [dir_slash, dir_no_slash, dir_nested_slash, dir_nested_no_slash]:
         # skip no-slash cases, which are interpreted as files for http paths
-        if not str(test_case).endswith("/") and rig.path_class in [HttpPath]:
+        if not str(test_case).endswith("/") and rig.path_class in [HttpPath, HttpsPath]:
             continue
 
         assert test_case.is_dir()
@@ -383,7 +383,7 @@ def test_file_read_writes(rig, tmp_path):
     before_touch = datetime.now()
     sleep(1)
 
-    if rig.path_class not in [HttpPath]:  # not supported to touch existing
+    if rig.path_class not in [HttpPath, HttpsPath]:  # not supported to touch existing
         p.touch()
 
         if not getattr(rig, "is_custom_s3", False):
@@ -394,7 +394,7 @@ def test_file_read_writes(rig, tmp_path):
     if not getattr(rig, "is_adls_gen2", False):
         p.mkdir()
 
-    if rig.path_class not in [HttpPath]:  # not supported to touch existing
+    if rig.path_class not in [HttpPath, HttpsPath]:  # not supported to touch existing
         assert p.etag is not None
 
     dest = rig.create_cloud_path("dir2/new_file0_0.txt")
