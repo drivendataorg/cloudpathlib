@@ -2,7 +2,7 @@ from tests.conftest import CloudProviderTestRig
 
 
 def test_https(https_rig: CloudProviderTestRig):
-    """Basic tests for https; we run the full suite against the http_rig"""
+    """Basic tests for https"""
     existing_file = https_rig.create_cloud_path("dir_0/file0_0.txt")
 
     # existence and listing
@@ -34,3 +34,35 @@ def test_https(https_rig: CloudProviderTestRig):
 
     # metadata
     assert existing_file.stat().st_mtime != 0
+
+
+def test_http_verbs(http_like_rig: CloudProviderTestRig):
+    """Test that the http verbs work"""
+    p = http_like_rig.create_cloud_path("dir_0/file0_0.txt")
+
+    # test put
+    p.put(data="Hello from 0".encode("utf-8"), headers={"Content-Type": "text/plain"})
+
+    # test get
+    resp, data = p.get()
+    assert resp.status == 200
+    assert data.decode("utf-8") == "Hello from 0"
+
+    # post
+    import json
+
+    post_payload = {"key": "value"}
+    resp, data = p.post(
+        data=json.dumps(post_payload).encode(), headers={"Content-Type": "application/json"}
+    )
+    assert resp.status == 200
+    assert json.loads(data.decode("utf-8")) == post_payload
+
+    # head
+    resp, data = p.head()
+    assert resp.status == 200
+    assert data == b""
+
+    # delete
+    p.delete()
+    assert not p.exists()
