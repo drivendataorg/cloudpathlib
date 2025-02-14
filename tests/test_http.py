@@ -66,3 +66,11 @@ def test_http_verbs(http_like_rig: CloudProviderTestRig):
     # delete
     p.delete()
     assert not p.exists()
+
+
+def test_http_parsed_url(http_like_rig: CloudProviderTestRig):
+    """Test that the parsed_url property works"""
+    p = http_like_rig.create_cloud_path("dir_0/file0_0.txt")
+    assert p.parsed_url.scheme == http_like_rig.cloud_prefix.split("://")[0]
+    assert p.parsed_url.netloc == http_like_rig.drive
+    assert p.parsed_url.path == str(p).split(http_like_rig.drive)[1]
