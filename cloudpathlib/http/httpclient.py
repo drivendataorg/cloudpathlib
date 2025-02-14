@@ -1,4 +1,5 @@
 from datetime import datetime
+import http
 import os
 import re
 import urllib.request
@@ -156,10 +157,15 @@ class HttpClient(Client):
             for match in parser(response)
         )
 
-    def request(self, url: HttpPath, method: str, **kwargs) -> None:
+    def request(
+        self, url: HttpPath, method: str, **kwargs
+    ) -> Tuple[http.client.HTTPResponse, bytes]:
         request = urllib.request.Request(url.as_url(), method=method, **kwargs)
         with self.opener.open(request) as response:
-            return response
+            # eager read of response content, which is not available
+            # after the connection is closed when we exit the 
+            # context manager.
+            return response, response.read()
 
 
 HttpClient.HttpPath = HttpClient.CloudPath  # type: ignore

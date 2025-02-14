@@ -50,6 +50,16 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
 
         self.end_headers()
 
+    def do_POST(self):
+        # roundtrip any posted JSON data for testing
+        content_length = int(self.headers["Content-Length"])
+        post_data = self.rfile.read(content_length)
+        self.send_response(200)
+        self.send_header("Content-type", "application/json")
+        self.send_header("Content-Length", self.headers["Content-Length"])
+        self.end_headers()
+        self.wfile.write(post_data)
+
 
 def _http_server(
     root_dir, port, hostname="localhost", use_ssl=False, certfile=None, keyfile=None, threaded=True

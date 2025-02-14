@@ -569,6 +569,7 @@ rig = fixture_union(
         local_s3_rig,
         local_gs_rig,
         http_rig,
+        https_rig,
     ],
 )
 
@@ -578,5 +579,14 @@ s3_like_rig = fixture_union(
     [
         s3_rig,
         custom_s3_rig,
+    ],
+)
+
+# run some http-specific tests on http and https
+http_like_rig = fixture_union(
+    "http_like_rig",
+    [
+        http_rig,
+        https_rig,
     ],
 )
