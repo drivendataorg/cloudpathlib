@@ -56,14 +56,14 @@ class HttpPath(CloudPath):
         # netloc appears in anchor and drive for httppath; so don't double count
         return self._str[len(self.anchor) - 1 :]
 
-    def is_dir(self) -> bool:
+    def is_dir(self, follow_symlinks: bool = True) -> bool:
         if not self.exists():
             return False
 
         # Use client default to iden
         return self.client.dir_matcher(str(self))
 
-    def is_file(self) -> bool:
+    def is_file(self, follow_symlinks: bool = True) -> bool:
         if not self.exists():
             return False
 
