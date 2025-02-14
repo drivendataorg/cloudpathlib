@@ -1,3 +1,4 @@
+import http
 import os
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
@@ -8,7 +9,7 @@ from ..cloudpath import CloudPath, NoStatError, register_path_class
 
 
 if TYPE_CHECKING:
-    from .httpclient import HttpClient
+    from .httpclient import HttpClient, HttpsClient
 
 
 @register_path_class("http")
@@ -125,22 +126,28 @@ class HttpPath(CloudPath):
     def parents(self) -> Tuple["HttpPath", ...]:
         return super().parents + (self._new_cloudpath(""),)
 
-    def get(self, **kwargs):
+    def get(self, **kwargs) -> Tuple[http.client.HTTPResponse, bytes]:
+        """Issue a get request with `urllib.request.Request`"""
         return self.client.request(self, "GET", **kwargs)
 
-    def put(self, **kwargs):
+    def put(self, **kwargs) -> Tuple[http.client.HTTPResponse, bytes]:
+        """Issue a put request with `urllib.request.Request`"""
         return self.client.request(self, "PUT", **kwargs)
 
-    def post(self, **kwargs):
+    def post(self, **kwargs) -> Tuple[http.client.HTTPResponse, bytes]:
+        """Issue a post request with `urllib.request.Request`"""
         return self.client.request(self, "POST", **kwargs)
 
-    def delete(self, **kwargs):
+    def delete(self, **kwargs) -> Tuple[http.client.HTTPResponse, bytes]:
+        """Issue a delete request with `urllib.request.Request`"""
         return self.client.request(self, "DELETE", **kwargs)
 
-    def head(self, **kwargs):
+    def head(self, **kwargs) -> Tuple[http.client.HTTPResponse, bytes]:
+        """Issue a head request with `urllib.request.Request`"""
         return self.client.request(self, "HEAD", **kwargs)
 
 
 @register_path_class("https")
 class HttpsPath(HttpPath):
     cloud_prefix: str = "https://"
+    client: "HttpsClient"
