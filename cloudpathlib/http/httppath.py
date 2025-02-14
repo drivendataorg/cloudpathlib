@@ -1,10 +1,8 @@
-from pathlib import PurePosixPath
-from typing import Any, Tuple, Union, Optional
-
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING
+from typing import Any, Tuple, TYPE_CHECKING, Union, Optional
+import urllib
 
 from ..cloudpath import CloudPath, NoStatError, register_path_class
 
@@ -41,6 +39,10 @@ class HttpPath(CloudPath):
 
         else:
             return sup
+
+    @property
+    def parsed_url(self) -> urllib.parse.ParseResult:
+        return self._url
 
     @property
     def drive(self) -> str:
