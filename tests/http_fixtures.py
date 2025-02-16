@@ -112,8 +112,10 @@ def _http_server(
 
 @fixture(scope="module")
 def http_server(tmp_path_factory, worker_id):
-    port = 9077 + random.randint(0, 1000) + (
-        int(worker_id.lstrip("gw")) if worker_id != "master" else 0
+    port = (
+        9077
+        + random.randint(0, 1000)
+        + (int(worker_id.lstrip("gw")) if worker_id != "master" else 0)
     )  # don't collide if tests running in parallel with multiple servers
 
     server_dir = tmp_path_factory.mktemp("server_files").resolve()
@@ -130,8 +132,10 @@ def http_server(tmp_path_factory, worker_id):
 
 @fixture(scope="module")
 def https_server(tmp_path_factory, worker_id):
-    port = 4443 + random.randint(0, 1000) + (
-        int(worker_id.lstrip("gw")) if worker_id != "master" else 0
+    port = (
+        4443
+        + random.randint(0, 1000)
+        + (int(worker_id.lstrip("gw")) if worker_id != "master" else 0)
     )  # don't collide if tests running in parallel with multiple servers
 
     server_dir = tmp_path_factory.mktemp("server_files").resolve()
