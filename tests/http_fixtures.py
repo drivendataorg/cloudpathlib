@@ -3,6 +3,7 @@ from functools import partial
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import os
 from pathlib import Path
+import random
 import shutil
 import ssl
 import threading
@@ -94,7 +95,7 @@ def _http_server(
     for _ in range(10):
         try:
             if use_ssl:
-                req_context = ssl.SSLContext()
+                req_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
                 req_context.check_hostname = False
                 req_context.verify_mode = ssl.CERT_NONE
             else:
@@ -111,7 +112,7 @@ def _http_server(
 
 @fixture(scope="module")
 def http_server(tmp_path_factory, worker_id):
-    port = 9077 + (
+    port = 9077 + random.randint(0, 1000) + (
         int(worker_id.lstrip("gw")) if worker_id != "master" else 0
     )  # don't collide if tests running in parallel with multiple servers
 
@@ -129,7 +130,7 @@ def http_server(tmp_path_factory, worker_id):
 
 @fixture(scope="module")
 def https_server(tmp_path_factory, worker_id):
-    port = 4443 + (
+    port = 4443 + random.randint(0, 1000) + (
         int(worker_id.lstrip("gw")) if worker_id != "master" else 0
     )  # don't collide if tests running in parallel with multiple servers
 

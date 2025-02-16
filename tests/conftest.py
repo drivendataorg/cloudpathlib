@@ -525,7 +525,7 @@ def https_rig(request, assets_dir, https_server):  # noqa: F811
     # copy test assets
     shutil.copytree(assets_dir, server_dir / test_dir)
 
-    skip_verify_ctx = ssl.SSLContext()
+    skip_verify_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     skip_verify_ctx.check_hostname = False
     skip_verify_ctx.load_verify_locations(utilities_dir / "insecure-test.pem")
 
