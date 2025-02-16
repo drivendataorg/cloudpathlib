@@ -30,6 +30,12 @@ class HttpPath(CloudPath):
             else PurePosixPath(f"/{self._url.path}")
         )
 
+    @property
+    def _local(self) -> Path:
+        """Cached local version of the file."""
+        # remove params, query, fragment to get local path
+        return self.client._local_cache_dir / self._url.path.lstrip("/")
+
     def _dispatch_to_path(self, func: str, *args, **kwargs) -> Any:
         sup = super()._dispatch_to_path(func, *args, **kwargs)
 
@@ -81,7 +87,8 @@ class HttpPath(CloudPath):
                 raise FileExistsError(f"File already exists: {self}")
 
             raise NotImplementedError(
-                "Touch not implemented for existing HTTP files since we can't update the modified time."
+                "Touch not implemented for existing HTTP files since we can't update the modified time; "
+                "use `put()` or write to the file instead."
             )
         else:
             empty_file = Path(TemporaryDirectory().name) / "empty_file.txt"
