@@ -938,6 +938,9 @@ class CloudPath(metaclass=CloudPathMeta):
         # strip scheme from start of pattern before testing
         if pattern.startswith(self.anchor + self.drive):
             pattern = pattern[len(self.anchor + self.drive) :]
+        elif pattern.startswith(self.anchor):
+            # for http paths, keep leading slash
+            pattern = pattern[len(self.anchor) - 1 :]
 
         # remove drive, which is kept on normal dispatch to pathlib
         return PurePosixPath(self._no_prefix_no_drive).full_match(  # type: ignore[attr-defined]
