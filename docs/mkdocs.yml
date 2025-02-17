@@ -18,6 +18,7 @@ nav:
   - Home: "index.md"
   - Why cloudpathlib?: "why_cloudpathlib.ipynb"
   - Authentication: "authentication.md"
+  - HTTP URLs: "http.md"
   - Caching: "caching.ipynb"
   - AnyPath: "anypath-polymorphism.md"
   - Other Client settings: "other_client_settings.md"
