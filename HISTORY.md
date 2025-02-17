@@ -5,6 +5,7 @@
 - Fixed `CloudPath(...) / other` to correctly attempt to fall back on `other`'s `__rtruediv__` implementation, in order to support classes that explicitly support the `/` with a `CloudPath` instance. Previously, this would always raise a `TypeError` if `other` were not a `str` or `PurePosixPath`. (PR [#479](https://github.com/drivendataorg/cloudpathlib/pull/479))
 - Add `md5` property to `GSPath`, updated LocalGSPath to include `md5` property, updated mock_gs.MockBlob to include `md5_hash` property.
 - Fixed an uncaught exception on Azure Gen2 storage accounts with HNS enabled when used with `DefaultAzureCredential`. (Issue [#486](https://github.com/drivendataorg/cloudpathlib/issues/486))
+- Removed support for Python 3.8, which was EOL in October 2024.
 
 ## v0.20.0 (2024-10-18)
 
