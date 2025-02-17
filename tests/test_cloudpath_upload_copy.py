@@ -70,6 +70,7 @@ def test_upload_from_file(rig, upload_assets_dir):
         p.upload_from(upload_assets_dir / "upload_1.txt")
 
     # to file, file exists and is newer; overwrite
+    sleep(1.1)
     p.write_text("even newer")
     sleep(1.1)
     p.upload_from(upload_assets_dir / "upload_1.txt", force_overwrite_to_cloud=True)
