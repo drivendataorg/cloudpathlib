@@ -29,7 +29,24 @@ class HttpClient(Client):
         auth: Optional[urllib.request.BaseHandler] = None,
         custom_list_page_parser: Optional[Callable[[str], Iterable[str]]] = None,
         custom_dir_matcher: Optional[Callable[[str], bool]] = None,
+        write_file_http_method: Optional[str] = "PUT",
     ):
+        """Class constructor. 
+
+        Args:
+            file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see
+                [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information
+                about the options in cloudpathlib.eums.FileCacheMode.
+            local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
+                for downloaded files. If None, will use a temporary directory. Default can be set with
+                the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
+            content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
+                uploading files. Defaults to `mimetypes.guess_type`.
+            auth (Optional[urllib.request.BaseHandler]): Authentication handler to use for the client. Defaults to None, which will use the default handler.
+            custom_list_page_parser (Optional[Callable[[str], Iterable[str]]]): Function to call to parse pages that list directories. Defaults to looking for `<a>` tags with `href`.
+            custom_dir_matcher (Optional[Callable[[str], bool]]): Function to call to identify a url that is a directory. Defaults to a lambda that checks if the path ends with a `/`.
+            write_file_http_method (Optional[str]): HTTP method to use when writing files. Defaults to "PUT", but some servers may want "POST".
+        """
         super().__init__(file_cache_mode, local_cache_dir, content_type_method)
         self.auth = auth
 
@@ -43,6 +60,8 @@ class HttpClient(Client):
         self.dir_matcher = (
             custom_dir_matcher if custom_dir_matcher is not None else lambda x: x.endswith("/")
         )
+
+        self.write_file_http_method = write_file_http_method
 
     def _get_metadata(self, cloud_path: HttpPath) -> dict:
         with self.opener.open(cloud_path.as_url()) as response:
@@ -123,7 +142,10 @@ class HttpClient(Client):
 
         with open(local_path, "rb") as file_data:
             request = urllib.request.Request(
-                cloud_path.as_url(), data=file_data.read(), method="PUT", headers=headers
+                cloud_path.as_url(),
+                data=file_data.read(),
+                method=self.write_file_http_method,
+                headers=headers,
             )
             with self.opener.open(request) as response:
                 if response.status != 201 and response.status != 200:
