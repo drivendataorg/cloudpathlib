@@ -31,7 +31,7 @@ class HttpClient(Client):
         custom_dir_matcher: Optional[Callable[[str], bool]] = None,
         write_file_http_method: Optional[str] = "PUT",
     ):
-        """Class constructor. 
+        """Class constructor.
 
         Args:
             file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see
