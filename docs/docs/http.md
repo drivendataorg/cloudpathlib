@@ -1,12 +1,153 @@
-url docs
- - assume params, query, fragment are url-specific, so they are not preserved when joining, etc.
- - netloc, scheme, port, username, password and hostname are preserved when joining, etc.
- - url properties are available on `.parsed_url`
- - your server needs to support DELETE and PUT for a number of operations to work
- - expose http verbs as methods on the path object
- - How to do auth examples
+# HTTP Support in CloudPathLib
+
+We support `http://` and `https://` URLs as `CloudPath`, but these behave somewhat differently from typical cloud provider URIs (e.g., `s3://`, `gs://`) or local file paths. This document describes those differences, caveats, and the additional configuration options available.
+
+## How HTTP Paths Differ
+
+- HTTP servers are not necessarily structured like file systems. Operations such as listing directories, removing files, or creating folders depend on whether the server supports them.
+- For many operations (e.g., uploading, removing files), this implementation relies on specific HTTP verbs like `PUT` or `DELETE`. If the server does not allow these verbs, those operations will fail.
+- While some cloud storage backends (e.g., AWS S3) provide robust directory emulation, a basic HTTP server may only partially implement these concepts (e.g., listing a directory might just be an HTML page with links).
+
+## URL Modifiers (Params, Query Strings, and Fragments)
+
+An HTTP URL can include:
+- **Params** (rarely used, often a semicolon-based suffix to the path)
+- **Query strings** (e.g., `?foo=bar`)
+- **Fragments** (the `#anchor` portion)
+
+### Preservation and Joining Behavior
+
+- **Params, query, and fragment** are part of the URL, but be aware that when you join paths (e.g., `my_path / "subdir"`), these modifiers will be discarded unless you explicitly preserve them, since we operate under the assumption that these modifiers are tied to the specific URL.
+- **netloc (username, password, hostname, port) and scheme** are preserved when joining. They are derived from the main portion of the URL (e.g., `http://username:password@www.example.com:8080`).
+
+### The `HttpPath.anchor` Property
+
+Because of naming conventions inherited from Python’s `pathlib`, the "anchor" in a CloudPath (e.g., `my_path.anchor`) refers to `<scheme>://<netloc>/`. It does **not** include the fragment portion of a URL (which is sometimes also called the "anchor" in HTML contexts). In other words, `.anchor` returns something like `https://www.example.com/`, not `...#fragment`. To get the fragment, use `my_path.parsed_url.fragment`.
+
+## Accessing URL components
+
+You can access the various components of a URL via the `HttpPath.parsed_url` property, which is a [`urllib.parse.ParseResult`](https://docs.python.org/3/library/urllib.parse.html#urllib.parse.urlparse) object. For example:
+
+```python
+my_path = HttpPath("http://username:password@www.example.com:8080/path/to/resource?query=param#fragment")
+
+print(my_path.parsed_url.scheme)  # "http"
+print(my_path.parsed_url.netloc)  # "username:password@www.example.com:8080"
+
+```
+
+```mermaid
+flowchart LR
+
+    %% Define colors for each block
+    classDef scheme fill:#FFD700,stroke:#000,stroke-width:1px,color:#000
+    classDef netloc fill:#ADD8E6,stroke:#000,stroke-width:1px,color:#000
+    classDef path fill:#98FB98,stroke:#000,stroke-width:1px,color:#000
+    classDef query fill:#EE82EE,stroke:#000,stroke-width:1px,color:#000
+    classDef fragment fill:#FFB6C1,stroke:#000,stroke-width:1px,color:#000
+
+    A[".scheme:<br/><code>https</code>"]:::scheme
+    B[".netloc:<br/><code>username:password\\@www.example.com:8080</code>"]:::netloc
+    C[".path:<br/><code>/path/to/resource</code>"]:::path
+    D[".query:<br/><code>query=param</code>"]:::query
+    E[".fragment:<br/><code>fragment</code>"]:::fragment
+
+    A --> B --> C --> D --> E
+```
+
+## Required HTTP Verbs
+
+Some operations require specific HTTP verbs. If your server does not support these verbs, the operation will fail.
+
+Your server needs to support these operations for them to succeed:
+- If your server does not allow `DELETE`, you will not be able to remove files via `HttpPath.unlink()` or `HttpPath.remove()`.
+- If your server does not allow `PUT` or `POST`, you won’t be able to upload files.
+- By default, we use `PUT` for creating or replacing a file. If you need `POST` for uploads, you can override the behavior by passing `write_file_http_method="POST"` to the `HttpClient` constructor.
+
+### Accessing HTTP Verbs on the Path Object
+
+`HttpPath` exposes direct methods to perform the relevant HTTP verbs:
+```python
+response, content = my_path.get()     # issues a GET
+response, content = my_path.put()     # issues a PUT
+response, content = my_path.post()    # issues a POST
+response, content = my_path.delete()  # issues a DELETE
+response, content = my_path.head()    # issues a HEAD
+```
+
+These methods are thin wrappers around the client’s underlying `request(...)` method.
+
+## Authentication
+
+By default, `HttpClient` will build a simple opener with `urllib.request.build_opener()`, which typically handles no or basic system-wide HTTP auth. However, you can pass a custom `BaseHandler` (e.g., an `HTTPBasicAuthHandler` or a `CookieJar`) to the `HttpClient` constructor:
+
+```python
+import urllib.request
+
+auth_handler = urllib.request.HTTPBasicAuthHandler()
+auth_handler.add_password(
+    realm="Some Realm",
+    uri="http://www.example.com",
+    user="username",
+    passwd="password"
+)
+
+client = HttpClient(auth=auth_handler)
+my_path = client.CloudPath("http://www.example.com/secret/data.txt")
+
+# Now GET requests will include basic auth headers
+content = my_path.read_text()
+```
+
+This can be extended to more sophisticated authentication approaches (e.g., OAuth, custom headers) by providing your own `BaseHandler` or adding more handlers to the opener. There are examples on the internet of handlers for most common authentication schemes.
+
+## Directory Assumptions
+
+A key difference from other `CloudPath` implementations:
+- By default, a URL is considered a directory if it **ends with a slash**. For example, `http://example.com/somedir/`.
+- If you call `HttpPath.is_dir()`, it checks `my_url.endswith("/")` by default. You can override this with a custom function by passing `custom_dir_matcher` to `HttpClient`. 
+
+### Listing the Contents of a Directory
+
+We attempt to parse directory listings by calling `GET` on the URL (which presumably returns an HTML directory index or a custom listing). Our default parser looks for `<a>` tags and yields them as child paths. You can override this logic with `custom_list_page_parser` if your server’s HTML or API returns a different listing format. For example:
+
+```python
+def my_parser(html_content: str) -> Iterable[str]:
+    # for example, just get a with href and class "file-link"
+    # using beautifulsoup
+    soup = BeautifulSoup(html_content, "html.parser")
+    for link in soup.find_all("a", class_="file-link"):
+        yield link.get("href")
+
+client = HttpClient(custom_list_page_parser=my_parser)
+my_dir = client.CloudPath("http://example.com/public/")
+
+for subpath, is_dir in my_dir.list_dir(recursive=False):
+    print(subpath, "dir" if is_dir else "file")
+```
+
+> **Note**: If your server doesn’t provide an HTML index or a suitable listing format, you will likely get an error. In that case, you must provide a custom parser or avoid directory-listing operations altogether.
+
+## HTTP or HTTPS
+
+We register separate classes internally (`HttpClient`/`HttpPath` for `http://`, `HttpsClient`/`HttpsPath` for `https://`). However, from a usage standpoint, you typically just do:
+
+```python
+from cloudpathlib import AnyPath
+
+# AnyPath will automatically detect "http://" or "https://"
+my_path = AnyPath("https://www.example.com/files/info.txt")
+```
+
+If you explicitly instantiate a `HttpClient`, it will handle `http://`. If you instantiate a `HttpsClient`, it will handle `https://`. But `AnyPath` can route to the correct client class automatically.
+
+## Additional Notes
+
+- **Caching**: This implementation uses the same local file caching mechanics as other CloudPathLib providers, controlled by `file_cache_mode` and `local_cache_dir`. However, for static HTTP servers, re-downloading or re-checking may not be as efficient as with typical cloud storages that return robust metadata.  
+- **“Move” or “Rename”**: The `_move_file` operation is implemented as an upload followed by a delete. This will fail if your server does not allow both `PUT` and `DELETE`.
 
 
 
+We support HTTP URLs to links on the internet with a few caveats about how these may behave differently
 
- 
+
