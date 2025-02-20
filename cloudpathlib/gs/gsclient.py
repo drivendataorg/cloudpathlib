@@ -47,7 +47,7 @@ class GSClient(Client):
         content_type_method: Optional[Callable] = mimetypes.guess_type,
         download_chunks_concurrently_kwargs: Optional[Dict[str, Any]] = None,
         timeout: Optional[float] = None,
-        retry: Optional["Retry"] = None
+        retry: Optional["Retry"] = None,
     ):
         """Class constructor. Sets up a [`Storage
         Client`](https://googleapis.dev/python/storage/latest/client.html).
