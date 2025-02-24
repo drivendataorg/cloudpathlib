@@ -107,12 +107,12 @@ class GSClient(Client):
                 self.client = StorageClient.create_anonymous_client()
 
         self.download_chunks_concurrently_kwargs = download_chunks_concurrently_kwargs
-        self.timeout = timeout
-        self.retry = retry
         self.blob_kwargs = {}
-        if self.timeout:
+        if timeout is not None:
+            self.timeout: float = timeout
             self.blob_kwargs["timeout"] = self.timeout
-        if self.retry:
+        if retry is not None:
+            self.retry: Retry = retry
             self.blob_kwargs["retry"] = self.retry
 
         super().__init__(
