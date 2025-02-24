@@ -107,7 +107,7 @@ class GSClient(Client):
                 self.client = StorageClient.create_anonymous_client()
 
         self.download_chunks_concurrently_kwargs = download_chunks_concurrently_kwargs
-        self.blob_kwargs = {}
+        self.blob_kwargs: dict[str, Any] = {}
         if timeout is not None:
             self.timeout: float = timeout
             self.blob_kwargs["timeout"] = self.timeout
