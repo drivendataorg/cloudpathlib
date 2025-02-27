@@ -57,12 +57,19 @@ class MockBlob:
         path.unlink()
         delete_empty_parents_up_to_root(path=path, root=self.bucket)
 
-    def download_to_filename(self, filename):
+    def download_to_filename(self, filename, timeout=None, retry=None):
+        # if timeout is not None, assume that the test wants a timeout and throw it
+        if timeout is not None:
+            raise TimeoutError("Download timed out")
+
+        # indicate that retry object made it through to the GS lib
+        if retry is not None:
+            retry.mocked_retries = 1
+
         from_path = self.bucket / self.name
+
         to_path = Path(filename)
-
         to_path.parent.mkdir(exist_ok=True, parents=True)
-
         to_path.write_bytes(from_path.read_bytes())
 
     def patch(self):
@@ -84,7 +91,15 @@ class MockBlob:
     ):
         pass
 
-    def upload_from_filename(self, filename, content_type=None):
+    def upload_from_filename(self, filename, content_type=None, timeout=None, retry=None):
+        # if timeout is not None, assume that the test wants a timeout and throw it
+        if timeout is not None:
+            raise TimeoutError("Upload timed out")
+
+        # indicate that retry object made it through to the GS lib
+        if retry is not None:
+            retry.mocked_retries = 1
+
         data = Path(filename).read_bytes()
         path = self.bucket / self.name
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -131,7 +146,15 @@ class MockBucket:
     def blob(self, blob):
         return MockBlob(self.name, blob, client=self.client)
 
-    def copy_blob(self, blob, destination_bucket, new_name):
+    def copy_blob(self, blob, destination_bucket, new_name, timeout=None, retry=None):
+        # if timeout is not None, assume that the test wants a timeout and throw it
+        if timeout is not None:
+            raise TimeoutError("Copy timed out")
+
+        # indicate that retry object made it through to the GS lib
+        if retry is not None:
+            retry.mocked_retries = 1
+
         data = (self.name / blob.name).read_bytes()
         dst = destination_bucket.name / new_name
         dst.parent.mkdir(exist_ok=True, parents=True)

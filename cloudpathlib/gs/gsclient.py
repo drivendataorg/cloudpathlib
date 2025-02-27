@@ -13,6 +13,7 @@ from .gspath import GSPath
 try:
     if TYPE_CHECKING:
         from google.auth.credentials import Credentials
+        from google.api_core.retry import Retry
 
     from google.auth.exceptions import DefaultCredentialsError
     from google.cloud.storage import Client as StorageClient
@@ -45,6 +46,8 @@ class GSClient(Client):
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
         download_chunks_concurrently_kwargs: Optional[Dict[str, Any]] = None,
+        timeout: Optional[float] = None,
+        retry: Optional["Retry"] = None,
     ):
         """Class constructor. Sets up a [`Storage
         Client`](https://googleapis.dev/python/storage/latest/client.html).
@@ -85,6 +88,8 @@ class GSClient(Client):
             download_chunks_concurrently_kwargs (Optional[Dict[str, Any]]): Keyword arguments to pass to
                 [`download_chunks_concurrently`](https://cloud.google.com/python/docs/reference/storage/latest/google.cloud.storage.transfer_manager#google_cloud_storage_transfer_manager_download_chunks_concurrently)
                 for sliced parallel downloads; Only available in `google-cloud-storage` version 2.7.0 or later, otherwise ignored and a warning is emitted.
+            timeout (Optional[float]): Cloud Storage [timeout value](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout)
+            retry (Optional[google.api_core.retry.Retry]): Cloud Storage [retry configuration](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout#configuring-retries)
         """
         if application_credentials is None:
             application_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
@@ -102,6 +107,13 @@ class GSClient(Client):
                 self.client = StorageClient.create_anonymous_client()
 
         self.download_chunks_concurrently_kwargs = download_chunks_concurrently_kwargs
+        self.blob_kwargs: dict[str, Any] = {}
+        if timeout is not None:
+            self.timeout: float = timeout
+            self.blob_kwargs["timeout"] = self.timeout
+        if retry is not None:
+            self.retry: Retry = retry
+            self.blob_kwargs["retry"] = self.retry
 
         super().__init__(
             local_cache_dir=local_cache_dir,
@@ -129,7 +141,6 @@ class GSClient(Client):
         blob = bucket.get_blob(cloud_path.blob)
 
         local_path = Path(local_path)
-
         if transfer_manager is not None and self.download_chunks_concurrently_kwargs is not None:
             transfer_manager.download_chunks_concurrently(
                 blob, local_path, **self.download_chunks_concurrently_kwargs
@@ -140,7 +151,7 @@ class GSClient(Client):
                     "Ignoring `download_chunks_concurrently_kwargs` for version of google-cloud-storage that does not support them (<2.7.0)."
                 )
 
-            blob.download_to_filename(local_path)
+            blob.download_to_filename(local_path, **self.blob_kwargs)
 
         return local_path
 
@@ -247,7 +258,7 @@ class GSClient(Client):
             dst_bucket = self.client.bucket(dst.bucket)
 
             src_blob = src_bucket.get_blob(src.blob)
-            src_bucket.copy_blob(src_blob, dst_bucket, dst.blob)
+            src_bucket.copy_blob(src_blob, dst_bucket, dst.blob, **self.blob_kwargs)
 
             if remove_src:
                 src_blob.delete()
@@ -280,7 +291,7 @@ class GSClient(Client):
             content_type, _ = self.content_type_method(str(local_path))
             extra_args["content_type"] = content_type
 
-        blob.upload_from_filename(str(local_path), **extra_args)
+        blob.upload_from_filename(str(local_path), **extra_args, **self.blob_kwargs)
         return cloud_path
 
     def _get_public_url(self, cloud_path: GSPath) -> str:
