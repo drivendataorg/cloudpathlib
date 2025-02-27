@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.4">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.5">
     
     
       
@@ -1637,6 +1637,7 @@
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <ul>
+<li>Added support for <code>timeout</code> and <code>retry</code> kwargs for <code>GSClient</code>. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/484">#484</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/485">#485</a>, thanks @Mchristos)</li>
 <li>Fixed <code>CloudPath(...) / other</code> to correctly attempt to fall back on <code>other</code>'s <code>__rtruediv__</code> implementation, in order to support classes that explicitly support the <code>/</code> with a <code>CloudPath</code> instance. Previously, this would always raise a <code>TypeError</code> if <code>other</code> were not a <code>str</code> or <code>PurePosixPath</code>. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/479">#479</a>)</li>
 <li>Add <code>md5</code> property to <code>GSPath</code>, updated LocalGSPath to include <code>md5</code> property, updated mock_gs.MockBlob to include <code>md5_hash</code> property.</li>
 <li>Fixed an uncaught exception on Azure Gen2 storage accounts with HNS enabled when used with <code>DefaultAzureCredential</code>. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/486">#486</a>)</li>
