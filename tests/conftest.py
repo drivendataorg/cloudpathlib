@@ -1,8 +1,10 @@
+from functools import wraps
 import os
 from pathlib import Path, PurePosixPath
 import platform
 import shutil
 import ssl
+import time
 from tempfile import TemporaryDirectory
 from typing import Dict, Optional
 from urllib.parse import urlparse
@@ -121,6 +123,28 @@ def create_test_dir_name(request) -> str:
     test_dir = f"{SESSION_UUID}-{module_name}-{function_name}"
     print("Test directory name is:", test_dir)
     return test_dir
+
+
+@fixture
+def wait_for_mkdir(monkeypatch):
+    """Fixture that patches os.mkdir to wait for directory creation for tests that sometimes are flaky."""
+    original_mkdir = os.mkdir
+
+    @wraps(original_mkdir)
+    def wrapped_mkdir(path, *args, **kwargs):
+        result = original_mkdir(path, *args, **kwargs)
+        _sync_filesystem()
+
+        start = time.time()
+
+        while not os.path.exists(path) and time.time() - start < 5:
+            time.sleep(0.01)
+            _sync_filesystem()
+
+        assert os.path.exists(path), f"Directory {path} was not created"
+        return result
+
+    monkeypatch.setattr(os, "mkdir", wrapped_mkdir)
 
 
 def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir):

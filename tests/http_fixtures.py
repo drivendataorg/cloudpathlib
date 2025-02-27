@@ -13,6 +13,7 @@ from urllib.request import urlopen
 from pytest import fixture
 from tenacity import retry, stop_after_attempt, wait_fixed
 
+from .utils import _sync_filesystem
 
 utilities_dir = Path(__file__).parent / "utilities"
 
@@ -29,6 +30,8 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
             path.mkdir(parents=True, exist_ok=True)
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
+
+        _sync_filesystem()
 
         with path.open("wb") as f:
             f.write(self.rfile.read(length))
