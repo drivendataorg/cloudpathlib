@@ -19,6 +19,7 @@ from cloudpathlib.exceptions import (
     OverwriteNewerLocalError,
 )
 from tests.conftest import CloudProviderTestRig
+from tests.utils import _sync_filesystem
 
 
 def test_defaults_work_as_expected(rig: CloudProviderTestRig):
@@ -189,7 +190,7 @@ def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
     assert client_cache_dir.exists()
 
 
-def test_loc_dir(rig: CloudProviderTestRig, tmpdir):
+def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
     """Tests that local cache dir is used when specified and works'
     with the different cache modes.
 
@@ -250,6 +251,7 @@ def test_loc_dir(rig: CloudProviderTestRig, tmpdir):
     assert cp.client.file_cache_mode == FileCacheMode.tmp_dir
 
     # download from cloud into the cache
+    _sync_filesystem()
     with cp.open("r") as f:
         _ = f.read()
 
