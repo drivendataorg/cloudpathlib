@@ -38,6 +38,7 @@ from cloudpathlib.local import (
 import cloudpathlib.azure.azblobclient
 from cloudpathlib.azure.azblobclient import _hns_rmtree
 import cloudpathlib.s3.s3client
+from .http_fixtures import http_server, https_server, utilities_dir  # noqa: F401
 from .mock_clients.mock_azureblob import MockBlobServiceClient, DEFAULT_CONTAINER_NAME
 from .mock_clients.mock_adls_gen2 import MockedDataLakeServiceClient
 from .mock_clients.mock_gs import (
@@ -46,9 +47,8 @@ from .mock_clients.mock_gs import (
     MockTransferManager,
 )
 from .mock_clients.mock_s3 import mocked_session_class_factory, DEFAULT_S3_BUCKET_NAME
+from .utils import _sync_filesystem
 
-
-from .http_fixtures import http_server, https_server, utilities_dir  # noqa: F401
 
 if os.getenv("USE_LIVE_CLOUD") == "1":
     load_dotenv(find_dotenv())
@@ -499,6 +499,7 @@ def http_rig(request, assets_dir, http_server):  # noqa: F811
 
     # copy test assets
     shutil.copytree(assets_dir, server_dir / test_dir)
+    _sync_filesystem()
 
     rig = CloudProviderTestRig(
         path_class=HttpPath,
@@ -514,6 +515,7 @@ def http_rig(request, assets_dir, http_server):  # noqa: F811
 
     rig.client_class._default_client = None  # reset default client
     shutil.rmtree(server_dir)
+    _sync_filesystem()
 
 
 @fixture()
@@ -525,6 +527,7 @@ def https_rig(request, assets_dir, https_server):  # noqa: F811
 
     # copy test assets
     shutil.copytree(assets_dir, server_dir / test_dir)
+    _sync_filesystem()
 
     skip_verify_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     skip_verify_ctx.check_hostname = False
@@ -547,6 +550,7 @@ def https_rig(request, assets_dir, https_server):  # noqa: F811
 
     rig.client_class._default_client = None  # reset default client
     shutil.rmtree(server_dir)
+    _sync_filesystem()
 
 
 # create azure fixtures for both blob and gen2 storage
