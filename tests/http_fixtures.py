@@ -11,6 +11,7 @@ import time
 from urllib.request import urlopen
 
 from pytest import fixture
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 
 utilities_dir = Path(__file__).parent / "utilities"
@@ -19,6 +20,7 @@ utilities_dir = Path(__file__).parent / "utilities"
 class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
     """Also allows PUT and DELETE requests for testing."""
 
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(0.1))
     def do_PUT(self):
         length = int(self.headers["Content-Length"])
         path = Path(self.translate_path(self.path))
@@ -31,12 +33,18 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
         with path.open("wb") as f:
             f.write(self.rfile.read(length))
 
+            # Ensure the file is flushed and synced to disk before returning
+            # The perf hit is ok here since this is a test server
+            f.flush()
+            os.fsync(f.fileno())
+
         now = datetime.now().timestamp()
         os.utime(path, (now, now))
 
         self.send_response(201)
         self.end_headers()
 
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(0.1))
     def do_DELETE(self):
         path = Path(self.translate_path(self.path))
 
@@ -51,6 +59,7 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
 
         self.end_headers()
 
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(0.1))
     def do_POST(self):
         # roundtrip any posted JSON data for testing
         content_length = int(self.headers["Content-Length"])
@@ -60,6 +69,14 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", self.headers["Content-Length"])
         self.end_headers()
         self.wfile.write(post_data)
+
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(0.1))
+    def do_GET(self):
+        super().do_GET()
+
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(0.1))
+    def do_HEAD(self):
+        super().do_HEAD()
 
 
 def _http_server(
@@ -71,7 +88,16 @@ def _http_server(
 
     def start_server():
         handler = partial(TestHTTPRequestHandler, directory=str(root_dir))
-        httpd = HTTPServer((hostname, port), handler)
+
+        try:
+            httpd = HTTPServer((hostname, port), handler)
+        except OSError as e:
+            if e.errno == 48:
+                httpd = HTTPServer(
+                    (hostname, port + random.randint(0, 10000)), handler
+                )  # somtimes the same worker collides before port is released; retry
+            else:
+                raise e
 
         if use_ssl:
             if not certfile or not keyfile:
@@ -87,12 +113,13 @@ def _http_server(
     if threaded:
         server_thread = threading.Thread(target=start_server, daemon=True)
         server_thread.start()
-
     else:
         start_server()
 
-    # Wait for the server to start
-    for _ in range(10):
+    max_attempts = 100
+    wait_time = 0.2
+
+    for attempt in range(max_attempts):
         try:
             if use_ssl:
                 req_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
@@ -101,11 +128,15 @@ def _http_server(
             else:
                 req_context = None
 
-            urlopen(f"{scheme}://{hostname}:{port}", context=req_context)
-
-            break
+            with urlopen(
+                f"{scheme}://{hostname}:{port}", context=req_context, timeout=1.0
+            ) as response:
+                if response.status == 200:
+                    break
         except Exception:
-            time.sleep(0.1)
+            if attempt == max_attempts - 1:
+                raise RuntimeError(f"Server failed to start after {max_attempts} attempts")
+            time.sleep(wait_time)
 
     return f"{scheme}://{hostname}:{port}", server_thread
 
@@ -114,7 +145,7 @@ def _http_server(
 def http_server(tmp_path_factory, worker_id):
     port = (
         9077
-        + random.randint(0, 1000)
+        + random.randint(0, 10000)
         + (int(worker_id.lstrip("gw")) if worker_id != "master" else 0)
     )  # don't collide if tests running in parallel with multiple servers
 
@@ -134,7 +165,7 @@ def http_server(tmp_path_factory, worker_id):
 def https_server(tmp_path_factory, worker_id):
     port = (
         4443
-        + random.randint(0, 1000)
+        + random.randint(0, 10000)
         + (int(worker_id.lstrip("gw")) if worker_id != "master" else 0)
     )  # don't collide if tests running in parallel with multiple servers
 
