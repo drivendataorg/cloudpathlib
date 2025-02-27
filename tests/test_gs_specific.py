@@ -1,6 +1,9 @@
+from urllib.parse import urlparse, parse_qs
+
+from google.api_core import retry
+from google.api_core import exceptions
 import pytest
 
-from urllib.parse import urlparse, parse_qs
 from cloudpathlib import GSPath
 from cloudpathlib.local import LocalGSPath
 
@@ -75,3 +78,34 @@ def test_md5_property(contents, gs_rig, monkeypatch):
     p: GSPath = gs_rig.create_cloud_path("dir_0/file0_0.txt")
     p.write_text(contents)
     assert p.md5 == expected_hash
+
+
+def test_timeout_and_retry(gs_rig):
+    custom_retry = retry.Retry(
+        timeout=0.50,
+        predicate=retry.if_exception_type(exceptions.ServerError),
+    )
+
+    fast_timeout_client = gs_rig.client_class(timeout=0.00001, retry=custom_retry)
+
+    with pytest.raises(Exception) as exc_info:
+        p = gs_rig.create_cloud_path("dir_0/file0_0.txt", client=fast_timeout_client)
+        p.write_text("hello world " * 10000)
+
+        assert "timed out" in str(exc_info.value)
+
+    # can't force retries to happen in live cloud tests, so skip
+    if not gs_rig.live_server:
+        custom_retry = retry.Retry(
+            initial=1.0,
+            multiplier=1.0,
+            timeout=15.0,
+            predicate=retry.if_exception_type(exceptions.ServerError),
+        )
+
+        p = gs_rig.create_cloud_path(
+            "dir_0/file0_0.txt", client=gs_rig.client_class(retry=custom_retry)
+        )
+        p.write_text("hello world")
+
+        assert custom_retry.mocked_retries == 1
