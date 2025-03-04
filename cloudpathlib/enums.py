@@ -1,5 +1,4 @@
 from enum import Enum
-import warnings
 import os
 from typing import Optional
 
@@ -38,25 +37,7 @@ class FileCacheMode(str, Enum):
         """
 
         env_string = os.environ.get("CLOUDPATHLIB_FILE_CACHE_MODE", "").lower()
-        env_string_typo = os.environ.get("CLOUPATHLIB_FILE_CACHE_MODE", "").lower()
 
-        if env_string_typo:
-            warnings.warn(
-                "envvar CLOUPATHLIB_FILE_CACHE_MODE has been renamed to "
-                "CLOUDPATHLIB_FILE_CACHE_MODE. Reading from the old value "
-                "will become deprecated in version 0.20.0",
-                DeprecationWarning,
-            )
-
-        if env_string and env_string_typo and env_string != env_string_typo:
-            warnings.warn(
-                "CLOUDPATHLIB_FILE_CACHE_MODE and CLOUPATHLIB_FILE_CACHE_MODE "
-                "envvars set to different values. Disregarding old value and "
-                f"using CLOUDPATHLIB_FILE_CACHE_MODE = {env_string}",
-                RuntimeWarning,
-            )
-
-        env_string = env_string or env_string_typo
         if not env_string:
             return None
         else:
