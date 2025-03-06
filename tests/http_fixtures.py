@@ -148,7 +148,7 @@ def _http_server(
 def http_server(tmp_path_factory, worker_id):
     port = (
         9077
-        + random.randint(0, 10000)
+        + random.randint(0, 50000)
         + (int(worker_id.lstrip("gw")) if worker_id != "master" else 0)
     )  # don't collide if tests running in parallel with multiple servers
 
@@ -168,7 +168,7 @@ def http_server(tmp_path_factory, worker_id):
 def https_server(tmp_path_factory, worker_id):
     port = (
         4443
-        + random.randint(0, 10000)
+        + random.randint(0, 50000)
         + (int(worker_id.lstrip("gw")) if worker_id != "master" else 0)
     )  # don't collide if tests running in parallel with multiple servers
 
@@ -176,10 +176,11 @@ def https_server(tmp_path_factory, worker_id):
 
     # Command for generating self-signed localhost cert
     # openssl req -x509 -out localhost.crt -keyout localhost.key \
-    #   -newkey rsa:2048 -nodes -sha256 \
-    #   -subj '/CN=localhost' -extensions EXT -config <( \
-    #    printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
-    #
+    #   -newkey rsa:2048 -nodes -sha256 -days 99999 \
+    #   -subj '/CN=localhost' \
+    #   -extensions EXT -config <( \
+    #     printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth"
+    #   )
     # openssl x509 -in localhost.crt -out localhost.pem -outform PEM
 
     host, server_thread = _http_server(
