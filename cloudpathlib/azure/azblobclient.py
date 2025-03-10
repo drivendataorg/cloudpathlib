@@ -438,7 +438,6 @@ class AzureBlobClient(Client):
                 _hns_rmtree(self.data_lake_client, cloud_path.container, cloud_path.blob)
                 return
 
-
             def batches():
                 yield from batched(
                     (
