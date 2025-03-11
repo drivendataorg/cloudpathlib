@@ -438,17 +438,11 @@ class AzureBlobClient(Client):
                 _hns_rmtree(self.data_lake_client, cloud_path.container, cloud_path.blob)
                 return
 
-            def batches():
-                all_blobs = (
-                    b.blob
-                    for b, is_dir in self._list_dir(cloud_path, recursive=True)
-                    if not is_dir
-                )
-                while batch := tuple(islice(all_blobs, 256)):
-                    yield batch
-
+            blobs = (
+                b.blob for b, is_dir in self._list_dir(cloud_path, recursive=True) if not is_dir
+            )
             container_client = self.service_client.get_container_client(cloud_path.container)
-            for batch in batches():
+            while batch := tuple(islice(blobs, 256)):
                 container_client.delete_blobs(*batch)
         elif file_or_dir == "file":
             blob = self.service_client.get_blob_client(
