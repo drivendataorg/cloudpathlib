@@ -4,7 +4,7 @@ import os
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
-from itertools import batched
+from itertools import islice
 
 try:
     from typing import cast
@@ -439,14 +439,13 @@ class AzureBlobClient(Client):
                 return
 
             def batches():
-                yield from batched(
-                    (
-                        b.blob
-                        for b, is_dir in self._list_dir(cloud_path, recursive=True)
-                        if not is_dir
-                    ),
-                    256,
+                all_blobs = (
+                    b.blob
+                    for b, is_dir in self._list_dir(cloud_path, recursive=True)
+                    if not is_dir
                 )
+                while batch := tuple(islice(all_blobs, 256)):
+                    yield batch
 
             container_client = self.service_client.get_container_client(cloud_path.container)
             for batch in batches():
