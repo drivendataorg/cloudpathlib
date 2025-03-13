@@ -71,7 +71,7 @@ def test_md5_property(contents, gs_rig, monkeypatch):
         b64string = b64encode(contents_md5_bytes).decode()
         return b64string
 
-    # if USE_LIVE_CLOUD this doesnt have any effect
+    # if USE_LIVE_CLOUD this doesn't have any effect
     expected_hash = _calculate_b64_wrapped_md5_hash(contents)
     monkeypatch.setenv("MOCK_EXPECTED_MD5_HASH", expected_hash)
 

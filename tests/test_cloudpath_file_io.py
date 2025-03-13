@@ -342,9 +342,9 @@ def test_is_dir_is_file(rig, tmp_path):
         assert not test_case.is_dir()
 
     # does not exist (same behavior as pathlib.Path that does not exist)
-    non_existant = rig.create_cloud_path("dir_0/not_a_file")
-    assert not non_existant.is_file()
-    assert not non_existant.is_dir()
+    non_existent = rig.create_cloud_path("dir_0/not_a_file")
+    assert not non_existent.is_file()
+    assert not non_existent.is_dir()
 
 
 def test_file_read_writes(rig, tmp_path):

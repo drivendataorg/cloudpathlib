@@ -97,7 +97,7 @@ You can also skip providers you do not have accounts for by commenting them out 
 
 ### Test rigs
 
-Since we want behavior parity across providers, nearly all of the tests are written in a provider-agnositc way. Each test is passed a test rig as a fixture, and the rig provides the correct way for generating cloudpaths for testing. The test rigs are defined in [`conftest.py`](tests/conftest.py).
+Since we want behavior parity across providers, nearly all of the tests are written in a provider-agnostic way. Each test is passed a test rig as a fixture, and the rig provides the correct way for generating cloudpaths for testing. The test rigs are defined in [`conftest.py`](tests/conftest.py).
 
 **Almost none of the tests instantiate `CloudPath` or a `*Client` class directly.**
 
@@ -196,7 +196,7 @@ Here's a checklist from the PR template to make sure that you did all the requir
 
 If you are not a maintainer, a maintainer will have to approve your PR to run the test suite in GitHub Actions. No need to ping a maintainer, it will be seen as part of our regular review.
 
-Even once the tests run, two jobs will fail. This is expected. The failures are: (1) The live tests, and (2) the install tests. Both of these require access to the live backends, which are not available to outside contributors. If everything else passes, you can ignore these failiures. A mainter will take the following steps:
+Even once the tests run, two jobs will fail. This is expected. The failures are: (1) The live tests, and (2) the install tests. Both of these require access to the live backends, which are not available to outside contributors. If everything else passes, you can ignore these failures. A mainter will take the following steps:
 
  - Create a branch off the main repo for your PR's changes
  - Merge your PR into that new branch
@@ -210,7 +210,7 @@ For example, see a [repo-local branch running the live tests in this PR](https:/
 
 ### Adding dependencies
 
-We want `cloudpathlib` to be as lightweight as possible. Our strong preference is to not take any external dependencies for the library outside of the official software development kit (SDK) for the cloud provider. If you want to add a dependency, please open an issue to discuss it first. Library depencies are tracked in `pyproject.toml`.
+We want `cloudpathlib` to be as lightweight as possible. Our strong preference is to not take any external dependencies for the library outside of the official software development kit (SDK) for the cloud provider. If you want to add a dependency, please open an issue to discuss it first. Library dependencies are tracked in `pyproject.toml`.
 
 Dependencies that are only needed for building documentation, development, linting, formatting, or testing can be added to `requirements-dev.txt`, and are not subject to the same scrutiny.
 
@@ -307,7 +307,7 @@ To see how it is used in PR, you can [see an example here](https://github.com/dr
 
 ### Exceptions
 
-Different backends may raise different exception classses when something goes wrong. To make it easy for users to catch exceptions that are agnostic of the backend, we generally will catch and raise a specific exception from [`exceptions.py`](cloudpathlib/exceptions.py) for any exception that we understand. You can add new exceptions to this file if any are needed for new features.
+Different backends may raise different exception classes when something goes wrong. To make it easy for users to catch exceptions that are agnostic of the backend, we generally will catch and raise a specific exception from [`exceptions.py`](cloudpathlib/exceptions.py) for any exception that we understand. You can add new exceptions to this file if any are needed for new features.
 
 
 

@@ -20,7 +20,7 @@ from runner import main, normalize_results, results_to_csv
 logger.remove()
 logger.add(lambda msg: tqdm.write(msg, end=""), colorize=True)
 
-# get environement variables
+# get environment variables
 load_dotenv(find_dotenv())
 
 # enumerate cloudpathlib implementations
@@ -97,7 +97,7 @@ def results_to_rich_table(results):
     return table
 
 
-@cli.command(short_help="Runs peformance test suite against a specific backend and bucket.")
+@cli.command(short_help="Runs performance test suite against a specific backend and bucket.")
 def run(
     backend: CloudEnum,
     bucket: Optional[str] = None,

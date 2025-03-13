@@ -12,7 +12,7 @@ from .utils import delete_empty_parents_up_to_root
 TEST_ASSETS = Path(__file__).parent.parent / "assets"
 DEFAULT_S3_BUCKET_NAME = "bucket"
 
-# Since we don't contol exactly when the filesystem finishes writing a file
+# Since we don't control exactly when the filesystem finishes writing a file
 # and the test files are super small, we can end up with race conditions in
 # the tests where the updated file is modified before the source file,
 # which breaks our caching logic

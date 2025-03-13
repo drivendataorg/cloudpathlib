@@ -9,7 +9,7 @@ from tests.mock_clients.mock_azureblob import _JsonCache, DEFAULT_CONTAINER_NAME
 
 class MockedDataLakeServiceClient:
     def __init__(self, test_dir, adls):
-        # root is parent of the test specific directort
+        # root is parent of the test specific directory
         self.root = test_dir.parent
         self.test_dir = test_dir
         self.adls = adls
