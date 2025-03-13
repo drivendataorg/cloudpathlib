@@ -202,7 +202,7 @@ def test_parser(rig):
         with pytest.raises(NotImplementedError):
             rig.create_cloud_path("a/b/c").parser
     else:
-        # always posixpath since our dispath goes to PurePosixPath
+        # always posixpath since our dispatch goes to PurePosixPath
         assert rig.create_cloud_path("a/b/c").parser == posixpath
 
 

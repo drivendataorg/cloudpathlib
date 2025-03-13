@@ -322,7 +322,7 @@ class S3Client(Client):
                 )
 
         elif file_or_dir == "dir":
-            # try to delete as a direcotry instead
+            # try to delete as a directory instead
             bucket = self.s3.Bucket(cloud_path.bucket)
 
             prefix = cloud_path.key

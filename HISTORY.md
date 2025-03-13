@@ -113,7 +113,7 @@ Includes all changes from v0.18.0.
 
  - API change: Add `ignore` parameter to `CloudPath.copytree` in order to match `shutil` API. ([Issue #145](https://github.com/drivendataorg/cloudpathlib/issues/145), [PR #272](https://github.com/drivendataorg/cloudpathlib/pull/272))
  - Use the V2 version for listing objects `list_objects_v2` in `S3Client`. ([Issue #155](https://github.com/drivendataorg/cloudpathlib/issues/155), [PR #302](https://github.com/drivendataorg/cloudpathlib/pull/302))
- - Add abilty to use `.exists` to check for a raw bucket/container (no additional path components). ([Issue #291](https://github.com/drivendataorg/cloudpathlib/issues/291), [PR #302](https://github.com/drivendataorg/cloudpathlib/pull/302))
+ - Add ability to use `.exists` to check for a raw bucket/container (no additional path components). ([Issue #291](https://github.com/drivendataorg/cloudpathlib/issues/291), [PR #302](https://github.com/drivendataorg/cloudpathlib/pull/302))
  - Prevent data loss when renaming by skipping files that would be renamed to the same thing. ([Issue #277](https://github.com/drivendataorg/cloudpathlib/issues/277), [PR #278](https://github.com/drivendataorg/cloudpathlib/pull/278))
  - Speed up common `glob`/`rglob` patterns. ([Issue #274](https://github.com/drivendataorg/cloudpathlib/issues/274), [PR #276](https://github.com/drivendataorg/cloudpathlib/pull/276))
 

@@ -126,10 +126,10 @@ def test_transfer_config_live(s3_rig, tmp_path):
 
             return max_threads
 
-    # usually ~3 threads are spun up whe use_threads is False
+    # usually ~3 threads are spun up when use_threads is False
     assert _execute_on_subprocess_and_observe(use_threads=False) < 5
 
-    # usually ~15 threads are spun up whe use_threads is True
+    # usually ~15 threads are spun up when use_threads is True
     assert _execute_on_subprocess_and_observe(use_threads=True) > 10
 
 

@@ -202,7 +202,7 @@ def test_loc_dir(rig: CloudProviderTestRig, tmpdir):
             file_cache_mode=FileCacheMode.persistent, **rig.required_client_kwargs
         )
 
-    # automatically set to persitent if not specified
+    # automatically set to persistent if not specified
     client = rig.client_class(local_cache_dir=tmpdir, **rig.required_client_kwargs)
     assert client.file_cache_mode == FileCacheMode.persistent
 
@@ -458,7 +458,7 @@ def test_manual_cache_clearing(rig: CloudProviderTestRig):
     assert cp._local.exists()
     assert cp.client._local_cache_dir.exists()
 
-    # clears the file itself, but not the containg folder
+    # clears the file itself, but not the containing folder
     cp.clear_cache()
 
     assert not cp._local.exists()

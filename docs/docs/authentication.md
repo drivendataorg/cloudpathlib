@@ -125,7 +125,7 @@ As noted above, you can also call `.set_as_default_client()` on the client objec
 
 ## Other S3 `ExtraArgs` in `boto3`
 
-The S3 SDK, `boto3` supports a set of `ExtraArgs` for uploads, downloads, and listing operations. When you instatiate a client, you can pass the `extra_args` keyword argument with any of those extra args that you want to set. We will pass these on to the upload, download, and list methods insofar as those methods support the specific args.
+The S3 SDK, `boto3` supports a set of `ExtraArgs` for uploads, downloads, and listing operations. When you instantiate a client, you can pass the `extra_args` keyword argument with any of those extra args that you want to set. We will pass these on to the upload, download, and list methods insofar as those methods support the specific args.
 
 The args supported for uploads are the same as `boto3.s3.transfer.S3Transfer.ALLOWED_UPLOAD_ARGS`, see the [`boto3` documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer) for the latest, but as of the time of writing, these are:
 

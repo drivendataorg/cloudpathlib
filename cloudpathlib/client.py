@@ -44,7 +44,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         if isinstance(file_cache_mode, str):
             file_cache_mode = FileCacheMode(file_cache_mode)
 
-        # if not explcitly passed to client, get from env var
+        # if not explicitly passed to client, get from env var
         if file_cache_mode is None:
             file_cache_mode = FileCacheMode.from_environment()
 
