@@ -206,3 +206,13 @@ def test_adls_gen2_rename(azure_gen2_rig):
     p2 = p.rename(azure_gen2_rig.create_cloud_path("dir2"))
     assert not p.exists()
     assert p2.exists()
+
+
+def test_batched_rmtree_no_hns(azure_rig):
+    p = azure_rig.create_cloud_path("new_dir")
+
+    p.mkdir()
+    for i in range(400):
+        (p / f"{i}.txt").write_text("content")
+    p.rmtree()
+    assert not p.exists()

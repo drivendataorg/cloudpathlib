@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## Unreleased
+
+- Fixed `rmtree` fail on Azure with no `hns` and more than 256 blobs to drop
+
 ## v0.21.0 (2025-03-03)
 
 - Removed support for deprecated env var that had a typo (`CLOUPATHLIB_FILE_CACHE_MODE`; you should use `CLOUDPATHLIB_FILE_CACHE_MODE`).
