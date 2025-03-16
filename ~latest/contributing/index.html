@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.8">
     
     
       
@@ -1615,7 +1615,7 @@ perf                 run performance measurement suite for s3 and save results t
 <p>You can copy <code>.env.example</code> to <code>.env</code> and fill in the credentials and bucket/container names for the providers you want to test against.  <strong>Note that the live tests will create and delete files on the cloud provider.</strong></p>
 <p>You can also skip providers you do not have accounts for by commenting them out in the <code>rig</code> and <code>s3_like_rig</code> variables defined at the end of <code>tests/conftest.py</code>. </p>
 <h3 id="test-rigs">Test rigs<a class="headerlink" href="#test-rigs" title="Permanent link">&para;</a></h3>
-<p>Since we want behavior parity across providers, nearly all of the tests are written in a provider-agnositc way. Each test is passed a test rig as a fixture, and the rig provides the correct way for generating cloudpaths for testing. The test rigs are defined in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/conftest.py"><code>conftest.py</code></a>.</p>
+<p>Since we want behavior parity across providers, nearly all of the tests are written in a provider-agnostic way. Each test is passed a test rig as a fixture, and the rig provides the correct way for generating cloudpaths for testing. The test rigs are defined in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/conftest.py"><code>conftest.py</code></a>.</p>
 <p><strong>Almost none of the tests instantiate <code>CloudPath</code> or a <code>*Client</code> class directly.</strong></p>
 <p>When a test suite runs against the rig, the rig does the following steps on setup:
  - Creates a folder on the provider with a unique ID just for this test run.
@@ -1672,7 +1672,7 @@ perf                 run performance measurement suite for s3 and save results t
 </code></pre></div>
 <h3 id="pr-cicd-test-run">PR CI/CD test run<a class="headerlink" href="#pr-cicd-test-run" title="Permanent link">&para;</a></h3>
 <p>If you are not a maintainer, a maintainer will have to approve your PR to run the test suite in GitHub Actions. No need to ping a maintainer, it will be seen as part of our regular review.</p>
-<p>Even once the tests run, two jobs will fail. This is expected. The failures are: (1) The live tests, and (2) the install tests. Both of these require access to the live backends, which are not available to outside contributors. If everything else passes, you can ignore these failiures. A mainter will take the following steps:</p>
+<p>Even once the tests run, two jobs will fail. This is expected. The failures are: (1) The live tests, and (2) the install tests. Both of these require access to the live backends, which are not available to outside contributors. If everything else passes, you can ignore these failures. A mainter will take the following steps:</p>
 <ul>
 <li>Create a branch off the main repo for your PR's changes</li>
 <li>Merge your PR into that new branch</li>
@@ -1683,7 +1683,7 @@ perf                 run performance measurement suite for s3 and save results t
 <p>For example, see a <a href="https://github.com/drivendataorg/cloudpathlib/pull/354">repo-local branch running the live tests in this PR</a>.</p>
 <h2 id="code-standards-and-tips">Code standards and tips<a class="headerlink" href="#code-standards-and-tips" title="Permanent link">&para;</a></h2>
 <h3 id="adding-dependencies">Adding dependencies<a class="headerlink" href="#adding-dependencies" title="Permanent link">&para;</a></h3>
-<p>We want <code>cloudpathlib</code> to be as lightweight as possible. Our strong preference is to not take any external dependencies for the library outside of the official software development kit (SDK) for the cloud provider. If you want to add a dependency, please open an issue to discuss it first. Library depencies are tracked in <code>pyproject.toml</code>.</p>
+<p>We want <code>cloudpathlib</code> to be as lightweight as possible. Our strong preference is to not take any external dependencies for the library outside of the official software development kit (SDK) for the cloud provider. If you want to add a dependency, please open an issue to discuss it first. Library dependencies are tracked in <code>pyproject.toml</code>.</p>
 <p>Dependencies that are only needed for building documentation, development, linting, formatting, or testing can be added to <code>requirements-dev.txt</code>, and are not subject to the same scrutiny.</p>
 <h3 id="linting-and-formatting">Linting and formatting<a class="headerlink" href="#linting-and-formatting" title="Permanent link">&para;</a></h3>
 <p>Any code changes need to follow the code standards of the project. We use <code>black</code> for formatting code (as configured in <code>pyproject.toml</code>), and <code>flake8</code> for linting (as configured in <code>setup.cfg</code>).</p>
@@ -1742,7 +1742,7 @@ perf                 run performance measurement suite for s3 and save results t
 </code></pre></div>
 <p>To see how it is used in PR, you can <a href="https://github.com/drivendataorg/cloudpathlib/pull/364">see an example here</a>.</p>
 <h3 id="exceptions">Exceptions<a class="headerlink" href="#exceptions" title="Permanent link">&para;</a></h3>
-<p>Different backends may raise different exception classses when something goes wrong. To make it easy for users to catch exceptions that are agnostic of the backend, we generally will catch and raise a specific exception from <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/cloudpathlib/exceptions.py"><code>exceptions.py</code></a> for any exception that we understand. You can add new exceptions to this file if any are needed for new features.</p>
+<p>Different backends may raise different exception classes when something goes wrong. To make it easy for users to catch exceptions that are agnostic of the backend, we generally will catch and raise a specific exception from <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/cloudpathlib/exceptions.py"><code>exceptions.py</code></a> for any exception that we understand. You can add new exceptions to this file if any are needed for new features.</p>
 <h2 id="code-architecture">Code architecture<a class="headerlink" href="#code-architecture" title="Permanent link">&para;</a></h2>
 <p>The best guide to the style and architecture is to read the code itself, but we provide some overarching guidance here.</p>
 <h3 id="cloud-provider-abstraction">Cloud provider abstraction<a class="headerlink" href="#cloud-provider-abstraction" title="Permanent link">&para;</a></h3>

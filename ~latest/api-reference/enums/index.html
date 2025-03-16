@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.8">
     
     
       
@@ -912,7 +912,7 @@
         <li class="md-nav__item">
   <a href="#cloudpathlib.enums" class="md-nav__link">
     <span class="md-ellipsis">
-      cloudpathlib.enums
+      enums
     </span>
   </a>
   
@@ -1039,7 +1039,7 @@
         <li class="md-nav__item">
   <a href="#cloudpathlib.enums" class="md-nav__link">
     <span class="md-ellipsis">
-      cloudpathlib.enums
+      enums
     </span>
   </a>
   
@@ -1091,10 +1091,17 @@
 <h1 id="cloudpathlibenums">cloudpathlib.enums<a class="headerlink" href="#cloudpathlibenums" title="Permanent link">&para;</a></h1>
 
 
-  <div class="doc doc-object doc-module">
+<div class="doc doc-object doc-module">
+
+
 
 <a id="cloudpathlib.enums"></a>
     <div class="doc doc-contents first">
+
+
+
+
+
 
 
 
@@ -1105,67 +1112,159 @@
 
 
 
+
 <h2 id="cloudpathlib.enums-classes">Classes<a href="#cloudpathlib.enums-classes" class="headerlink" title="Permanent link">&para;</a></h2>
 
-  <div class="doc doc-object doc-class">
+<div class="doc doc-object doc-class">
 
 
 
 <h3 id="cloudpathlib.enums.FileCacheMode" class="doc doc-heading">
-        <code>
-FileCacheMode            (<span title="str">str</span>, <span title="enum.Enum">Enum</span>)
-        </code>
-
+            <code>FileCacheMode</code>
 
 
 <a href="#cloudpathlib.enums.FileCacheMode" class="headerlink" title="Permanent link">&para;</a></h3>
 
+
     <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="str">str</span></code>, <code><span title="enum.Enum">Enum</span></code></p>
 
-      <p>Enumeration of the modes available for for the cloudpathlib file cache.</p>
 
-<p><strong>Attributes:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-      <tr>
-        <td><code>persistent</code></td>
-        <td><code>str</code></td>
-        <td><p>Cache is not removed by <code>cloudpathlib</code>.</p></td>
-      </tr>
-      <tr>
-        <td><code>tmp_dir</code></td>
-        <td><code>str</code></td>
-        <td><p>Cache is stored in a
+        <p>Enumeration of the modes available for for the cloudpathlib file cache.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><a class="autorefs autorefs-internal" title="persistent = 'persistent'
+
+  
+      class-attribute
+      instance-attribute
+   (cloudpathlib.enums.FileCacheMode.persistent)" href="#cloudpathlib.enums.FileCacheMode.persistent">persistent</a></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Cache is not removed by <code>cloudpathlib</code>.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><a class="autorefs autorefs-internal" title="tmp_dir = 'tmp_dir'
+
+  
+      class-attribute
+      instance-attribute
+   (cloudpathlib.enums.FileCacheMode.tmp_dir)" href="#cloudpathlib.enums.FileCacheMode.tmp_dir">tmp_dir</a></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Cache is stored in a
 <a href="https://docs.python.org/3/library/tempfile.html#tempfile.TemporaryDirectory"><code>TemporaryDirectory</code></a>
-which is removed when the Client object is garbage collected (or by the OS at some point if not).</p></td>
-      </tr>
-      <tr>
-        <td><code>cloudpath_object</code></td>
-        <td><code>str</code></td>
-        <td><p>Cache for a <code>CloudPath</code> object is removed when <code>__del__</code> for that object is
-called by Python garbage collection.</p></td>
-      </tr>
-      <tr>
-        <td><code>close_file</code></td>
-        <td><code>str</code></td>
-        <td><p>Cache for a <code>CloudPath</code> file is removed as soon as the file is closed. Note: you must
-use <code>CloudPath.open</code> whenever opening the file for this method to function.</p></td>
-      </tr>
-  </tbody>
-</table>      <p>Modes can be set by passing them to the Client or by setting the <code>CLOUDPATHLIB_FILE_CACHE_MODE</code>
+which is removed when the Client object is garbage collected (or by the OS at some point if not).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><a class="autorefs autorefs-internal" title="cloudpath_object = 'cloudpath_object'
+
+  
+      class-attribute
+      instance-attribute
+   (cloudpathlib.enums.FileCacheMode.cloudpath_object)" href="#cloudpathlib.enums.FileCacheMode.cloudpath_object">cloudpath_object</a></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Cache for a <code>CloudPath</code> object is removed when <code>__del__</code> for that object is
+called by Python garbage collection.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><a class="autorefs autorefs-internal" title="close_file = 'close_file'
+
+  
+      class-attribute
+      instance-attribute
+   (cloudpathlib.enums.FileCacheMode.close_file)" href="#cloudpathlib.enums.FileCacheMode.close_file">close_file</a></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Cache for a <code>CloudPath</code> file is removed as soon as the file is closed. Note: you must
+use <code>CloudPath.open</code> whenever opening the file for this method to function.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+        <p>Modes can be set by passing them to the Client or by setting the <code>CLOUDPATHLIB_FILE_CACHE_MODE</code>
 environment variable.</p>
 <p>For more detail, see the <a href="../../caching">caching documentation page</a>.</p>
 
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/enums.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">FileCacheMode</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>cloudpathlib/enums.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 6</span>
+<span class="normal"> 7</span>
+<span class="normal"> 8</span>
+<span class="normal"> 9</span>
+<span class="normal">10</span>
+<span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">FileCacheMode</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Enumeration of the modes available for for the cloudpathlib file cache.</span>
 
 <span class="sd">    Attributes:</span>
@@ -1204,8 +1303,8 @@ environment variable.</p>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">env_string</span><span class="p">)</span>
-</code></pre></div>
-        </details>
+</code></pre></div></td></tr></table></div>
+              </details>
 
 
 
@@ -1215,80 +1314,180 @@ environment variable.</p>
 
 
 
+<h4 id="cloudpathlib.enums.FileCacheMode-attributes">Attributes<a href="#cloudpathlib.enums.FileCacheMode-attributes" class="headerlink" title="Permanent link">&para;</a></h4>
 
-  <div class="doc doc-object doc-attribute">
+<div class="doc doc-object doc-attribute">
 
 
 
 <h5 id="cloudpathlib.enums.FileCacheMode.close_file" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">close_file</span></code>
+            <code class="highlight language-python"><span class="n">close_file</span> <span class="o">=</span> <span class="s1">&#39;close_file&#39;</span></code>
 
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
 
 <a href="#cloudpathlib.enums.FileCacheMode.close_file" class="headerlink" title="Permanent link">&para;</a></h5>
+
 
     <div class="doc doc-contents ">
 
     </div>
 
-  </div>
+</div>
 
-
-
-  <div class="doc doc-object doc-attribute">
+<div class="doc doc-object doc-attribute">
 
 
 
 <h5 id="cloudpathlib.enums.FileCacheMode.cloudpath_object" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">cloudpath_object</span></code>
+            <code class="highlight language-python"><span class="n">cloudpath_object</span> <span class="o">=</span> <span class="s1">&#39;cloudpath_object&#39;</span></code>
 
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
 
 <a href="#cloudpathlib.enums.FileCacheMode.cloudpath_object" class="headerlink" title="Permanent link">&para;</a></h5>
+
 
     <div class="doc doc-contents ">
 
     </div>
 
-  </div>
+</div>
 
-
-
-  <div class="doc doc-object doc-attribute">
+<div class="doc doc-object doc-attribute">
 
 
 
 <h5 id="cloudpathlib.enums.FileCacheMode.persistent" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">persistent</span></code>
+            <code class="highlight language-python"><span class="n">persistent</span> <span class="o">=</span> <span class="s1">&#39;persistent&#39;</span></code>
 
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
 
 <a href="#cloudpathlib.enums.FileCacheMode.persistent" class="headerlink" title="Permanent link">&para;</a></h5>
+
 
     <div class="doc doc-contents ">
 
     </div>
 
-  </div>
+</div>
 
-
-
-  <div class="doc doc-object doc-attribute">
+<div class="doc doc-object doc-attribute">
 
 
 
 <h5 id="cloudpathlib.enums.FileCacheMode.tmp_dir" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">tmp_dir</span></code>
+            <code class="highlight language-python"><span class="n">tmp_dir</span> <span class="o">=</span> <span class="s1">&#39;tmp_dir&#39;</span></code>
 
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
 
 <a href="#cloudpathlib.enums.FileCacheMode.tmp_dir" class="headerlink" title="Permanent link">&para;</a></h5>
+
 
     <div class="doc doc-contents ">
 
     </div>
 
+</div>
+
+<h4 id="cloudpathlib.enums.FileCacheMode-functions">Functions<a href="#cloudpathlib.enums.FileCacheMode-functions" class="headerlink" title="Permanent link">&para;</a></h4>
+
+<div class="doc doc-object doc-function">
+
+
+<h5 id="cloudpathlib.enums.FileCacheMode.from_environment" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">from_environment</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FileCacheMode</span><span class="p">]</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+<a href="#cloudpathlib.enums.FileCacheMode.from_environment" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Parses the environment variable <code>CLOUDPATHLIB_FILE_CACHE_MODE</code> into
+an instance of this Enum.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="FileCacheMode (cloudpathlib.enums.FileCacheMode)" href="#cloudpathlib.enums.FileCacheMode">FileCacheMode</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>FileCacheMode enum value if the env var is defined, else None.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="quote">
+              <summary>Source code in <code>cloudpathlib/enums.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">from_environment</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;FileCacheMode&quot;</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parses the environment variable `CLOUDPATHLIB_FILE_CACHE_MODE` into</span>
+<span class="sd">    an instance of this Enum.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        FileCacheMode enum value if the env var is defined, else None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">env_string</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CLOUDPATHLIB_FILE_CACHE_MODE&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">env_string</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">env_string</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
   </div>
 
+    </div>
 
-
-
+</div>
 
 
 
@@ -1297,19 +1496,7 @@ environment variable.</p>
 
     </div>
 
-  </div>
-
-
-
-
-
-
-
-  </div>
-
-    </div>
-
-  </div>
+</div>
 
 
 

@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.8">
     
     
       
@@ -1274,7 +1274,7 @@
 </code></pre></div>
 <p>As noted above, you can also call <code>.set_as_default_client()</code> on the client object that you create and then it will be used by default without your having to explicitly use the client object that you created.</p>
 <h2 id="other-s3-extraargs-in-boto3">Other S3 <code>ExtraArgs</code> in <code>boto3</code><a class="headerlink" href="#other-s3-extraargs-in-boto3" title="Permanent link">&para;</a></h2>
-<p>The S3 SDK, <code>boto3</code> supports a set of <code>ExtraArgs</code> for uploads, downloads, and listing operations. When you instatiate a client, you can pass the <code>extra_args</code> keyword argument with any of those extra args that you want to set. We will pass these on to the upload, download, and list methods insofar as those methods support the specific args.</p>
+<p>The S3 SDK, <code>boto3</code> supports a set of <code>ExtraArgs</code> for uploads, downloads, and listing operations. When you instantiate a client, you can pass the <code>extra_args</code> keyword argument with any of those extra args that you want to set. We will pass these on to the upload, download, and list methods insofar as those methods support the specific args.</p>
 <p>The args supported for uploads are the same as <code>boto3.s3.transfer.S3Transfer.ALLOWED_UPLOAD_ARGS</code>, see the <a href="https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer"><code>boto3</code> documentation</a> for the latest, but as of the time of writing, these are:</p>
 <ul>
 <li><code>ACL</code></li>

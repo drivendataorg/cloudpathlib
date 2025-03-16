@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.8">
     
     
       
@@ -552,26 +552,26 @@
         <li class="md-nav__item">
   <a href="#cloudpathlib.anypath.AnyPath" class="md-nav__link">
     <span class="md-ellipsis">
-      cloudpathlib.anypath.AnyPath
+      AnyPath
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cloudpathlib.anypath.AnyPath-methods" class="md-nav__link">
+  <a href="#cloudpathlib.anypath.AnyPath-functions" class="md-nav__link">
     <span class="md-ellipsis">
-      Methods
+      Functions
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Methods">
+    <nav class="md-nav" aria-label="Functions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#cloudpathlib.anypath.AnyPath.validate" class="md-nav__link">
     <span class="md-ellipsis">
-      validate()
+      validate
     </span>
   </a>
   
@@ -1039,26 +1039,26 @@
         <li class="md-nav__item">
   <a href="#cloudpathlib.anypath.AnyPath" class="md-nav__link">
     <span class="md-ellipsis">
-      cloudpathlib.anypath.AnyPath
+      AnyPath
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cloudpathlib.anypath.AnyPath-methods" class="md-nav__link">
+  <a href="#cloudpathlib.anypath.AnyPath-functions" class="md-nav__link">
     <span class="md-ellipsis">
-      Methods
+      Functions
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Methods">
+    <nav class="md-nav" aria-label="Functions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#cloudpathlib.anypath.AnyPath.validate" class="md-nav__link">
     <span class="md-ellipsis">
-      validate()
+      validate
     </span>
   </a>
   
@@ -1091,21 +1091,98 @@
 <h1 id="cloudpathlibanypath">cloudpathlib.AnyPath<a class="headerlink" href="#cloudpathlibanypath" title="Permanent link">&para;</a></h1>
 
 
-  <div class="doc doc-object doc-class">
+<div class="doc doc-object doc-class">
+
+
 
 <a id="cloudpathlib.anypath.AnyPath"></a>
     <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="abc.ABC">ABC</span></code></p>
 
-      <p>Polymorphic virtual superclass for CloudPath and pathlib.Path. Constructing an instance will
+
+        <p>Polymorphic virtual superclass for CloudPath and pathlib.Path. Constructing an instance will
 automatically dispatch to CloudPath or Path based on the input. It also supports both
 isinstance and issubclass checks.</p>
 <p>This class also integrates with Pydantic. When used as a type declaration for a Pydantic
 BaseModel, the Pydantic validation process will appropriately run inputs through this class'
 constructor and dispatch to CloudPath or Path.</p>
 
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/anypath.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AnyPath</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>cloudpathlib/anypath.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AnyPath</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Polymorphic virtual superclass for CloudPath and pathlib.Path. Constructing an instance will</span>
 <span class="sd">    automatically dispatch to CloudPath or Path based on the input. It also supports both</span>
 <span class="sd">    isinstance and issubclass checks.</span>
@@ -1172,8 +1249,8 @@ constructor and dispatch to CloudPath or Path.</p>
 <span class="sd">        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types&quot;&quot;&quot;</span>
         <span class="c1"># Note __new__ is static method and not a class method</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-</code></pre></div>
-        </details>
+</code></pre></div></td></tr></table></div>
+              </details>
 
 
 
@@ -1185,29 +1262,39 @@ constructor and dispatch to CloudPath or Path.</p>
 
 
 
-<h2 id="cloudpathlib.anypath.AnyPath-methods">Methods<a href="#cloudpathlib.anypath.AnyPath-methods" class="headerlink" title="Permanent link">&para;</a></h2>
+<h2 id="cloudpathlib.anypath.AnyPath-functions">Functions<a href="#cloudpathlib.anypath.AnyPath-functions" class="headerlink" title="Permanent link">&para;</a></h2>
 
-  <div class="doc doc-object doc-method">
-
+<div class="doc doc-object doc-function">
 
 
 <h3 id="cloudpathlib.anypath.AnyPath.validate" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">validate</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">cloudpathlib</span><span class="o">.</span><span class="n">cloudpath</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">,</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">]</span></code>
+            <code class="highlight language-python"><span class="n">validate</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">CloudPath</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span></code>
 
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-classmethod"><code>classmethod</code></small>
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
   </span>
 
 <a href="#cloudpathlib.anypath.AnyPath.validate" class="headerlink" title="Permanent link">&para;</a></h3>
 
+
     <div class="doc doc-contents ">
 
-      <p>Pydantic special method. See
+        <p>Pydantic special method. See
 https://docs.pydantic.dev/2.0/usage/types/custom/</p>
 
-        <details class="quote">
-          <summary>Source code in <code>cloudpathlib/anypath.py</code></summary>
-          <div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+
+            <details class="quote">
+              <summary>Source code in <code>cloudpathlib/anypath.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">CloudPath</span><span class="p">,</span> <span class="n">Path</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Pydantic special method. See</span>
 <span class="sd">    https://docs.pydantic.dev/2.0/usage/types/custom/&quot;&quot;&quot;</span>
@@ -1217,13 +1304,11 @@ https://docs.pydantic.dev/2.0/usage/types/custom/</p>
         <span class="c1"># type errors no longer converted to validation errors</span>
         <span class="c1">#  https://docs.pydantic.dev/2.0/migration/#typeerror-is-no-longer-converted-to-validationerror-in-validators</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-</code></pre></div>
-        </details>
+</code></pre></div></td></tr></table></div>
+            </details>
     </div>
 
-  </div>
-
-
+</div>
 
 
 
@@ -1231,7 +1316,7 @@ https://docs.pydantic.dev/2.0/usage/types/custom/</p>
 
     </div>
 
-  </div>
+</div>
 
 
 
