@@ -15,6 +15,7 @@ try:
         from google.auth.credentials import Credentials
         from google.api_core.retry import Retry
 
+    from google.auth import default as google_default_auth
     from google.auth.exceptions import DefaultCredentialsError
     from google.cloud.storage import Client as StorageClient
 
@@ -99,7 +100,8 @@ class GSClient(Client):
         elif credentials is not None:
             self.client = StorageClient(credentials=credentials, project=project)
         elif application_credentials is not None:
-            self.client = StorageClient.from_service_account_json(application_credentials)
+            credentials, project = google_default_auth()
+            self.client = StorageClient(credentials=credentials, project=project)
         else:
             try:
                 self.client = StorageClient()

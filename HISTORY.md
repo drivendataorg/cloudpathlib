@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed issue with GS credentials, using default auth enables a wider set of authentication methods in GS
 - Fixed `rmtree` fail on Azure with no `hns` and more than 256 blobs to drop (Issue [#509](https://github.com/drivendataorg/cloudpathlib/issues/509), PR [#508](https://github.com/drivendataorg/cloudpathlib/pull/508), thanks @alikefia)
 
 ## v0.21.0 (2025-03-03)
