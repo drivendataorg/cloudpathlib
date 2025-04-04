@@ -92,16 +92,18 @@ class GSClient(Client):
             timeout (Optional[float]): Cloud Storage [timeout value](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout)
             retry (Optional[google.api_core.retry.Retry]): Cloud Storage [retry configuration](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout#configuring-retries)
         """
-        if application_credentials is None:
-            application_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        application_credentials = application_credentials or os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
         if storage_client is not None:
             self.client = storage_client
         elif credentials is not None:
             self.client = StorageClient(credentials=credentials, project=project)
         elif application_credentials is not None:
-            credentials, project = google_default_auth()
-            self.client = StorageClient(credentials=credentials, project=project)
+            if application_credentials == os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+                credentials, project = google_default_auth()
+                self.client = StorageClient(credentials=credentials, project=project)
+            else:
+                self.client = StorageClient.from_service_account_json(application_credentials)
         else:
             try:
                 self.client = StorageClient()
