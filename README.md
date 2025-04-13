@@ -6,7 +6,7 @@
 [![PyPI](https://img.shields.io/pypi/v/cloudpathlib.svg)](https://pypi.org/project/cloudpathlib/)
 [![conda-forge](https://img.shields.io/conda/vn/conda-forge/cloudpathlib.svg)](https://anaconda.org/conda-forge/cloudpathlib)
 [![conda-forge feedstock](https://img.shields.io/badge/conda--forge-feedstock-yellowgreen)](https://github.com/conda-forge/cloudpathlib-feedstock)
-[![tests](https://github.com/drivendataorg/cloudpathlib/workflows/tests/badge.svg?branch=master)](https://github.com/drivendataorg/cloudpathlib/actions?query=workflow%3Atests+branch%3Amaster)
+[![tests](https://github.com/drivendataorg/cloudpathlib/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/drivendataorg/cloudpathlib/actions/workflows/tests.yml?query=branch%3Amaster)
 [![codecov](https://codecov.io/gh/drivendataorg/cloudpathlib/branch/master/graph/badge.svg)](https://codecov.io/gh/drivendataorg/cloudpathlib)
 
 > Our goal is to be the meringue of file management libraries: the subtle sweetness of `pathlib` working in harmony with the ethereal lightness of the cloud.
