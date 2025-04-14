@@ -319,6 +319,7 @@ def test_environment_variable_local_cache_dir(rig: CloudProviderTestRig, tmpdir)
         os.environ["CLOUDPATHLIB_LOCAL_CACHE_DIR"] = original_env_setting
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=1, condition=os.getenv("USE_LIVE_CLOUD") == "1")
 def test_environment_variables_force_overwrite_from(rig: CloudProviderTestRig, tmpdir):
     # environment instantiation
     original_env_setting = os.environ.get("CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD", "")
@@ -354,6 +355,7 @@ def test_environment_variables_force_overwrite_from(rig: CloudProviderTestRig, t
         os.environ["CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD"] = original_env_setting
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=1, condition=os.getenv("USE_LIVE_CLOUD") == "1")
 def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmpdir):
     # environment instantiation
     original_env_setting = os.environ.get("CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD", "")
