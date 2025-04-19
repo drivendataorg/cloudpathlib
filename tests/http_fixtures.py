@@ -3,12 +3,12 @@ from functools import partial
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import os
 from pathlib import Path
-import random
 import shutil
 import ssl
 import threading
 import time
 from urllib.request import urlopen
+import socket
 
 from pytest import fixture
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -83,24 +83,27 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
 
 
 def _http_server(
-    root_dir, port, hostname="localhost", use_ssl=False, certfile=None, keyfile=None, threaded=True
+    root_dir,
+    port=None,
+    hostname="localhost",
+    use_ssl=False,
+    certfile=None,
+    keyfile=None,
+    threaded=True,
 ):
     root_dir.mkdir(exist_ok=True)
 
     scheme = "http" if not use_ssl else "https"
 
-    def start_server():
-        handler = partial(TestHTTPRequestHandler, directory=str(root_dir))
+    # Find a free port if not specified
+    if port is None:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind((hostname, 0))
+            port = s.getsockname()[1]
 
-        try:
-            httpd = HTTPServer((hostname, port), handler)
-        except OSError as e:
-            if e.errno == 48:
-                httpd = HTTPServer(
-                    (hostname, port + random.randint(0, 10000)), handler
-                )  # somtimes the same worker collides before port is released; retry
-            else:
-                raise e
+    def start_server(server_ready_event):
+        handler = partial(TestHTTPRequestHandler, directory=str(root_dir))
+        httpd = HTTPServer((hostname, port), handler)
 
         if use_ssl:
             if not certfile or not keyfile:
@@ -111,14 +114,20 @@ def _http_server(
             context.check_hostname = False
             httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
 
+        server_ready_event.set()
         httpd.serve_forever()
 
+    server_ready_event = threading.Event()
     if threaded:
-        server_thread = threading.Thread(target=start_server, daemon=True)
+        server_thread = threading.Thread(
+            target=start_server, args=(server_ready_event,), daemon=True
+        )
         server_thread.start()
+        server_ready_event.wait()
     else:
-        start_server()
+        start_server(server_ready_event)
 
+    # Wait for server to be ready to accept connections
     max_attempts = 100
     wait_time = 0.2
 
@@ -146,32 +155,19 @@ def _http_server(
 
 @fixture(scope="module")
 def http_server(tmp_path_factory, worker_id):
-    port = (
-        9077
-        + random.randint(0, 50000)
-        + (int(worker_id.lstrip("gw")) if worker_id != "master" else 0)
-    )  # don't collide if tests running in parallel with multiple servers
-
+    # port is now None, so OS will pick a free port
+    port = None
     server_dir = tmp_path_factory.mktemp("server_files").resolve()
-
     host, server_thread = _http_server(server_dir, port)
-
     yield host, server_dir
-
     server_thread.join(0)
-
     if server_dir.exists():
         shutil.rmtree(server_dir)
 
 
 @fixture(scope="module")
 def https_server(tmp_path_factory, worker_id):
-    port = (
-        4443
-        + random.randint(0, 50000)
-        + (int(worker_id.lstrip("gw")) if worker_id != "master" else 0)
-    )  # don't collide if tests running in parallel with multiple servers
-
+    port = None
     server_dir = tmp_path_factory.mktemp("server_files").resolve()
 
     # Command for generating self-signed localhost cert
