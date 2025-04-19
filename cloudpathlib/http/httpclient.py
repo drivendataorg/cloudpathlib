@@ -83,6 +83,8 @@ class HttpClient(Client):
     def _download_file(self, cloud_path: HttpPath, local_path: Union[str, os.PathLike]) -> Path:
         local_path = Path(local_path)
         with self.opener.open(cloud_path.as_url()) as response:
+            # Ensure parent directory exists before opening file
+            local_path.parent.mkdir(parents=True, exist_ok=True)
             with open(local_path, "wb") as out_file:
                 shutil.copyfileobj(response, out_file)
         return local_path
