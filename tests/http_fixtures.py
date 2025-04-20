@@ -85,7 +85,7 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
 def _http_server(
     root_dir,
     port=None,
-    hostname="localhost",
+    hostname="127.0.0.1",
     use_ssl=False,
     certfile=None,
     keyfile=None,
