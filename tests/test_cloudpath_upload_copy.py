@@ -66,6 +66,7 @@ def test_upload_from_file(rig, upload_assets_dir):
     assert p.read_text() == "Hello from 2"
 
     # to file, file exists and is newer
+    sleep(1.1)
     p.write_text("newer")
     with pytest.raises(OverwriteNewerCloudError):
         p.upload_from(upload_assets_dir / "upload_1.txt")
@@ -161,6 +162,7 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     assert p_new.read_text() == "Hello from 1"
 
     # cloud to cloud overwrite
+    sleep(1.1)
     p_new.write_text("p_new")
     with pytest.raises(OverwriteNewerCloudError):
         p_new = p.copy(p_new)
