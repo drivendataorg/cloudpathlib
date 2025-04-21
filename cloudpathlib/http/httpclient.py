@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import http
 import os
 import re
@@ -10,8 +10,6 @@ from typing import Iterable, Optional, Tuple, Union, Callable
 import shutil
 import mimetypes
 import urllib.response
-
-import pytz
 
 from cloudpathlib.client import Client, register_client_class
 from cloudpathlib.enums import FileCacheMode
@@ -72,7 +70,7 @@ class HttpClient(Client):
                 last_modified = datetime.strptime(last_modified, "%a, %d %b %Y %H:%M:%S %Z")
 
                 # should always be utc https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified#gmt
-                last_modified = last_modified.replace(tzinfo=pytz.UTC)
+                last_modified = last_modified.replace(tzinfo=timezone.utc)
 
             return {
                 "size": int(response.headers.get("Content-Length", 0)),

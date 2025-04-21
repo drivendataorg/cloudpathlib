@@ -12,4 +12,4 @@ def _sync_filesystem():
         os.sync()
     else:
         # On Windows, give the filesystem a moment to catch up
-        time.sleep(0.5)
+        time.sleep(0.05)
