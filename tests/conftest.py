@@ -1,7 +1,6 @@
 from functools import wraps
 import os
 from pathlib import Path, PurePosixPath
-import platform
 import shutil
 import ssl
 import time
@@ -586,30 +585,18 @@ azure_rigs = fixture_union(
     ],
 )
 
-main_rigs = [
-    azure_rig,  # azure_rig0
-    azure_gen2_rig,  # azure_rig1
-    gs_rig,
-    s3_rig,
-    custom_s3_rig,
-    local_azure_rig,
-    local_s3_rig,
-    local_gs_rig,
-]
-
-# add http rigs if not on Windows in CI, which is slow
-if not os.getenv("CI") or platform.system() != "Windows":
-    main_rigs.extend(
-        [
-            http_rig,
-            https_rig,
-        ]
-    )
-
 
 rig = fixture_union(
     "rig",
     [
+        azure_rig,  # azure_rig0
+        azure_gen2_rig,  # azure_rig1
+        gs_rig,
+        s3_rig,
+        custom_s3_rig,
+        local_azure_rig,
+        local_s3_rig,
+        local_gs_rig,
         http_rig,
         https_rig,
     ],
