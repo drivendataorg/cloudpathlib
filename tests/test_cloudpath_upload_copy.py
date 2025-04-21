@@ -11,6 +11,7 @@ from cloudpathlib.exceptions import (
     CloudPathNotADirectoryError,
     OverwriteNewerCloudError,
 )
+from tests.utils import _sync_filesystem
 
 
 @pytest.fixture
@@ -106,7 +107,10 @@ def test_upload_from_dir(rig, upload_assets_dir):
     with pytest.raises(OverwriteNewerCloudError):
         p.upload_from(upload_assets_dir)
 
+    _sync_filesystem()
+
     # force overwrite
+    sleep(1)
     (p / "upload_1.txt").write_text("even newer")
     (p / "upload_2.txt").unlink()
     p.upload_from(upload_assets_dir, force_overwrite_to_cloud=True)
