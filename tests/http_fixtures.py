@@ -170,14 +170,17 @@ def https_server(tmp_path_factory, worker_id):
     port = None
     server_dir = tmp_path_factory.mktemp("server_files").resolve()
 
-    # Command for generating self-signed localhost cert
-    # openssl req -x509 -out localhost.crt -keyout localhost.key \
+    # # Self‑signed cert for 127.0.0.1 (≈273 years validity)
+    # openssl req -x509 -out 127.0.0.1.crt -keyout 127.0.0.1.key \
     #   -newkey rsa:2048 -nodes -sha256 -days 99999 \
-    #   -subj '/CN=localhost' \
+    #   -subj '/CN=127.0.0.1' \
     #   -extensions EXT -config <( \
-    #     printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth"
-    #   )
-    # openssl x509 -in localhost.crt -out localhost.pem -outform PEM
+    #       printf "[dn]\nCN=127.0.0.1\n\
+    # [req]\ndistinguished_name = dn\n\
+    # [EXT]\nsubjectAltName=IP:127.0.0.1\n\
+    # keyUsage=digitalSignature\nextendedKeyUsage=serverAuth" )
+    # # Convert to PEM (optional)
+    # openssl x509 -in 127.0.0.1.crt -out 127.0.0.1.pem -outform PEM
 
     host, server_thread = _http_server(
         server_dir,
