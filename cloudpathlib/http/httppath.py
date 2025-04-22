@@ -70,7 +70,7 @@ class HttpPath(CloudPath):
         if not self.exists():
             return False
 
-        # Use client default to iden
+        # Use client default to identify directories
         return self.client.dir_matcher(str(self))
 
     def is_file(self, follow_symlinks: bool = True) -> bool:
