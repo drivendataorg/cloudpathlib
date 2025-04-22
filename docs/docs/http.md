@@ -2,7 +2,7 @@
 
 We support `http://` and `https://` URLs with `CloudPath`, but these behave somewhat differently from typical cloud provider URIs (e.g., `s3://`, `gs://`) or local file paths. This document describes those differences, caveats, and the additional configuration options available.
 
- > **Note:** We don't currently automatically detect `http` links to cloud storage providers (for example, `http://s3.amazonaws.com/bucket/key`) and treat those as `S3Path`, `GSPath`, etc. They will be treated as `HttpPath` objects.
+ > **Note:** We don't currently automatically detect `http` links to cloud storage providers (for example, `http://s3.amazonaws.com/bucket/key`) and treat those as `S3Path`, `GSPath`, etc. They will be treated as normal urls (i.e., `HttpPath` objects).
 
 ## Basic Usage
 
@@ -198,6 +198,8 @@ my_path = CloudPath("https://www.example.com/files/info.txt")
 ```
 
 If you explicitly instantiate a `HttpClient`, it will only handle `http://` paths. If you instantiate a `HttpsClient`, it will only handle `https://` paths. But `AnyPath` and `CloudPath` will route to the correct client class automatically.
+
+In general, you should use `HttpsClient` and work with `https://` urls wherever possible.
 
 ## Additional Notes
 

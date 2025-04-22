@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Iterable, Optional, Tuple, Union, Callable
 import shutil
 import mimetypes
-import urllib.response
 
 from cloudpathlib.client import Client, register_client_class
 from cloudpathlib.enums import FileCacheMode
@@ -29,7 +28,8 @@ class HttpClient(Client):
         custom_dir_matcher: Optional[Callable[[str], bool]] = None,
         write_file_http_method: Optional[str] = "PUT",
     ):
-        """Class constructor.
+        """Class constructor. Creates an HTTP client that can be used to interact with HTTP servers
+            using the cloudpathlib library.
 
         Args:
             file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see
@@ -83,7 +83,7 @@ class HttpClient(Client):
         with self.opener.open(cloud_path.as_url()) as response:
             # Ensure parent directory exists before opening file
             local_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(local_path, "wb") as out_file:
+            with local_path.open("wb") as out_file:
                 shutil.copyfileobj(response, out_file)
         return local_path
 
@@ -98,7 +98,8 @@ class HttpClient(Client):
             raise
 
     def _move_file(self, src: HttpPath, dst: HttpPath, remove_src: bool = True) -> HttpPath:
-        self._upload_file(src, dst)
+        # .fspath will download the file so the local version can be uploaded
+        self._upload_file(src.fspath, dst)
         if remove_src:
             self._remove(src)
         return dst
@@ -140,7 +141,7 @@ class HttpClient(Client):
 
         headers = {"Content-Type": content_type or "application/octet-stream"}
 
-        with open(local_path, "rb") as file_data:
+        with local_path.open("rb") as file_data:
             request = urllib.request.Request(
                 cloud_path.as_url(),
                 data=file_data.read(),
@@ -184,9 +185,8 @@ class HttpClient(Client):
     ) -> Tuple[http.client.HTTPResponse, bytes]:
         request = urllib.request.Request(url.as_url(), method=method, **kwargs)
         with self.opener.open(request) as response:
-            # eager read of response content, which is not available
-            # after the connection is closed when we exit the
-            # context manager.
+            # eager read of response content, which is not available after
+            # the connection is closed when we exit the context manager.
             return response, response.read()
 
 
