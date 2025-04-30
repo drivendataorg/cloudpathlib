@@ -149,6 +149,35 @@ def register_path_class(key: str) -> Callable[[Type[CloudPathT]], Type[CloudPath
     return decorator
 
 
+class CloudPathInfo:
+    """A class that provides information about a cloud path
+
+    This class is an implementation of `pathlib_abc.PathInfo` (>=0.4.0), which provides
+    a common interface for getting information from path-like objects that can be read from
+    and written to.
+
+    """
+
+    def __init__(self, path: "CloudPath") -> None:
+        self._cloud_path = path
+
+    @property
+    def cloud_path(self) -> "CloudPath":
+        return self._cloud_path
+
+    def exists(self, *, follow_symlinks: bool = True) -> bool:
+        return self.cloud_path.exists()
+
+    def is_dir(self, *, follow_symlinks: bool = True) -> bool:
+        return self.cloud_path.is_dir(follow_symlinks=follow_symlinks)
+
+    def is_file(self, *, follow_symlinks: bool = True) -> bool:
+        return self.cloud_path.is_file(follow_symlinks=follow_symlinks)
+
+    def is_symlink(self) -> bool:
+        return self.cloud_path.is_symlink()
+
+
 class CloudPathMeta(abc.ABCMeta):
     @overload
     def __call__(
@@ -215,7 +244,7 @@ class CloudPathMeta(abc.ABCMeta):
 
 
 # Abstract base class
-class CloudPath(metaclass=CloudPathMeta):
+class CloudPath(anypath.PathBase, metaclass=CloudPathMeta):
     """Base class for cloud storage file URIs, in the style of the Python standard library's
     [`pathlib` module](https://docs.python.org/3/library/pathlib.html). Instances represent a path
     in cloud storage with filesystem path semantics, and convenient methods allow for basic
@@ -364,6 +393,38 @@ class CloudPath(metaclass=CloudPathMeta):
         if not isinstance(other, type(self)):
             return NotImplemented
         return self.parts >= other.parts
+
+    # ====================== PathBase IMPLEMENTATIONS ======================
+
+    @property
+    def info(self) -> CloudPathInfo:
+        """Return a PathInfo object with information about the path."""
+        return CloudPathInfo(self)
+
+    def __open_rb__(self, buffering: int = -1) -> BinaryIO:
+        """Open the file in binary read mode."""
+        return self.open(mode="rb", buffering=buffering)
+
+    def __open_wb__(self, buffering: int = -1) -> BinaryIO:
+        """Open the file in binary write mode."""
+        return self.open(mode="wb", buffering=buffering)
+
+    def symlink_to(self, target, target_is_directory: bool = False):
+        raise IncompleteImplementationError("symlink_to is not implemented for cloud paths.")
+
+    def is_symlink(self) -> bool:
+        """Check if the path is a symlink
+
+        For cloud paths, this is always False since cloud paths do not support symlinks.
+
+        Returns:
+            bool: False always, since cloud paths do not support symlinks.
+        """
+        return False
+
+    def readlink(self):
+        # ASSUMPTION: cloud paths are not symlinks
+        return self
 
     # ====================== NOT IMPLEMENTED ======================
     # as_posix - no cloud equivalent; not needed since we assume url separator

@@ -1,7 +1,16 @@
 import os
+import sys
 from abc import ABC
 from pathlib import Path
 from typing import Any, Union
+
+if sys.version_info >= (3, 14, 0):
+    if sys.version_info >= (3, 14, 4):
+        from pathlib._abc import ReadablePath, WritablePath
+    else:
+        from pathlib._abc import PathBase as ReadablePath, PathBase as WritablePath
+else:
+    from pathlib_abc import ReadablePath, WritablePath
 
 from .cloudpath import InvalidPrefixError, CloudPath
 from .exceptions import AnyPathTypeError
@@ -90,3 +99,15 @@ def to_anypath(s: Union[str, os.PathLike]) -> Union[CloudPath, Path]:
         return s
 
     return AnyPath(s)  # type: ignore
+
+
+class PathBase(ReadablePath, WritablePath):
+    """
+    A base class for path-like objects that can be used with cloud storage.
+    This class is a subclass of Readable
+    and WritablePath from pathlib_abc, which provides a common interface
+    for path-like objects that can be read from and written to.
+    """
+
+
+PathBase.register(Path)

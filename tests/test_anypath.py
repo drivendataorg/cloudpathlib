@@ -64,3 +64,17 @@ def test_anypath_bad_input():
 
 def test_anypath_subclass_anypath():
     assert issubclass(AnyPath, AnyPath)
+
+
+def test__anypathbase__subclassing_works_correctly(rig):
+    from cloudpathlib.anypathbase import PathBase
+
+    cloudpath = rig.create_cloud_path("a/b/c")
+
+    localpath = Path("a/b/c")
+
+    assert isinstance(cloudpath, PathBase)
+    assert isinstance(localpath, PathBase)
+
+    assert isinstance(cloudpath, os.PathLike)
+    assert isinstance(localpath, os.PathLike)
