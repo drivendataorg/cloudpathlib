@@ -433,6 +433,25 @@ def test_file_read_writes(rig, tmp_path):
         (p / "not_exists_file").download_to(dl_file)
 
 
+def test_filenames(rig):
+    # test that we can handle filenames with special characters
+    p = rig.create_cloud_path("dir_0/new_file.txt")  # real extension
+    p.write_text("hello")
+    assert p.read_text() == "hello"
+
+    p2 = rig.create_cloud_path("dir_0/new_file")  # no extension
+    p2.write_text("hello")
+    assert p2.read_text() == "hello"
+
+    p3 = rig.create_cloud_path("dir_0/new_file.textfile")  # long extension
+    p3.write_text("hello")
+    assert p3.read_text() == "hello"
+
+    p4 = rig.create_cloud_path("dir_0/new_file.abc.def.txt")  # multiple suffixes
+    p4.write_text("hello")
+    assert p4.read_text() == "hello"
+
+
 def test_dispatch_to_local_cache(rig):
     p = rig.create_cloud_path("dir_0/file0_1.txt")
     stat = p._dispatch_to_local_cache_path("stat")
