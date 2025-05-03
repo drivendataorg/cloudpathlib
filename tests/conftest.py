@@ -1,8 +1,13 @@
+from functools import wraps
 import os
 from pathlib import Path, PurePosixPath
 import shutil
+import ssl
+import time
 from tempfile import TemporaryDirectory
 from typing import Dict, Optional
+from urllib.parse import urlparse
+from urllib.request import HTTPSHandler
 
 from azure.storage.blob import BlobServiceClient
 from azure.storage.filedatalake import (
@@ -18,6 +23,8 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
 from cloudpathlib.cloudpath import implementation_registry
+from cloudpathlib.http.httpclient import HttpClient, HttpsClient
+from cloudpathlib.http.httppath import HttpPath, HttpsPath
 from cloudpathlib.local import (
     local_azure_blob_implementation,
     LocalAzureBlobClient,
@@ -32,6 +39,7 @@ from cloudpathlib.local import (
 import cloudpathlib.azure.azblobclient
 from cloudpathlib.azure.azblobclient import _hns_rmtree
 import cloudpathlib.s3.s3client
+from .http_fixtures import http_server, https_server, utilities_dir  # noqa: F401
 from .mock_clients.mock_azureblob import MockBlobServiceClient, DEFAULT_CONTAINER_NAME
 from .mock_clients.mock_adls_gen2 import MockedDataLakeServiceClient
 from .mock_clients.mock_gs import (
@@ -40,6 +48,7 @@ from .mock_clients.mock_gs import (
     MockTransferManager,
 )
 from .mock_clients.mock_s3 import mocked_session_class_factory, DEFAULT_S3_BUCKET_NAME
+from .utils import _sync_filesystem
 
 
 if os.getenv("USE_LIVE_CLOUD") == "1":
@@ -113,6 +122,28 @@ def create_test_dir_name(request) -> str:
     test_dir = f"{SESSION_UUID}-{module_name}-{function_name}"
     print("Test directory name is:", test_dir)
     return test_dir
+
+
+@fixture
+def wait_for_mkdir(monkeypatch):
+    """Fixture that patches os.mkdir to wait for directory creation for tests that sometimes are flaky."""
+    original_mkdir = os.mkdir
+
+    @wraps(original_mkdir)
+    def wrapped_mkdir(path, *args, **kwargs):
+        result = original_mkdir(path, *args, **kwargs)
+        _sync_filesystem()
+
+        start = time.time()
+
+        while not os.path.exists(path) and time.time() - start < 5:
+            time.sleep(0.01)
+            _sync_filesystem()
+
+        assert os.path.exists(path), f"Directory {path} was not created"
+        return result
+
+    monkeypatch.setattr(os, "mkdir", wrapped_mkdir)
 
 
 def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir):
@@ -469,6 +500,82 @@ def local_s3_rig(request, monkeypatch, assets_dir):
     rig.client_class.reset_default_storage_dir()  # reset local storage directory
 
 
+class HttpProviderTestRig(CloudProviderTestRig):
+    def create_cloud_path(self, path: str, client=None):
+        """Http version needs to include netloc as well"""
+        if client:
+            return client.CloudPath(
+                cloud_path=f"{self.path_class.cloud_prefix}{self.drive}/{self.test_dir}/{path}"
+            )
+        else:
+            return self.path_class(
+                cloud_path=f"{self.path_class.cloud_prefix}{self.drive}/{self.test_dir}/{path}"
+            )
+
+
+@fixture()
+def http_rig(request, assets_dir, http_server):  # noqa: F811
+    test_dir = create_test_dir_name(request)
+
+    host, server_dir = http_server
+    drive = urlparse(host).netloc
+
+    # copy test assets
+    shutil.copytree(assets_dir, server_dir / test_dir)
+    _sync_filesystem()
+
+    rig = CloudProviderTestRig(
+        path_class=HttpPath,
+        client_class=HttpClient,
+        drive=drive,
+        test_dir=test_dir,
+    )
+
+    rig.http_server_dir = server_dir
+    rig.client_class(**rig.required_client_kwargs).set_as_default_client()  # set default client
+
+    yield rig
+
+    rig.client_class._default_client = None  # reset default client
+    shutil.rmtree(server_dir)
+    _sync_filesystem()
+
+
+@fixture()
+def https_rig(request, assets_dir, https_server):  # noqa: F811
+    test_dir = create_test_dir_name(request)
+
+    host, server_dir = https_server
+    drive = urlparse(host).netloc
+
+    # copy test assets
+    shutil.copytree(assets_dir, server_dir / test_dir)
+    _sync_filesystem()
+
+    skip_verify_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    skip_verify_ctx.check_hostname = False
+    skip_verify_ctx.load_verify_locations(utilities_dir / "insecure-test.pem")
+
+    rig = CloudProviderTestRig(
+        path_class=HttpsPath,
+        client_class=HttpsClient,
+        drive=drive,
+        test_dir=test_dir,
+        required_client_kwargs=dict(
+            auth=HTTPSHandler(context=skip_verify_ctx, check_hostname=False)
+        ),
+    )
+
+    rig.http_server_dir = server_dir
+    rig.client_class(**rig.required_client_kwargs).set_as_default_client()  # set default client
+
+    yield rig
+
+    rig.client_class._default_client = None  # reset default client
+    shutil.rmtree(server_dir)
+    _sync_filesystem()
+
+
 # create azure fixtures for both blob and gen2 storage
 azure_rigs = fixture_union(
     "azure_rigs",
@@ -477,6 +584,7 @@ azure_rigs = fixture_union(
         azure_gen2_rig,  # azure_rig1
     ],
 )
+
 
 rig = fixture_union(
     "rig",
@@ -489,6 +597,8 @@ rig = fixture_union(
         local_azure_rig,
         local_s3_rig,
         local_gs_rig,
+        http_rig,
+        https_rig,
     ],
 )
 
@@ -498,5 +608,14 @@ s3_like_rig = fixture_union(
     [
         s3_rig,
         custom_s3_rig,
+    ],
+)
+
+# run some http-specific tests on http and https
+http_like_rig = fixture_union(
+    "http_like_rig",
+    [
+        http_rig,
+        https_rig,
     ],
 )

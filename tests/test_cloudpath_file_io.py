@@ -14,17 +14,25 @@ from cloudpathlib.exceptions import (
     CloudPathNotImplementedError,
     DirectoryNotEmptyError,
 )
+from cloudpathlib.http.httpclient import HttpClient, HttpsClient
+from cloudpathlib.http.httppath import HttpPath, HttpsPath
 
 
 def test_file_discovery(rig):
     p = rig.create_cloud_path("dir_0/file0_0.txt")
     assert p.exists()
 
-    p2 = rig.create_cloud_path("dir_0/not_a_file")
+    p2 = rig.create_cloud_path("dir_0/not_a_file_yet.file")
     assert not p2.exists()
     p2.touch()
     assert p2.exists()
-    p2.touch(exist_ok=True)
+
+    if rig.client_class not in [HttpClient, HttpsClient]:  # not supported to touch existing
+        p2.touch(exist_ok=True)
+    else:
+        with pytest.raises(NotImplementedError):
+            p2.touch(exist_ok=True)
+
     with pytest.raises(FileExistsError):
         p2.touch(exist_ok=False)
     p2.unlink(missing_ok=False)
@@ -83,19 +91,19 @@ def glob_test_dirs(rig, tmp_path):
 
     def _make_glob_directory(root):
         (root / "dirB").mkdir()
-        (root / "dirB" / "fileB").write_text("fileB")
+        (root / "dirB" / "fileB.txt").write_text("fileB")
         (root / "dirC").mkdir()
         (root / "dirC" / "dirD").mkdir()
-        (root / "dirC" / "dirD" / "fileD").write_text("fileD")
-        (root / "dirC" / "fileC").write_text("fileC")
-        (root / "fileA").write_text("fileA")
+        (root / "dirC" / "dirD" / "fileD.txt").write_text("fileD")
+        (root / "dirC" / "fileC.txt").write_text("fileC")
+        (root / "fileA.txt").write_text("fileA")
 
-    cloud_root = rig.create_cloud_path("glob-tests")
+    cloud_root = rig.create_cloud_path("glob-tests/")
     cloud_root.mkdir()
 
     _make_glob_directory(cloud_root)
 
-    local_root = tmp_path / "glob-tests"
+    local_root = tmp_path / "glob-tests/"
     local_root.mkdir()
 
     _make_glob_directory(local_root)
@@ -108,7 +116,7 @@ def glob_test_dirs(rig, tmp_path):
 
 def _lstrip_path_root(path, root):
     rel_path = str(path)[len(str(root)) :]
-    return rel_path.rstrip("/")  # agnostic to trailing slash
+    return rel_path.strip("/")
 
 
 def _assert_glob_results_match(cloud_results, local_results, cloud_root, local_root):
@@ -181,6 +189,9 @@ def test_walk(glob_test_dirs):
 
 
 def test_list_buckets(rig):
+    if rig.path_class in [HttpPath, HttpsPath]:
+        return  # no bucket listing for HTTP
+
     # test we can list buckets
     buckets = list(rig.path_class(f"{rig.path_class.cloud_prefix}").iterdir())
     assert len(buckets) > 0
@@ -331,6 +342,10 @@ def test_is_dir_is_file(rig, tmp_path):
     dir_nested_no_slash = rig.create_cloud_path("dir_1/dir_1_0")
 
     for test_case in [dir_slash, dir_no_slash, dir_nested_slash, dir_nested_no_slash]:
+        # skip no-slash cases, which are interpreted as files for http paths
+        if not str(test_case).endswith("/") and rig.path_class in [HttpPath, HttpsPath]:
+            continue
+
         assert test_case.is_dir()
         assert not test_case.is_file()
 
@@ -349,7 +364,7 @@ def test_is_dir_is_file(rig, tmp_path):
 
 def test_file_read_writes(rig, tmp_path):
     p = rig.create_cloud_path("dir_0/file0_0.txt")
-    p2 = rig.create_cloud_path("dir_0/not_a_file")
+    p2 = rig.create_cloud_path("dir_0/not_a_file.txt")
     p3 = rig.create_cloud_path("")
 
     text = "lalala" * 10_000
@@ -367,16 +382,20 @@ def test_file_read_writes(rig, tmp_path):
 
     before_touch = datetime.now()
     sleep(1)
-    p.touch()
-    if not getattr(rig, "is_custom_s3", False):
-        # Our S3Path.touch implementation does not update mod time for MinIO
-        assert datetime.fromtimestamp(p.stat().st_mtime) > before_touch
+
+    if rig.path_class not in [HttpPath, HttpsPath]:  # not supported to touch existing
+        p.touch()
+
+        if not getattr(rig, "is_custom_s3", False):
+            # Our S3Path.touch implementation does not update mod time for MinIO
+            assert datetime.fromtimestamp(p.stat().st_mtime) > before_touch
 
     # no-op
     if not getattr(rig, "is_adls_gen2", False):
         p.mkdir()
 
-    assert p.etag is not None
+    if rig.path_class not in [HttpPath, HttpsPath]:  # not supported to touch existing
+        assert p.etag is not None
 
     dest = rig.create_cloud_path("dir2/new_file0_0.txt")
     assert not dest.exists()
@@ -412,6 +431,25 @@ def test_file_read_writes(rig, tmp_path):
 
     with pytest.raises(CloudPathNotExistsError):
         (p / "not_exists_file").download_to(dl_file)
+
+
+def test_filenames(rig):
+    # test that we can handle filenames with special characters
+    p = rig.create_cloud_path("dir_0/new_file.txt")  # real extension
+    p.write_text("hello")
+    assert p.read_text() == "hello"
+
+    p2 = rig.create_cloud_path("dir_0/new_file")  # no extension
+    p2.write_text("hello")
+    assert p2.read_text() == "hello"
+
+    p3 = rig.create_cloud_path("dir_0/new_file.textfile")  # long extension
+    p3.write_text("hello")
+    assert p3.read_text() == "hello"
+
+    p4 = rig.create_cloud_path("dir_0/new_file.abc.def.txt")  # multiple suffixes
+    p4.write_text("hello")
+    assert p4.read_text() == "hello"
 
 
 def test_dispatch_to_local_cache(rig):
@@ -457,7 +495,7 @@ def test_cloud_path_download_to(rig, tmp_path):
 
 
 def test_fspath(rig):
-    p = rig.create_cloud_path("dir_0")
+    p = rig.create_cloud_path("dir_0/")
     assert os.fspath(p) == p.fspath
 
 
