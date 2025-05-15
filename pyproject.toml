@@ -29,7 +29,8 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-  "typing-extensions>4 ; python_version < '3.11'",
+  "typing_extensions>4 ; python_version < '3.11'",
+  "pathlib-abc ~= ; python_version < '3.14'",
 ]
 
 [project.optional-dependencies]
