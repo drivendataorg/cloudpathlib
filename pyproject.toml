@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "cloudpathlib"
-version = "0.21.0"
+version = "0.21.1"
 description = "pathlib-style classes for cloud storage services."
 readme = "README.md"
 authors = [{ name = "DrivenData", email = "info@drivendata.org" }]
