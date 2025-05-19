@@ -27,7 +27,6 @@ from typing import (
     Generator,
     List,
     Optional,
-    Sequence,
     Tuple,
     Type,
     TYPE_CHECKING,
@@ -299,11 +298,11 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @property
     def _no_prefix(self) -> str:
-        return self._str[len(self.cloud_prefix) :]
+        return self._str[len(self.anchor) :]
 
     @property
     def _no_prefix_no_drive(self) -> str:
-        return self._str[len(self.cloud_prefix) + len(self.drive) :]
+        return self._str[len(self.anchor) + len(self.drive) :]
 
     @overload
     @classmethod
@@ -909,9 +908,9 @@ class CloudPath(metaclass=CloudPathMeta):
         # absolute)
         if not isinstance(other, CloudPath):
             raise ValueError(f"{self} is a cloud path, but {other} is not")
-        if self.cloud_prefix != other.cloud_prefix:
+        if self.anchor != other.anchor:
             raise ValueError(
-                f"{self} is a {self.cloud_prefix} path, but {other} is a {other.cloud_prefix} path"
+                f"{self} is a {self.anchor} path, but {other} is a {other.anchor} path"
             )
 
         kwargs = dict(walk_up=walk_up)
@@ -939,6 +938,9 @@ class CloudPath(metaclass=CloudPathMeta):
         # strip scheme from start of pattern before testing
         if pattern.startswith(self.anchor + self.drive):
             pattern = pattern[len(self.anchor + self.drive) :]
+        elif pattern.startswith(self.anchor):
+            # for http paths, keep leading slash
+            pattern = pattern[len(self.anchor) - 1 :]
 
         # remove drive, which is kept on normal dispatch to pathlib
         return PurePosixPath(self._no_prefix_no_drive).full_match(  # type: ignore[attr-defined]
@@ -969,7 +971,7 @@ class CloudPath(metaclass=CloudPathMeta):
         return self._dispatch_to_path("parent")
 
     @property
-    def parents(self) -> Sequence[Self]:
+    def parents(self) -> Tuple[Self, ...]:
         return self._dispatch_to_path("parents")
 
     @property
@@ -1224,7 +1226,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 )
             elif subpath.is_dir():
                 subpath.copytree(
-                    destination / subpath.name,
+                    destination / (subpath.name + ("" if subpath.name.endswith("/") else "/")),
                     force_overwrite_to_cloud=force_overwrite_to_cloud,
                     ignore=ignore,
                 )
@@ -1258,8 +1260,8 @@ class CloudPath(metaclass=CloudPathMeta):
             path = path[1:]
 
         # add prefix/anchor if it is not already
-        if not path.startswith(self.cloud_prefix):
-            path = f"{self.cloud_prefix}{path}"
+        if not path.startswith(self.anchor):
+            path = f"{self.anchor}{path}"
 
         return self.client.CloudPath(path)
 
