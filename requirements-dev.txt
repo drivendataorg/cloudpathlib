@@ -21,7 +21,7 @@ pillow
 psutil
 pydantic
 pytest
-pytest-cases
+pytest-cases>=3.9.1
 pytest-cov
 pytest-duration-insights
 pytest-reportlog
