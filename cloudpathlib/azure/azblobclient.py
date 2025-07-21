@@ -358,9 +358,9 @@ class AzureBlobClient(Client):
 
         else:
             if not recursive:
-                blobs = container_client.walk_blobs(name_starts_with=prefix)
+                blobs = container_client.walk_blobs(name_starts_with=prefix)  # type: ignore
             else:
-                blobs = container_client.list_blobs(name_starts_with=prefix)
+                blobs = container_client.list_blobs(name_starts_with=prefix)  # type: ignore
 
             for blob in blobs:
                 # walk_blobs returns folders with a trailing slash
