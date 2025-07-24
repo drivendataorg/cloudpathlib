@@ -109,8 +109,8 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         instances for this cloud without a client specified."""
         self.__class__._default_client = self
 
-    def CloudPath(self, cloud_path: Union[str, BoundedCloudPath]) -> BoundedCloudPath:
-        return self._cloud_meta.path_class(cloud_path=cloud_path, client=self)  # type: ignore
+    def CloudPath(self, cloud_path: Union[str, BoundedCloudPath], *parts: str) -> BoundedCloudPath:
+        return self._cloud_meta.path_class(cloud_path, *parts, client=self)  # type: ignore
 
     def clear_cache(self):
         """Clears the contents of the cache folder.
