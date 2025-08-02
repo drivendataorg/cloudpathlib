@@ -12,6 +12,7 @@ def print_table():
     lib_methods = {
         v.path_class.__name__: {m for m in dir(v.path_class) if not m.startswith("_")}
         for k, v in cloudpathlib.cloudpath.implementation_registry.items()
+        if k not in ["http"]  # just list https in table since they are the same
     }
 
     all_methods = copy(path_base)

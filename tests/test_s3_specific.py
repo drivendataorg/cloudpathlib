@@ -176,7 +176,7 @@ def test_directories(s3_like_rig):
     assert super_path.exists()
     assert not super_path.is_dir()
 
-    super_path = s3_like_rig.create_cloud_path("dir_0")
+    super_path = s3_like_rig.create_cloud_path("dir_0/")
     assert super_path.exists()
     assert super_path.is_dir()
 
