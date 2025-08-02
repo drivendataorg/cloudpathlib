@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Iterable, Optional, Tuple, Union, Callable
 import shutil
 import mimetypes
+import warnings
 
 from cloudpathlib.client import Client, register_client_class
 from cloudpathlib.enums import FileCacheMode
@@ -101,7 +102,14 @@ class HttpClient(Client):
         # .fspath will download the file so the local version can be uploaded
         self._upload_file(src.fspath, dst)
         if remove_src:
-            self._remove(src)
+            try:
+                self._remove(src)
+            except Exception as e:
+                warnings.warn(
+                    f"File was successfully uploaded to {dst} but failed to remove original {src}: {e}",
+                    UserWarning,
+                )
+                raise
         return dst
 
     def _remove(self, cloud_path: HttpPath, missing_ok: bool = True) -> None:
