@@ -29,6 +29,7 @@ def register_client_class(key: str) -> Callable:
 class Client(abc.ABC, Generic[BoundedCloudPath]):
     _cloud_meta: CloudImplementation
     _default_client = None
+    _write_buffers = {}  # Shared buffer for all clients
 
     def __init__(
         self,
@@ -185,3 +186,60 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         self, cloud_path: BoundedCloudPath, expire_seconds: int = 60 * 60
     ) -> str:
         pass
+
+    @abc.abstractmethod
+    def _stream_read(
+        self, cloud_path: BoundedCloudPath, position: int, size: Optional[int] = None
+    ) -> bytes:
+        """Read bytes from the cloud file starting at position, up to size bytes."""
+        pass
+
+    @abc.abstractmethod
+    def _stream_write(
+        self, cloud_path: BoundedCloudPath, data: bytes, position: int
+    ) -> int:
+        """Write bytes to the cloud file at the given position. Returns number of bytes written."""
+        pass
+
+    @abc.abstractmethod
+    def _stream_truncate(
+        self, cloud_path: BoundedCloudPath, size: int
+    ) -> int:
+        """Truncate the cloud file to the given size."""
+        pass
+
+    def _stream_flush(self, cloud_path: BoundedCloudPath):
+        """Flush any pending writes to the backend (optional, can be a no-op)."""
+        pass
+
+    # Shared buffer management methods
+    def _get_write_buffer(self, cloud_path: BoundedCloudPath) -> bytearray:
+        """Get or create the write buffer for a cloud path."""
+        return self._write_buffers.setdefault(str(cloud_path), bytearray())
+
+    def _ensure_buffer_has_content(self, cloud_path: BoundedCloudPath, position: int):
+        """Ensure the buffer has content up to the given position."""
+        buf = self._get_write_buffer(cloud_path)
+        if not buf and position > 0 and cloud_path.exists():
+            buf.extend(cloud_path.read_bytes())
+        if len(buf) < position:
+            buf.extend(b"\x00" * (position - len(buf)))
+
+    def _write_to_buffer(self, cloud_path: BoundedCloudPath, data: bytes, position: int) -> int:
+        """Write data to the buffer at the given position."""
+        self._ensure_buffer_has_content(cloud_path, position)
+        buf = self._get_write_buffer(cloud_path)
+        buf[position:position+len(data)] = data
+        return len(data)
+
+    def _truncate_buffer(self, cloud_path: BoundedCloudPath, size: int) -> int:
+        """Truncate the buffer to the given size."""
+        buf = self._get_write_buffer(cloud_path)
+        if not buf and cloud_path.exists():
+            buf.extend(cloud_path.read_bytes())
+        buf[:] = buf[:size]
+        return size
+
+    def _clear_buffer(self, cloud_path: BoundedCloudPath):
+        """Clear the buffer for a cloud path."""
+        self._write_buffers.pop(str(cloud_path), None)

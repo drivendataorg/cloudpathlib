@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
-from ..exceptions import CloudPathException
+from ..exceptions import CloudPathException, CloudFileReadError, CloudFileWriteError, CloudFileSeekError
 from .s3path import S3Path
 
 try:
@@ -382,6 +382,46 @@ class S3Client(Client):
             ExpiresIn=expire_seconds,
         )
         return url
+
+    # --- Streaming interface ---
+
+    def _stream_read(self, cloud_path, position, size=None):
+        if not cloud_path.exists():
+            raise CloudFileReadError(f"File does not exist: {cloud_path}")
+        start = position
+        end = start + size - 1 if size is not None and size > 0 else None
+        try:
+            if end is not None:
+                response = self.client.get_object(
+                    Bucket=cloud_path.bucket,
+                    Key=cloud_path.key,
+                    Range=f"bytes={start}-{end}",
+                    **self.boto3_dl_extra_args,
+                )
+            else:
+                response = self.client.get_object(
+                    Bucket=cloud_path.bucket,
+                    Key=cloud_path.key,
+                    Range=f"bytes={start}-",
+                    **self.boto3_dl_extra_args,
+                )
+            data = response['Body'].read()
+            return data
+        except Exception as e:
+            raise CloudFileReadError(f"Failed to read from S3: {e}")
+
+    def _stream_write(self, cloud_path, data, position):
+        return self._write_to_buffer(cloud_path, data, position)
+
+    def _stream_truncate(self, cloud_path, size):
+        return self._truncate_buffer(cloud_path, size)
+
+    def _stream_flush(self, cloud_path):
+        buf = self._get_write_buffer(cloud_path)
+        if buf:
+            obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
+            obj.put(Body=bytes(buf), **self.boto3_ul_extra_args)
+            self._clear_buffer(cloud_path)
 
 
 S3Client.S3Path = S3Client.CloudPath  # type: ignore

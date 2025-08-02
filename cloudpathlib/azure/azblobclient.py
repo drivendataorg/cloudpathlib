@@ -13,8 +13,9 @@ except ImportError:
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
+from ..cloudstream import CloudStream
 from ..enums import FileCacheMode
-from ..exceptions import MissingCredentialsError
+from ..exceptions import MissingCredentialsError, CloudFileReadError, CloudFileWriteError, CloudFileSeekError
 from .azblobpath import AzureBlobPath
 
 
@@ -497,6 +498,186 @@ class AzureBlobClient(Client):
         )
         url = f"{self._get_public_url(cloud_path)}?{sas_token}"
         return url
+
+    def _open_stream(self, cloud_path: AzureBlobPath, mode: str = "rb") -> "AzureBlobStream":
+        """Open a streaming file-like object for the Azure Blob path."""
+        return AzureBlobStream(self, cloud_path, mode)
+
+    # --- Streaming interface ---
+
+    def _stream_read(self, cloud_path, position, size=None):
+        if not cloud_path.exists():
+            raise CloudFileReadError(f"File does not exist: {cloud_path}")
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        try:
+            download_stream = blob_client.download_blob(offset=position, length=size)
+            data = download_stream.readall()
+            return data
+        except Exception as e:
+            raise CloudFileReadError(f"Failed to read from Azure Blob: {e}")
+
+    def _stream_write(self, cloud_path, data, position):
+        return self._write_to_buffer(cloud_path, data, position)
+
+    def _stream_truncate(self, cloud_path, size):
+        return self._truncate_buffer(cloud_path, size)
+
+    def _stream_flush(self, cloud_path):
+        buf = self._get_write_buffer(cloud_path)
+        if buf:
+            blob_client = self.service_client.get_blob_client(
+                container=cloud_path.container, blob=cloud_path.blob
+            )
+            blob_client.upload_blob(bytes(buf), overwrite=True)
+            self._clear_buffer(cloud_path)
+
+
+class AzureBlobStream(CloudStream):
+    """Azure Blob Storage-specific streaming implementation."""
+    
+    def __init__(self, client: AzureBlobClient, cloud_path: AzureBlobPath, mode: str = "rb"):
+        super().__init__(mode)
+        self.client = client
+        self.cloud_path = cloud_path
+        self._size: Optional[int] = None
+        self._buffer = b""
+        
+        # Get file size for seeking support
+        if "r" in mode and cloud_path.exists():
+            try:
+                self._size = cloud_path.stat().st_size
+            except Exception:
+                self._size = None
+    
+    def read(self, size: Optional[int] = None) -> bytes:
+        """Read data from Azure Blob with range requests."""
+        if self._closed:
+            raise ValueError("I/O operation on closed stream")
+        
+        if "r" not in self.mode:
+            raise CloudFileReadError("Stream not opened for reading")
+        
+        if size is None:
+            size = -1
+        
+        if size == 0:
+            return b""
+        
+        try:
+            blob_client = self.client.service_client.get_blob_client(
+                container=self.cloud_path.container, blob=self.cloud_path.blob
+            )
+            
+            # Calculate range for Azure request
+            start = self._position
+            if size > 0:
+                end = start + size - 1
+                download_stream = blob_client.download_blob(offset=start, length=size)
+            else:
+                download_stream = blob_client.download_blob(offset=start)
+            
+            data = download_stream.readall()
+            self._position += len(data)
+            return data
+            
+        except Exception as e:
+            raise CloudFileReadError(f"Failed to read from Azure Blob: {e}")
+    
+    def write(self, data: bytes) -> int:
+        """Write data to Azure Blob."""
+        if self._closed:
+            raise ValueError("I/O operation on closed stream")
+        
+        if "w" not in self.mode and "a" not in self.mode and "r+" not in self.mode:
+            raise CloudFileWriteError("Stream not opened for writing")
+        
+        # For Azure Blob, we need to buffer writes and upload on close
+        self._buffer += data
+        self._position += len(data)
+        return len(data)
+    
+    def seek(self, offset: int, whence: int = 0) -> int:
+        """Seek to a position in the Azure Blob."""
+        if self._closed:
+            raise ValueError("I/O operation on closed stream")
+        
+        # Calculate new position
+        if whence == 0:  # SEEK_SET
+            new_position = offset
+        elif whence == 1:  # SEEK_CUR
+            new_position = self._position + offset
+        elif whence == 2:  # SEEK_END
+            if self._size is None:
+                # Get file size
+                try:
+                    self._size = self.cloud_path.stat().st_size
+                except Exception:
+                    raise CloudFileSeekError("Cannot seek from end without knowing file size")
+            new_position = self._size + offset
+        else:
+            raise CloudFileSeekError(f"Invalid whence value: {whence}")
+        
+        # Validate position
+        if new_position < 0:
+            raise CloudFileSeekError("Cannot seek to negative position")
+        
+        self._position = new_position
+        return self._position
+    
+    def tell(self) -> int:
+        """Get the current position in the stream."""
+        return self._position
+    
+    def close(self) -> None:
+        """Close the stream and upload any buffered data."""
+        if self._closed:
+            return
+        
+        try:
+            # If we have buffered data, upload it
+            if self._buffer and ("w" in self.mode or "a" in self.mode):
+                blob_client = self.client.service_client.get_blob_client(
+                    container=self.cloud_path.container, blob=self.cloud_path.blob
+                )
+                
+                if "a" in self.mode and self.cloud_path.exists():
+                    # For append mode, we need to download existing content first
+                    existing_data = self.cloud_path.read_bytes()
+                    self._buffer = existing_data + self._buffer
+                
+                # Upload the data
+                blob_client.upload_blob(self._buffer, overwrite=True)
+        finally:
+            self._closed = True
+    
+    def flush(self) -> None:
+        """Flush any pending writes."""
+        # For Azure Blob, we buffer everything until close
+        pass
+    
+    def truncate(self, size: Optional[int] = None) -> int:
+        """Truncate the Azure Blob."""
+        if self._closed:
+            raise ValueError("I/O operation on closed stream")
+        
+        if "w" not in self.mode and "a" not in self.mode and "r+" not in self.mode:
+            raise CloudFileWriteError("Stream not opened for writing")
+        
+        if size is None:
+            size = self._position
+        
+        # For Azure Blob, we need to download the file, truncate it, and re-upload
+        if self.cloud_path.exists():
+            data = self.cloud_path.read_bytes()
+            truncated_data = data[:size]
+            blob_client = self.client.service_client.get_blob_client(
+                container=self.cloud_path.container, blob=self.cloud_path.blob
+            )
+            blob_client.upload_blob(truncated_data, overwrite=True)
+        
+        return size
 
 
 def _hns_rmtree(data_lake_client, container, directory):
