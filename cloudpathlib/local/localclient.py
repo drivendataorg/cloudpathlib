@@ -10,7 +10,9 @@ from time import sleep
 from typing import Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
 
 from ..client import Client
+from ..cloudstream import CloudStream
 from ..enums import FileCacheMode
+from ..exceptions import CloudFileReadError, CloudFileWriteError, CloudFileSeekError
 from .localpath import LocalPath
 
 
@@ -200,6 +202,31 @@ class LocalClient(Client):
         self, cloud_path: "LocalPath", expire_seconds: int = 60 * 60
     ) -> str:
         raise NotImplementedError("Cannot generate a presigned URL for a local path.")
+
+    # --- Streaming interface ---
+
+    def _stream_read(self, cloud_path, position, size=None):
+        local_path = self._cloud_path_to_local(cloud_path)
+        if not local_path.exists():
+            raise CloudFileReadError(f"File does not exist: {cloud_path}")
+        with open(local_path, "rb") as f:
+            f.seek(position)
+            return f.read(size)
+
+    def _stream_write(self, cloud_path, data, position):
+        return self._write_to_buffer(cloud_path, data, position)
+
+    def _stream_truncate(self, cloud_path, size):
+        return self._truncate_buffer(cloud_path, size)
+
+    def _stream_flush(self, cloud_path):
+        buf = self._get_write_buffer(cloud_path)
+        local_path = self._cloud_path_to_local(cloud_path)
+        if buf:
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(local_path, "wb") as f:
+                f.write(buf)
+            self._clear_buffer(cloud_path)
 
 
 _temp_dirs_to_clean: List[TemporaryDirectory] = []

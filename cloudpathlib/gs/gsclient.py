@@ -7,7 +7,9 @@ import warnings
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry
+from ..cloudstream import CloudStream
 from ..enums import FileCacheMode
+from ..exceptions import CloudPathException, CloudFileReadError, CloudFileWriteError, CloudFileSeekError
 from .gspath import GSPath
 
 try:
@@ -306,6 +308,39 @@ class GSClient(Client):
             version="v4", expiration=timedelta(seconds=expire_seconds), method="GET"
         )
         return url
+
+    # --- Streaming interface ---
+
+    def _stream_read(self, cloud_path, position, size=None):
+        if not cloud_path.exists():
+            raise CloudFileReadError(f"File does not exist: {cloud_path}")
+        bucket = self.client.bucket(cloud_path.bucket)
+        blob = bucket.get_blob(cloud_path.blob)
+        if blob is None:
+            raise CloudFileReadError("Blob not found")
+        try:
+            if size is not None and size > 0:
+                end = position + size - 1
+                data = blob.download_as_bytes(start=position, end=end)
+            else:
+                data = blob.download_as_bytes(start=position)
+            return data
+        except Exception as e:
+            raise CloudFileReadError(f"Failed to read from Google Cloud Storage: {e}")
+
+    def _stream_write(self, cloud_path, data, position):
+        return self._write_to_buffer(cloud_path, data, position)
+
+    def _stream_truncate(self, cloud_path, size):
+        return self._truncate_buffer(cloud_path, size)
+
+    def _stream_flush(self, cloud_path):
+        buf = self._get_write_buffer(cloud_path)
+        if buf:
+            bucket = self.client.bucket(cloud_path.bucket)
+            blob = bucket.blob(cloud_path.blob)
+            blob.upload_from_string(bytes(buf))
+            self._clear_buffer(cloud_path)
 
 
 GSClient.GSPath = GSClient.CloudPath  # type: ignore

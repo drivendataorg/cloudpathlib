@@ -3,6 +3,7 @@ import sys
 from .anypath import AnyPath
 from .azure.azblobclient import AzureBlobClient
 from .azure.azblobpath import AzureBlobPath
+from .cloudfile import CloudFile
 from .cloudpath import CloudPath, implementation_registry
 from .s3.s3client import S3Client
 from .gs.gspath import GSPath
@@ -23,6 +24,7 @@ __all__ = [
     "AnyPath",
     "AzureBlobClient",
     "AzureBlobPath",
+    "CloudFile",
     "CloudPath",
     "implementation_registry",
     "GSClient",

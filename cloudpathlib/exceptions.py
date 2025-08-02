@@ -77,3 +77,23 @@ class OverwriteNewerCloudError(CloudPathException):
 
 class OverwriteNewerLocalError(CloudPathException):
     pass
+
+
+class CloudFileException(CloudPathException):
+    """Base exception for CloudFile operations."""
+    pass
+
+
+class CloudFileSeekError(CloudFileException, OSError):
+    """Raised when seeking fails in a CloudFile."""
+    pass
+
+
+class CloudFileReadError(CloudFileException, OSError):
+    """Raised when reading fails in a CloudFile."""
+    pass
+
+
+class CloudFileWriteError(CloudFileException, OSError):
+    """Raised when writing fails in a CloudFile."""
+    pass
