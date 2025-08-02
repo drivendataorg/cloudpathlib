@@ -15,6 +15,7 @@ try:
         from google.auth.credentials import Credentials
         from google.api_core.retry import Retry
 
+    from google.auth import default as google_default_auth
     from google.auth.exceptions import DefaultCredentialsError
     from google.cloud.storage import Client as StorageClient
 
@@ -51,18 +52,14 @@ class GSClient(Client):
     ):
         """Class constructor. Sets up a [`Storage
         Client`](https://googleapis.dev/python/storage/latest/client.html).
-        Supports the following authentication methods of `Storage Client`.
+        Supports, in this order, the following authentication methods of `Storage Client`.
 
-        - Environment variable `"GOOGLE_APPLICATION_CREDENTIALS"` containing a
-          path to a JSON credentials file for a Google service account. See
-          [Authenticating as a Service
-          Account](https://cloud.google.com/docs/authentication/production).
-        - File path to a JSON credentials file for a Google service account.
-        - OAuth2 Credentials object and a project name.
         - Instantiated and already authenticated `Storage Client`.
+        - OAuth2 Credentials object and a project name.
+        - File path to a JSON credentials file for a Google service account.
+        - Google Cloud SDK default credentials. See [How Application Default Credentials works](https://cloud.google.com/docs/authentication/application-default-credentials)
 
-        If multiple methods are used, priority order is reverse of list above
-        (later in list takes priority). If no authentication methods are used,
+        If no authentication methods are used,
         then the client will be instantiated as anonymous, which will only have
         access to public buckets.
 
@@ -91,18 +88,24 @@ class GSClient(Client):
             timeout (Optional[float]): Cloud Storage [timeout value](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout)
             retry (Optional[google.api_core.retry.Retry]): Cloud Storage [retry configuration](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout#configuring-retries)
         """
-        if application_credentials is None:
-            application_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-
+        # don't check `GOOGLE_APPLICATION_CREDENTIALS` since `google_default_auth` already does that
+        # use explicit client
         if storage_client is not None:
             self.client = storage_client
+        # use explicit credentials
         elif credentials is not None:
             self.client = StorageClient(credentials=credentials, project=project)
+        # use explicit credential file
         elif application_credentials is not None:
             self.client = StorageClient.from_service_account_json(application_credentials)
+        # use default credentials based on SDK precedence
         else:
             try:
-                self.client = StorageClient()
+                # use `google_default_auth` instead of `StorageClient()` since it
+                # handles precedence of creds in different locations properly
+                credentials, default_project = google_default_auth()
+                project = project or default_project  # use explicit project if present
+                self.client = StorageClient(credentials=credentials, project=project)
             except DefaultCredentialsError:
                 self.client = StorageClient.create_anonymous_client()
 

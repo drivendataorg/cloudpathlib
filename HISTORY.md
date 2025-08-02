@@ -2,6 +2,7 @@
 
 ## v0.21.1 (2025-05-14)
 
+- Fixed issue with GS credentials, using default auth enables a wider set of authentication methods in GS (Issue [#390](https://github.com/drivendataorg/cloudpathlib/issues/390), PR [#514](https://github.com/drivendataorg/cloudpathlib/pull/514), thanks @ljyanesm) 
 - Fixed `rmtree` fail on Azure with no `hns` and more than 256 blobs to drop (Issue [#509](https://github.com/drivendataorg/cloudpathlib/issues/509), PR [#508](https://github.com/drivendataorg/cloudpathlib/pull/508), thanks @alikefia)
 - Added support for http(s) urls with `HttpClient`, `HttpPath`, `HttpsClient`, and `HttpsPath`. (Issue [#455](https://github.com/drivendataorg/cloudpathlib/issues/455  ), PR [#468](https://github.com/drivendataorg/cloudpathlib/pull/468))
 
