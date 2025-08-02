@@ -1,103 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/index.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/anypath-polymorphism/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/anypath-polymorphism.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/authentication/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/authentication.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/caching/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/caching.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/changelog/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/changelog.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/contributing/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/contributing.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/integrations/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/http.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/other_client_settings/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/integrations.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/testing_mocked_cloudpathlib/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/other_client_settings.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/why_cloudpathlib/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/testing_mocked_cloudpathlib.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/anypath/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/why_cloudpathlib.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/azblobclient/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/anypath.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/azblobpath/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/azblobclient.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/client/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/azblobpath.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/cloudpath/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/client.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/enums/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/cloudpath.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/exceptions/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/enums.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/gsclient/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/exceptions.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/gspath/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/gsclient.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/local/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/gspath.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/s3client/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/local.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/s3path/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/s3client.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/script/caching/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/api-reference/s3path.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/script/testing_mocked_cloudpathlib/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/script/caching.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
     <url>
-         <loc>https://cloudpathlib.drivendata.org/stable/script/why_cloudpathlib/</loc>
-         <lastmod>2025-07-21</lastmod>
+         <loc>https://cloudpathlib.drivendata.org/stable/script/testing_mocked_cloudpathlib.html</loc>
+         <lastmod>2025-08-02</lastmod>
+    </url>
+    <url>
+         <loc>https://cloudpathlib.drivendata.org/stable/script/why_cloudpathlib.html</loc>
+         <lastmod>2025-08-02</lastmod>
     </url>
 </urlset>

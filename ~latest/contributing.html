@@ -1,0 +1,1925 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A library that implements pathlib.Path methods for URIs for different cloud providers.">
+      
+      
+      
+        <link rel="canonical" href="https://cloudpathlib.drivendata.org/stable/contributing.html">
+      
+      
+        <link rel="prev" href="integrations.html">
+      
+      
+        <link rel="next" href="changelog.html">
+      
+      
+      <link rel="icon" href="favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>Contributing - cloudpathlib</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.7e37652d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="stylesheets/custom_mkdocstrings.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cloudpathlib-contribution-guidelines" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="cloudpathlib" class="md-header__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
+      
+  <img src="logo-no-text.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            cloudpathlib
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Contributing
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/drivendataorg/cloudpathlib" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="cloudpathlib" class="md-nav__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
+      
+  <img src="logo-no-text.svg" alt="logo">
+
+    </a>
+    cloudpathlib
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/drivendataorg/cloudpathlib" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="why_cloudpathlib.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Why cloudpathlib?
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="authentication.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authentication
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="http.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    HTTP URLs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="caching.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Caching
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="anypath-polymorphism.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AnyPath
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="other_client_settings.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Other Client settings
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="testing_mocked_cloudpathlib.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing code that uses cloudpathlib
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="integrations.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Integrations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="contributing.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-contribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to contribute
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Local development
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Commands
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-rigs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test rigs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authoring-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authoring tests
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serving" class="md-nav__link">
+    <span class="md-ellipsis">
+      Serving
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docstrings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Docstrings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#submitting-a-pr" class="md-nav__link">
+    <span class="md-ellipsis">
+      Submitting a PR
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Submitting a PR">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pr-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      PR checklist
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pr-cicd-test-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      PR CI/CD test run
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-standards-and-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code standards and tips
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code standards and tips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linting-and-formatting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linting and formatting
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type-hinting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Type hinting
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credentials-and-cloud-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      Credentials and cloud access
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exceptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Exceptions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cloud-provider-abstraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cloud provider abstraction
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpath-abstraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      CloudPath abstraction
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding a new provider
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-your-provider-for-dispatch-from-cloudpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      Register your provider for dispatch from CloudPath
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#governance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Governance
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="changelog.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/cloudpath.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CloudPath
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/anypath.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AnyPath
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_3" id="__nav_12_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Azure
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_3">
+            <span class="md-nav__icon md-icon"></span>
+            Azure
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/azblobclient.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AzureBlobClient
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/azblobpath.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AzureBlobPath
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_4" id="__nav_12_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    S3
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_4">
+            <span class="md-nav__icon md-icon"></span>
+            S3
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/s3client.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    S3Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/s3path.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    S3Path
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_5" id="__nav_12_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    GS
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_5">
+            <span class="md-nav__icon md-icon"></span>
+            GS
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/gsclient.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    GSClient
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/gspath.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    GSPath
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_6" id="__nav_12_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Submodules
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_6">
+            <span class="md-nav__icon md-icon"></span>
+            Submodules
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/client.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    cloudpathlib.client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/enums.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    cloudpathlib.enums
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/exceptions.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    cloudpathlib.exceptions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/local.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    cloudpathlib.local
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-contribute" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to contribute
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Local development
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Commands
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-rigs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test rigs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authoring-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authoring tests
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serving" class="md-nav__link">
+    <span class="md-ellipsis">
+      Serving
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docstrings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Docstrings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#submitting-a-pr" class="md-nav__link">
+    <span class="md-ellipsis">
+      Submitting a PR
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Submitting a PR">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pr-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      PR checklist
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pr-cicd-test-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      PR CI/CD test run
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-standards-and-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code standards and tips
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code standards and tips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linting-and-formatting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linting and formatting
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type-hinting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Type hinting
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credentials-and-cloud-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      Credentials and cloud access
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exceptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Exceptions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cloud-provider-abstraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cloud provider abstraction
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudpath-abstraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      CloudPath abstraction
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding a new provider
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#register-your-provider-for-dispatch-from-cloudpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      Register your provider for dispatch from CloudPath
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#governance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Governance
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="cloudpathlib-contribution-guidelines"><code>cloudpathlib</code> Contribution Guidelines<a class="headerlink" href="#cloudpathlib-contribution-guidelines" title="Permanent link">&para;</a></h1>
+<p>Thanks for offering to help on <code>cloudpathlib</code>! We welcome contributions. This document will help you get started finding issues, developing fixes, and submitting PRs.</p>
+<p>First, a few guidelines:</p>
+<ul>
+<li>Follow the <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/CODE_OF_CONDUCT.md">code of conduct</a>.</li>
+<li>PRs from outside contributors will not be accepted without an issue. We respect your time and want to make sure any work you do will be reviewed, so please wait for a maintainer to sign off on the issue before getting started. </li>
+<li>If you are looking just to make a contribution, look at issues with <a href="https://github.com/drivendataorg/cloudpathlib/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22">label "good first issue"</a>.</li>
+</ul>
+<h2 id="how-to-contribute">How to contribute<a class="headerlink" href="#how-to-contribute" title="Permanent link">&para;</a></h2>
+<ol>
+<li>As noted above, please file an <a href="https://github.com/drivendataorg/cloudpathlib/issues">issue</a> if you are not fixing an existing issue.</li>
+<li>Fork the repo, clone it locally, and create a <a href="#local-development">local environment</a>.</li>
+<li>Make changes in your local version of the repository.</li>
+<li>Make sure that the <a href="#tests">tests</a> pass locally.</li>
+<li>Update the package <a href="#documentation">documentation</a>, if applicable.</li>
+<li>Go through the items in the final <a href="#pr-checklist">PR checklist</a>.</li>
+<li><a href="#submitting-a-pr">Submit a PR</a></li>
+</ol>
+<p>For some guidance on working with the code, see the sections on <a href="#code-standards-and-tips">code standards</a> and <a href="#code-architecture">code architecture</a>.</p>
+<h2 id="local-development">Local development<a class="headerlink" href="#local-development" title="Permanent link">&para;</a></h2>
+<p>Create a Python environment to work in. If you're working on Windows, a bash shell will make your life easier. We recommend <a href="https://gitforwindows.org/">git bash</a>, <a href="https://www.cygwin.com/">cygwin</a>, or <a href="https://learn.microsoft.com/en-us/windows/wsl/install">WSL</a> so that you can use the <code>make</code> commands, but it is totally optional.</p>
+<p>You can see all the available developer commands by running <code>make</code>:</p>
+<div class="highlight"><pre><span></span><code>❯ make
+clean                remove all build, test, coverage and Python artifacts
+clean-build          remove build artifacts
+clean-pyc            remove Python file artifacts
+clean-test           remove test and coverage artifacts
+dist                 builds source and wheel package
+docs-setup           setup docs pages based on README.md and HISTORY.md
+docs                 build the static version of the docs
+docs-serve           serve documentation to livereload while you work
+format               run black to format codebase
+install              install the package to the active Python&#39;s site-packages
+lint                 check style with black, flake8, and mypy
+release              package and upload a release
+reqs                 install development requirements
+test                 run tests with mocked cloud SDKs
+test-debug           rerun tests that failed in last run and stop with pdb at failures
+test-live-cloud      run tests on live cloud backends
+perf                 run performance measurement suite for s3 and save results to perf-results.csv
+</code></pre></div>
+<p>Once you have your Python environment, you can install all the dev dependencies with:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>reqs
+</code></pre></div>
+<p>This will also install an editable version of <code>cloudpathlib</code> with all the extras into your environment.</p>
+<h2 id="tests">Tests<a class="headerlink" href="#tests" title="Permanent link">&para;</a></h2>
+<h3 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">&para;</a></h3>
+<p>There is a robust test suite that covers most of the core functionality of the library. There are a few different testing commands that are useful to developers.</p>
+<p>The most common way when developing is to run the full test suite with mocked, local backends (no network calls):</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span><span class="nb">test</span>
+</code></pre></div>
+<p>If you have a test fail or want to be able to interactively debug if a test fails, you can use a different command. This will run pytest with <code>pdb</code>, and <code>last-fail</code> so it will drop you into a debugger if a test fails and only run the tests that failed last time:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>test-debug
+</code></pre></div>
+<p>Finally, you may want to run your tests against live servers to ensure that the behavior against a provider's server is not different from the mocked provider. You will need credentials configured for each of the providers you run against. You can run the live tests with:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>test-live-cloud
+</code></pre></div>
+<h4 id="azure-live-backend-tests">Azure live backend tests<a class="headerlink" href="#azure-live-backend-tests" title="Permanent link">&para;</a></h4>
+<p>For Azure, you can test both against Azure Blob Storage backends and Azure Data Lake Storage Gen2 backends. To run these tests, you need to set connection strings for both of the backends by setting the following environment variables (in your <code>.env</code> file for local development). If <code>AZURE_STORAGE_GEN2_CONNECTION_STRING</code> is not set, only the blob storage backend will be tested. To set up a storage account with ADLS Gen2, go through the normal creation flow for a storage account in the Azure portal and select "Enable Hierarchical Namespace" in the "Advanced" tab of the settings when configuring the account.</p>
+<div class="highlight"><pre><span></span><code><span class="nv">AZURE_STORAGE_CONNECTION_STRING</span><span class="o">=</span>your_connection_string
+<span class="nv">AZURE_STORAGE_GEN2_CONNECTION_STRING</span><span class="o">=</span>your_connection_string
+</code></pre></div>
+<p>You can copy <code>.env.example</code> to <code>.env</code> and fill in the credentials and bucket/container names for the providers you want to test against.  <strong>Note that the live tests will create and delete files on the cloud provider.</strong></p>
+<p>You can also skip providers you do not have accounts for by commenting them out in the <code>rig</code> and <code>s3_like_rig</code> variables defined at the end of <code>tests/conftest.py</code>. </p>
+<h3 id="test-rigs">Test rigs<a class="headerlink" href="#test-rigs" title="Permanent link">&para;</a></h3>
+<p>Since we want behavior parity across providers, nearly all of the tests are written in a provider-agnostic way. Each test is passed a test rig as a fixture, and the rig provides the correct way for generating cloudpaths for testing. The test rigs are defined in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/conftest.py"><code>conftest.py</code></a>.</p>
+<p><strong>Almost none of the tests instantiate <code>CloudPath</code> or a <code>*Client</code> class directly.</strong></p>
+<p>When a test suite runs against the rig, the rig does the following steps on setup:
+ - Creates a folder on the provider with a unique ID just for this test run.
+ - Copies the contents of <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/assets/"><code>tests/assets/</code></a> into that folder.
+ - Sets the rigs <code>client_class</code> using <code>set_as_default_client</code> so that any <code>CloudPath</code> with the right prefix created in the test will use the rig's client.</p>
+<p>When the tests finish, if it is using a live server, the test files will be deleted from the provider.</p>
+<p>If you want to speed up your testing during development, you may comment out some of the rigs in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/conftest.py"><code>conftest.py</code></a>. Don't commit this change, and make sure you run against all the rigs before submitting a PR.</p>
+<h3 id="authoring-tests">Authoring tests<a class="headerlink" href="#authoring-tests" title="Permanent link">&para;</a></h3>
+<p>We want our test suite coverage to be comprehensive, so PRs need to add tests if they add new functionality. If you are adding a new feature, you will need to add tests for it. If you are changing an existing feature, you will need to update the tests to match the new behavior.</p>
+<p>The tests are written in <code>pytest</code>. You can read the <a href="https://docs.pytest.org/en/stable/">pytest documentation</a> for more information on how to write tests with pytest.</p>
+<p>Your best guide will be reading the existing test suite, and making sure you're using the rig when possible.</p>
+<p>For example, if you want a <code>CloudPath</code> referring to a file that actually exists, you may want to do something like this:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># note that dir_0/file0_0.txt is in tests/assets, so you can expect to exist on the provider</span>
+<span class="n">cp</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">create_cloud_path</span><span class="p">(</span><span class="s2">&quot;dir_0/file0_0.txt&quot;</span><span class="p">)</span>
+
+<span class="c1"># if you don&#39;t need the file to actually exist, you can use the same method</span>
+<span class="n">cp2</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">create_cloud_path</span><span class="p">(</span><span class="s2">&quot;path/that/does/not/exist.txt&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>If you are testing functionality on the <code>*Client</code> class, you can get an instance of the class for the rig with:</p>
+<div class="highlight"><pre><span></span><code><span class="n">new_client</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">client_class</span><span class="p">()</span>
+</code></pre></div>
+<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
+<p>We also aim to have robust and comprehensive documentation. For public API functions, we provide docstrings that explain how things work to end users, and these are automatically built into the documentation. For more complex topics, we write specific documentation.</p>
+<p>We use <a href="https://www.mkdocs.org/">mkdocs</a> to generate the documentation.</p>
+<h3 id="building">Building<a class="headerlink" href="#building" title="Permanent link">&para;</a></h3>
+<p>To build the latest version of the documentation, you can run:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>docs
+</code></pre></div>
+<p>If you add/remove a method on the <code>CloudPath</code> class or any subclass, run <code>python docs/make_support_table.py</code> and paste the updated table into README.md.</p>
+<h3 id="serving">Serving<a class="headerlink" href="#serving" title="Permanent link">&para;</a></h3>
+<p>While you are developing, you can serve a local version of the docs to see what your changes look like. This will auto-reload for most changes to the docs:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>docs-serve
+</code></pre></div>
+<p>Note that the main page (<code>index.md</code>), the changelog (<code>HISTORY.md</code>), and the contributing page (<code>CONTRIBUTING.md</code>) are all generated from the files in the project root. If you want to make changes to the documentation, you should make them in the root of the project and then run <code>make docs-setup</code> to update the other files. <strong>The dev server does not automatically pick up these changes.</strong> You will need to stop the server and restart it to see the changes.</p>
+<h3 id="authoring">Authoring<a class="headerlink" href="#authoring" title="Permanent link">&para;</a></h3>
+<p>Documentation pages can either be authored in normal Markdown or in a runnable jupyter notebook. Notebooks are useful for showing examples of how to use the library. You can see an example of a notebook in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/docs/docs/why_cloudpathlib.ipynb"><code>docs/docs/why_cloudpathlib.ipynb</code></a>.</p>
+<p>Note: generating the documentation <strong>does not</strong> execute any notebooks, it just converts them. You need to restart and run all notebook cells to make sure the notebook executes top-to-bottom and has the latest results before committing it.</p>
+<h3 id="docstrings">Docstrings<a class="headerlink" href="#docstrings" title="Permanent link">&para;</a></h3>
+<p>For public APIs, please add a docstring that will appear in the documentation automatically. Since public APIs are type-hinted, there is no need to list the function parameters, their types, and the return types in a specific format in the docstring. Instead, you should describe what the function does and any relevant information for the user.</p>
+<h2 id="submitting-a-pr">Submitting a PR<a class="headerlink" href="#submitting-a-pr" title="Permanent link">&para;</a></h2>
+<p>Once you have everything working as expected locally, submit a PR. The PR will be automatically tested by GitHub Actions. If the tests fail, you will need to fix the issue and push a new commit to the PR. If the tests pass (except the live tests, as noted below), you will need to get a maintainer to review the PR and merge it.</p>
+<h3 id="pr-checklist">PR checklist<a class="headerlink" href="#pr-checklist" title="Permanent link">&para;</a></h3>
+<p>Here's a checklist from the PR template to make sure that you did all the required steps:</p>
+<div class="highlight"><pre><span></span><code> - [ ] I have read and understood `CONTRIBUTING.md`
+ - [ ] Confirmed an issue exists for the PR, and the text `Closes #issue` appears in the PR summary (e.g., `Closes #123`).
+ - [ ] Confirmed PR is rebased onto the latest base
+ - [ ] Confirmed failure before change and success after change
+ - [ ] Any generic new functionality is replicated across cloud providers if necessary
+ - [ ] Tested manually against live server backend for at least one provider
+ - [ ] Added tests for any new functionality
+ - [ ] Linting passes locally
+ - [ ] Tests pass locally
+ - [ ] Updated `HISTORY.md` with the issue that is addressed and the PR you are submitting. If the top section is not `## UNRELEASED``, then you need to add a new section to the top of the document for your change.
+</code></pre></div>
+<h3 id="pr-cicd-test-run">PR CI/CD test run<a class="headerlink" href="#pr-cicd-test-run" title="Permanent link">&para;</a></h3>
+<p>If you are not a maintainer, a maintainer will have to approve your PR to run the test suite in GitHub Actions. No need to ping a maintainer, it will be seen as part of our regular review.</p>
+<p>Even once the tests run, two jobs will fail. This is expected. The failures are: (1) The live tests, and (2) the install tests. Both of these require access to the live backends, which are not available to outside contributors. If everything else passes, you can ignore these failures. A mainter will take the following steps:</p>
+<ul>
+<li>Create a branch off the main repo for your PR's changes</li>
+<li>Merge your PR into that new branch</li>
+<li>Run CI/CD on the repo-local branch which has access to the live backends</li>
+<li>Confirm the live tests pass as expected. (If not, you will need to fix the issue and create another PR into this reopo-local branch.)</li>
+<li>Once they pass, merge the repo-local branch into the main branch.</li>
+</ul>
+<p>For example, see a <a href="https://github.com/drivendataorg/cloudpathlib/pull/354">repo-local branch running the live tests in this PR</a>.</p>
+<h2 id="code-standards-and-tips">Code standards and tips<a class="headerlink" href="#code-standards-and-tips" title="Permanent link">&para;</a></h2>
+<h3 id="adding-dependencies">Adding dependencies<a class="headerlink" href="#adding-dependencies" title="Permanent link">&para;</a></h3>
+<p>We want <code>cloudpathlib</code> to be as lightweight as possible. Our strong preference is to not take any external dependencies for the library outside of the official software development kit (SDK) for the cloud provider. If you want to add a dependency, please open an issue to discuss it first. Library dependencies are tracked in <code>pyproject.toml</code>.</p>
+<p>Dependencies that are only needed for building documentation, development, linting, formatting, or testing can be added to <code>requirements-dev.txt</code>, and are not subject to the same scrutiny.</p>
+<h3 id="linting-and-formatting">Linting and formatting<a class="headerlink" href="#linting-and-formatting" title="Permanent link">&para;</a></h3>
+<p>Any code changes need to follow the code standards of the project. We use <code>black</code> for formatting code (as configured in <code>pyproject.toml</code>), and <code>flake8</code> for linting (as configured in <code>setup.cfg</code>).</p>
+<p>To apply these styles to your code, you can run:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>format
+</code></pre></div>
+<p>To ensure that your code is properly formatted and linted and passes type checking, you can run:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>lint
+</code></pre></div>
+<h3 id="type-hinting">Type hinting<a class="headerlink" href="#type-hinting" title="Permanent link">&para;</a></h3>
+<p>Any public APIs need to have proper type annotations, which are checked by <code>mypy</code> (as configured in <code>pyproject.toml</code>) when you run the <code>make lint</code> command. These need to pass. If you are adding a new public API, you will need to add type annotations to it. If you are changing an existing public API, you will need to update the type annotations to match the new API. If you are adding a private API, you do not need to add type annotations, but you should consider it. Only use <code># type: ignore</code> or <code>Any</code> if there is not other way.</p>
+<p>As mentioned, to ensure your code passes <code>mypy</code> type checking, you can run:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>lint
+</code></pre></div>
+<h4 id="interactive-testing">Interactive testing<a class="headerlink" href="#interactive-testing" title="Permanent link">&para;</a></h4>
+<p>To interactively test the library, we recommend creating a Jupyter notebook in the root of the project called <code>sandbox.ipynb</code>. We <code>.gitignore</code> a <code>sandbox.ipynb</code> file by default for this purpose. You can import the library and run commands in the notebook to test functionality. This is useful for testing new features or debugging issues.</p>
+<p>It's best to start the notebook with cells to autoreload the library:</p>
+<div class="highlight"><pre><span></span><code><span class="o">%</span><span class="n">load_ext</span> <span class="n">autoreload</span>
+<span class="o">%</span><span class="n">autoreload</span> <span class="mi">2</span>
+</code></pre></div>
+<p>Then you can import the library and work with the CloudPath class:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
+
+<span class="n">cp</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://my-test-bucket/&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="credentials-and-cloud-access">Credentials and cloud access<a class="headerlink" href="#credentials-and-cloud-access" title="Permanent link">&para;</a></h3>
+<p>For certain tests and development scenarios, you will need to have access to the relevant cloud provider. You can put the authentication credentials into a <code>.env</code> file in the root of the project. The <code>.env</code> file is ignored by git, so you can put your credentials there without worrying about them being committed. See the <a href="https://cloudpathlib.drivendata.org/stable/authentication/">authentication documentation</a> for information on what variables to set.</p>
+<p>If you need to test against a cloud provider you do not have access to, you can reach out to the maintainers, who may be willing to grant credentials for testing purposes.</p>
+<h4 id="mocking-providers-in-tests">Mocking providers in tests<a class="headerlink" href="#mocking-providers-in-tests" title="Permanent link">&para;</a></h4>
+<p>All of the cloud providers have mocked versions of their SDKs that are used for running local tests. These are in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/mock_clients"><code>tests/mock_clients</code></a>. If you are adding a feature that makes a call to the underlying client SDK, and it is not already mocked, you will need to mock it.</p>
+<p>In general, these mocks actually store files in a temporary directory on the file system and then use those files to behave like the real versions of the library do. This way we can run full test suites without making any network calls.</p>
+<p>The mocks are set up in each rig in <code>conftest.py</code> as long as <code>USE_LIVE_CLOUD</code> is not set to <code>"1"</code>.</p>
+<h4 id="performance-testing">Performance testing<a class="headerlink" href="#performance-testing" title="Permanent link">&para;</a></h4>
+<p>Listing files with <code>client._list_dir</code>, <code>CloudPath.glob</code>, <code>CloudPath.rglob</code>, and <code>CloudPath.walk</code> are all performance-sensitive operations for large directories on cloud storage. If you change code related to any of these methods, make sure to run the performance tests. In your PR description, include the results on your machine prior to making your changes and the results with your changes.</p>
+<p>These can be run with <code>make perf</code>. This will generate a report like:</p>
+<div class="highlight"><pre><span></span><code>                                  Performance suite results: (2023-10-08T13:18:04.774823)                                  
+┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━┓
+┃ Test Name      ┃ Config Name                ┃ Iterations ┃           Mean ┃              Std ┃            Max ┃ N Items ┃
+┡━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━┩
+│ List Folders   │ List shallow recursive     │         10 │ 0:00:00.862476 │ ± 0:00:00.020222 │ 0:00:00.898143 │   5,500 │
+│ List Folders   │ List shallow non-recursive │         10 │ 0:00:00.884997 │ ± 0:00:00.086678 │ 0:00:01.117775 │   5,500 │
+│ List Folders   │ List normal recursive      │         10 │ 0:00:01.248844 │ ± 0:00:00.095575 │ 0:00:01.506868 │   7,877 │
+│ List Folders   │ List normal non-recursive  │         10 │ 0:00:00.060042 │ ± 0:00:00.003986 │ 0:00:00.064052 │     113 │
+│ List Folders   │ List deep recursive        │         10 │ 0:00:02.004731 │ ± 0:00:00.130264 │ 0:00:02.353263 │   7,955 │
+│ List Folders   │ List deep non-recursive    │         10 │ 0:00:00.054268 │ ± 0:00:00.003314 │ 0:00:00.062116 │      31 │
+│ Glob scenarios │ Glob shallow recursive     │         10 │ 0:00:01.056946 │ ± 0:00:00.160470 │ 0:00:01.447082 │   5,500 │
+│ Glob scenarios │ Glob shallow non-recursive │         10 │ 0:00:00.978217 │ ± 0:00:00.091849 │ 0:00:01.230822 │   5,500 │
+│ Glob scenarios │ Glob normal recursive      │         10 │ 0:00:01.510334 │ ± 0:00:00.101108 │ 0:00:01.789393 │   7,272 │
+│ Glob scenarios │ Glob normal non-recursive  │         10 │ 0:00:00.058301 │ ± 0:00:00.002621 │ 0:00:00.063299 │      12 │
+│ Glob scenarios │ Glob deep recursive        │         10 │ 0:00:02.784629 │ ± 0:00:00.099764 │ 0:00:02.981882 │   7,650 │
+│ Glob scenarios │ Glob deep non-recursive    │         10 │ 0:00:00.051322 │ ± 0:00:00.002653 │ 0:00:00.054844 │      25 │
+│ Walk scenarios │ Walk shallow               │         10 │ 0:00:00.905571 │ ± 0:00:00.076332 │ 0:00:01.113957 │   5,500 │
+│ Walk scenarios │ Walk normal                │         10 │ 0:00:01.441215 │ ± 0:00:00.014923 │ 0:00:01.470414 │   7,272 │
+│ Walk scenarios │ Walk deep                  │         10 │ 0:00:02.461520 │ ± 0:00:00.031832 │ 0:00:02.539132 │   7,650 │
+└────────────────┴────────────────────────────┴────────────┴────────────────┴──────────────────┴────────────────┴─────────┘
+</code></pre></div>
+<p>To see how it is used in PR, you can <a href="https://github.com/drivendataorg/cloudpathlib/pull/364">see an example here</a>.</p>
+<h3 id="exceptions">Exceptions<a class="headerlink" href="#exceptions" title="Permanent link">&para;</a></h3>
+<p>Different backends may raise different exception classes when something goes wrong. To make it easy for users to catch exceptions that are agnostic of the backend, we generally will catch and raise a specific exception from <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/cloudpathlib/exceptions.py"><code>exceptions.py</code></a> for any exception that we understand. You can add new exceptions to this file if any are needed for new features.</p>
+<h2 id="code-architecture">Code architecture<a class="headerlink" href="#code-architecture" title="Permanent link">&para;</a></h2>
+<p>The best guide to the style and architecture is to read the code itself, but we provide some overarching guidance here.</p>
+<h3 id="cloud-provider-abstraction">Cloud provider abstraction<a class="headerlink" href="#cloud-provider-abstraction" title="Permanent link">&para;</a></h3>
+<p>We want to support as many providers as possible. Therefore, our goal is to keep the surface area of the <code>*Client</code> class small so it is easy to build extensions and new backends.</p>
+<p>Generic functionality like setting defaults and caching are implemented in the <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/cloudpathlib/client.py"><code>Client</code> class</a>. This also defines the interface that the <code>*Client</code> backends for each provider needs to implement.</p>
+<p>Each provider has its own <code>*Client</code> class that implements the interface defined in <code>Client</code>. The <code>*Client</code> classes are responsible for implementing the interface defined in <code>Client</code> for that specific backend. For an example, you could look at the <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/cloudpathlib/s3/s3client.py"><code>S3Client</code></a>.</p>
+<h3 id="cloudpath-abstraction"><code>CloudPath</code> abstraction<a class="headerlink" href="#cloudpath-abstraction" title="Permanent link">&para;</a></h3>
+<p>The core <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/cloudpathlib/cloudpath.py"><code>cloudpath.py</code></a> file provides most of the method implementations in a provider-agnostic way. Most feature changes will happen in the <code>CloudPath</code> class, unless there is a provider specific issue. There are a number of ways that functionality gets implemented:</p>
+<ul>
+<li>Some methods are implemented from scratch for cloud paths</li>
+<li>Some methods are implemented by calling the <code>pathlib.Path</code> version on either (1) the file in the cache if concrete, or (2) a <code>PurePosixPath</code> conversion of the CloudPath if not concrete.</li>
+<li>Some methods that are not relevant for a cloud backend are not implemented.</li>
+</ul>
+<p>Any code that needs to interact with the provider does so by calling methods on the <code>CloudPath.client</code>, which is an instance of the <code>Client</code> class so all the methods are provider-agnostic.</p>
+<p>Some methods are implemented on the <code>*Path</code> class for the specific provider. This is reserved for two cases: (1) provider-specific properties, like <code>S3Path.bucket</code> or <code>AzureBlobPath.container</code>, and (2) methods that are more efficiently implemented in a provider-specific way, like <code>S3Path.stat</code>. </p>
+<h3 id="adding-a-new-provider">Adding a new provider<a class="headerlink" href="#adding-a-new-provider" title="Permanent link">&para;</a></h3>
+<p>Adding a new provider is relatively straightforward. If you are extending <code>cloudpathlib</code>, but don't intend to make your provider part of the core library, implement the following pieces.</p>
+<h4 id="a-client-class-that-inherits-from-client">A <code>*Client</code> class that inherits from <code>Client</code><a class="headerlink" href="#a-client-class-that-inherits-from-client" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Client</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyClient</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
+    <span class="c1"># implementation here...</span>
+</code></pre></div>
+<h4 id="a-path-class-that-inherits-from-cloudpath">A <code>*Path</code> class that inherits from <code>CloudPath</code><a class="headerlink" href="#a-path-class-that-inherits-from-cloudpath" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib.cloudpath</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyPath</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">):</span>
+    <span class="n">cloud_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;my-prefix://&quot;</span>
+    <span class="n">client</span><span class="p">:</span> <span class="s2">&quot;MyClient&quot;</span>
+
+    <span class="c1"># implementation here...</span>
+</code></pre></div>
+<p>This <code>*Path</code> class should also be registered, if you want dispatch from <code>CloudPath</code> to work (see the next section).</p>
+<p>If you do intend to make your provider part of the code library, you will also need to do the following steps:</p>
+<ul>
+<li>Export the client and path classes in <code>cloudpathlib/__init__.py</code></li>
+<li>Write a mock backend for local backend testing in <code>tests/mock_clients</code></li>
+<li>Add a rig to run tests against the backend in <code>tests/conftest.py</code></li>
+<li>Ensure documentation is updated</li>
+</ul>
+<h3 id="register-your-provider-for-dispatch-from-cloudpath">Register your provider for dispatch from <code>CloudPath</code><a class="headerlink" href="#register-your-provider-for-dispatch-from-cloudpath" title="Permanent link">&para;</a></h3>
+<p>Register your provider so <code>CloudPath("my-prefix://my-bucket/my-file.txt")</code> will return a <code>MyPath</code> object:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Client</span><span class="p">,</span> <span class="n">register_client_class</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib.cloudpath</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span><span class="p">,</span> <span class="n">register_path_class</span>
+
+<span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">&quot;my-prefix&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyClient</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
+    <span class="c1"># implementation here...</span>
+
+<span class="nd">@register_path_class</span><span class="p">(</span><span class="s2">&quot;my-prefix&quot;</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyPath</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">):</span>
+    <span class="n">cloud_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;my-prefix://&quot;</span>
+    <span class="n">client</span><span class="p">:</span> <span class="s2">&quot;MyClient&quot;</span>
+
+    <span class="c1"># implementation here...</span>
+</code></pre></div>
+<p>If you are submitting a PR to add this to the official <code>cloudpathlib</code> library, you will also need to do the following steps:</p>
+<ul>
+<li>Export the client and path classes in <code>cloudpathlib/__init__.py</code></li>
+<li>Write a mock backend for local backend testing in <code>tests/mock_clients</code></li>
+<li>Add a rig to run tests against the backend in <code>tests/conftest.py</code></li>
+<li>Ensure documentation is updated</li>
+</ul>
+<h2 id="governance">Governance<a class="headerlink" href="#governance" title="Permanent link">&para;</a></h2>
+<p>Ultimately, the maintainers of <code>cloudpathlib</code> need to use their discretion when accepting new features. Proposed contributions may not be accepted for a variety of reasons. Some proposed contributions to the library may be judged to introduce too large a maintenance burden. Some proposed contributions may be judged to be out of scope for the project. Still other contributions may be judged to to not fit the API for stylistic reasons or the technical direction of the project.</p>
+<p>We appreciate your understanding if your contribution is not accepted. The maintainers will do our best to explain our reasoning, but ultimately we need to make decisions that we feel are in the best interest of the project as a whole. It can be frustrating if you don't agree, but we hope you will understand that we are trying to make the best decisions we can.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": ".", "features": ["navigation.sections", "navigation.expand"], "search": "assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.50899def.min.js"></script>
+      
+    
+  </body>
+</html>

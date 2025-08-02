@@ -1,0 +1,1553 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A library that implements pathlib.Path methods for URIs for different cloud providers.">
+      
+      
+      
+        <link rel="canonical" href="https://cloudpathlib.drivendata.org/stable/http.html">
+      
+      
+        <link rel="prev" href="authentication.html">
+      
+      
+        <link rel="next" href="caching.html">
+      
+      
+      <link rel="icon" href="favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>HTTP URLs - cloudpathlib</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.7e37652d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="stylesheets/custom_mkdocstrings.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#http-support-in-cloudpathlib" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="cloudpathlib" class="md-header__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
+      
+  <img src="logo-no-text.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            cloudpathlib
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              HTTP URLs
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/drivendataorg/cloudpathlib" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="cloudpathlib" class="md-nav__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
+      
+  <img src="logo-no-text.svg" alt="logo">
+
+    </a>
+    cloudpathlib
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/drivendataorg/cloudpathlib" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="why_cloudpathlib.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Why cloudpathlib?
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="authentication.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Authentication
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    HTTP URLs
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="http.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    HTTP URLs
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Usage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-http-paths-differ" class="md-nav__link">
+    <span class="md-ellipsis">
+      How HTTP Paths Differ
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#url-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      URL components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="URL components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preservation-and-joining-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preservation and Joining Behavior
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-httppathanchor-property" class="md-nav__link">
+    <span class="md-ellipsis">
+      The HttpPath.anchor Property
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#required-serverside-http-verbs-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Required serverside HTTP verbs support
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Required serverside HTTP verbs support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#making-requests-with-the-httppath-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      Making requests with the HttpPath object
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#directory-assumptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Directory Assumptions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Directory Assumptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#listing-the-contents-of-a-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      Listing the Contents of a Directory
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#http-or-https" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP or HTTPS
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Notes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="caching.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Caching
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="anypath-polymorphism.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AnyPath
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="other_client_settings.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Other Client settings
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="testing_mocked_cloudpathlib.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing code that uses cloudpathlib
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="integrations.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Integrations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="contributing.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="changelog.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/cloudpath.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CloudPath
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/anypath.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AnyPath
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_3" id="__nav_12_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Azure
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_3">
+            <span class="md-nav__icon md-icon"></span>
+            Azure
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/azblobclient.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AzureBlobClient
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/azblobpath.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AzureBlobPath
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_4" id="__nav_12_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    S3
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_4">
+            <span class="md-nav__icon md-icon"></span>
+            S3
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/s3client.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    S3Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/s3path.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    S3Path
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_5" id="__nav_12_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    GS
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_5">
+            <span class="md-nav__icon md-icon"></span>
+            GS
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/gsclient.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    GSClient
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/gspath.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    GSPath
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_12_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_12_6" id="__nav_12_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Submodules
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_12_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12_6">
+            <span class="md-nav__icon md-icon"></span>
+            Submodules
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/client.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    cloudpathlib.client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/enums.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    cloudpathlib.enums
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/exceptions.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    cloudpathlib.exceptions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api-reference/local.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    cloudpathlib.local
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Usage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-http-paths-differ" class="md-nav__link">
+    <span class="md-ellipsis">
+      How HTTP Paths Differ
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#url-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      URL components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="URL components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preservation-and-joining-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preservation and Joining Behavior
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-httppathanchor-property" class="md-nav__link">
+    <span class="md-ellipsis">
+      The HttpPath.anchor Property
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#required-serverside-http-verbs-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Required serverside HTTP verbs support
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Required serverside HTTP verbs support">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#making-requests-with-the-httppath-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      Making requests with the HttpPath object
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#directory-assumptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Directory Assumptions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Directory Assumptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#listing-the-contents-of-a-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      Listing the Contents of a Directory
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#http-or-https" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTTP or HTTPS
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Additional Notes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="http-support-in-cloudpathlib">HTTP Support in CloudPathLib<a class="headerlink" href="#http-support-in-cloudpathlib" title="Permanent link">&para;</a></h1>
+<p>We support <code>http://</code> and <code>https://</code> URLs with <code>CloudPath</code>, but these behave somewhat differently from typical cloud provider URIs (e.g., <code>s3://</code>, <code>gs://</code>) or local file paths. This document describes those differences, caveats, and the additional configuration options available.</p>
+<blockquote>
+<p><strong>Note:</strong> We don't currently automatically detect <code>http</code> links to cloud storage providers (for example, <code>http://s3.amazonaws.com/bucket/key</code>) and treat those as <code>S3Path</code>, <code>GSPath</code>, etc. They will be treated as normal urls (i.e., <code>HttpPath</code> objects).</p>
+</blockquote>
+<h2 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
+
+<span class="c1"># Create a path object</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;https://example.com/data/file.txt&quot;</span><span class="p">)</span>
+
+<span class="c1"># Read file contents</span>
+<span class="n">text</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+<span class="n">binary</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+
+<span class="c1"># Get parent directory</span>
+<span class="n">parent</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">parent</span>  <span class="c1"># https://example.com/data/</span>
+
+<span class="c1"># Join paths</span>
+<span class="n">subpath</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;other.txt&quot;</span>  <span class="c1"># https://example.com/data/other.txt</span>
+
+<span class="c1"># Check if file exists</span>
+<span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;File exists!&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get file name and suffix</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>      <span class="c1"># &quot;file.txt&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>    <span class="c1"># &quot;.txt&quot;</span>
+
+<span class="c1"># List directory contents (if server supports directory listings)</span>
+<span class="n">data_dir</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;https://example.com/data/&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">child_path</span> <span class="ow">in</span> <span class="n">data_dir</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">child_path</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="how-http-paths-differ">How HTTP Paths Differ<a class="headerlink" href="#how-http-paths-differ" title="Permanent link">&para;</a></h2>
+<ul>
+<li>HTTP servers are not necessarily structured like file systems. Operations such as listing directories, removing files, or creating folders depend on whether the server supports them.</li>
+<li>For many operations (e.g., uploading, removing files), this implementation relies on specific HTTP verbs like <code>PUT</code> or <code>DELETE</code>. If the server does not allow these verbs, those operations will fail.</li>
+<li>While some cloud storage backends (e.g., AWS S3) provide robust directory emulation, a basic HTTP server may only partially implement these concepts (e.g., listing a directory might just be an HTML page with links).</li>
+<li>HTTP URLs often include more than just a path, for example query strings, fragments, and other URL modifiers that are not part of the path. These are handled differently than with other cloud storage providers.</li>
+</ul>
+<h2 id="url-components">URL components<a class="headerlink" href="#url-components" title="Permanent link">&para;</a></h2>
+<p>You can access the various components of a URL via the <code>HttpPath.parsed_url</code> property, which is a <a href="https://docs.python.org/3/library/urllib.parse.html#urllib.parse.urlparse"><code>urllib.parse.ParseResult</code></a> object.</p>
+<p>For example for the following URL:</p>
+<div class="highlight"><pre><span></span><code>https://username:password@www.example.com:8080/path/to/resource?query=param#fragment
+</code></pre></div>
+<p>The components are:</p>
+<pre class="mermaid"><code>flowchart LR
+
+    %% Define colors for each block
+    classDef scheme fill:#FFD700,stroke:#000,stroke-width:1px,color:#000
+    classDef netloc fill:#ADD8E6,stroke:#000,stroke-width:1px,color:#000
+    classDef path fill:#98FB98,stroke:#000,stroke-width:1px,color:#000
+    classDef query fill:#EE82EE,stroke:#000,stroke-width:1px,color:#000
+    classDef fragment fill:#FFB6C1,stroke:#000,stroke-width:1px,color:#000
+
+    A[".scheme&lt;br/&gt;&lt;code&gt;https&lt;/code&gt;"]:::scheme
+    B[".netloc&lt;br/&gt;username:password\@www‎.example.com:8080"]:::netloc
+    C[".path&lt;br/&gt;&lt;code&gt;/path/to/resource&lt;/code&gt;"]:::path
+    D[".query&lt;br/&gt;&lt;code&gt;query=param&lt;/code&gt;"]:::query
+    E[".fragment&lt;br/&gt;&lt;code&gt;fragment&lt;/code&gt;"]:::fragment
+
+    A --&gt; B --&gt; C --&gt; D --&gt; E</code></pre>
+<p>To access the components of the URL, you can use the <code>HttpPath.parsed_url</code> property:</p>
+<div class="highlight"><pre><span></span><code><span class="n">my_path</span> <span class="o">=</span> <span class="n">HttpPath</span><span class="p">(</span><span class="s2">&quot;http://username:password@www.example.com:8080/path/to/resource?query=param#fragment&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span><span class="p">)</span>  <span class="c1"># &quot;http&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">netloc</span><span class="p">)</span>  <span class="c1"># &quot;username:password@www.example.com:8080&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>    <span class="c1"># &quot;/path/to/resource&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>   <span class="c1"># &quot;query=param&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">fragment</span><span class="p">)</span>  <span class="c1"># &quot;fragment&quot;</span>
+
+<span class="c1"># extra properties that are subcomponents of `netloc`</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>  <span class="c1"># &quot;username&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>  <span class="c1"># &quot;password&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">hostname</span><span class="p">)</span>  <span class="c1"># &quot;www.example.com&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>      <span class="c1"># &quot;8080&quot;</span>
+</code></pre></div>
+<h3 id="preservation-and-joining-behavior">Preservation and Joining Behavior<a class="headerlink" href="#preservation-and-joining-behavior" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Params, query, and fragment</strong> are part of the URL, but be aware that when you perform operations that return a new path (e.g., joining <code>my_path / "subdir"</code>, walking directories, fetching parents, etc.), these modifiers will be discarded unless you explicitly preserve them, since we operate under the assumption that these modifiers are tied to the specific URL.</li>
+<li><strong>netloc (including the subcomponents, username, password, hostname, port) and scheme</strong> are preserved when joining. They are derived from the main portion of the URL (e.g., <code>http://username:password@www.example.com:8080</code>).</li>
+</ul>
+<h3 id="the-httppathanchor-property">The <code>HttpPath.anchor</code> Property<a class="headerlink" href="#the-httppathanchor-property" title="Permanent link">&para;</a></h3>
+<p>Because of naming conventions inherited from Python's <code>pathlib</code>, the "anchor" in a CloudPath (e.g., <code>my_path.anchor</code>) refers to <code>&lt;scheme&gt;://&lt;netloc&gt;/</code>. It does <strong>not</strong> include the "fragment" portion of a URL (which is sometimes also called the "anchor" in HTML contexts since it can refer to a <code>&lt;a&gt;</code> tag). In other words, <code>.anchor</code> returns something like <code>https://www.example.com/</code>, not <code>...#fragment</code>. To get the fragment, use <code>my_path.parsed_url.fragment</code>.</p>
+<h2 id="required-serverside-http-verbs-support">Required serverside HTTP verbs support<a class="headerlink" href="#required-serverside-http-verbs-support" title="Permanent link">&para;</a></h2>
+<p>Some operations require that the server support specific HTTP verbs. If your server does not support these verbs, the operation will fail.</p>
+<p>Your server needs to support these operations for them to succeed:</p>
+<ul>
+<li>If your server does not allow <code>DELETE</code>, you will not be able to remove files via <code>HttpPath.unlink()</code> or <code>HttpPath.remove()</code>.</li>
+<li>If your server does not allow <code>PUT</code> (or <code>POST</code>, see next bullet), you won't be able to upload files.</li>
+<li>By default, we use <code>PUT</code> for creating or replacing a file. If you need <code>POST</code> for uploads, you can override the behavior by passing <code>write_file_http_method="POST"</code> to the <code>HttpClient</code> constructor.</li>
+</ul>
+<h3 id="making-requests-with-the-httppath-object">Making requests with the <code>HttpPath</code> object<a class="headerlink" href="#making-requests-with-the-httppath-object" title="Permanent link">&para;</a></h3>
+<p><code>HttpPath</code> and <code>HttpsPath</code> expose direct methods to perform the relevant HTTP verbs:</p>
+<div class="highlight"><pre><span></span><code><span class="n">response</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">my_path</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>     <span class="c1"># issues a GET</span>
+<span class="n">response</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">my_path</span><span class="o">.</span><span class="n">put</span><span class="p">()</span>     <span class="c1"># issues a PUT</span>
+<span class="n">response</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">my_path</span><span class="o">.</span><span class="n">post</span><span class="p">()</span>    <span class="c1"># issues a POST</span>
+<span class="n">response</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">my_path</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>  <span class="c1"># issues a DELETE</span>
+<span class="n">response</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">my_path</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>    <span class="c1"># issues a HEAD</span>
+</code></pre></div>
+<p>These methods are thin wrappers around the client's underlying <code>request(...)</code> method, so you can pass any arguments that <a href="https://docs.python.org/3/library/urllib.request.html#urllib.request.Request"><code>urllib.request.Request</code></a> supports, so you can pass content via <code>data=</code> and headers via <code>headers=</code>.</p>
+<h2 id="authentication">Authentication<a class="headerlink" href="#authentication" title="Permanent link">&para;</a></h2>
+<p>By default, <code>HttpClient</code> will build a simple opener with <code>urllib.request.build_opener()</code>, which typically handles no or basic system-wide HTTP auth. However, you can pass an implementation of <code>urllib.request.BaseHandler</code> (e.g., an <code>HTTPBasicAuthHandler</code>) to the <code>HttpClient</code> of <code>HttpsClient</code> constructors to handle authentication:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">urllib.request</span>
+
+<span class="n">auth_handler</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">HTTPBasicAuthHandler</span><span class="p">()</span>
+<span class="n">auth_handler</span><span class="o">.</span><span class="n">add_password</span><span class="p">(</span>
+    <span class="n">realm</span><span class="o">=</span><span class="s2">&quot;Some Realm&quot;</span><span class="p">,</span>
+    <span class="n">uri</span><span class="o">=</span><span class="s2">&quot;http://www.example.com&quot;</span><span class="p">,</span>
+    <span class="n">user</span><span class="o">=</span><span class="s2">&quot;username&quot;</span><span class="p">,</span>
+    <span class="n">passwd</span><span class="o">=</span><span class="s2">&quot;password&quot;</span>
+<span class="p">)</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">HttpClient</span><span class="p">(</span><span class="n">auth</span><span class="o">=</span><span class="n">auth_handler</span><span class="p">)</span>
+<span class="n">my_path</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;http://www.example.com/secret/data.txt&quot;</span><span class="p">)</span>
+
+<span class="c1"># Now GET requests will include basic auth headers</span>
+<span class="n">content</span> <span class="o">=</span> <span class="n">my_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+</code></pre></div>
+<p>This can be extended to more sophisticated authentication approaches (e.g., OAuth, custom headers) by providing your own <code>BaseHandler</code> implementation. There are examples on the internet of handlers for most common authentication schemes.</p>
+<h2 id="directory-assumptions">Directory Assumptions<a class="headerlink" href="#directory-assumptions" title="Permanent link">&para;</a></h2>
+<p>Directories are handled differently from other <code>CloudPath</code> implementations:</p>
+<ul>
+<li>By default, a URL is considered a directory if it <strong>ends with a slash</strong>. For example, <code>http://example.com/somedir/</code>.</li>
+<li>If you call <code>HttpPath.is_dir()</code>, it checks <code>my_url.endswith("/")</code> by default. You can override this with a custom function by passing <code>custom_dir_matcher</code> to <code>HttpClient</code>. This will allow you to implement custom logic for determining if a URL is a directory. The <code>custom_dir_matcher</code> will receive a string representing the URL, so if you need to interact with the server, you will need to make those requests within your <code>custom_dir_matcher</code> implementation.</li>
+</ul>
+<h3 id="listing-the-contents-of-a-directory">Listing the Contents of a Directory<a class="headerlink" href="#listing-the-contents-of-a-directory" title="Permanent link">&para;</a></h3>
+<p>We attempt to parse directory listings by calling <code>GET</code> on the directory URL (which presumably returns an HTML page that has a directory index). Our default parser looks for <code>&lt;a&gt;</code> tags and yields them, assuming they are children. You can override this logic with <code>custom_list_page_parser</code> if your server's HTML or API returns a different listing format. For example:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">my_parser</span><span class="p">(</span><span class="n">html_content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="c1"># for example, just get a with href and class &quot;file-link&quot;</span>
+    <span class="c1"># using beautifulsoup</span>
+    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html_content</span><span class="p">,</span> <span class="s2">&quot;html.parser&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="s2">&quot;file-link&quot;</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">link</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;href&quot;</span><span class="p">)</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">HttpClient</span><span class="p">(</span><span class="n">custom_list_page_parser</span><span class="o">=</span><span class="n">my_parser</span><span class="p">)</span>
+<span class="n">my_dir</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;http://example.com/public/&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">subpath</span><span class="p">,</span> <span class="n">is_dir</span> <span class="ow">in</span> <span class="n">my_dir</span><span class="o">.</span><span class="n">list_dir</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">subpath</span><span class="p">,</span> <span class="s2">&quot;dir&quot;</span> <span class="k">if</span> <span class="n">is_dir</span> <span class="k">else</span> <span class="s2">&quot;file&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Note</strong>: If your server doesn't provide an HTML index or a suitable listing format that we can parse, you will see:</p>
+<div class="highlight"><pre><span></span><code>NotImplementedError(&quot;Unable to parse response as a listing of files; please provide a custom parser as `custom_list_page_parser`.&quot;)
+</code></pre></div>
+<p>In that case, you must provide a custom parser or avoid directory-listing operations altogether.</p>
+<h2 id="http-or-https">HTTP or HTTPS<a class="headerlink" href="#http-or-https" title="Permanent link">&para;</a></h2>
+<p>There are separate classes for <code>HttpClient</code>/<code>HttpPath</code> for <code>http://</code> and <code>HttpsClient</code>/<code>HttpsPath</code> for <code>https://</code>. However, from a usage standpoint, you can use either <code>CloudPath</code> or <code>AnyPath</code> to dispatch to the right subclass.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnyPath</span><span class="p">,</span> <span class="n">CloudPath</span>
+
+<span class="c1"># AnyPath will automatically detect &quot;http://&quot; or &quot;https://&quot; (or local file paths)</span>
+<span class="n">my_path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;https://www.example.com/files/info.txt&quot;</span><span class="p">)</span>
+
+<span class="c1"># CloudPath will dispatch to the correct subclass</span>
+<span class="n">my_path</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;https://www.example.com/files/info.txt&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>If you explicitly instantiate a <code>HttpClient</code>, it will only handle <code>http://</code> paths. If you instantiate a <code>HttpsClient</code>, it will only handle <code>https://</code> paths. But <code>AnyPath</code> and <code>CloudPath</code> will route to the correct client class automatically.</p>
+<p>In general, you should use <code>HttpsClient</code> and work with <code>https://</code> urls wherever possible.</p>
+<h2 id="additional-notes">Additional Notes<a class="headerlink" href="#additional-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Caching</strong>: This implementation uses the same local file caching mechanics as other CloudPathLib providers, controlled by <code>file_cache_mode</code> and <code>local_cache_dir</code>. However, for static HTTP servers, re-downloading or re-checking may not be as efficient as with typical cloud storages that return robust metadata.  </li>
+<li><strong>"Move" or "Rename"</strong>: The <code>_move_file</code> operation is implemented as an upload followed by a delete. This will fail if your server does not allow both <code>PUT</code> and <code>DELETE</code>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": ".", "features": ["navigation.sections", "navigation.expand"], "search": "assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.50899def.min.js"></script>
+      
+    
+  </body>
+</html>
