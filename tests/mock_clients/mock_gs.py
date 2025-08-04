@@ -228,3 +228,7 @@ class MockTransferManager:
         crc32c_checksum=True,
     ):
         blob.download_to_filename(filename)
+
+
+def mock_default_auth():
+    return "fake-credentials", "fake-default-project"

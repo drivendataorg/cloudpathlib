@@ -46,6 +46,7 @@ from .mock_clients.mock_gs import (
     mocked_client_class_factory as mocked_gsclient_class_factory,
     DEFAULT_GS_BUCKET_NAME,
     MockTransferManager,
+    mock_default_auth,
 )
 from .mock_clients.mock_s3 import mocked_session_class_factory, DEFAULT_S3_BUCKET_NAME
 from .utils import _sync_filesystem
@@ -282,6 +283,7 @@ def gs_rig(request, monkeypatch, assets_dir, live_server):
             "transfer_manager",
             MockTransferManager,
         )
+        monkeypatch.setattr(cloudpathlib.gs.gsclient, "google_default_auth", mock_default_auth)
 
     rig = CloudProviderTestRig(
         path_class=GSPath,
