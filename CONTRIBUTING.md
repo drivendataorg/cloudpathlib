@@ -110,6 +110,149 @@ When the tests finish, if it is using a live server, the test files will be dele
 
 If you want to speed up your testing during development, you may comment out some of the rigs in [`conftest.py`](tests/conftest.py). Don't commit this change, and make sure you run against all the rigs before submitting a PR.
 
+### Test Fixtures and Rigs
+
+The test suite uses a comprehensive set of fixtures and test rigs to ensure consistent behavior across all cloud providers. Here's a detailed overview of the available fixtures and their properties:
+
+#### Core Fixtures
+
+**`assets_dir`** - Path to the test assets directory containing sample files and directories used across all tests.
+
+**`live_server`** - Boolean indicating whether to use live cloud servers (controlled by `USE_LIVE_CLOUD=1` environment variable).
+
+**`wait_for_mkdir`** - Fixture that patches `os.mkdir` to wait for directory creation, useful for tests that are sometimes flaky due to filesystem timing.
+
+#### Cloud Provider Test Rigs
+
+The `CloudProviderTestRig` class is the foundation for all cloud provider testing. Each rig provides:
+
+- **`path_class`**: The CloudPath subclass for the provider (e.g., `S3Path`, `AzureBlobPath`)
+- **`client_class`**: The Client subclass for the provider (e.g., `S3Client`, `AzureBlobClient`)
+- **`drive`**: The bucket/container name for the provider
+- **`test_dir`**: Unique test directory name generated from session UUID, module name, and function name
+- **`live_server`**: Whether the rig uses live cloud servers
+- **`required_client_kwargs`**: Additional client configuration parameters
+- **`cloud_prefix`**: The cloud prefix for the provider (e.g., `s3://`, `az://`)
+
+Each rig provides a `create_cloud_path(path, client=None)` method that constructs cloud paths with the proper prefix and test directory structure.
+
+#### Available Test Rigs
+
+**Azure Rigs:**
+- **`azure_rig`**: Tests Azure Blob Storage with mocked or live backend
+- **`azure_gen2_rig`**: Tests Azure Data Lake Storage Gen2 with mocked or live backend
+  - Has `is_adls_gen2 = True` flag for tests that need to skip ADLS Gen2 specific behavior
+  - Uses `AZURE_STORAGE_CONNECTION_STRING` or `AZURE_STORAGE_GEN2_CONNECTION_STRING` environment variables
+
+**Google Cloud Storage:**
+- **`gs_rig`**: Tests Google Cloud Storage with mocked or live backend
+  - Uses `LIVE_GS_BUCKET` environment variable for live testing
+
+**Amazon S3:**
+- **`s3_rig`**: Tests AWS S3 with mocked or live backend
+  - Uses `LIVE_S3_BUCKET` environment variable for live testing
+- **`custom_s3_rig`**: Tests S3-compatible services (MinIO, Ceph, etc.)
+  - Has `is_custom_s3 = True` flag for tests that need to skip AWS-specific behavior
+  - Uses `CUSTOM_S3_BUCKET`, `CUSTOM_S3_ENDPOINT`, `CUSTOM_S3_KEY_ID`, `CUSTOM_S3_SECRET_KEY` environment variables
+
+**Local Storage Rigs:**
+- **`local_azure_rig`**: Tests Azure Blob Storage using local filesystem simulation
+- **`local_gs_rig`**: Tests Google Cloud Storage using local filesystem simulation  
+- **`local_s3_rig`**: Tests S3 using local filesystem simulation
+
+**HTTP/HTTPS Rigs:**
+- **`http_rig`**: Tests HTTP endpoints with local test server
+- **`https_rig`**: Tests HTTPS endpoints with local test server and self-signed certificates
+  - Both use `HttpProviderTestRig` subclass with additional HTTP-specific functionality
+
+#### Fixture Unions
+
+The test suite uses `pytest-cases` fixture unions to run tests against multiple providers:
+
+- **`rig`**: Runs tests against all cloud providers (Azure Blob, Azure ADLS Gen2, GCS, S3, Custom S3, Local Azure, Local S3, Local GCS, HTTP, HTTPS)
+- **`azure_rigs`**: Runs tests against both Azure Blob and Azure ADLS Gen2
+- **`s3_like_rig`**: Runs tests against AWS S3 and Custom S3 (for S3-compatible services)
+- **`http_like_rig`**: Runs tests against HTTP and HTTPS endpoints
+
+#### HTTP Server Fixtures
+
+**`http_server`** and **`https_server`** (from `tests/http_fixtures.py`):
+- Start local HTTP/HTTPS test servers with custom request handlers
+- Support PUT, DELETE, POST, GET, and HEAD methods for comprehensive testing
+- Use self-signed certificates for HTTPS testing
+- Automatically clean up server directories after tests
+
+#### Mock Clients
+
+Located in `tests/mock_clients/`, these provide local filesystem-based implementations of cloud SDKs:
+
+- **`mock_azureblob.py`**: Mock Azure Blob Storage client
+- **`mock_adls_gen2.py`**: Mock Azure Data Lake Storage Gen2 client  
+- **`mock_gs.py`**: Mock Google Cloud Storage client
+- **`mock_s3.py`**: Mock AWS S3 client
+- **`utils.py`**: Utility functions for mock clients (e.g., `delete_empty_parents_up_to_root`)
+
+#### Test Assets
+
+Located in `tests/assets/`, the test assets provide a consistent set of files and directories:
+
+```
+tests/assets/
+├── dir_0/
+│   ├── file0_0.txt
+│   ├── file0_1.txt
+│   └── file0_2.txt
+└── dir_1/
+    ├── file_1_0.txt
+    └── dir_1_0/
+        └── file_1_0_0.txt
+```
+
+These assets are automatically copied to each test rig's directory and provide a predictable file structure for testing file operations, directory traversal, and other functionality.
+
+#### Utility Fixtures
+
+**`utilities_dir`**: Path to test utilities directory containing SSL certificates for HTTPS testing.
+
+**`_sync_filesystem()`**: Utility function that forces filesystem synchronization to stabilize tests, especially important on Windows where `os.sync()` is not available.
+
+#### Environment Variables for Live Testing
+
+When `USE_LIVE_CLOUD=1` is set, the following environment variables control live cloud testing:
+
+- **Azure**: `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_STORAGE_GEN2_CONNECTION_STRING`, `LIVE_AZURE_CONTAINER`
+- **Google Cloud**: `LIVE_GS_BUCKET` (requires Google Cloud credentials)
+- **AWS S3**: `LIVE_S3_BUCKET` (requires AWS credentials)
+- **Custom S3**: `CUSTOM_S3_BUCKET`, `CUSTOM_S3_ENDPOINT`, `CUSTOM_S3_KEY_ID`, `CUSTOM_S3_SECRET_KEY`
+
+#### Using Test Rigs in Your Tests
+
+When writing tests, use the rig's `create_cloud_path()` method to create cloud paths:
+
+```python
+def test_file_operations(rig):
+    # Create a path to an existing file in the test assets
+    cp = rig.create_cloud_path("dir_0/file0_0.txt")
+    
+    # Create a path to a non-existent file
+    cp2 = rig.create_cloud_path("path/that/does/not/exist.txt")
+    
+    # Get a client instance
+    client = rig.client_class()
+```
+
+For provider-specific tests, you can check rig properties:
+
+```python
+def test_azure_specific_feature(azure_rig):
+    if azure_rig.is_adls_gen2:
+        # Skip or test ADLS Gen2 specific behavior
+        pass
+    else:
+        # Test Azure Blob Storage specific behavior
+        pass
+```
+
 ### Authoring tests
 
 We want our test suite coverage to be comprehensive, so PRs need to add tests if they add new functionality. If you are adding a new feature, you will need to add tests for it. If you are changing an existing feature, you will need to update the tests to match the new behavior.

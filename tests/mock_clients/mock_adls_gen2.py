@@ -4,7 +4,7 @@ from shutil import rmtree
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.filedatalake import FileProperties
 
-from tests.mock_clients.mock_azureblob import _JsonCache, DEFAULT_CONTAINER_NAME
+from tests.mock_clients.mock_azureblob import _JsonCache
 
 
 class MockedDataLakeServiceClient:
@@ -87,7 +87,7 @@ class MockedFileClient:
             raise ResourceNotFoundError
 
     def rename_file(self, new_name):
-        new_path = self.root / new_name[len(DEFAULT_CONTAINER_NAME + "/") :]
+        new_path = self.root / new_name.split("/", 1)[1]
         (self.root / self.key).rename(new_path)
 
 
@@ -106,5 +106,5 @@ class MockedDirClient:
         (self.root / self.key).mkdir(parents=True, exist_ok=True)
 
     def rename_directory(self, new_name):
-        new_path = self.root / new_name[len(DEFAULT_CONTAINER_NAME + "/") :]
+        new_path = self.root / new_name.split("/", 1)[1]
         (self.root / self.key).rename(new_path)
