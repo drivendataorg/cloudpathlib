@@ -10,19 +10,25 @@
       
       
       
+        <link rel="canonical" href="https://cloudpathlib.drivendata.org/stable/anypath-polymorphism/">
       
       
+        <link rel="prev" href="../caching/">
       
-      <link rel="icon" href="/stable/favicon.svg">
+      
+        <link rel="next" href="../other_client_settings/">
+      
+      
+      <link rel="icon" href="../favicon.svg">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
     
     
       
-        <title>cloudpathlib</title>
+        <title>AnyPath - cloudpathlib</title>
       
     
     
-      <link rel="stylesheet" href="/stable/assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
       
       
 
@@ -41,13 +47,13 @@
       
     
     
-      <link rel="stylesheet" href="/stable/assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="/stable/stylesheets/extra.css">
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
-      <link rel="stylesheet" href="/stable/stylesheets/custom_mkdocstrings.css">
+      <link rel="stylesheet" href="../stylesheets/custom_mkdocstrings.css">
     
-    <script>__md_scope=new URL("/stable",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -65,6 +71,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#anypath-polymorphic-class" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -81,9 +92,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/stable/." title="cloudpathlib" class="md-header__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
+    <a href=".." title="cloudpathlib" class="md-header__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
       
-  <img src="/stable/logo-no-text.svg" alt="logo">
+  <img src="../logo-no-text.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -100,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              AnyPath
             
           </span>
         </div>
@@ -190,9 +201,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/stable/." title="cloudpathlib" class="md-nav__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
+    <a href=".." title="cloudpathlib" class="md-nav__button md-logo" aria-label="cloudpathlib" data-md-component="logo">
       
-  <img src="/stable/logo-no-text.svg" alt="logo">
+  <img src="../logo-no-text.svg" alt="logo">
 
     </a>
     cloudpathlib
@@ -219,7 +230,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -241,7 +252,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/why_cloudpathlib/" class="md-nav__link">
+      <a href="../why_cloudpathlib/" class="md-nav__link">
         
   
   
@@ -263,7 +274,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/authentication/" class="md-nav__link">
+      <a href="../authentication/" class="md-nav__link">
         
   
   
@@ -285,7 +296,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/http/" class="md-nav__link">
+      <a href="../http/" class="md-nav__link">
         
   
   
@@ -307,7 +318,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/caching/" class="md-nav__link">
+      <a href="../caching/" class="md-nav__link">
         
   
   
@@ -326,10 +337,32 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/stable/anypath-polymorphism/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    AnyPath
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -340,6 +373,53 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-uri-scheme" class="md-nav__link">
+    <span class="md-ellipsis">
+      file: URI Scheme
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How It Works
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -351,7 +431,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/other_client_settings/" class="md-nav__link">
+      <a href="../other_client_settings/" class="md-nav__link">
         
   
   
@@ -373,7 +453,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/testing_mocked_cloudpathlib/" class="md-nav__link">
+      <a href="../testing_mocked_cloudpathlib/" class="md-nav__link">
         
   
   
@@ -395,7 +475,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/integrations/" class="md-nav__link">
+      <a href="../integrations/" class="md-nav__link">
         
   
   
@@ -417,7 +497,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/contributing/" class="md-nav__link">
+      <a href="../contributing/" class="md-nav__link">
         
   
   
@@ -439,7 +519,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/changelog/" class="md-nav__link">
+      <a href="../changelog/" class="md-nav__link">
         
   
   
@@ -506,7 +586,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/api-reference/cloudpath/" class="md-nav__link">
+      <a href="../api-reference/cloudpath/" class="md-nav__link">
         
   
   
@@ -529,7 +609,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/api-reference/anypath/" class="md-nav__link">
+      <a href="../api-reference/anypath/" class="md-nav__link">
         
   
   
@@ -594,7 +674,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/api-reference/azblobclient/" class="md-nav__link">
+      <a href="../api-reference/azblobclient/" class="md-nav__link">
         
   
   
@@ -617,7 +697,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/api-reference/azblobpath/" class="md-nav__link">
+      <a href="../api-reference/azblobpath/" class="md-nav__link">
         
   
   
@@ -690,7 +770,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/api-reference/s3client/" class="md-nav__link">
+      <a href="../api-reference/s3client/" class="md-nav__link">
         
   
   
@@ -713,7 +793,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/api-reference/s3path/" class="md-nav__link">
+      <a href="../api-reference/s3path/" class="md-nav__link">
         
   
   
@@ -786,7 +866,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/api-reference/gsclient/" class="md-nav__link">
+      <a href="../api-reference/gsclient/" class="md-nav__link">
         
   
   
@@ -809,7 +889,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/api-reference/gspath/" class="md-nav__link">
+      <a href="../api-reference/gspath/" class="md-nav__link">
         
   
   
@@ -882,7 +962,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/api-reference/client/" class="md-nav__link">
+      <a href="../api-reference/client/" class="md-nav__link">
         
   
   
@@ -905,7 +985,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/api-reference/enums/" class="md-nav__link">
+      <a href="../api-reference/enums/" class="md-nav__link">
         
   
   
@@ -928,7 +1008,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/api-reference/exceptions/" class="md-nav__link">
+      <a href="../api-reference/exceptions/" class="md-nav__link">
         
   
   
@@ -951,7 +1031,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/stable/api-reference/local/" class="md-nav__link">
+      <a href="../api-reference/local/" class="md-nav__link">
         
   
   
@@ -999,6 +1079,43 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-uri-scheme" class="md-nav__link">
+    <span class="md-ellipsis">
+      file: URI Scheme
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How It Works
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1010,8 +1127,70 @@
             <div class="md-content" data-md-component="content">
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+  
+  
+
+
+<h1 id="anypath-polymorphic-class">AnyPath Polymorphic Class<a class="headerlink" href="#anypath-polymorphic-class" title="Permanent link">&para;</a></h1>
+<p><code>cloudpathlib</code> implements a special <code>AnyPath</code> polymorphic class. This class will automatically instantiate a cloud path instance or a <code>pathlib.Path</code> instance appropriately from your input. It's also a virtual superclass of <code>CloudPath</code> and <code>Path</code>, so <code>isinstance</code> and <code>issubclass</code> checks will work in the expected way.</p>
+<p>This functionality can be handy for situations when you want to support both local filepaths and cloud storage filepaths. If you use <code>AnyPath</code>, your code can switch between them seamlessly based on the contents of provided filepaths without the need of any <code>if</code>-<code>else</code> conditional blocks.</p>
+<h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnyPath</span>
+
+<span class="n">path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;mydir/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">path</span>
+<span class="c1">#&gt; PosixPath(&#39;mydir/myfile.txt&#39;)</span>
+
+<span class="n">cloud_path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;s3://mybucket/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">cloud_path</span>
+<span class="c1">#&gt; S3Path(&#39;s3://mybucket/myfile.txt&#39;)</span>
+
+<span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">AnyPath</span><span class="p">)</span>
+<span class="c1">#&gt; True</span>
+<span class="nb">isinstance</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">AnyPath</span><span class="p">)</span>
+<span class="c1">#&gt; True</span>
+</code></pre></div>
+<h2 id="file-uri-scheme"><code>file:</code> URI Scheme<a class="headerlink" href="#file-uri-scheme" title="Permanent link">&para;</a></h2>
+<p><code>AnyPath</code> also supports the <a href="https://en.wikipedia.org/wiki/File_URI_scheme"><code>file:</code> URI scheme</a> <em>for paths that can be referenced with pathlib</em> and returns a <code>Path</code> instance for those paths. If you need to roundtrip back to a <code>file:</code> URI, you can use the <code>Path.as_uri</code> method after any path manipulations that you do.</p>
+<p>For example:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnyPath</span>
+
+<span class="c1"># hostname omitted variant</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;file:/root/mydir/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">path</span>
+<span class="c1">#&gt; PosixPath(&#39;/root/mydir/myfile.txt&#39;)</span>
+
+<span class="c1"># explicit local path variant</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;file:///root/mydir/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">path</span>
+<span class="c1">#&gt; PosixPath(&#39;/root/mydir/myfile.txt&#39;)</span>
+
+<span class="c1"># manipulate the path and return the file:// URI</span>
+<span class="n">parent_uri</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">as_uri</span><span class="p">()</span>
+<span class="n">parent_uri</span>
+<span class="c1">#&gt; &#39;file:///root/mydir&#39;</span>
+</code></pre></div>
+<h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
+<p>The constructor for <code>AnyPath</code> will first attempt to run the input through the <code>CloudPath</code> base class' constructor, which will validate the input against registered concrete <code>CloudPath</code> implementations. This will accept inputs that are already a cloud path class or a string with the appropriate URI scheme prefix (e.g., <code>s3://</code>). If no implementation validates successfully, it will then try to run the input through the <code>Path</code> constructor. If the <code>Path</code> constructor fails and raises a <code>TypeError</code>, then the <code>AnyPath</code> constructor will raise an <code>AnyPathTypeError</code> exception.</p>
+<p>The virtual superclass functionality with <code>isinstance</code> and <code>issubclass</code> with the <code>__instancecheck__</code> and <code>__subclasscheck__</code> special methods per <a href="https://www.python.org/dev/peps/pep-3119/#overloading-isinstance-and-issubclass">PEP 3119</a>'s specification.</p>
+<hr />
+<p><sup>Examples created with <a href="https://github.com/jayqi/reprexlite">reprexlite</a></sup></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1047,10 +1226,10 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "/stable", "features": ["navigation.sections", "navigation.expand"], "search": "/stable/assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.sections", "navigation.expand"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="/stable/assets/javascripts/bundle.50899def.min.js"></script>
+      <script src="../assets/javascripts/bundle.50899def.min.js"></script>
       
     
   </body>
