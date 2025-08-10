@@ -35,7 +35,7 @@ __all__ = [
     "HttpsClient",
     "HttpPath",
     "HttpsPath",
-    "patch_open"
+    "patch_open",
     "patch_glob",
     "patch_os_functions",
     "S3Client",
@@ -55,4 +55,4 @@ if bool(os.environ.get("CLOUDPATHLIB_PATCH_GLOB", "")):
 if bool(os.environ.get("CLOUDPATHLIB_PATCH_ALL", "")):
     patch_open()
     patch_os_functions()
-    patch_glob
+    patch_glob()
