@@ -316,7 +316,7 @@ def _cloudpath_glob_iglob(
 
     elif isinstance(pathname, CloudPath):
         if root_dir is not None:
-            InvalidGlobArgumentsError(
+            raise InvalidGlobArgumentsError(
                 "If pathname is a CloudPath, root_dir must also be a CloudPath or None."
             )
 

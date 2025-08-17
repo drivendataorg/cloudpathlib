@@ -27,12 +27,12 @@
 # ## Setting with environment variables
 # 
 # These methods can be enabled by setting the following environment variables:
-#  - `CLOUDPATHLIB_PACTH_ALL=1` - patch all the builtins we implement: `open`, `os` functions, and `glob`
-#  - `CLOUDPATHLIB_PACTH_OPEN=1` - patch the builtin `open` method
-#  - `CLOUDPATHLIB_PACTH_OS_FUNCTIONS=1` - patch the `os` functions
-#  - `CLOUDPATHLIB_PACTH_GLOB=1` - patch the `glob` module
+#  - `CLOUDPATHLIB_PATCH_ALL=1` - patch all the builtins we implement: `open`, `os` functions, and `glob`
+#  - `CLOUDPATHLIB_PATCH_OPEN=1` - patch the builtin `open` method
+#  - `CLOUDPATHLIB_PATCH_OS_FUNCTIONS=1` - patch the `os` functions
+#  - `CLOUDPATHLIB_PATCH_GLOB=1` - patch the `glob` module
 # 
-# You can set environment variables in many ways, but it is common to either pass it at the command line with something like `CLOUDPATHLIB_PACTH_ALL=1 python my_script.py` or to set it in your Python script with `os.environ['CLOUDPATHLIB_PACTH_ALL'] = 1`. Note, these _must_ be set before any `cloudpathlib` methods are imported.
+# You can set environment variables in many ways, but it is common to either pass it at the command line with something like `CLOUDPATHLIB_PATCH_ALL=1 python my_script.py` or to set it in your Python script with `os.environ['CLOUDPATHLIB_PATCH_ALL'] = 1`. Note, these _must_ be set before any `cloudpathlib` methods are imported.
 # 
 # ## Setting with patch methods globally
 # 
@@ -52,7 +52,7 @@
 # 
 # ## Setting with a context manager
 # 
-# Finally, you can control the scope which the patach is used with a context manager. For example, you may have just one call to an external library that is failing to accept `CloudPath`. You can limit the patch effect to that call by using a context manager, which will remove the patch at the end of the block. This is useful if you want to patch the functions for a specific block of code but not for the rest of the application.
+# Finally, you can control the scope which the patch is used with a context manager. For example, you may have just one call to an external library that is failing to accept `CloudPath`. You can limit the patch effect to that call by using a context manager, which will remove the patch at the end of the block. This is useful if you want to patch the functions for a specific block of code but not for the rest of the application.
 # 
 # ```python
 # from cloudpathlib import patch_all_builtins
@@ -75,7 +75,7 @@
 # 
 # Here's an example that would not work unless you patch the built-ins (for example, if you depend on a third-party library that calls `open`).
 # 
-# It will fail with an `OverwriteNewerLocalError` becasuse `read_text` tries to download from the cloud to a cache path that has been updated locally (but, crucially, not rewritten back to the cloud).
+# It will fail with an `OverwriteNewerLocalError` because `read_text` tries to download from the cloud to a cache path that has been updated locally (but, crucially, not rewritten back to the cloud).
 # 
 
 # Imagine that deep in a third-party library a function is implemented like this
@@ -218,7 +218,7 @@ with patch_all_builtins():
 
 import pandas as pd
 
-df = pd.DataFrame([[0, 1], [2, 3]], columns=['a', 'b'])
+df = pd.DataFrame([[0, 1], [2, 3]], columns=["a", "b"])
 
 cloud_path = base / "data.csv"
 
@@ -234,5 +234,4 @@ with cloud_path.open("w") as f:
 
 assert cloud_path.exists()
 print("Successfully wrote to ", cloud_path)
-
 
