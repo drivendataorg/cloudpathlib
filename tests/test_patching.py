@@ -7,7 +7,7 @@ import tempfile
 
 import pytest
 
-from cloudpathlib import patch_open, patch_os_functions, patch_glob
+from cloudpathlib import patch_open, patch_os_functions, patch_glob, patch_all_builtins
 import cloudpathlib
 from cloudpathlib.cloudpath import CloudPath
 
@@ -626,3 +626,36 @@ def test_patch_glob_edge_cases(rig):
         result = glob.glob(test_dir / "[0-9]*.txt")
         assert len(result) == 1
         assert "123file.txt" in str(result[0])
+
+
+def test_patch_all_builtins_simple(rig):
+    cp = rig.create_cloud_path("dir_0/new_file_patch_all.txt")
+    test_dir = rig.create_cloud_path("test_patch_all_dir/")
+
+    # Without patch, opening a CloudPath should fail
+    with pytest.raises(FileNotFoundError):
+        with open(cp, "w") as f:
+            f.write("Hello!")
+
+    # With all builtins patched, open, os.path, and glob should work
+    with patch_all_builtins():
+        # Test open patching
+        with open(cp, "w") as f:
+            f.write("Hello!")
+        assert cp.read_text() == "Hello!"
+
+        # Test os.path patching
+        assert os.path.exists(cp)
+        assert os.path.isfile(cp)
+        assert os.path.basename(cp) == "new_file_patch_all.txt"
+
+        # Test glob patching
+        test_dir.mkdir(exist_ok=True)
+        glob_file1 = test_dir / "glob1.txt"
+        glob_file2 = test_dir / "glob2.txt"
+        glob_file1.write_text("content1")
+        glob_file2.write_text("content2")
+
+        result = glob.glob(test_dir / "*.txt")
+        assert len(result) == 2
+        assert all(isinstance(p, type(test_dir)) for p in result)

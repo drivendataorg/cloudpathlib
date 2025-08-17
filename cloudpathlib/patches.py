@@ -378,3 +378,25 @@ class _GlobPatch:
 
 def patch_glob():
     return _GlobPatch()
+
+
+class _PatchAllBuiltins:
+    def __init__(self):
+        self.patch_open = patch_open()
+        self.patch_os_functions = patch_os_functions()
+        self.patch_glob = patch_glob()
+
+    def __enter__(self):
+        self.patch_open.__enter__()
+        self.patch_os_functions.__enter__()
+        self.patch_glob.__enter__()
+        return
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.patch_open.__exit__(exc_type, exc_value, traceback)
+        self.patch_os_functions.__exit__(exc_type, exc_value, traceback)
+        self.patch_glob.__exit__(exc_type, exc_value, traceback)
+
+
+def patch_all_builtins():
+    return _PatchAllBuiltins()

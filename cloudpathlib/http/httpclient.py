@@ -79,6 +79,12 @@ class HttpClient(Client):
                 "content_type": response.headers.get("Content-Type", None),
             }
 
+    def _is_file_or_dir(self, cloud_path: HttpPath) -> Optional[str]:
+        if self.dir_matcher(cloud_path.as_url()):
+            return "dir"
+        else:
+            return "file"
+
     def _download_file(self, cloud_path: HttpPath, local_path: Union[str, os.PathLike]) -> Path:
         local_path = Path(local_path)
         with self.opener.open(cloud_path.as_url()) as response:

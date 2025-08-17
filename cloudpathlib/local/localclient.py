@@ -118,6 +118,14 @@ class LocalClient(Client):
 
         return self._cloud_path_to_local(cloud_path).is_file(**kwargs)
 
+    def _is_file_or_dir(self, cloud_path: "LocalPath") -> Optional[str]:
+        if self._is_dir(cloud_path):
+            return "dir"
+        elif self._is_file(cloud_path):
+            return "file"
+        else:
+            raise FileNotFoundError(f"Path could not be identified as file or dir: {cloud_path}")
+
     def _list_dir(
         self, cloud_path: "LocalPath", recursive=False
     ) -> Iterable[Tuple["LocalPath", bool]]:
