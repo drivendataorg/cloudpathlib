@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://cloudpathlib.drivendata.org/stable/script/testing_mocked_cloudpathlib/">
+        <link rel="canonical" href="https://cloudpathlib.drivendata.org/stable/script/patching_builtins/">
       
       
       
@@ -20,7 +20,7 @@
     
     
       
-        <title>Testing code that uses cloudpathlib - cloudpathlib</title>
+        <title>Compatibility - cloudpathlib</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#testing-code-that-uses-cloudpathlib" class="md-skip">
+        <a href="#compatibility" class="md-skip">
           Skip to content
         </a>
       
@@ -107,7 +107,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Testing code that uses cloudpathlib
+              Compatibility
             
           </span>
         </div>
@@ -1038,65 +1038,64 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cloudpathliblocal-module" class="md-nav__link">
+  <a href="#patching-python-builtins-third-party-library-compatibility" class="md-nav__link">
     <span class="md-ellipsis">
-      cloudpathlib.local module
+      Patching Python builtins (third-party library compatibility)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#examples-monkeypatching-in-pytest" class="md-nav__link">
+  <a href="#differences-in-reading-versus-writing-to" class="md-nav__link">
     <span class="md-ellipsis">
-      Examples: Monkeypatching in pytest
+      Differences in reading versus writing to
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Examples: Monkeypatching in pytest">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-with-environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting with environment variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-with-patch-methods-globally" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting with patch methods globally
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-with-a-context-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting with a context manager
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#patching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Patching
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Patching">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#patching-direct-instantiation" class="md-nav__link">
+  <a href="#patching-in-jupyter-notebooks" class="md-nav__link">
     <span class="md-ellipsis">
-      Patching direct instantiation
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#patching-cloudpath-dispatch" class="md-nav__link">
-    <span class="md-ellipsis">
-      Patching CloudPath dispatch
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#setting-up-test-assets" class="md-nav__link">
-    <span class="md-ellipsis">
-      Setting up test assets
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Setting up test assets">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-use-local-path-class-methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Use local path class methods.
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-get-a-object-that-points-to-the-local-storage-directory" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Get a object that points to the local storage directory.
+      Patching in Jupyter notebooks
     </span>
   </a>
   
@@ -1106,9 +1105,22 @@
     </nav>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#examples-ospath-functions-with-cloudpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples: os.path functions with CloudPath
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples-glob-with-cloudpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples: glob with CloudPath
+    </span>
+  </a>
   
 </li>
       
@@ -1568,7 +1580,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <!-- End of mermaid configuration --><div class="jupyter-wrapper">
 <div class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
 <div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=91c7ef9a">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=e58b9526">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1595,94 +1607,88 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=3688dcb2">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=20677b10">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="testing-code-that-uses-cloudpathlib">Testing code that uses cloudpathlib<a class="anchor-link" href="#testing-code-that-uses-cloudpathlib">¶</a></h1>
+<h1 id="compatibility">Compatibility<a class="anchor-link" href="#compatibility">¶</a></h1>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ba980165">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=080e2225">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>Testing code that interacts with external resources can be a pain. For automated unit tests, the best practice is to mock connections. We provide some tools in cloudpathlib to make mocking easier.</p>
+<h2 id="patching-python-builtins-third-party-library-compatibility">Patching Python builtins (third-party library compatibility)<a class="anchor-link" href="#patching-python-builtins-third-party-library-compatibility">¶</a></h2><p>Not every Python library in the broad universe of Python libraries is implemented to accept pathlib-compatible objects like those implemented by cloudpathlib. Many libraries will only accept strings as filepaths. These libraries internally use <code>open</code>, functions from <code>os</code> and <code>os.path</code>, or other core library modules like <code>glob</code> to navigate paths and manipulate them.</p>
+<p>This means that out-of-the-box you can't just pass a <code>CloudPath</code> object to any library. For those implemented with <code>pathlib</code>, this will work. For anything else the code will throw an exception at some point.</p>
+<p>The long-term solution is to ask developers to implement their library to support either (1) pathlib-compatible objects for files and directories, or (2) file-like objects passed directly (e.g., so you could call <code>CloudPath.open</code> in your code and pass the the file-like object to the library).</p>
+<p>The near-term workaround that will be compatible with some libraries is to patch the builtins to make <code>open</code>, <code>os</code>, <code>os.path</code>, and <code>glob</code> work with <code>CloudPath</code> objects. Because this overrides default Python functionality, this is not on by default. When patched, these functions will use the <code>CloudPath</code> version if they are passed a <code>CloudPath</code> and will fallback to their normal implementations otherwise.</p>
+<p>There are three ways to enable these patches: environment variables, globally with a function call, or just in a specific context with a context manager.</p>
+<h2 id="differences-in-reading-versus-writing-to-cloudpath">Differences in reading versus writing to <code>CloudPath</code><a class="anchor-link" href="#differences-in-reading-versus-writing-to-cloudpath">¶</a></h2><p>A major reason to patch these builtins is if you want to write to a <code>CloudPath</code> with a third party library. For scenarios where you are reading files, you may not need to do any patching. Many python libraries support using <a href="https://docs.python.org/3/library/os.html#os.PathLike.__fspath__"><code>__fspath__</code></a> to get the location of a file on disk.</p>
+<p>We implement <code>CloudPath.__fspath__</code>, which will cache the file to the local disk and provide that file path as a string to any library that uses <code>fspath</code>. This works well for reading files, but not for writing them. Because there is no callback to our code once that filepath gets written to, we can't see changes and then push those changes from the cache back to the cloud (see related discussions in <a href="https://github.com/drivendataorg/cloudpathlib/issues/73">#73</a>, <a href="https://github.com/drivendataorg/cloudpathlib/issues/128">#128</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/140">#140</a>). In many scenarios our code will never get called again.</p>
+<p>For this reason, it is better to patch the built-in functions to handle <code>CloudPath</code> objects rather than rely on <code>__fspath__</code>, especially if you are writing to these files.</p>
+<h2 id="setting-with-environment-variables">Setting with environment variables<a class="anchor-link" href="#setting-with-environment-variables">¶</a></h2><p>These methods can be enabled by setting the following environment variables:</p>
+<ul>
+<li><code>CLOUDPATHLIB_PATCH_ALL=1</code> - patch all the builtins we implement: <code>open</code>, <code>os</code> functions, and <code>glob</code></li>
+<li><code>CLOUDPATHLIB_PATCH_OPEN=1</code> - patch the builtin <code>open</code> method</li>
+<li><code>CLOUDPATHLIB_PATCH_OS_FUNCTIONS=1</code> - patch the <code>os</code> functions</li>
+<li><code>CLOUDPATHLIB_PATCH_GLOB=1</code> - patch the <code>glob</code> module</li>
+</ul>
+<p>You can set environment variables in many ways, but it is common to either pass it at the command line with something like <code>CLOUDPATHLIB_PATCH_ALL=1 python my_script.py</code> or to set it in your Python script with <code>os.environ['CLOUDPATHLIB_PATCH_ALL'] = 1</code>. Note, these <em>must</em> be set before any <code>cloudpathlib</code> methods are imported.</p>
+<h2 id="setting-with-patch-methods-globally">Setting with patch methods globally<a class="anchor-link" href="#setting-with-patch-methods-globally">¶</a></h2><p>Instead of setting environment variables, you can call methods to patch the functions. For example, you may call these at import time in your application or script. This will use the patched methods throughout your application.</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">patch_all_builtins</span><span class="p">,</span> <span class="n">patch_open</span><span class="p">,</span> <span class="n">patch_os_functions</span><span class="p">,</span> <span class="n">patch_glob</span>
+
+<span class="c1"># patch the builtins your code or a library that you call uses</span>
+<span class="n">patch_open</span><span class="p">()</span>
+<span class="n">patch_os_functions</span><span class="p">()</span>
+<span class="n">patch_glob</span><span class="p">()</span>
+
+<span class="c1"># or, if you want all of these at once</span>
+<span class="n">patch_all_builtins</span><span class="p">()</span>
+</pre></div>
+<h2 id="setting-with-a-context-manager">Setting with a context manager<a class="anchor-link" href="#setting-with-a-context-manager">¶</a></h2><p>Finally, you can control the scope which the patch is used with a context manager. For example, you may have just one call to an external library that is failing to accept <code>CloudPath</code>. You can limit the patch effect to that call by using a context manager, which will remove the patch at the end of the block. This is useful if you want to patch the functions for a specific block of code but not for the rest of the application.</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">patch_all_builtins</span>
+
+<span class="k">with</span> <span class="n">patch_all_builtins</span><span class="p">():</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+<p>This is the narrowest, most targeted way to update the builtin Python methods that don't just work with <code>CloudPath</code> objects.</p>
+<p>Next, we'll walk through some examples of patching and using these methods.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=1b43ee32">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=2d52b4a5">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="cloudpathliblocal-module">cloudpathlib.local module<a class="anchor-link" href="#cloudpathliblocal-module">¶</a></h2><p>In the <code>cloudpathlib.local</code> module, we provide "Local" classes that use the local filesystem in place of cloud storage. These classes are drop-in replacements for the normal cloud path classes, with the intent that you can use them as mock or monkeypatch substitutes in your tests.</p>
-<p>We also provide <code>CloudImplementation</code> objects which can be used to replace a registered implementation in the <code>cloudpathlib.implementation_registry</code> dictionary. Replacing the registered implementation will make <code>CloudPath</code>'s automatic dispatching use the replacement.</p>
-<p>See the examples below for how to use these replacements in your tests.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">Cloud Provider</th>
-<th style="text-align:left">Standard Classes</th>
-<th style="text-align:left">Local Classes</th>
-<th style="text-align:left">Local Implementation Object</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">Azure Blob Storage</td>
-<td style="text-align:left"><code>AzureBlobClient</code><br/><code>AzureBlobPath</code></td>
-<td style="text-align:left"><code>LocalAzureBlobCient</code><br/><code>LocalAzureBlobPath</code></td>
-<td style="text-align:left"><code>local_azure_blob_implementation</code></td>
-</tr>
-<tr>
-<td style="text-align:left">Google Cloud Storage</td>
-<td style="text-align:left"><code>GSClient</code><br/><code>GSPath</code></td>
-<td style="text-align:left"><code>LocalGSClient</code><br/><code>LocalGSPath</code></td>
-<td style="text-align:left"><code>local_gs_implementation</code></td>
-</tr>
-<tr>
-<td style="text-align:left">Amazon S3</td>
-<td style="text-align:left"><code>S3Client</code><br/><code>S3Path</code></td>
-<td style="text-align:left"><code>LocalS3Client</code><br/><code>LocalS3Path</code></td>
-<td style="text-align:left"><code>local_s3_implementation</code></td>
-</tr>
-</tbody>
-</table>
+<p>We can see a similar result for patching the functions in the <code>os</code> module.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e984247f">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a5065ce8">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="examples-monkeypatching-in-pytest">Examples: Monkeypatching in pytest<a class="anchor-link" href="#examples-monkeypatching-in-pytest">¶</a></h2>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=37dc656b">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>In this section, we will show a few examples of how to mock cloudpathlib classes in the popular <a href="https://docs.pytest.org/en/stable/contents.html">pytest</a> framework using its <a href="https://docs.pytest.org/en/stable/monkeypatch.html">monkeypatch</a> feature. The general principles should work equivalently if you are using <a href="https://docs.python.org/3/library/unittest.mock.html">unittest.mock</a> from the Python standard library. If you are new to mocking or having trouble applying it, we recommend you read and understand <a href="https://docs.python.org/3/library/unittest.mock.html#where-to-patch">"Where to patch"</a>.</p>
+<h2 id="patching-open">Patching <code>open</code><a class="anchor-link" href="#patching-open">¶</a></h2><p>Sometimes code uses the Python built-in <code>open</code> to open files and operate on them. In those cases, passing a <code>CloudPath</code> will fail. You can patch the built-in <code>open</code> so that when a <code>CloudPath</code> is provided it uses <code>CloudPath.open</code>, otherwise defers to the original behavior.</p>
+<p>Here's an example that would not work unless you patch the built-ins (for example, if you depend on a third-party library that calls <code>open</code>).</p>
+<p>It will fail with an <code>OverwriteNewerLocalError</code> because <code>read_text</code> tries to download from the cloud to a cache path that has been updated locally (but, crucially, not rewritten back to the cloud).</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=ccf27ce6">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=ddf43600">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1700,16 +1706,22 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ipytest</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Imagine that deep in a third-party library a function is implemented like this</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">library_function</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"hello!"</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-2">import ipytest</div>
+<div class="clipboard-copy-txt" id="cell-2"># Imagine that deep in a third-party library a function is implemented like this
+def library_function(filepath: str):
+    with open(filepath, "w") as f:
+        f.write("hello!")</div>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=75bfe5cb">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=c9c8aa2e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1727,41 +1739,16 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">ipytest</span><span class="o">.</span><span class="n">autoconfig</span><span class="p">()</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-3">ipytest.autoconfig()</div>
+<div class="clipboard-copy-txt" id="cell-3">from cloudpathlib import CloudPath</div>
 </div>
 </div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f9e74e1d">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="patching-direct-instantiation">Patching direct instantiation<a class="anchor-link" href="#patching-direct-instantiation">¶</a></h3>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=04b0a63a">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>In this example, we are testing a function <code>write</code> that directly instantiates a path using the <code>S3Path</code> constructor.</p>
-<p>Normally, calling <code>write</code> would either write to the real S3 bucket if able to authenticate, or it would fail with an error like <code>botocore.exceptions.NoCredentialsError</code>.</p>
-<p>We use <code>monkeypatch</code> to replace the reference to <code>S3Path</code> being used with <code>LocalS3Path</code>. Our write succeeds (despite not being authenticated), and we can double-check that the cloud path object returned is actually an instance of <code>LocalS3Path</code>.</p>
-<p>Note that if you are writing tests for a package, and you import <code>write</code> from another module, you should patch the reference to <code>S3Path</code> from that module instead.</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=769631e2">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=858ca16e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1779,28 +1766,18 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">run_cell_magic</span><span class="p">(</span><span class="s1">'run_pytest[clean]'</span><span class="p">,</span> <span class="s1">''</span><span class="p">,</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">import cloudpathlib</span><span class="se">\n</span><span class="s1">from cloudpathlib.local import LocalS3Path</span><span class="se">\n\n\n</span><span class="s1">def write(uri: str):</span><span class="se">\n</span><span class="s1">    """Function that uses S3Path."""</span><span class="se">\n</span><span class="s1">    cloud_path = cloudpathlib.S3Path(uri)</span><span class="se">\n</span><span class="s1">    cloud_path.write_text("cumulonimbus")</span><span class="se">\n</span><span class="s1">    return cloud_path</span><span class="se">\n\n\n</span><span class="s1">def test_write_monkeypatch(monkeypatch):</span><span class="se">\n</span><span class="s1">    """Testing function using S3Path, patching with LocalS3Path."""</span><span class="se">\n\n</span><span class="s1">    monkeypatch.setattr(cloudpathlib, "S3Path", LocalS3Path)</span><span class="se">\n\n</span><span class="s1">    cloud_path = write("s3://cloudpathlib-test-bucket/cumulonimbus.txt")</span><span class="se">\n</span><span class="s1">    assert isinstance(cloud_path, LocalS3Path)</span><span class="se">\n</span><span class="s1">    assert cloud_path.read_text() == "cumulonimbus"</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># create file to read</span>
+<span class="n">cp</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/patching_builtins/new_file.txt"</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-4">get_ipython().run_cell_magic('run_pytest[clean]', '', '\nimport cloudpathlib\nfrom cloudpathlib.local import LocalS3Path\n\n\ndef write(uri: str):\n    """Function that uses S3Path."""\n    cloud_path = cloudpathlib.S3Path(uri)\n    cloud_path.write_text("cumulonimbus")\n    return cloud_path\n\n\ndef test_write_monkeypatch(monkeypatch):\n    """Testing function using S3Path, patching with LocalS3Path."""\n\n    monkeypatch.setattr(cloudpathlib, "S3Path", LocalS3Path)\n\n    cloud_path = write("s3://cloudpathlib-test-bucket/cumulonimbus.txt")\n    assert isinstance(cloud_path, LocalS3Path)\n    assert cloud_path.read_text() == "cumulonimbus"\n')</div>
+<div class="clipboard-copy-txt" id="cell-4"># create file to read
+cp = CloudPath("s3://cloudpathlib-test-bucket/patching_builtins/new_file.txt")</div>
 </div>
 </div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=b0ee9b3e">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="patching-cloudpath-dispatch">Patching CloudPath dispatch<a class="anchor-link" href="#patching-cloudpath-dispatch">¶</a></h3><p>In this example, we are testing a function <code>write_with_dispatch</code> that uses the <code>CloudPath</code> constructor which dispatches to <code>S3Path</code> based on the <code>"s3://"</code> URI scheme.</p>
-<p>In order to change the dispatch behavior, we need to patch the cloudpathlib <code>implementation_registry</code>. The registry object is a dictionary (actually <code>defaultdict</code>) that holds meta <code>CloudImplementation</code> objects for each cloud storage service.</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=c67c543b">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=4499c37e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1818,16 +1795,45 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">implementation_registry</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">library_function</span><span class="p">(</span><span class="n">cp</span><span class="p">)</span>
+
+    <span class="c1"># read the text that was written</span>
+    <span class="k">assert</span> <span class="n">cp</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"hello!"</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-5">from cloudpathlib import implementation_registry</div>
+<div class="clipboard-copy-txt" id="cell-5">try:
+    library_function(cp)
+
+    # read the text that was written
+    assert cp.read_text() == "hello!"
+except Exception as e:
+    print(type(e))
+    print(e)</div>
 </div>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=a5d76771">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="patching-open-in-jupyter-notebooks">Patching <code>open</code> in Jupyter notebooks<a class="anchor-link" href="#patching-open-in-jupyter-notebooks">¶</a></h3><p>Since this documentation runs as a Jupyter notebook, there is an extra step to patch <code>open</code>. Jupyter notebooks inject their own <code>open</code> into the user namespace. After enabling the patch, ensure the notebook's <code>open</code> refers to the patched built-in:</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">patch_open</span>
+
+<span class="nb">open</span> <span class="o">=</span> <span class="n">patch_open</span><span class="p">()</span><span class="o">.</span><span class="n">patched</span>   <span class="c1"># rebind notebook's open to the patched version</span>
+</pre></div>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=df0f6dec">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=42421aa6">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1845,27 +1851,16 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">implementation_registry</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span><span class="p">,</span> <span class="n">patch_open</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-6">implementation_registry</div>
+<div class="clipboard-copy-txt" id="cell-6">from cloudpathlib import CloudPath, patch_open</div>
 </div>
 </div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=01454239">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>We use <code>monkeypatch</code> to replace the <code>CloudImplementation</code> object in the registry that is keyed to <code>"s3"</code> with the <code>local_s3_implementation</code> object that we import from the <code>cloudpathlib.local</code> module. Our write succeeds, and we can double-check that the created cloud path object is indeed a <code>LocalS3Path</code> instance.</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=06b78ce5">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=0de50981">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1883,44 +1878,18 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">run_cell_magic</span><span class="p">(</span><span class="s1">'run_pytest[clean]'</span><span class="p">,</span> <span class="s1">''</span><span class="p">,</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">from cloudpathlib import CloudPath, implementation_registry</span><span class="se">\n</span><span class="s1">from cloudpathlib.local import LocalS3Path, local_s3_implementation</span><span class="se">\n\n\n</span><span class="s1">def write_with_dispatch(uri: str):</span><span class="se">\n</span><span class="s1">    """Function that uses CloudPath to dispatch to S3Path."""</span><span class="se">\n</span><span class="s1">    cloud_path = CloudPath(uri)</span><span class="se">\n</span><span class="s1">    cloud_path.write_text("cirrocumulus")</span><span class="se">\n</span><span class="s1">    return cloud_path</span><span class="se">\n\n\n</span><span class="s1">def test_write_with_dispatch_monkeypatch(monkeypatch):</span><span class="se">\n</span><span class="s1">    """Testing function using CloudPath dispatch, patching registered implementation. Will pass."""</span><span class="se">\n\n</span><span class="s1">    monkeypatch.setitem(implementation_registry, "s3", local_s3_implementation)</span><span class="se">\n\n</span><span class="s1">    cloud_path = write_with_dispatch("s3://cloudpathlib-test-bucket/cirrocumulus.txt")</span><span class="se">\n</span><span class="s1">    assert isinstance(cloud_path, LocalS3Path)</span><span class="se">\n</span><span class="s1">    assert cloud_path.read_text() == "cirrocumulus"</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># enable patch and rebind notebook's open</span>
+<span class="nb">open</span> <span class="o">=</span> <span class="n">patch_open</span><span class="p">()</span><span class="o">.</span><span class="n">patched</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-7">get_ipython().run_cell_magic('run_pytest[clean]', '', '\nfrom cloudpathlib import CloudPath, implementation_registry\nfrom cloudpathlib.local import LocalS3Path, local_s3_implementation\n\n\ndef write_with_dispatch(uri: str):\n    """Function that uses CloudPath to dispatch to S3Path."""\n    cloud_path = CloudPath(uri)\n    cloud_path.write_text("cirrocumulus")\n    return cloud_path\n\n\ndef test_write_with_dispatch_monkeypatch(monkeypatch):\n    """Testing function using CloudPath dispatch, patching registered implementation. Will pass."""\n\n    monkeypatch.setitem(implementation_registry, "s3", local_s3_implementation)\n\n    cloud_path = write_with_dispatch("s3://cloudpathlib-test-bucket/cirrocumulus.txt")\n    assert isinstance(cloud_path, LocalS3Path)\n    assert cloud_path.read_text() == "cirrocumulus"\n')</div>
+<div class="clipboard-copy-txt" id="cell-7"># enable patch and rebind notebook's open
+open = patch_open().patched</div>
 </div>
 </div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=9224c848">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="setting-up-test-assets">Setting up test assets<a class="anchor-link" href="#setting-up-test-assets">¶</a></h3>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7d388b0d">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<p>In this example, we set up test assets in a pytest fixture before running our tests. (We also do the monkeypatching in the fixture—a code pattern for better reuse.)</p>
-<p>There are two options for interacting with the storage backend for the local path classes. The example fixture below shows both options in action.</p>
-<h4 id="1-use-local-path-class-methods">1. Use local path class methods.<a class="anchor-link" href="#1-use-local-path-class-methods">¶</a></h4><p>This is the easiest and most direct approach. For example, <code>LocalS3Path</code> is fully functional and implements the same methods as <code>S3Path</code>.</p>
-<h4 id="2-get-a-pathlibpath-object-that-points-to-the-local-storage-directory">2. Get a <code>pathlib.Path</code> object that points to the local storage directory.<a class="anchor-link" href="#2-get-a-pathlibpath-object-that-points-to-the-local-storage-directory">¶</a></h4><p>Each <code>LocalClient</code> class has a <code>TemporaryDirectory</code> instance that serves as its default local storage location. This is stored as an attribute of the class so that it persists across client instances. (For real cloud clients, authenticating multiple times to the same storage location doesn't affect the contents.)</p>
-<p>You can use the <code>get_default_storage_dir</code> class method to get back a <code>pathlib.Path</code> object for that directory. Then you can use whatever <code>pathlib</code> or <code>shutil</code> functions to interact with it.</p>
-<hr/>
-<p>Finally, the <code>reset_default_storage_dir</code> class method will clean up the current local storage temporary directory and set up a new one. We recommend you do this in the teardown of the test fixture.</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=d145b991">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=bc571b2b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1938,9 +1907,718 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">run_cell_magic</span><span class="p">(</span><span class="s1">'run_pytest[clean]'</span><span class="p">,</span> <span class="s1">''</span><span class="p">,</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">import pytest</span><span class="se">\n\n</span><span class="s1">from cloudpathlib import CloudPath, implementation_registry</span><span class="se">\n</span><span class="s1">from cloudpathlib.local import LocalS3Client, LocalS3Path, local_s3_implementation</span><span class="se">\n\n\n</span><span class="s1">@pytest.fixture</span><span class="se">\n</span><span class="s1">def cloud_asset_file(monkeypatch):</span><span class="se">\n</span><span class="s1">    """Fixture that patches CloudPath dispatch and also sets up test assets in LocalS3Client</span><span class="se">\'</span><span class="s1">s</span><span class="se">\n</span><span class="s1">    local storage directory."""</span><span class="se">\n\n</span><span class="s1">    monkeypatch.setitem(implementation_registry, "s3", local_s3_implementation)</span><span class="se">\n\n</span><span class="s1">    # Option 1: Use LocalS3Path to set up test assets directly</span><span class="se">\n</span><span class="s1">    local_cloud_path = LocalS3Path("s3://cloudpathlib-test-bucket/altostratus.txt")</span><span class="se">\n</span><span class="s1">    local_cloud_path.write_text("altostratus")</span><span class="se">\n</span><span class="s1">    </span><span class="se">\n</span><span class="s1">    # Option 2: Use the pathlib.Path object that points to the local storage directory</span><span class="se">\n</span><span class="s1">    local_pathlib_path: Path = (</span><span class="se">\n</span><span class="s1">        LocalS3Client.get_default_storage_dir() / "cloudpathlib-test-bucket" / "nimbostratus.txt"</span><span class="se">\n</span><span class="s1">    )</span><span class="se">\n</span><span class="s1">    local_pathlib_path.parent.mkdir(exist_ok=True, parents=True)</span><span class="se">\n</span><span class="s1">    local_pathlib_path.write_text("nimbostratus")</span><span class="se">\n\n</span><span class="s1">    yield</span><span class="se">\n\n</span><span class="s1">    LocalS3Client.reset_default_storage_dir()  # clean up temp directory and replace with new one</span><span class="se">\n\n\n</span><span class="s1">def test_with_assets(cloud_asset_file):</span><span class="se">\n</span><span class="s1">    """Testing that a patched CloudPath finds the test asset created in the fixture."""</span><span class="se">\n\n</span><span class="s1">    cloud_path_1 = CloudPath("s3://cloudpathlib-test-bucket/altostratus.txt")</span><span class="se">\n</span><span class="s1">    assert isinstance(cloud_path_1, LocalS3Path)</span><span class="se">\n</span><span class="s1">    assert cloud_path_1.exists()</span><span class="se">\n</span><span class="s1">    assert cloud_path_1.read_text() == "altostratus"</span><span class="se">\n</span><span class="s1">    </span><span class="se">\n</span><span class="s1">    cloud_path_2 = CloudPath("s3://cloudpathlib-test-bucket/nimbostratus.txt")</span><span class="se">\n</span><span class="s1">    assert isinstance(cloud_path_2, LocalS3Path)</span><span class="se">\n</span><span class="s1">    assert cloud_path_2.exists()</span><span class="se">\n</span><span class="s1">    assert cloud_path_2.read_text() == "nimbostratus"</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># create file to read</span>
+<span class="n">cp</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/patching_builtins/file.txt"</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-8">get_ipython().run_cell_magic('run_pytest[clean]', '', '\nimport pytest\n\nfrom cloudpathlib import CloudPath, implementation_registry\nfrom cloudpathlib.local import LocalS3Client, LocalS3Path, local_s3_implementation\n\n\n@pytest.fixture\ndef cloud_asset_file(monkeypatch):\n    """Fixture that patches CloudPath dispatch and also sets up test assets in LocalS3Client\'s\n    local storage directory."""\n\n    monkeypatch.setitem(implementation_registry, "s3", local_s3_implementation)\n\n    # Option 1: Use LocalS3Path to set up test assets directly\n    local_cloud_path = LocalS3Path("s3://cloudpathlib-test-bucket/altostratus.txt")\n    local_cloud_path.write_text("altostratus")\n    \n    # Option 2: Use the pathlib.Path object that points to the local storage directory\n    local_pathlib_path: Path = (\n        LocalS3Client.get_default_storage_dir() / "cloudpathlib-test-bucket" / "nimbostratus.txt"\n    )\n    local_pathlib_path.parent.mkdir(exist_ok=True, parents=True)\n    local_pathlib_path.write_text("nimbostratus")\n\n    yield\n\n    LocalS3Client.reset_default_storage_dir()  # clean up temp directory and replace with new one\n\n\ndef test_with_assets(cloud_asset_file):\n    """Testing that a patched CloudPath finds the test asset created in the fixture."""\n\n    cloud_path_1 = CloudPath("s3://cloudpathlib-test-bucket/altostratus.txt")\n    assert isinstance(cloud_path_1, LocalS3Path)\n    assert cloud_path_1.exists()\n    assert cloud_path_1.read_text() == "altostratus"\n    \n    cloud_path_2 = CloudPath("s3://cloudpathlib-test-bucket/nimbostratus.txt")\n    assert isinstance(cloud_path_2, LocalS3Path)\n    assert cloud_path_2.exists()\n    assert cloud_path_2.read_text() == "nimbostratus"\n')</div>
+<div class="clipboard-copy-txt" id="cell-8"># create file to read
+cp = CloudPath("s3://cloudpathlib-test-bucket/patching_builtins/file.txt")</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=9bc60b67">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-9">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">library_function</span><span class="p">(</span><span class="n">cp</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">cp</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"hello!"</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Succeeded!"</span><span class="p">)</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-9">library_function(cp)
+assert cp.read_text() == "hello!"
+print("Succeeded!")</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=40a9ced4">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="examples-ospath-functions-with-cloudpath">Examples: os.path functions with CloudPath<a class="anchor-link" href="#examples-ospath-functions-with-cloudpath">¶</a></h2><p>The snippet below demonstrates common <code>os.path</code> functions when patched to accept <code>CloudPath</code> values. These calls work for <code>CloudPath</code> and still behave normally for string paths.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=ffba57ab">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-10">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-10">import os</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=a2fbd321">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-11">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">patch_os_functions</span><span class="p">,</span> <span class="n">CloudPath</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-11">from cloudpathlib import patch_os_functions, CloudPath</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=9973a87a">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-12">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">cp</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/patching_builtins/file.txt"</span><span class="p">)</span>
+<span class="n">folder</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">parent</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-12">cp = CloudPath("s3://cloudpathlib-test-bucket/patching_builtins/file.txt")
+folder = cp.parent</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=989f7a44">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-13">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">folder</span><span class="p">))</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Unpatched version fails:"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-13">try:
+    print(os.path.isdir(folder))
+except Exception as e:
+    print("Unpatched version fails:")
+    print(e)</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=10341481">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-14">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="k">with</span> <span class="n">patch_os_functions</span><span class="p">():</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Patched version of `os.path.isdir` returns: "</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"basename:"</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cp</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"dirname:"</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">cp</span><span class="p">))</span>
+
+    <span class="n">joined</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="s2">"dir"</span><span class="p">,</span> <span class="s2">"sub"</span><span class="p">,</span> <span class="s2">"name.txt"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"join:"</span><span class="p">,</span> <span class="n">joined</span><span class="p">)</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-14">with patch_os_functions():
+    result = os.path.isdir(folder)
+    print("Patched version of `os.path.isdir` returns: ", result)
+
+    print("basename:", os.path.basename(cp))
+
+    print("dirname:", os.path.dirname(cp))
+
+    joined = os.path.join(folder, "dir", "sub", "name.txt")
+    print("join:", joined)</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=ccb5f8c1">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="examples-glob-with-cloudpath">Examples: glob with CloudPath<a class="anchor-link" href="#examples-glob-with-cloudpath">¶</a></h2><p>The snippet below demonstrates <code>glob.glob</code> and <code>glob.iglob</code> working with <code>CloudPath</code> as the pattern or <code>root_dir</code> when patched.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=67830732">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-15">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">glob</span><span class="w"> </span><span class="kn">import</span> <span class="n">glob</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-15">from glob import glob</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=10bc0e6f">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-16">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">patch_glob</span><span class="p">,</span> <span class="n">CloudPath</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-16">from cloudpathlib import patch_glob, CloudPath</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=e1d6495a">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-17">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">glob</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/manual-tests/**/*dir*/**"</span><span class="p">))</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Unpatched version fails:"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-17">try:
+    glob(CloudPath("s3://cloudpathlib-test-bucket/manual-tests/**/*dir*/**"))
+except Exception as e:
+    print("Unpatched version fails:")
+    print(e)</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=7af8a7d0">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-18">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="k">with</span> <span class="n">patch_glob</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Patched succeeds:"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">glob</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/manual-tests/**/*dir*/**/*"</span><span class="p">)))</span>
+
+    <span class="c1"># or equivalently</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">glob</span><span class="p">(</span><span class="s2">"**/*dir*/**/*"</span><span class="p">,</span> <span class="n">root_dir</span><span class="o">=</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/manual-tests/"</span><span class="p">)))</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-18">with patch_glob():
+    print("Patched succeeds:")
+    print(glob(CloudPath("s3://cloudpathlib-test-bucket/manual-tests/**/*dir*/**/*")))
+
+    # or equivalently
+    print(glob("**/*dir*/**/*", root_dir=CloudPath("s3://cloudpathlib-test-bucket/manual-tests/")))</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=faf9137f">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="examples-with-third-party-libraries">Examples with third party libraries<a class="anchor-link" href="#examples-with-third-party-libraries">¶</a></h1><p>Here we show that third party libraries, like Pillow, that don't work as expected without patching the built-ins.</p>
+<p>However, if we patch built-ins, we can see the functions work as expected.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=498dfda7">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="pillow-example">Pillow example<a class="anchor-link" href="#pillow-example">¶</a></h2>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=53e98c08">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-19">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span><span class="p">,</span> <span class="n">patch_all_builtins</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-19">from cloudpathlib import CloudPath, patch_all_builtins
+from PIL import Image</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=ea0ebd67">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-20">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">base</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/patching_builtins/third_party/"</span><span class="p">)</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-20">base = CloudPath("s3://cloudpathlib-test-bucket/patching_builtins/third_party/")</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=bd7629cc">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-21">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">img_path</span> <span class="o">=</span> <span class="n">base</span> <span class="o">/</span> <span class="s2">"pillow_demo.png"</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-21">img_path = base / "pillow_demo.png"</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=48bdeb65">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-22">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Unpatched: using CloudPath directly fails</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Pillow without patch: FAILED:"</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-22"># Unpatched: using CloudPath directly fails
+try:
+    Image.new("RGB", (10, 10), color=(255, 0, 0)).save(img_path)
+except Exception as e:
+    print("Pillow without patch: FAILED:", e)</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=4fdf9bf0">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-23">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Patched: success with patching builtins</span>
+<span class="k">with</span> <span class="n">patch_all_builtins</span><span class="p">():</span>
+    <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">img_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"With patches, Pillow successfully writes to a CloudPath"</span><span class="p">)</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-23"># Patched: success with patching builtins
+with patch_all_builtins():
+    Image.new("RGB", (10, 10), color=(255, 0, 0)).save(img_path)
+
+    assert img_path.read_bytes()
+    print("With patches, Pillow successfully writes to a CloudPath")</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=c2a9ce8a">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="caveat-some-libraries-still-do-not-work">Caveat: Some libraries still do not work<a class="anchor-link" href="#caveat-some-libraries-still-do-not-work">¶</a></h2><p>Even with patches, some libraries will not work. For example, writing directly to a <code>CloudPath</code> with <code>pandas</code> is not possible because <code>pandas</code> has a complex set of IO checks it does in its own codebase.</p>
+<p>For many of these libraries (including <code>pandas</code>) using <code>CloudPath.open</code> and then passing the buffer to the functions that can read and write to those buffers is usually the cleanest workaround.</p>
+<p>For example, here is the best way to write to a <code>CloudPath</code> with <code>pandas</code>:</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=616deba1">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-24">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-24">import pandas as pd</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=398ee0ed">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-25">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">])</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-25">df = pd.DataFrame([[0, 1], [2, 3]], columns=["a", "b"])</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=78c04b4f">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-26">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">cloud_path</span> <span class="o">=</span> <span class="n">base</span> <span class="o">/</span> <span class="s2">"data.csv"</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-26">cloud_path = base / "data.csv"</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=7048f4ea">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-27">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Could not write with `to_csv` because error: "</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-27">try:
+    df.to_csv(cloud_path)
+except Exception as e:
+    print("Could not write with `to_csv` because error: ", e)</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=f1ac060e">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-28">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># instead, use .open</span>
+<span class="k">with</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-28"># instead, use .open
+with cloud_path.open("w") as f:
+    df.to_csv(f)</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=884374b0">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-29">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="k">assert</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Successfully wrote to "</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">)</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-29">assert cloud_path.exists()
+print("Successfully wrote to ", cloud_path)</div>
 </div>
 </div>
 </div>
