@@ -145,8 +145,12 @@ def test_patch_os_functions(rig):
         assert len(result) > 0
         for root, dirs, files in result:
             assert isinstance(root, CloudPath)
-            assert all(isinstance(d, CloudPath) for d in dirs)
-            assert all(isinstance(f, CloudPath) for f in files)
+            assert all(
+                isinstance(d, str) for d in dirs
+            )  # pathlib.Path.walk returns dirs as string, not Path
+            assert all(
+                isinstance(f, str) for f in files
+            )  # pathlib.Path.walk returns filenames as string, not Path
 
         # Test os.path.basename
         result = os.path.basename(test_file)
@@ -294,13 +298,6 @@ def test_patch_os_functions_mixed_usage(rig):
     finally:
         # Clean up local file
         os.unlink(local_path)
-
-
-def test_patch_glob_basic(rig):
-    """Test that glob functions are callable when patched."""
-    with patch_glob():
-        assert callable(glob.glob)
-        assert callable(glob.iglob)
 
 
 def test_patch_glob_with_strings(rig):

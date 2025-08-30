@@ -120,25 +120,11 @@ def _cloudpath_os_unlink(path, *, dir_fd=None):
 
 
 def _cloudpath_os_walk(top, topdown=True, onerror=None, followlinks=False):
-    try:
-        dirs, files = [], []
-        for p in top.iterdir():
-            dirs.append(p) if p.is_dir() else files.append(p)
-
-        if topdown:
-            yield (top, files, dirs)
-
-        for d in dirs:
-            yield from _cloudpath_os_walk(d, topdown=topdown, onerror=onerror)
-
-        if not topdown:
-            yield (top, files, dirs)
-
-    except Exception as e:
-        if onerror is not None:
-            onerror(e)
-        else:
-            raise
+    # pathlib.Path.walk returns dirs and files as string, not Path objects
+    # we follow the same convention, but since these could get used downstream,
+    # this method may need to be changed to return absolute CloudPath objects
+    # if it becomes a compatibility problem with major downstream libraries
+    yield from top.walk(top_down=topdown, on_error=onerror, follow_symlinks=followlinks)
 
 
 def _cloudpath_os_path_basename(path):

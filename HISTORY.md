@@ -1,10 +1,11 @@
 # cloudpathlib Changelog
 
-## UNRELEASED
+## v0.22.0 (2025-08-29)
 
 - Fixed issue with GS credentials, using default auth enables a wider set of authentication methods in GS (Issue [#390](https://github.com/drivendataorg/cloudpathlib/issues/390), PR [#514](https://github.com/drivendataorg/cloudpathlib/pull/514), thanks @ljyanesm) 
 - Added support for http(s) urls with `HttpClient`, `HttpPath`, `HttpsClient`, and `HttpsPath`. (Issue [#455](https://github.com/drivendataorg/cloudpathlib/issues/455), PR [#468](https://github.com/drivendataorg/cloudpathlib/pull/468))
-- Added support for patching the builtins `open`, `os`, `os.path`, and `glob` to work with `CloudPath` objects. (Issue [#128](https://github.com/drivendataorg/cloudpathlib/issues/128), PR [#322](https://github.com/drivendataorg/cloudpathlib/pull/322))
+- Added experimental support for patching the builtins `open`, `os`, `os.path`, and `glob` to work with `CloudPath` objects. It is off by default; see the new "Compatibility" section in the docs for more information. (Issue [#128](https://github.com/drivendataorg/cloudpathlib/issues/128), PR [#322](https://github.com/drivendataorg/cloudpathlib/pull/322))
+- Added support for `CloudPath(*parts)` to create a `CloudPath` object from a list of parts (to match `pathlib.Path`). **This is a potentially breaking change for users that relied on the second arg being the `client` instead of making it an explicit kwarg.** (PR [#322](https://github.com/drivendataorg/cloudpathlib/pull/322))
 
 ## v0.21.1 (2025-05-14)
 

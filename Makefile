@@ -81,7 +81,7 @@ test: ## run tests with mocked cloud SDKs
 	python -m pytest -vv
 
 test-debug:  ## rerun tests that failed in last run and stop with pdb at failures
-	python -m pytest -n=0 -vv --lf --pdb --capture=no
+	python -m pytest -n=0 -vv --lf --pdb
 
 test-live-cloud:  ## run tests on live cloud backends
 	USE_LIVE_CLOUD=1 python -m pytest -vv
