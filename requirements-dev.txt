@@ -25,7 +25,7 @@ pytest-cases>=3.9.1
 pytest-cov
 pytest-duration-insights
 pytest-reportlog
-pytest-rerunfailures
+pytest-rerunfailures<16.0
 pytest-xdist
 python-dotenv
 pywin32; sys_platform == 'win32'
