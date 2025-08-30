@@ -21,9 +21,10 @@ class HttpPath(CloudPath):
     def __init__(
         self,
         cloud_path: Union[str, "HttpPath"],
+        *parts: str,
         client: Optional["HttpClient"] = None,
     ) -> None:
-        super().__init__(cloud_path, client)
+        super().__init__(cloud_path, *parts, client=client)
 
         self._path = (
             PurePosixPath(self._url.path)
