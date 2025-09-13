@@ -68,11 +68,16 @@ elif sys.version_info[:2] == (3, 12):
     from pathlib import _PathParents  # type: ignore[attr-defined]
     from pathlib import posixpath as _posix_flavour  # type: ignore[attr-defined]
     from pathlib import _make_selector  # type: ignore[attr-defined]
-elif sys.version_info >= (3, 13):
+elif sys.version_info[:2] == (3, 13):
     from pathlib._local import _PathParents
     import posixpath as _posix_flavour  # type: ignore[attr-defined]   # noqa: F811
 
     from .legacy.glob import _make_selector  # noqa: F811
+elif sys.version_info >= (3, 14):
+    from pathlib import _PathParents
+    import posixpath as _posix_flavour  # type: ignore[attr-defined]
+    from .legacy.glob import _make_selector  # noqa: F811
+
 
 
 from cloudpathlib.enums import FileCacheMode
