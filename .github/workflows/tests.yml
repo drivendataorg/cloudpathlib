@@ -49,33 +49,39 @@ jobs:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
 
-      - name: Install dependencies
+      - name: Install dependencies (Python 3.14)
+        if: matrix.python-version == '3.14'
         run: |
-          if [ "${{ matrix.python-version }}" = "3.14" ]; then
-            uv pip install --pre -r requirements-dev.txt
-          else
-            uv pip install -r requirements-dev.txt
-          fi
+          uv pip install --pre -r requirements-dev.txt
+
+      - name: Install dependencies (other Python versions)
+        if: matrix.python-version != '3.14'
+        run: |
+          uv pip install -r requirements-dev.txt
 
       - name: Run mocked tests
         run: |
           make test
 
-      - name: Build distribution and test installation
+      - name: Build distribution and test installation (Python 3.14)
+        if: matrix.python-version == '3.14'
         shell: bash
         run: |
           make dist
-          if [ "${{ matrix.python-version }}" = "3.14" ]; then
-            uv pip install --pre cloudpathlib@$(find dist -name 'cloudpathlib*.whl') --no-deps --force-reinstall
-            python -c "import cloudpathlib"
-            uv pip install --pre cloudpathlib@$(find dist -name 'cloudpathlib*.tar.gz') --no-deps --force-reinstall
-            python -c "import cloudpathlib"
-          else
-            uv pip install cloudpathlib@$(find dist -name 'cloudpathlib*.whl') --no-deps --force-reinstall
-            python -c "import cloudpathlib"
-            uv pip install cloudpathlib@$(find dist -name 'cloudpathlib*.tar.gz') --no-deps --force-reinstall
-            python -c "import cloudpathlib"
-          fi
+          uv pip install --pre cloudpathlib@$(find dist -name 'cloudpathlib*.whl') --no-deps --force-reinstall
+          python -c "import cloudpathlib"
+          uv pip install --pre cloudpathlib@$(find dist -name 'cloudpathlib*.tar.gz') --no-deps --force-reinstall
+          python -c "import cloudpathlib"
+
+      - name: Build distribution and test installation (other Python versions)
+        if: matrix.python-version != '3.14'
+        shell: bash
+        run: |
+          make dist
+          uv pip install cloudpathlib@$(find dist -name 'cloudpathlib*.whl') --no-deps --force-reinstall
+          python -c "import cloudpathlib"
+          uv pip install cloudpathlib@$(find dist -name 'cloudpathlib*.tar.gz') --no-deps --force-reinstall
+          python -c "import cloudpathlib"
 
       - name: Upload coverage to codecov
         if: matrix.os == 'ubuntu-latest'
