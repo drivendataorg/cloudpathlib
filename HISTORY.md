@@ -1,5 +1,9 @@
 # cloudpathlib Changelog
 
+## UNRELEASED
+
+- Added support for Python 3.14 (Issue [#529](https://github.com/drivendataorg/cloudpathlib/issues/529), PR [#530](https://github.com/drivendataorg/cloudpathlib/pull/530))
+
 ## v0.22.0 (2025-08-29)
 
 - Fixed issue with GS credentials, using default auth enables a wider set of authentication methods in GS (Issue [#390](https://github.com/drivendataorg/cloudpathlib/issues/390), PR [#514](https://github.com/drivendataorg/cloudpathlib/pull/514), thanks @ljyanesm) 
