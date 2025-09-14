@@ -32,6 +32,7 @@ from typing import (
     TYPE_CHECKING,
     TypeVar,
     Union,
+    cast,
 )
 from urllib.parse import urlparse
 from warnings import warn
@@ -103,6 +104,8 @@ from .exceptions import (
 
 if TYPE_CHECKING:
     from .client import Client
+
+from .cloudpath_info import CloudPathInfo
 
 
 class CloudImplementation:
@@ -395,6 +398,7 @@ class CloudPath(metaclass=CloudPathMeta):
     # lchmod - no cloud equivalent
     # lstat - no cloud equivalent
     # owner - no cloud equivalent
+    # readlink - no cloud equivalent
     # root - drive already has the bucket and anchor/prefix has the scheme, so nothing to store here
     # symlink_to - no cloud equivalent
     # link_to - no cloud equivalent
@@ -409,12 +413,14 @@ class CloudPath(metaclass=CloudPathMeta):
         pass
 
     @abc.abstractmethod
-    def mkdir(self, parents: bool = False, exist_ok: bool = False) -> None:
+    def mkdir(
+        self, parents: bool = False, exist_ok: bool = False, mode: Optional[Any] = None
+    ) -> None:
         """Should be implemented using the client API without requiring a dir is downloaded"""
         pass
 
     @abc.abstractmethod
-    def touch(self, exist_ok: bool = True) -> None:
+    def touch(self, exist_ok: bool = True, mode: Optional[Any] = None) -> None:
         """Should be implemented using the client API to create and update modified time"""
         pass
 
@@ -439,7 +445,7 @@ class CloudPath(metaclass=CloudPathMeta):
     def as_uri(self) -> str:
         return str(self)
 
-    def exists(self) -> bool:
+    def exists(self, follow_symlinks=True) -> bool:
         return self.client._exists(self)
 
     def is_dir(self, follow_symlinks=True) -> bool:
@@ -523,7 +529,10 @@ class CloudPath(metaclass=CloudPathMeta):
             yield (self / str(p)[len(self.name) + 1 :])
 
     def glob(
-        self, pattern: Union[str, os.PathLike], case_sensitive: Optional[bool] = None
+        self,
+        pattern: Union[str, os.PathLike],
+        case_sensitive: Optional[bool] = None,
+        recurse_symlinks: bool = True,
     ) -> Generator[Self, None, None]:
         pattern = self._glob_checks(pattern)
 
@@ -540,7 +549,10 @@ class CloudPath(metaclass=CloudPathMeta):
         )
 
     def rglob(
-        self, pattern: Union[str, os.PathLike], case_sensitive: Optional[bool] = None
+        self,
+        pattern: Union[str, os.PathLike],
+        case_sensitive: Optional[bool] = None,
+        recurse_symlinks: bool = True,
     ) -> Generator[Self, None, None]:
         pattern = self._glob_checks(pattern)
 
@@ -1065,6 +1077,10 @@ class CloudPath(metaclass=CloudPathMeta):
         )
         return self._dispatch_to_local_cache_path("stat", follow_symlinks=follow_symlinks)
 
+    def info(self) -> "CloudPathInfo":
+        """Return a CloudPathInfo object for this path."""
+        return CloudPathInfo(self)
+
     # ===========  public cloud methods, not in pathlib ===============
     def download_to(self, destination: Union[str, os.PathLike]) -> Path:
         destination = Path(destination)
@@ -1120,37 +1136,34 @@ class CloudPath(metaclass=CloudPathMeta):
 
             return dst
 
-    @overload
-    def copy(
+    def _copy(
         self,
-        destination: Self,
+        target: Union[str, os.PathLike, "CloudPath"],
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
         force_overwrite_to_cloud: Optional[bool] = None,
-    ) -> Self: ...
+        remove_src: bool = False,
+    ) -> Union[Path, Self]:
+        if not self.exists():
+            raise ValueError(f"Path {self} must exist to copy.")
 
-    @overload
-    def copy(
-        self,
-        destination: Path,
-        force_overwrite_to_cloud: Optional[bool] = None,
-    ) -> Path: ...
-
-    @overload
-    def copy(
-        self,
-        destination: str,
-        force_overwrite_to_cloud: Optional[bool] = None,
-    ) -> Union[Path, "CloudPath"]: ...
-
-    def copy(self, destination, force_overwrite_to_cloud=None):
-        """Copy self to destination folder of file, if self is a file."""
-        if not self.exists() or not self.is_file():
-            raise ValueError(
-                f"Path {self} should be a file. To copy a directory tree use the method copytree."
+        if self.is_dir():
+            # Handle the target type for copytree
+            if isinstance(target, (str, os.PathLike)):
+                target_path = anypath.to_anypath(target)
+            else:
+                target_path = target
+            result = self.copytree(
+                target_path,  # type: ignore[arg-type]
+                force_overwrite_to_cloud=force_overwrite_to_cloud,
             )
+            return cast(Union[Path, Self], result)
 
         # handle string version of cloud paths + local paths
-        if isinstance(destination, (str, os.PathLike)):
-            destination = anypath.to_anypath(destination)
+        if isinstance(target, (str, os.PathLike)):
+            destination = anypath.to_anypath(target)
+        else:
+            destination = target
 
         if not isinstance(destination, CloudPath):
             return self.download_to(destination)
@@ -1176,17 +1189,116 @@ class CloudPath(metaclass=CloudPathMeta):
                     f"pass `force_overwrite_to_cloud=True`."
                 )
 
-            return self.client._move_file(self, destination, remove_src=False)
+            return cast(Self, self.client._move_file(self, destination, remove_src=remove_src))
 
         else:
             if not destination.exists() or destination.is_file():
-                return destination.upload_from(
-                    self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
+                return cast(
+                    Union[Path, Self],
+                    destination.upload_from(
+                        self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
+                    ),
                 )
             else:
-                return (destination / self.name).upload_from(
-                    self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
+                return cast(
+                    Union[Path, Self],
+                    (destination / self.name).upload_from(
+                        self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
+                    ),
                 )
+
+    @overload
+    def copy(
+        self,
+        target: Self,
+        follow_symlinks=True,
+        preserve_metadata=False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Self: ...
+
+    @overload
+    def copy(
+        self,
+        target: Path,
+        follow_symlinks=True,
+        preserve_metadata=False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Path: ...
+
+    @overload
+    def copy(
+        self,
+        target: str,
+        follow_symlinks=True,
+        preserve_metadata=False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Union[Path, "CloudPath"]: ...
+
+    def copy(
+        self,
+        target: Union[str, os.PathLike, Self],
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Union[Path, Self]:
+        """Copy self to target folder or file, if self is a file."""
+        return self._copy(
+            target,
+            follow_symlinks=follow_symlinks,
+            preserve_metadata=preserve_metadata,
+            force_overwrite_to_cloud=force_overwrite_to_cloud,
+            remove_src=False,
+        )
+
+    @overload
+    def copy_into(
+        self,
+        target_dir: Self,
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Self: ...
+
+    @overload
+    def copy_into(
+        self,
+        target_dir: Path,
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Path: ...
+
+    @overload
+    def copy_into(
+        self,
+        target_dir: str,
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Union[Path, "CloudPath"]: ...
+
+    def copy_into(
+        self,
+        target_dir: Union[str, os.PathLike, Self],
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Union[Path, Self]:
+        """Copy self into target directory, preserving the filename."""
+        # Handle the division operation properly based on type
+        if isinstance(target_dir, (str, os.PathLike)):
+            target_path = anypath.to_anypath(target_dir) / self.name
+        else:
+            target_path = target_dir / self.name
+
+        result = self._copy(
+            target_path,
+            follow_symlinks=follow_symlinks,
+            preserve_metadata=preserve_metadata,
+            force_overwrite_to_cloud=force_overwrite_to_cloud,
+            remove_src=False,
+        )
+        return cast(Union[Path, Self], result)
 
     @overload
     def copytree(
@@ -1252,6 +1364,99 @@ class CloudPath(metaclass=CloudPathMeta):
                 )
 
         return destination
+
+    @overload
+    def move(
+        self,
+        target: Self,
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Self: ...
+
+    @overload
+    def move(
+        self,
+        target: Path,
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Path: ...
+
+    @overload
+    def move(
+        self,
+        target: str,
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Union[Path, "CloudPath"]: ...
+
+    def move(
+        self,
+        target: Union[str, os.PathLike, Self],
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Union[Path, Self]:
+        """Move self to target location, removing the source."""
+        return self._copy(
+            target,
+            follow_symlinks=follow_symlinks,
+            preserve_metadata=preserve_metadata,
+            force_overwrite_to_cloud=force_overwrite_to_cloud,
+            remove_src=True,
+        )
+
+    @overload
+    def move_into(
+        self,
+        target_dir: Self,
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Self: ...
+
+    @overload
+    def move_into(
+        self,
+        target_dir: Path,
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Path: ...
+
+    @overload
+    def move_into(
+        self,
+        target_dir: str,
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Union[Path, "CloudPath"]: ...
+
+    def move_into(
+        self,
+        target_dir: Union[str, os.PathLike, Self],
+        follow_symlinks: bool = True,
+        preserve_metadata: bool = False,
+        force_overwrite_to_cloud: Optional[bool] = None,
+    ) -> Union[Path, Self]:
+        """Move self into target directory, preserving the filename and removing the source."""
+        # Handle the division operation properly based on type
+        if isinstance(target_dir, (str, os.PathLike)):
+            target_path = anypath.to_anypath(target_dir) / self.name
+        else:
+            target_path = target_dir / self.name
+
+        result = self._copy(
+            target_path,
+            follow_symlinks=follow_symlinks,
+            preserve_metadata=preserve_metadata,
+            force_overwrite_to_cloud=force_overwrite_to_cloud,
+            remove_src=True,
+        )
+        return cast(Union[Path, Self], result)
 
     def clear_cache(self):
         """Removes cache if it exists"""
