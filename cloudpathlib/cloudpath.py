@@ -74,10 +74,9 @@ elif sys.version_info[:2] == (3, 13):
 
     from .legacy.glob import _make_selector  # noqa: F811
 elif sys.version_info >= (3, 14):
-    from pathlib import _PathParents
+    from pathlib import _PathParents  # type: ignore[attr-defined]
     import posixpath as _posix_flavour  # type: ignore[attr-defined]
     from .legacy.glob import _make_selector  # noqa: F811
-
 
 
 from cloudpathlib.enums import FileCacheMode
