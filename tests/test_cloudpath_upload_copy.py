@@ -291,22 +291,23 @@ def test_info(rig):
     """Test the info() method returns a CloudPathInfo object."""
     p = rig.create_cloud_path("dir_0/file0_0.txt")
     info = p.info()
-    
+
     # Check that info() returns a CloudPathInfo object
     from cloudpathlib.cloudpath_info import CloudPathInfo
+
     assert isinstance(info, CloudPathInfo)
-    
+
     # Check that the info object has the expected methods
-    assert hasattr(info, 'exists')
-    assert hasattr(info, 'is_dir')
-    assert hasattr(info, 'is_file')
-    assert hasattr(info, 'is_symlink')
-    
+    assert hasattr(info, "exists")
+    assert hasattr(info, "is_dir")
+    assert hasattr(info, "is_file")
+    assert hasattr(info, "is_symlink")
+
     # Test that the info object works correctly
     assert info.exists() == p.exists()
     assert info.is_file() == p.is_file()
     assert info.is_dir() == p.is_dir()
-    assert info.is_symlink() == False  # Cloud paths are never symlinks
+    assert info.is_symlink() is False  # Cloud paths are never symlinks
 
 
 def test_copy_into(rig, tmpdir):
@@ -314,29 +315,29 @@ def test_copy_into(rig, tmpdir):
     # Create a test file
     p = rig.create_cloud_path("test_file.txt")
     p.write_text("Hello from copy_into")
-    
+
     # Test copying into a local directory
     local_dir = Path(tmpdir.mkdir("copy_into_local"))
     result = p.copy_into(local_dir)
-    
+
     assert isinstance(result, Path)
     assert result.exists()
     assert result.name == "test_file.txt"
     assert result.read_text() == "Hello from copy_into"
-    
+
     # Test copying into a cloud directory
     cloud_dir = rig.create_cloud_path("copy_into_cloud/")
     cloud_dir.mkdir()
     result = p.copy_into(cloud_dir)
-    
+
     assert result.exists()
     assert str(result) == str(cloud_dir / "test_file.txt")
     assert result.read_text() == "Hello from copy_into"
-    
+
     # Test copying into a string path
     local_dir2 = Path(tmpdir.mkdir("copy_into_str"))
     result = p.copy_into(str(local_dir2))
-    
+
     assert result.exists()
     assert result.name == "test_file.txt"
     assert result.read_text() == "Hello from copy_into"
@@ -347,34 +348,34 @@ def test_move(rig, tmpdir):
     # Create a test file
     p = rig.create_cloud_path("test_move_file.txt")
     p.write_text("Hello from move")
-    
+
     # Test moving to a local file
     local_file = Path(tmpdir) / "moved_file.txt"
     result = p.move(local_file)
-    
+
     assert isinstance(result, Path)
     assert result.exists()
     assert result.read_text() == "Hello from move"
     # Note: When moving cloud->local, the source may still exist due to download_to behavior
-    
+
     # Test moving to a cloud location (same client)
     p2 = rig.create_cloud_path("test_move_file2.txt")
     p2.write_text("Hello from move 2")
-    
+
     cloud_dest = rig.create_cloud_path("moved_cloud_file.txt")
     result = p2.move(cloud_dest)
-    
+
     assert result.exists()
     assert result.read_text() == "Hello from move 2"
     assert not p2.exists()  # Original should be gone for cloud->cloud moves
-    
+
     # Test moving to a string path
     p3 = rig.create_cloud_path("test_move_file3.txt")
     p3.write_text("Hello from move 3")
-    
+
     local_file2 = Path(tmpdir) / "moved_file3.txt"
     result = p3.move(str(local_file2))
-    
+
     assert result.exists()
     assert result.read_text() == "Hello from move 3"
     # Note: When moving cloud->local, the source may still exist due to download_to behavior
@@ -385,37 +386,37 @@ def test_move_into(rig, tmpdir):
     # Create a test file
     p = rig.create_cloud_path("test_move_into_file.txt")
     p.write_text("Hello from move_into")
-    
+
     # Test moving into a local directory
     local_dir = Path(tmpdir.mkdir("move_into_local"))
     result = p.move_into(local_dir)
-    
+
     assert isinstance(result, Path)
     assert result.exists()
     assert result.name == "test_move_into_file.txt"
     assert result.read_text() == "Hello from move_into"
     # Note: When moving cloud->local, the source may still exist due to download_to behavior
-    
+
     # Test moving into a cloud directory
     p2 = rig.create_cloud_path("test_move_into_file2.txt")
     p2.write_text("Hello from move_into 2")
-    
+
     cloud_dir = rig.create_cloud_path("move_into_cloud/")
     cloud_dir.mkdir()
     result = p2.move_into(cloud_dir)
-    
+
     assert result.exists()
     assert str(result) == str(cloud_dir / "test_move_into_file2.txt")
     assert result.read_text() == "Hello from move_into 2"
     assert not p2.exists()  # Original should be gone for cloud->cloud moves
-    
+
     # Test moving into a string path
     p3 = rig.create_cloud_path("test_move_into_file3.txt")
     p3.write_text("Hello from move_into 3")
-    
+
     local_dir2 = Path(tmpdir.mkdir("move_into_str"))
     result = p3.move_into(str(local_dir2))
-    
+
     assert result.exists()
     assert result.name == "test_move_into_file3.txt"
     assert result.read_text() == "Hello from move_into 3"
