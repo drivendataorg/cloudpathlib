@@ -202,11 +202,38 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     assert (other_dir / p2.name).read_text() == p2.read_text()
     (other_dir / p2.name).unlink()
 
-    # cloud dir raises
+    # Test copying directories
     cloud_dir = rig.create_cloud_path("dir_1/")  # created by fixtures
-    with pytest.raises(ValueError) as e:
-        p_new = cloud_dir.copy(Path(tmpdir.mkdir("test_copy_dir_fails")))
-        assert "use the method copytree" in str(e)
+
+    # Copy cloud directory to local directory
+    local_dst = Path(tmpdir.mkdir("test_copy_dir_to_local"))
+    result = cloud_dir.copy(local_dst)
+    assert isinstance(result, Path)
+    assert result.exists()
+    assert result.is_dir()
+    # Check that contents were copied
+    assert (result / "file_1_0.txt").exists()
+    assert (result / "dir_1_0").exists()
+
+    # Copy cloud directory to cloud directory
+    cloud_dst = rig.create_cloud_path("copied_dir/")
+    result = cloud_dir.copy(cloud_dst)
+    assert result.exists()
+    # For HTTP/HTTPS providers, is_dir() may not work as expected due to dir_matcher logic
+    if rig.path_class not in [HttpPath, HttpsPath]:
+        assert result.is_dir()
+    # Check that contents were copied
+    assert (result / "file_1_0.txt").exists()
+    assert (result / "dir_1_0").exists()
+
+    # Copy cloud directory to string path
+    local_dst2 = Path(tmpdir.mkdir("test_copy_dir_to_str"))
+    result = cloud_dir.copy(str(local_dst2))
+    assert result.exists()
+    assert result.is_dir()
+    # Check that contents were copied
+    assert (result / "file_1_0.txt").exists()
+    assert (result / "dir_1_0").exists()
 
 
 def test_copytree(rig, tmpdir):
@@ -341,6 +368,44 @@ def test_copy_into(rig, tmpdir):
     assert result.exists()
     assert result.name == "test_file.txt"
     assert result.read_text() == "Hello from copy_into"
+
+    # Test copying directories with copy_into
+    cloud_dir = rig.create_cloud_path("dir_1/")  # created by fixtures
+
+    # Copy cloud directory into local directory
+    local_dst = Path(tmpdir.mkdir("copy_into_dir_local"))
+    result = cloud_dir.copy_into(local_dst)
+    assert isinstance(result, Path)
+    assert result.exists()
+    assert result.is_dir()
+    assert result.name == "dir_1"  # Should preserve directory name
+    # Check that contents were copied
+    assert (result / "file_1_0.txt").exists()
+    assert (result / "dir_1_0").exists()
+
+    # Copy cloud directory into cloud directory
+    cloud_dst = rig.create_cloud_path("copy_into_cloud_dst/")
+    cloud_dst.mkdir()
+    result = cloud_dir.copy_into(cloud_dst)
+    assert result.exists()
+    # For HTTP/HTTPS providers, is_dir() may not work as expected due to dir_matcher logic
+    # Instead, check that the directory contents were copied
+    if rig.path_class not in [HttpPath, HttpsPath]:
+        assert result.is_dir()
+    assert str(result) == str(cloud_dst / "dir_1")
+    # Check that contents were copied
+    assert (result / "file_1_0.txt").exists()
+    assert (result / "dir_1_0").exists()
+
+    # Copy cloud directory into string path
+    local_dst2 = Path(tmpdir.mkdir("copy_into_dir_str"))
+    result = cloud_dir.copy_into(str(local_dst2))
+    assert result.exists()
+    assert result.is_dir()
+    assert result.name == "dir_1"  # Should preserve directory name
+    # Check that contents were copied
+    assert (result / "file_1_0.txt").exists()
+    assert (result / "dir_1_0").exists()
 
 
 def test_move(rig, tmpdir):
