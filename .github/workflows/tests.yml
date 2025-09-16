@@ -49,6 +49,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
           python-preference: "only-managed"
+          use-latest-python: true
 
       - name: Install dependencies (Python 3.14)
         if: matrix.python-version == '3.14'
