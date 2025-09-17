@@ -39,6 +39,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: [3.9, "3.10", "3.11", "3.12", "3.13", "3.14"]
+    env:
+      UV_MANAGED_PYTHON: true
 
     steps:
       - uses: actions/checkout@v4
@@ -48,8 +50,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
-          python-preference: "only-managed"
-          use-latest-python: true
+          enable-cache: true
 
       - name: Install dependencies (Python 3.14)
         if: matrix.python-version == '3.14'
