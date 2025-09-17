@@ -2,7 +2,7 @@ from functools import lru_cache
 import sys
 from typing import TYPE_CHECKING
 
-if sys.version_info <= (3, 14):
+if sys.version_info < (3, 14):
     from pathlib_abc import PathInfo
 else:
     from pathlib.types import PathInfo
