@@ -486,3 +486,77 @@ def test_move_into(rig, tmpdir):
     assert result.name == "test_move_into_file3.txt"
     assert result.read_text() == "Hello from move_into 3"
     # Note: When moving cloud->local, the source may still exist due to download_to behavior
+
+
+def test_copy_nonexistent_file_error(rig):
+    """Test that copying a non-existent file raises ValueError."""
+    # Create a path that doesn't exist
+    p = rig.create_cloud_path("nonexistent_file.txt")
+    assert not p.exists()
+
+    # Try to copy it - should raise ValueError (line 1148)
+    with pytest.raises(ValueError, match=r"Path .* must exist to copy\."):
+        p.copy(rig.create_cloud_path("destination.txt"))
+
+
+def test_copy_with_cloudpath_objects(rig, tmpdir):
+    """Test copy operations using CloudPath objects directly (not strings)."""
+    # Create a test file
+    p = rig.create_cloud_path("test_copy_objects.txt")
+    p.write_text("Hello from copy objects")
+
+    # Test copying directory with CloudPath object target (line 1155: target_path = target)
+    # First create a directory with actual content
+    cloud_dir = rig.create_cloud_path("test_dir/")
+    (cloud_dir / "file1.txt").write_text("content1")
+    (cloud_dir / "subdir/file2.txt").write_text("content2")
+
+    # Copy to cloud directory using CloudPath object (not string)
+    target_dir = rig.create_cloud_path("copied_dir/")
+    result = cloud_dir.copy(target_dir)  # This should hit line 1155: target_path = target
+    assert result.exists()
+    # For HTTP/HTTPS providers, is_dir() may not work as expected due to dir_matcher logic
+    if rig.path_class not in [HttpPath, HttpsPath]:
+        assert result.is_dir()
+    # Verify contents were copied
+    assert (result / "file1.txt").exists()
+    assert (result / "subdir/file2.txt").exists()
+
+    # Test copying file with CloudPath object target (line 1166: destination = target)
+    target_path = rig.create_cloud_path("copied_file.txt")
+    result = p.copy(target_path)  # Using CloudPath object directly, not string - hits line 1166
+    assert result.exists()
+    assert result.read_text() == "Hello from copy objects"
+
+
+def test_copy_into_with_cloudpath_objects(rig, tmpdir):
+    """Test copy_into with CloudPath objects to cover line 1292."""
+    # Create a test file
+    p = rig.create_cloud_path("test_copy_into_objects.txt")
+    p.write_text("Hello from copy_into objects")
+
+    # Test copy_into with CloudPath object target_dir (line 1292: target_path = target_dir / self.name)
+    cloud_dir = rig.create_cloud_path("copy_into_target/")
+    cloud_dir.mkdir()
+
+    result = p.copy_into(cloud_dir)  # Using CloudPath object directly, not string
+    assert result.exists()
+    assert str(result) == str(cloud_dir / "test_copy_into_objects.txt")
+    assert result.read_text() == "Hello from copy_into objects"
+
+
+def test_move_into_with_cloudpath_objects(rig, tmpdir):
+    """Test move_into with CloudPath objects to cover line 1450."""
+    # Create a test file
+    p = rig.create_cloud_path("test_move_into_objects.txt")
+    p.write_text("Hello from move_into objects")
+
+    # Test move_into with CloudPath object target_dir (line 1450: target_path = target_dir / self.name)
+    cloud_dir = rig.create_cloud_path("move_into_target/")
+    cloud_dir.mkdir()
+
+    result = p.move_into(cloud_dir)  # Using CloudPath object directly, not string
+    assert result.exists()
+    assert str(result) == str(cloud_dir / "test_move_into_objects.txt")
+    assert result.read_text() == "Hello from move_into objects"
+    assert not p.exists()  # Original should be gone for cloud->cloud moves

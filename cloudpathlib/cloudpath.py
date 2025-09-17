@@ -1147,23 +1147,14 @@ class CloudPath(metaclass=CloudPathMeta):
         if not self.exists():
             raise ValueError(f"Path {self} must exist to copy.")
 
+        destination = anypath.to_anypath(target)
+
         if self.is_dir():
-            # Handle the target type for copytree
-            if isinstance(target, (str, os.PathLike)):
-                target_path = anypath.to_anypath(target)
-            else:
-                target_path = target
             result = self.copytree(
-                target_path,  # type: ignore[arg-type]
+                destination,  # type: ignore[arg-type]
                 force_overwrite_to_cloud=force_overwrite_to_cloud,
             )
             return cast(Union[Path, Self], result)
-
-        # handle string version of cloud paths + local paths
-        if isinstance(target, (str, os.PathLike)):
-            destination = anypath.to_anypath(target)
-        else:
-            destination = target
 
         if not isinstance(destination, CloudPath):
             return self.download_to(destination)
@@ -1285,11 +1276,7 @@ class CloudPath(metaclass=CloudPathMeta):
         force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Union[Path, Self]:
         """Copy self into target directory, preserving the filename."""
-        # Handle the division operation properly based on type
-        if isinstance(target_dir, (str, os.PathLike)):
-            target_path = anypath.to_anypath(target_dir) / self.name
-        else:
-            target_path = target_dir / self.name
+        target_path = anypath.to_anypath(target_dir) / self.name
 
         result = self._copy(
             target_path,
@@ -1319,7 +1306,7 @@ class CloudPath(metaclass=CloudPathMeta):
     @overload
     def copytree(
         self,
-        destination: str,
+        destination: Union[str, os.PathLike, Self],
         force_overwrite_to_cloud: Optional[bool] = None,
         ignore: Optional[Callable[[str, Iterable[str]], Container[str]]] = None,
     ) -> Union[Path, "CloudPath"]: ...
@@ -1331,9 +1318,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"Origin path {self} must be a directory. To copy a single file use the method copy."
             )
 
-        # handle string version of cloud paths + local paths
-        if isinstance(destination, (str, os.PathLike)):
-            destination = anypath.to_anypath(destination)
+        destination = anypath.to_anypath(destination)
 
         if destination.exists() and destination.is_file():
             raise CloudPathFileExistsError(
@@ -1443,11 +1428,7 @@ class CloudPath(metaclass=CloudPathMeta):
         force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Union[Path, Self]:
         """Move self into target directory, preserving the filename and removing the source."""
-        # Handle the division operation properly based on type
-        if isinstance(target_dir, (str, os.PathLike)):
-            target_path = anypath.to_anypath(target_dir) / self.name
-        else:
-            target_path = target_dir / self.name
+        target_path = anypath.to_anypath(target_dir) / self.name
 
         result = self._copy(
             target_path,
