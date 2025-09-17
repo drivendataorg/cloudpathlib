@@ -3,7 +3,7 @@
 ## UNRELEASED
 
 - Added support for Python 3.14 (Issue [#529](https://github.com/drivendataorg/cloudpathlib/issues/529), PR [#530](https://github.com/drivendataorg/cloudpathlib/pull/530))
-  - Changed `CloudPath.copy` to have the first parameter named `target` instead of `destination` and added new `follow_symlinks` and `preserve_metadata` kwargs.
+  - Changed `CloudPath.copy` to have the first parameter named `target` instead of `destination` and added new `follow_symlinks` and `preserve_metadata` kwargs. **Breaking change for users that relied on the first parameter being named `destination` instead of `target`.**
   - Added `CloudPath.copy_into` to copy a file or directory into another file or directory.
   - Added `CloudPath.move` to move a file or directory to another location.
   - Added `CloudPath.move_into` to move a file or directory into another file or directory.

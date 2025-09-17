@@ -21,7 +21,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           activate-environment: true
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
@@ -105,7 +105,7 @@ jobs:
       - name: Set up Python and uv
         uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           activate-environment: true
 
       - name: Install dependencies
@@ -166,7 +166,7 @@ jobs:
       - name: Set up Python and uv
         uses: astral-sh/setup-uv@v6
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           activate-environment: true
 
       - name: Build cloudpathlib
