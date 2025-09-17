@@ -18,14 +18,14 @@ clean-build: ## remove build artifacts
 	rm -fr build/
 	rm -fr dist/
 	rm -fr .eggs/
-	find . -path ./venv -prune -name '*.egg-info' -exec rm -fr {} +
-	find . -path ./venv -prune -name '*.egg' -exec rm -f {} +
+	find . -path ./.venv -prune -o -name '*.egg-info' -exec rm -fr {} +
+	find . -path ./.venv -prune -o -name '*.egg' -exec rm -rf {} +
 
 clean-pyc: ## remove Python file artifacts
-	find . -path ./venv -prune -name '*.pyc' -exec rm -f {} +
-	find . -path ./venv -prune -name '*.pyo' -exec rm -f {} +
-	find . -path ./venv -prune -name '*~' -exec rm -f {} +
-	find . -path ./venv -prune -name '__pycache__' -exec rm -fr {} +
+	find . -path ./.venv -prune -o -name '*.pyc' -exec rm -f {} +
+	find . -path ./.venv -prune -o -name '*.pyo' -exec rm -f {} +
+	find . -path ./.venv -prune -o -name '*~' -exec rm -f {} +
+	find . -path ./.venv -prune -o -name '__pycache__' -exec rm -fr {} +
 
 clean-test: ## remove test and coverage artifacts
 	rm -fr .tox/
