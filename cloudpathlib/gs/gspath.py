@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING, Optional
+from typing import Any, TYPE_CHECKING, Optional
 
 from ..cloudpath import CloudPath, NoStatError, register_path_class
 
@@ -32,11 +32,11 @@ class GSPath(CloudPath):
     def drive(self) -> str:
         return self.bucket
 
-    def mkdir(self, parents=False, exist_ok=False):
+    def mkdir(self, parents=False, exist_ok=False, mode: Optional[Any] = None):
         # not possible to make empty directory on cloud storage
         pass
 
-    def touch(self, exist_ok: bool = True):
+    def touch(self, exist_ok: bool = True, mode: Optional[Any] = None):
         if self.exists():
             if not exist_ok:
                 raise FileExistsError(f"File exists: {self}")
@@ -50,7 +50,7 @@ class GSPath(CloudPath):
 
             tf.cleanup()
 
-    def stat(self):
+    def stat(self, follow_symlinks=True):
         meta = self.client._get_metadata(self)
         if meta is None:
             raise NoStatError(

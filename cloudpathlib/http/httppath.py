@@ -80,10 +80,12 @@ class HttpPath(CloudPath):
 
         return not self.client.dir_matcher(str(self))
 
-    def mkdir(self, parents: bool = False, exist_ok: bool = False) -> None:
+    def mkdir(
+        self, parents: bool = False, exist_ok: bool = False, mode: Optional[Any] = None
+    ) -> None:
         pass  # no-op for HTTP Paths
 
-    def touch(self, exist_ok: bool = True) -> None:
+    def touch(self, exist_ok: bool = True, mode: Optional[Any] = None) -> None:
         if self.exists():
             if not exist_ok:
                 raise FileExistsError(f"File already exists: {self}")

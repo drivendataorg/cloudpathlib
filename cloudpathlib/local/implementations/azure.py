@@ -1,4 +1,5 @@
 import os
+from typing import Any, Optional
 
 from ...cloudpath import CloudImplementation
 from ...exceptions import MissingCredentialsError
@@ -49,7 +50,7 @@ class LocalAzureBlobPath(LocalPath):
     def drive(self) -> str:
         return self.container
 
-    def mkdir(self, parents=False, exist_ok=False):
+    def mkdir(self, parents=False, exist_ok=False, mode: Optional[Any] = None):
         # not possible to make empty directory on blob storage
         pass
 

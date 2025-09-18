@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
 
 from ..cloudpath import CloudPath, NoStatError
 
@@ -19,7 +19,7 @@ class LocalPath(CloudPath):
     def is_file(self, follow_symlinks=True) -> bool:
         return self.client._is_file(self, follow_symlinks=follow_symlinks)
 
-    def stat(self):
+    def stat(self, follow_symlinks=True):
         try:
             meta = self.client._stat(self)
         except FileNotFoundError:
@@ -28,5 +28,5 @@ class LocalPath(CloudPath):
             )
         return meta
 
-    def touch(self, exist_ok: bool = True):
+    def touch(self, exist_ok: bool = True, mode: Optional[Any] = None):
         self.client._touch(self, exist_ok)

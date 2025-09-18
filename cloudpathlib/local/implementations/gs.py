@@ -1,3 +1,5 @@
+from typing import Any, Optional
+
 from ...cloudpath import CloudImplementation
 from ..localclient import LocalClient
 from ..localpath import LocalPath
@@ -30,7 +32,7 @@ class LocalGSPath(LocalPath):
     def drive(self) -> str:
         return self.bucket
 
-    def mkdir(self, parents=False, exist_ok=False):
+    def mkdir(self, parents=False, exist_ok=False, mode: Optional[Any] = None):
         # not possible to make empty directory on gs
         pass
 
