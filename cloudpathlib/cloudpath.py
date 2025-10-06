@@ -405,12 +405,9 @@ class CloudPath(metaclass=CloudPathMeta):
         """Should be implemented using the client API to create and update modified time"""
         pass
 
-    def as_url(self, presign: bool = False, expire_seconds: int = 60 * 60) -> str:
-        if presign:
-            url = self.client._generate_presigned_url(self, expire_seconds=expire_seconds)
-        else:
-            url = self.client._get_public_url(self)
-        return url
+    @abstractmethod
+    def stat(self, follow_symlinks: bool = True) -> os.stat_result:
+        pass
 
     # ====================== IMPLEMENTED FROM SCRATCH ======================
     # Methods with their own implementations that work generically
@@ -425,6 +422,13 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def as_uri(self) -> str:
         return str(self)
+
+    def as_url(self, presign: bool = False, expire_seconds: int = 60 * 60) -> str:
+        if presign:
+            url = self.client._generate_presigned_url(self, expire_seconds=expire_seconds)
+        else:
+            url = self.client._get_public_url(self)
+        return url
 
     def exists(self) -> bool:
         return self.client._exists(self)
@@ -1033,17 +1037,6 @@ class CloudPath(metaclass=CloudPathMeta):
         # when pathlib returns a string, etc. we probably just want that thing
         else:
             return path_version
-
-    def stat(self, follow_symlinks: bool = True) -> os.stat_result:
-        """Note: for many clients, we may want to override so we don't incur
-        network costs since many of these properties are available as
-        API calls.
-        """
-        warn(
-            f"stat not implemented as API call for {self.__class__} so file must be downloaded to "
-            f"calculate stats; this may take a long time depending on filesize"
-        )
-        return self._dispatch_to_local_cache_path("stat", follow_symlinks=follow_symlinks)
 
     # ===========  public cloud methods, not in pathlib ===============
     def download_to(self, destination: Union[str, os.PathLike]) -> Path:

@@ -1,7 +1,7 @@
-from cloudpathlib.cache.base import ContentCache
+from cloudpathlib.cache.base import FileCache
 
 
-class FileSystemContentCache(ContentCache):
+class FileSystemCache(FileCache):
     def __init__(
             self,
             cache_path: str,

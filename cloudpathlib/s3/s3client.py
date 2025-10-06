@@ -3,7 +3,7 @@ import os
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
 
-from ..client import Client, register_client_class
+from ..client import Client, register_client_class, use_file_cache, use_metadata_cache
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
 from ..exceptions import CloudPathException
@@ -134,6 +134,7 @@ class S3Client(Client):
             file_cache_mode=file_cache_mode,
         )
 
+    @use_metadata_cache
     def _get_metadata(self, cloud_path: S3Path) -> Dict[str, Any]:
         # get accepts all download extra args
         data = self.s3.ObjectSummary(cloud_path.bucket, cloud_path.key).get(
@@ -148,6 +149,7 @@ class S3Client(Client):
             "extra": data["Metadata"],
         }
 
+    @use_file_cache
     def _download_file(self, cloud_path: S3Path, local_path: Union[str, os.PathLike]) -> Path:
         local_path = Path(local_path)
         obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
@@ -157,6 +159,7 @@ class S3Client(Client):
         )
         return local_path
 
+    @use_metadata_cache
     def _is_file_or_dir(self, cloud_path: S3Path) -> Optional[str]:
         # short-circuit the root-level bucket
         if not cloud_path.key:
@@ -165,6 +168,7 @@ class S3Client(Client):
         # get first item by listing at least one key
         return self._s3_file_query(cloud_path)
 
+    @use_metadata_cache
     def _exists(self, cloud_path: S3Path) -> bool:
         # check if this is a bucket
         if not cloud_path.key:
@@ -180,6 +184,7 @@ class S3Client(Client):
 
         return self._s3_file_query(cloud_path) is not None
 
+    @use_metadata_cache
     def _s3_file_query(self, cloud_path: S3Path):
         """Boto3 query used for quick checks of existence and if path is file/dir"""
         # check if this is an object that we can access directly

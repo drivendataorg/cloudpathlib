@@ -1,4 +1,5 @@
 import abc
+from functools import wraps
 import mimetypes
 import os
 from pathlib import Path
@@ -26,74 +27,48 @@ def register_client_class(key: str) -> Callable:
     return decorator
 
 
+def use_file_cache(method):
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        cache_key = (method.__name__, args, tuple(sorted(kwargs.items())))
+        result = self.file_cache.get(cache_key)
+        if result is None:
+            result = method(self, *args, **kwargs)
+            self.file_cache.put(cache_key, result)
+        return result
+    return wrapper
+
+
+def use_metadata_cache(method):
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        cache_key = (method.__name__, args, tuple(sorted(kwargs.items())))
+        result = self.metadata_cache.get(cache_key)
+        if result is None:
+            result = method(self, *args, **kwargs)
+            self.metadata_cache.put(cache_key, result)
+        return result
+    return wrapper
+
+
 class Client(abc.ABC, Generic[BoundedCloudPath]):
     _cloud_meta: CloudImplementation
     _default_client = None
 
     def __init__(
         self,
-        file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
-        local_cache_dir: Optional[Union[str, os.PathLike]] = None,
+        file_cache: Optional[FileCache] = FileSystemCache(),
+        metadata_cache: Optional[MetadataCache] = FileSystemMetadataCache(),
         content_type_method: Optional[Callable] = mimetypes.guess_type,
     ):
-        self.file_cache_mode = None
-        self._cache_tmp_dir = None
         self._cloud_meta.validate_completeness()
-
-        # convert strings passed to enum
-        if isinstance(file_cache_mode, str):
-            file_cache_mode = FileCacheMode(file_cache_mode)
-
-        # if not explicitly passed to client, get from env var
-        if file_cache_mode is None:
-            file_cache_mode = FileCacheMode.from_environment()
-
-        if local_cache_dir is None:
-            local_cache_dir = os.environ.get("CLOUDPATHLIB_LOCAL_CACHE_DIR", None)
-
-            # treat empty string as None to avoid writing cache in cwd; set to "." for cwd
-            if local_cache_dir == "":
-                local_cache_dir = None
-
-        # explicitly passing a cache dir, so we set to persistent
-        # unless user explicitly passes a different file cache mode
-        if local_cache_dir and file_cache_mode is None:
-            file_cache_mode = FileCacheMode.persistent
-
-        if file_cache_mode == FileCacheMode.persistent and local_cache_dir is None:
-            raise InvalidConfigurationException(
-                f"If you use the '{FileCacheMode.persistent}' cache mode, you must pass a `local_cache_dir` when you instantiate the client."
-            )
-
-        # if no explicit local dir, setup caching in temporary dir
-        if local_cache_dir is None:
-            self._cache_tmp_dir = TemporaryDirectory()
-            local_cache_dir = self._cache_tmp_dir.name
-
-            if file_cache_mode is None:
-                file_cache_mode = FileCacheMode.tmp_dir
-
-        self._local_cache_dir = Path(local_cache_dir)
-        self.content_type_method = content_type_method
-
-        # Fallback: if not set anywhere, default to tmp_dir (for backwards compatibility)
-        if file_cache_mode is None:
-            file_cache_mode = FileCacheMode.tmp_dir
-
-        self.file_cache_mode = file_cache_mode
+        self.file_cache = file_cache
+        self.metadata_cache = metadata_cache
 
     def __del__(self) -> None:
-        # remove containing dir, even if a more aggressive strategy
-        # removed the actual files
-        if getattr(self, "file_cache_mode", None) in [
-            FileCacheMode.tmp_dir,
-            FileCacheMode.close_file,
-            FileCacheMode.cloudpath_object,
-        ]:
-            self.clear_cache()
-
-            if self._local_cache_dir.exists():
-                self._local_cache_dir.rmdir()
+        # send signal that the client is being deleted so the caches can decide what to do
+        self.file_cache.signal("client_del")
+        self.metadata_cache.signal("client_del")
 
     @classmethod
     def get_default_client(cls) -> "Client":
@@ -113,15 +88,10 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         return self._cloud_meta.path_class(cloud_path=cloud_path, client=self)  # type: ignore
 
     def clear_cache(self):
-        """Clears the contents of the cache folder.
-        Does not remove folder so it can keep being written to.
+        """Explicitly clears the contents of the file and metadata caches.
         """
-        if self._local_cache_dir.exists():
-            for p in self._local_cache_dir.iterdir():
-                if p.is_file():
-                    p.unlink()
-                else:
-                    shutil.rmtree(p)
+        self.file_cache.clear()
+        self.metadata_cache.clear()
 
     @abc.abstractmethod
     def _download_file(
