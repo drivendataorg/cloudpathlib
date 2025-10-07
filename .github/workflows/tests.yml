@@ -52,13 +52,7 @@ jobs:
           activate-environment: true
           enable-cache: true
 
-      - name: Install dependencies (Python 3.14)
-        if: matrix.python-version == '3.14'
-        run: |
-          uv pip install --pre -r requirements-dev.txt
-
       - name: Install dependencies (other Python versions)
-        if: matrix.python-version != '3.14'
         run: |
           uv pip install -r requirements-dev.txt
 
@@ -66,18 +60,7 @@ jobs:
         run: |
           make test
 
-      - name: Build distribution and test installation (Python 3.14)
-        if: matrix.python-version == '3.14'
-        shell: bash
-        run: |
-          make dist
-          uv pip install --pre cloudpathlib@$(find dist -name 'cloudpathlib*.whl') --no-deps --force-reinstall
-          python -c "import cloudpathlib"
-          uv pip install --pre cloudpathlib@$(find dist -name 'cloudpathlib*.tar.gz') --no-deps --force-reinstall
-          python -c "import cloudpathlib"
-
       - name: Build distribution and test installation (other Python versions)
-        if: matrix.python-version != '3.14'
         shell: bash
         run: |
           make dist
