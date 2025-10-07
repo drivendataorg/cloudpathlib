@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "cloudpathlib"
-version = "0.22.0"
+version = "0.23.0"
 description = "pathlib-style classes for cloud storage services."
 readme = "README.md"
 authors = [{ name = "DrivenData", email = "info@drivendata.org" }]
@@ -31,7 +31,6 @@ classifiers = [
 requires-python = ">=3.9"
 dependencies = [
   "typing-extensions>4 ; python_version < '3.11'",
-  "pathlib-abc < 0.6 ; python_version < '3.14'",
 ]
 
 [project.optional-dependencies]
@@ -50,7 +49,7 @@ all = ["cloudpathlib[azure]", "cloudpathlib[gs]", "cloudpathlib[s3]"]
 
 [tool.black]
 line-length = 99
-target-version = ['py39', 'py310', 'py311', 'py312', 'py313']
+target-version = ['py39', 'py310', 'py311', 'py312', 'py313', 'py314']
 include = '\.pyi?$|\.ipynb$'
 extend-exclude = '''
 /(

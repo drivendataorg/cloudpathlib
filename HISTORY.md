@@ -1,6 +1,6 @@
 # cloudpathlib Changelog
 
-## UNRELEASED
+## v0.23.0 (2025-10-07)
 
 - Added support for Python 3.14 (Issue [#529](https://github.com/drivendataorg/cloudpathlib/issues/529), PR [#530](https://github.com/drivendataorg/cloudpathlib/pull/530))
   - Changed `CloudPath.copy` to have the first parameter named `target` instead of `destination` and added new `follow_symlinks` and `preserve_metadata` kwargs. **Breaking change for users that relied on the first parameter being named `destination` instead of `target`.**
@@ -9,7 +9,6 @@
   - Added `CloudPath.move_into` to move a file or directory into another file or directory.
   - Added `CloudPathInfo` and `CloudPath.info` to get information about a file or directory.
   - Added additional no-op kwargs to `mkdir`, `touch`, `glob`, `rglob`, `stat` to match pathlib.
-  - Added `pathlib-abc` dependency for Python < 3.14 for `PathInfo` protocol.
 
 ## v0.22.0 (2025-08-29)
 
