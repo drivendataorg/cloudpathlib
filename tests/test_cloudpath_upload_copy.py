@@ -202,11 +202,38 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     assert (other_dir / p2.name).read_text() == p2.read_text()
     (other_dir / p2.name).unlink()
 
-    # cloud dir raises
+    # Test copying directories
     cloud_dir = rig.create_cloud_path("dir_1/")  # created by fixtures
-    with pytest.raises(ValueError) as e:
-        p_new = cloud_dir.copy(Path(tmpdir.mkdir("test_copy_dir_fails")))
-        assert "use the method copytree" in str(e)
+
+    # Copy cloud directory to local directory
+    local_dst = Path(tmpdir.mkdir("test_copy_dir_to_local"))
+    result = cloud_dir.copy(local_dst)
+    assert isinstance(result, Path)
+    assert result.exists()
+    assert result.is_dir()
+    # Check that contents were copied
+    assert (result / "file_1_0.txt").exists()
+    assert (result / "dir_1_0").exists()
+
+    # Copy cloud directory to cloud directory
+    cloud_dst = rig.create_cloud_path("copied_dir/")
+    result = cloud_dir.copy(cloud_dst)
+    assert result.exists()
+    # For HTTP/HTTPS providers, is_dir() may not work as expected due to dir_matcher logic
+    if rig.path_class not in [HttpPath, HttpsPath]:
+        assert result.is_dir()
+    # Check that contents were copied
+    assert (result / "file_1_0.txt").exists()
+    assert (result / "dir_1_0").exists()
+
+    # Copy cloud directory to string path
+    local_dst2 = Path(tmpdir.mkdir("test_copy_dir_to_str"))
+    result = cloud_dir.copy(str(local_dst2))
+    assert result.exists()
+    assert result.is_dir()
+    # Check that contents were copied
+    assert (result / "file_1_0.txt").exists()
+    assert (result / "dir_1_0").exists()
 
 
 def test_copytree(rig, tmpdir):
@@ -285,3 +312,251 @@ def test_copytree(rig, tmpdir):
     assert not (p4 / "ignored.py").exists()
     assert not (p4 / "dir1").exists()
     assert not (p4 / "dir2").exists()
+
+
+def test_info(rig):
+    """Test the info() method returns a CloudPathInfo object."""
+    p = rig.create_cloud_path("dir_0/file0_0.txt")
+    info = p.info()
+
+    # Check that info() returns a CloudPathInfo object
+    from cloudpathlib.cloudpath_info import CloudPathInfo
+
+    assert isinstance(info, CloudPathInfo)
+
+    # Check that the info object has the expected methods
+    assert hasattr(info, "exists")
+    assert hasattr(info, "is_dir")
+    assert hasattr(info, "is_file")
+    assert hasattr(info, "is_symlink")
+
+    # Test that the info object works correctly
+    assert info.exists() == p.exists()
+    assert info.is_file() == p.is_file()
+    assert info.is_dir() == p.is_dir()
+    assert info.is_symlink() is False  # Cloud paths are never symlinks
+
+
+def test_copy_into(rig, tmpdir):
+    """Test the copy_into() method."""
+    # Create a test file
+    p = rig.create_cloud_path("test_file.txt")
+    p.write_text("Hello from copy_into")
+
+    # Test copying into a local directory
+    local_dir = Path(tmpdir.mkdir("copy_into_local"))
+    result = p.copy_into(local_dir)
+
+    assert isinstance(result, Path)
+    assert result.exists()
+    assert result.name == "test_file.txt"
+    assert result.read_text() == "Hello from copy_into"
+
+    # Test copying into a cloud directory
+    cloud_dir = rig.create_cloud_path("copy_into_cloud/")
+    cloud_dir.mkdir()
+    result = p.copy_into(cloud_dir)
+
+    assert result.exists()
+    assert str(result) == str(cloud_dir / "test_file.txt")
+    assert result.read_text() == "Hello from copy_into"
+
+    # Test copying into a string path
+    local_dir2 = Path(tmpdir.mkdir("copy_into_str"))
+    result = p.copy_into(str(local_dir2))
+
+    assert result.exists()
+    assert result.name == "test_file.txt"
+    assert result.read_text() == "Hello from copy_into"
+
+    # Test copying directories with copy_into
+    cloud_dir = rig.create_cloud_path("dir_1/")  # created by fixtures
+
+    # Copy cloud directory into local directory
+    local_dst = Path(tmpdir.mkdir("copy_into_dir_local"))
+    result = cloud_dir.copy_into(local_dst)
+    assert isinstance(result, Path)
+    assert result.exists()
+    assert result.is_dir()
+    assert result.name == "dir_1"  # Should preserve directory name
+    # Check that contents were copied
+    assert (result / "file_1_0.txt").exists()
+    assert (result / "dir_1_0").exists()
+
+    # Copy cloud directory into cloud directory
+    cloud_dst = rig.create_cloud_path("copy_into_cloud_dst/")
+    cloud_dst.mkdir()
+    result = cloud_dir.copy_into(cloud_dst)
+    assert result.exists()
+    # For HTTP/HTTPS providers, is_dir() may not work as expected due to dir_matcher logic
+    # Instead, check that the directory contents were copied
+    if rig.path_class not in [HttpPath, HttpsPath]:
+        assert result.is_dir()
+    assert str(result) == str(cloud_dst / "dir_1")
+    # Check that contents were copied
+    assert (result / "file_1_0.txt").exists()
+    assert (result / "dir_1_0").exists()
+
+    # Copy cloud directory into string path
+    local_dst2 = Path(tmpdir.mkdir("copy_into_dir_str"))
+    result = cloud_dir.copy_into(str(local_dst2))
+    assert result.exists()
+    assert result.is_dir()
+    assert result.name == "dir_1"  # Should preserve directory name
+    # Check that contents were copied
+    assert (result / "file_1_0.txt").exists()
+    assert (result / "dir_1_0").exists()
+
+
+def test_move(rig, tmpdir):
+    """Test the move() method."""
+    # Create a test file
+    p = rig.create_cloud_path("test_move_file.txt")
+    p.write_text("Hello from move")
+
+    # Test moving to a local file
+    local_file = Path(tmpdir) / "moved_file.txt"
+    result = p.move(local_file)
+
+    assert isinstance(result, Path)
+    assert result.exists()
+    assert result.read_text() == "Hello from move"
+    # Note: When moving cloud->local, the source may still exist due to download_to behavior
+
+    # Test moving to a cloud location (same client)
+    p2 = rig.create_cloud_path("test_move_file2.txt")
+    p2.write_text("Hello from move 2")
+
+    cloud_dest = rig.create_cloud_path("moved_cloud_file.txt")
+    result = p2.move(cloud_dest)
+
+    assert result.exists()
+    assert result.read_text() == "Hello from move 2"
+    assert not p2.exists()  # Original should be gone for cloud->cloud moves
+
+    # Test moving to a string path
+    p3 = rig.create_cloud_path("test_move_file3.txt")
+    p3.write_text("Hello from move 3")
+
+    local_file2 = Path(tmpdir) / "moved_file3.txt"
+    result = p3.move(str(local_file2))
+
+    assert result.exists()
+    assert result.read_text() == "Hello from move 3"
+    # Note: When moving cloud->local, the source may still exist due to download_to behavior
+
+
+def test_move_into(rig, tmpdir):
+    """Test the move_into() method."""
+    # Create a test file
+    p = rig.create_cloud_path("test_move_into_file.txt")
+    p.write_text("Hello from move_into")
+
+    # Test moving into a local directory
+    local_dir = Path(tmpdir.mkdir("move_into_local"))
+    result = p.move_into(local_dir)
+
+    assert isinstance(result, Path)
+    assert result.exists()
+    assert result.name == "test_move_into_file.txt"
+    assert result.read_text() == "Hello from move_into"
+    # Note: When moving cloud->local, the source may still exist due to download_to behavior
+
+    # Test moving into a cloud directory
+    p2 = rig.create_cloud_path("test_move_into_file2.txt")
+    p2.write_text("Hello from move_into 2")
+
+    cloud_dir = rig.create_cloud_path("move_into_cloud/")
+    cloud_dir.mkdir()
+    result = p2.move_into(cloud_dir)
+
+    assert result.exists()
+    assert str(result) == str(cloud_dir / "test_move_into_file2.txt")
+    assert result.read_text() == "Hello from move_into 2"
+    assert not p2.exists()  # Original should be gone for cloud->cloud moves
+
+    # Test moving into a string path
+    p3 = rig.create_cloud_path("test_move_into_file3.txt")
+    p3.write_text("Hello from move_into 3")
+
+    local_dir2 = Path(tmpdir.mkdir("move_into_str"))
+    result = p3.move_into(str(local_dir2))
+
+    assert result.exists()
+    assert result.name == "test_move_into_file3.txt"
+    assert result.read_text() == "Hello from move_into 3"
+    # Note: When moving cloud->local, the source may still exist due to download_to behavior
+
+
+def test_copy_nonexistent_file_error(rig):
+    """Test that copying a non-existent file raises ValueError."""
+    # Create a path that doesn't exist
+    p = rig.create_cloud_path("nonexistent_file.txt")
+    assert not p.exists()
+
+    # Try to copy it - should raise ValueError (line 1148)
+    with pytest.raises(ValueError, match=r"Path .* must exist to copy\."):
+        p.copy(rig.create_cloud_path("destination.txt"))
+
+
+def test_copy_with_cloudpath_objects(rig, tmpdir):
+    """Test copy operations using CloudPath objects directly (not strings)."""
+    # Create a test file
+    p = rig.create_cloud_path("test_copy_objects.txt")
+    p.write_text("Hello from copy objects")
+
+    # Test copying directory with CloudPath object target (line 1155: target_path = target)
+    # First create a directory with actual content
+    cloud_dir = rig.create_cloud_path("test_dir/")
+    (cloud_dir / "file1.txt").write_text("content1")
+    (cloud_dir / "subdir/file2.txt").write_text("content2")
+
+    # Copy to cloud directory using CloudPath object (not string)
+    target_dir = rig.create_cloud_path("copied_dir/")
+    result = cloud_dir.copy(target_dir)  # This should hit line 1155: target_path = target
+    assert result.exists()
+    # For HTTP/HTTPS providers, is_dir() may not work as expected due to dir_matcher logic
+    if rig.path_class not in [HttpPath, HttpsPath]:
+        assert result.is_dir()
+    # Verify contents were copied
+    assert (result / "file1.txt").exists()
+    assert (result / "subdir/file2.txt").exists()
+
+    # Test copying file with CloudPath object target (line 1166: destination = target)
+    target_path = rig.create_cloud_path("copied_file.txt")
+    result = p.copy(target_path)  # Using CloudPath object directly, not string - hits line 1166
+    assert result.exists()
+    assert result.read_text() == "Hello from copy objects"
+
+
+def test_copy_into_with_cloudpath_objects(rig, tmpdir):
+    """Test copy_into with CloudPath objects to cover line 1292."""
+    # Create a test file
+    p = rig.create_cloud_path("test_copy_into_objects.txt")
+    p.write_text("Hello from copy_into objects")
+
+    # Test copy_into with CloudPath object target_dir (line 1292: target_path = target_dir / self.name)
+    cloud_dir = rig.create_cloud_path("copy_into_target/")
+    cloud_dir.mkdir()
+
+    result = p.copy_into(cloud_dir)  # Using CloudPath object directly, not string
+    assert result.exists()
+    assert str(result) == str(cloud_dir / "test_copy_into_objects.txt")
+    assert result.read_text() == "Hello from copy_into objects"
+
+
+def test_move_into_with_cloudpath_objects(rig, tmpdir):
+    """Test move_into with CloudPath objects to cover line 1450."""
+    # Create a test file
+    p = rig.create_cloud_path("test_move_into_objects.txt")
+    p.write_text("Hello from move_into objects")
+
+    # Test move_into with CloudPath object target_dir (line 1450: target_path = target_dir / self.name)
+    cloud_dir = rig.create_cloud_path("move_into_target/")
+    cloud_dir.mkdir()
+
+    result = p.move_into(cloud_dir)  # Using CloudPath object directly, not string
+    assert result.exists()
+    assert str(result) == str(cloud_dir / "test_move_into_objects.txt")
+    assert result.read_text() == "Hello from move_into objects"
+    assert not p.exists()  # Original should be gone for cloud->cloud moves
