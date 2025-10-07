@@ -1,17 +1,12 @@
 from functools import lru_cache
-import sys
 from typing import TYPE_CHECKING
 
-if sys.version_info < (3, 14):
-    from pathlib_abc import PathInfo
-else:
-    from pathlib.types import PathInfo
 
 if TYPE_CHECKING:
     from .cloudpath import CloudPath
 
 
-class CloudPathInfo(PathInfo):
+class CloudPathInfo:
     """Implementation of `PathInfo` protocol for `CloudPath`.
 
     Caches the results of the methods for efficient re-use.
