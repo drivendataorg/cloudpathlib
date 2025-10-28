@@ -185,3 +185,90 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         self, cloud_path: BoundedCloudPath, expire_seconds: int = 60 * 60
     ) -> str:
         pass
+
+    # ====================== STREAMING I/O METHODS ======================
+    # Methods to support efficient streaming without local caching
+
+    @abc.abstractmethod
+    def _range_download(self, cloud_path: BoundedCloudPath, start: int, end: int) -> bytes:
+        """Download a byte range from cloud storage.
+
+        Args:
+            cloud_path: Path to download from
+            start: Start byte position (inclusive)
+            end: End byte position (inclusive)
+
+        Returns:
+            Bytes in the requested range
+
+        Raises:
+            FileNotFoundError: If object doesn't exist
+        """
+        pass
+
+    @abc.abstractmethod
+    def _get_content_length(self, cloud_path: BoundedCloudPath) -> int:
+        """Get the size of an object without downloading it.
+
+        Args:
+            cloud_path: Path to query
+
+        Returns:
+            Size in bytes
+
+        Raises:
+            FileNotFoundError: If object doesn't exist
+        """
+        pass
+
+    @abc.abstractmethod
+    def _initiate_multipart_upload(self, cloud_path: BoundedCloudPath) -> str:
+        """Start a multipart/chunked upload session.
+
+        Args:
+            cloud_path: Destination path
+
+        Returns:
+            Upload session ID/handle (provider-specific, may be empty string)
+        """
+        pass
+
+    @abc.abstractmethod
+    def _upload_part(
+        self, cloud_path: BoundedCloudPath, upload_id: str, part_number: int, data: bytes
+    ) -> dict:
+        """Upload a single part/chunk in a multipart upload.
+
+        Args:
+            cloud_path: Destination path
+            upload_id: Upload session ID from _initiate_multipart_upload
+            part_number: Sequential part number (1-indexed)
+            data: Bytes to upload
+
+        Returns:
+            Provider-specific metadata needed for finalization
+        """
+        pass
+
+    @abc.abstractmethod
+    def _complete_multipart_upload(
+        self, cloud_path: BoundedCloudPath, upload_id: str, parts: list
+    ) -> None:
+        """Finalize a multipart upload.
+
+        Args:
+            cloud_path: Destination path
+            upload_id: Upload session ID
+            parts: List of part metadata from _upload_part calls
+        """
+        pass
+
+    @abc.abstractmethod
+    def _abort_multipart_upload(self, cloud_path: BoundedCloudPath, upload_id: str) -> None:
+        """Cancel a multipart upload and clean up.
+
+        Args:
+            cloud_path: Destination path
+            upload_id: Upload session ID
+        """
+        pass

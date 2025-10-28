@@ -209,6 +209,70 @@ class LocalClient(Client):
     ) -> str:
         raise NotImplementedError("Cannot generate a presigned URL for a local path.")
 
+    # ====================== STREAMING I/O METHODS ======================
+    # For local clients, streaming just uses local file operations
+
+    def _range_download(self, cloud_path: LocalPath, start: int, end: int) -> bytes:
+        """Download a byte range from local storage."""
+        local_path = self._cloud_path_to_local(cloud_path)
+        if not local_path.exists():
+            raise FileNotFoundError(f"File not found: {cloud_path}")
+
+        with open(local_path, "rb") as f:
+            f.seek(start)
+            length = end - start + 1
+            return f.read(length)
+
+    def _get_content_length(self, cloud_path: LocalPath) -> int:
+        """Get the size of a local file."""
+        local_path = self._cloud_path_to_local(cloud_path)
+        if not local_path.exists():
+            raise FileNotFoundError(f"File not found: {cloud_path}")
+        return local_path.stat().st_size
+
+    def _initiate_multipart_upload(self, cloud_path: LocalPath) -> str:
+        """Start a local file upload (no-op, returns empty string)."""
+        return ""
+
+    def _upload_part(
+        self, cloud_path: LocalPath, upload_id: str, part_number: int, data: bytes
+    ) -> dict:
+        """Buffer a part for local file upload."""
+        # Store parts in a temporary structure
+        if not hasattr(self, "_local_upload_buffers"):
+            self._local_upload_buffers: dict = {}
+
+        key = str(cloud_path)
+        if key not in self._local_upload_buffers:
+            self._local_upload_buffers[key] = []
+
+        self._local_upload_buffers[key].append((part_number, data))
+        return {"part_number": part_number}
+
+    def _complete_multipart_upload(
+        self, cloud_path: LocalPath, upload_id: str, parts: list
+    ) -> None:
+        """Complete local file upload by writing all buffered parts."""
+        key = str(cloud_path)
+        if not hasattr(self, "_local_upload_buffers") or key not in self._local_upload_buffers:
+            return
+
+        # Get buffered parts and sort by part number
+        buffer = self._local_upload_buffers.pop(key, [])
+        buffer.sort(key=lambda x: x[0])
+        complete_data = b"".join([data for _, data in buffer])
+
+        # Write to local file
+        local_path = self._cloud_path_to_local(cloud_path)
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        local_path.write_bytes(complete_data)
+
+    def _abort_multipart_upload(self, cloud_path: LocalPath, upload_id: str) -> None:
+        """Abort local file upload by cleaning up the buffer."""
+        key = str(cloud_path)
+        if hasattr(self, "_local_upload_buffers"):
+            self._local_upload_buffers.pop(key, None)
+
 
 _temp_dirs_to_clean: List[TemporaryDirectory] = []
 

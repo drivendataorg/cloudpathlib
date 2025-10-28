@@ -310,5 +310,76 @@ class GSClient(Client):
         )
         return url
 
+    # ====================== STREAMING I/O METHODS ======================
+
+    def _range_download(self, cloud_path: GSPath, start: int, end: int) -> bytes:
+        """Download a byte range from GCS."""
+        blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
+        try:
+            # GCS end is exclusive in the API, our API is inclusive
+            return blob.download_as_bytes(start=start, end=end + 1)
+        except Exception as e:
+            error_str = str(e)
+            if "404" in error_str or "Not Found" in error_str or "not found" in error_str.lower():
+                raise FileNotFoundError(f"GCS object not found: {cloud_path}")
+            elif "416" in error_str or "Requested Range Not Satisfiable" in error_str:
+                return b""
+            elif hasattr(e, "code"):
+                if e.code == 404:
+                    raise FileNotFoundError(f"GCS object not found: {cloud_path}")
+                elif e.code == 416:
+                    return b""
+            raise
+
+    def _get_content_length(self, cloud_path: GSPath) -> int:
+        """Get the size of a GCS object."""
+        blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
+        try:
+            blob.reload()
+            return blob.size
+        except Exception as e:
+            error_str = str(e)
+            if "404" in error_str or "Not Found" in error_str or "not found" in error_str.lower():
+                raise FileNotFoundError(f"GCS object not found: {cloud_path}")
+            elif hasattr(e, "code") and e.code == 404:
+                raise FileNotFoundError(f"GCS object not found: {cloud_path}")
+            raise
+
+    def _initiate_multipart_upload(self, cloud_path: GSPath) -> str:
+        """Start a GCS upload session.
+
+        GCS doesn't need explicit initialization, return empty string.
+        """
+        return ""
+
+    def _upload_part(
+        self, cloud_path: GSPath, upload_id: str, part_number: int, data: bytes
+    ) -> dict:
+        """Buffer a part for GCS upload.
+
+        GCS will upload all parts at once in _complete_multipart_upload.
+        """
+        # Store parts in a temporary structure on the client
+        if not hasattr(self, "_upload_buffers"):
+            self._upload_buffers: dict = {}
+        if upload_id not in self._upload_buffers:
+            self._upload_buffers[upload_id] = []
+        self._upload_buffers[upload_id].append((part_number, data))
+        return {"part_number": part_number}
+
+    def _complete_multipart_upload(self, cloud_path: GSPath, upload_id: str, parts: list) -> None:
+        """Complete a GCS upload by uploading all buffered parts."""
+        blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
+        # Get buffered parts
+        buffer = self._upload_buffers.pop(upload_id, [])
+        buffer.sort(key=lambda x: x[0])  # Sort by part number
+        complete_data = b"".join([data for _, data in buffer])
+        blob.upload_from_string(complete_data, **self.blob_kwargs)
+
+    def _abort_multipart_upload(self, cloud_path: GSPath, upload_id: str) -> None:
+        """Abort a GCS upload by cleaning up the buffer."""
+        if hasattr(self, "_upload_buffers"):
+            self._upload_buffers.pop(upload_id, None)
+
 
 GSClient.GSPath = GSClient.CloudPath  # type: ignore

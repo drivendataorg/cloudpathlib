@@ -21,10 +21,13 @@ from pytest_cases import fixture, fixture_union
 from shortuuid import uuid
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
-from cloudpathlib.cloudpath import implementation_registry
+from cloudpathlib.azure import AzureBlobClient, AzureBlobPath, _AzureBlobStorageRaw
+from cloudpathlib.gs import GSClient, GSPath, _GSStorageRaw
+from cloudpathlib.s3 import S3Client, S3Path, _S3StorageRaw
+from cloudpathlib.cloudpath import implementation_registry, CloudImplementation
 from cloudpathlib.http.httpclient import HttpClient, HttpsClient
 from cloudpathlib.http.httppath import HttpPath, HttpsPath
+from cloudpathlib.http.http_io import _HttpStorageRaw
 from cloudpathlib.local import (
     local_azure_blob_implementation,
     LocalAzureBlobClient,
@@ -81,8 +84,7 @@ class CloudProviderTestRig:
 
     def __init__(
         self,
-        path_class: type,
-        client_class: type,
+        cloud_implementation: CloudImplementation,
         drive: str = "drive",
         test_dir: str = "",
         live_server: bool = False,
@@ -93,14 +95,25 @@ class CloudProviderTestRig:
             path_class (type): CloudPath subclass
             client_class (type): Client subclass
         """
-        self.path_class = path_class
-        self.client_class = client_class
+        self.cloud_implementation = cloud_implementation
         self.drive = drive
         self.test_dir = test_dir
         self.live_server = live_server  # if the server is a live server
         self.required_client_kwargs = (
             required_client_kwargs if required_client_kwargs is not None else {}
         )
+
+    @property
+    def path_class(self):
+        return self.cloud_implementation.path_class
+
+    @property
+    def client_class(self):
+        return self.cloud_implementation.client_class
+
+    @property
+    def raw_io_class(self):
+        return self.cloud_implementation.raw_io_class
 
     @property
     def cloud_prefix(self):
@@ -201,9 +214,13 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
             MockedDataLakeServiceClient,
         )
 
+    azure_blob_implementation = CloudImplementation()
+    azure_blob_implementation._client_class = AzureBlobClient
+    azure_blob_implementation._path_class = AzureBlobPath
+    azure_blob_implementation._raw_io_class = _AzureBlobStorageRaw
+
     rig = CloudProviderTestRig(
-        path_class=AzureBlobPath,
-        client_class=AzureBlobClient,
+        cloud_implementation=azure_blob_implementation,
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
@@ -285,9 +302,13 @@ def gs_rig(request, monkeypatch, assets_dir, live_server):
         )
         monkeypatch.setattr(cloudpathlib.gs.gsclient, "google_default_auth", mock_default_auth)
 
+    gs_implementation = CloudImplementation()
+    gs_implementation._client_class = GSClient
+    gs_implementation._path_class = GSPath
+    gs_implementation._raw_io_class = _GSStorageRaw
+
     rig = CloudProviderTestRig(
-        path_class=GSPath,
-        client_class=GSClient,
+        cloud_implementation=gs_implementation,
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
@@ -335,9 +356,13 @@ def s3_rig(request, monkeypatch, assets_dir, live_server):
             mocked_session_class_factory(test_dir),
         )
 
+    s3_implementation = CloudImplementation()
+    s3_implementation._client_class = S3Client
+    s3_implementation._path_class = S3Path
+    s3_implementation._raw_io_class = _S3StorageRaw
+
     rig = CloudProviderTestRig(
-        path_class=S3Path,
-        client_class=S3Client,
+        cloud_implementation=s3_implementation,
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
@@ -419,9 +444,13 @@ def custom_s3_rig(request, monkeypatch, assets_dir, live_server):
             mocked_session_class_factory(test_dir),
         )
 
+    custom_s3_implementation = CloudImplementation()
+    custom_s3_implementation._client_class = S3Client
+    custom_s3_implementation._path_class = S3Path
+    custom_s3_implementation._raw_io_class = _S3StorageRaw
+
     rig = CloudProviderTestRig(
-        path_class=S3Path,
-        client_class=S3Client,
+        cloud_implementation=custom_s3_implementation,
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
@@ -458,9 +487,13 @@ def local_azure_rig(request, monkeypatch, assets_dir, live_server):
 
     monkeypatch.setitem(implementation_registry, "azure", local_azure_blob_implementation)
 
+    local_azure_blob_cloud_implementation = CloudImplementation()
+    local_azure_blob_cloud_implementation._client_class = LocalAzureBlobClient
+    local_azure_blob_cloud_implementation._path_class = LocalAzureBlobPath
+    local_azure_blob_cloud_implementation._raw_io_class = _AzureBlobStorageRaw
+
     rig = CloudProviderTestRig(
-        path_class=LocalAzureBlobPath,
-        client_class=LocalAzureBlobClient,
+        cloud_implementation=local_azure_blob_cloud_implementation,
         drive=drive,
         test_dir=test_dir,
     )
@@ -489,9 +522,13 @@ def local_gs_rig(request, monkeypatch, assets_dir, live_server):
 
     monkeypatch.setitem(implementation_registry, "gs", local_gs_implementation)
 
+    local_gs_cloud_implementation = CloudImplementation()
+    local_gs_cloud_implementation._client_class = LocalGSClient
+    local_gs_cloud_implementation._path_class = LocalGSPath
+    local_gs_cloud_implementation._raw_io_class = _GSStorageRaw
+
     rig = CloudProviderTestRig(
-        path_class=LocalGSPath,
-        client_class=LocalGSClient,
+        cloud_implementation=local_gs_cloud_implementation,
         drive=drive,
         test_dir=test_dir,
     )
@@ -519,9 +556,13 @@ def local_s3_rig(request, monkeypatch, assets_dir, live_server):
 
     monkeypatch.setitem(implementation_registry, "s3", local_s3_implementation)
 
+    local_s3_cloud_implementation = CloudImplementation()
+    local_s3_cloud_implementation._client_class = LocalS3Client
+    local_s3_cloud_implementation._path_class = LocalS3Path
+    local_s3_cloud_implementation._raw_io_class = _S3StorageRaw
+
     rig = CloudProviderTestRig(
-        path_class=LocalS3Path,
-        client_class=LocalS3Client,
+        cloud_implementation=local_s3_implementation,
         drive=drive,
         test_dir=test_dir,
     )
@@ -558,9 +599,13 @@ def http_rig(request, assets_dir, http_server):  # noqa: F811
     shutil.copytree(assets_dir, server_dir / test_dir)
     _sync_filesystem()
 
+    http_implementation = CloudImplementation()
+    http_implementation._client_class = HttpClient
+    http_implementation._path_class = HttpPath
+    http_implementation._raw_io_class = _HttpStorageRaw
+
     rig = CloudProviderTestRig(
-        path_class=HttpPath,
-        client_class=HttpClient,
+        cloud_implementation=http_implementation,
         drive=drive,
         test_dir=test_dir,
     )
@@ -590,9 +635,13 @@ def https_rig(request, assets_dir, https_server):  # noqa: F811
     skip_verify_ctx.check_hostname = False
     skip_verify_ctx.load_verify_locations(utilities_dir / "insecure-test.pem")
 
+    https_implementation = CloudImplementation()
+    https_implementation._client_class = HttpsClient
+    https_implementation._path_class = HttpsPath
+    https_implementation._raw_io_class = _HttpStorageRaw
+
     rig = CloudProviderTestRig(
-        path_class=HttpsPath,
-        client_class=HttpsClient,
+        cloud_implementation=https_implementation,
         drive=drive,
         test_dir=test_dir,
         required_client_kwargs=dict(

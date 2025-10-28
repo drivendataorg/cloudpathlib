@@ -498,6 +498,87 @@ class AzureBlobClient(Client):
         url = f"{self._get_public_url(cloud_path)}?{sas_token}"
         return url
 
+    # ====================== STREAMING I/O METHODS ======================
+
+    def _range_download(self, cloud_path: AzureBlobPath, start: int, end: int) -> bytes:
+        """Download a byte range from Azure Blob Storage."""
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        try:
+            length = end - start + 1
+            downloader = blob_client.download_blob(offset=start, length=length)
+            return downloader.readall()
+        except Exception as e:
+            error_str = str(e)
+            if "ResourceNotFound" in error_str or "BlobNotFound" in error_str:
+                raise FileNotFoundError(f"Azure blob not found: {cloud_path}")
+            elif "InvalidRange" in error_str or "out of range" in error_str.lower():
+                return b""
+            elif hasattr(e, "error_code"):
+                if e.error_code in ("ResourceNotFound", "BlobNotFound"):
+                    raise FileNotFoundError(f"Azure blob not found: {cloud_path}")
+                elif e.error_code == "InvalidRange":
+                    return b""
+            raise
+
+    def _get_content_length(self, cloud_path: AzureBlobPath) -> int:
+        """Get the size of an Azure blob."""
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        try:
+            properties = blob_client.get_blob_properties()
+            return properties.size
+        except Exception as e:
+            error_str = str(e)
+            if "ResourceNotFound" in error_str or "BlobNotFound" in error_str:
+                raise FileNotFoundError(f"Azure blob not found: {cloud_path}")
+            elif hasattr(e, "error_code") and e.error_code in (
+                "ResourceNotFound",
+                "BlobNotFound",
+            ):
+                raise FileNotFoundError(f"Azure blob not found: {cloud_path}")
+            raise
+
+    def _initiate_multipart_upload(self, cloud_path: AzureBlobPath) -> str:
+        """Start an Azure block blob upload.
+
+        Azure doesn't need explicit initialization, return empty string.
+        """
+        return ""
+
+    def _upload_part(
+        self, cloud_path: AzureBlobPath, upload_id: str, part_number: int, data: bytes
+    ) -> dict:
+        """Upload a block in an Azure block blob upload."""
+        import base64
+
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        # Azure uses base64-encoded block IDs
+        block_id = base64.b64encode(f"block-{part_number:06d}".encode()).decode()
+        blob_client.stage_block(block_id=block_id, data=data, length=len(data))
+        return {"block_id": block_id}
+
+    def _complete_multipart_upload(
+        self, cloud_path: AzureBlobPath, upload_id: str, parts: list
+    ) -> None:
+        """Complete an Azure block blob upload."""
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        block_ids = [part["block_id"] for part in parts]
+        blob_client.commit_block_list(block_ids)
+
+    def _abort_multipart_upload(self, cloud_path: AzureBlobPath, upload_id: str) -> None:
+        """Abort an Azure block blob upload.
+
+        Azure blocks are automatically cleaned up, nothing to do.
+        """
+        pass
+
 
 def _hns_rmtree(data_lake_client, container, directory):
     """Stateless implementation so can be used in test suite cleanup as well.

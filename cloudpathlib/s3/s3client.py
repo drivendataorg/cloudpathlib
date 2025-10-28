@@ -383,5 +383,70 @@ class S3Client(Client):
         )
         return url
 
+    # ====================== STREAMING I/O METHODS ======================
+
+    def _range_download(self, cloud_path: S3Path, start: int, end: int) -> bytes:
+        """Download a byte range from S3."""
+        try:
+            response = self.client.get_object(
+                Bucket=cloud_path.bucket, Key=cloud_path.key, Range=f"bytes={start}-{end}"
+            )
+            body = response["Body"]
+            data = body.read()
+            body.close()
+            return data
+        except self.client.exceptions.NoSuchKey:
+            raise FileNotFoundError(f"S3 object not found: {cloud_path}")
+        except self.client.exceptions.InvalidRange:
+            return b""
+        except Exception as e:
+            # Check if this is an EOF-like error
+            if "InvalidRange" in str(e):
+                return b""
+            raise
+
+    def _get_content_length(self, cloud_path: S3Path) -> int:
+        """Get the size of an S3 object."""
+        try:
+            response = self.client.head_object(Bucket=cloud_path.bucket, Key=cloud_path.key)
+            return response["ContentLength"]
+        except self.client.exceptions.NoSuchKey:
+            raise FileNotFoundError(f"S3 object not found: {cloud_path}")
+
+    def _initiate_multipart_upload(self, cloud_path: S3Path) -> str:
+        """Start an S3 multipart upload."""
+        response = self.client.create_multipart_upload(
+            Bucket=cloud_path.bucket, Key=cloud_path.key
+        )
+        return response["UploadId"]
+
+    def _upload_part(
+        self, cloud_path: S3Path, upload_id: str, part_number: int, data: bytes
+    ) -> dict:
+        """Upload a part in an S3 multipart upload."""
+        response = self.client.upload_part(
+            Bucket=cloud_path.bucket,
+            Key=cloud_path.key,
+            UploadId=upload_id,
+            PartNumber=part_number,
+            Body=data,
+        )
+        return {"PartNumber": part_number, "ETag": response["ETag"]}
+
+    def _complete_multipart_upload(self, cloud_path: S3Path, upload_id: str, parts: list) -> None:
+        """Complete an S3 multipart upload."""
+        self.client.complete_multipart_upload(
+            Bucket=cloud_path.bucket,
+            Key=cloud_path.key,
+            UploadId=upload_id,
+            MultipartUpload={"Parts": parts},
+        )
+
+    def _abort_multipart_upload(self, cloud_path: S3Path, upload_id: str) -> None:
+        """Abort an S3 multipart upload."""
+        self.client.abort_multipart_upload(
+            Bucket=cloud_path.bucket, Key=cloud_path.key, UploadId=upload_id
+        )
+
 
 S3Client.S3Path = S3Client.CloudPath  # type: ignore
