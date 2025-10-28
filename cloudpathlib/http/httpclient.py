@@ -203,6 +203,94 @@ class HttpClient(Client):
             # the connection is closed when we exit the context manager.
             return response, response.read()
 
+    # ====================== STREAMING I/O METHODS ======================
+    # HTTP clients are read-only, so only implement read methods
+
+    def _range_download(self, cloud_path: "HttpPath", start: int, end: int) -> bytes:
+        """Download a byte range from HTTP."""
+        headers = {"Range": f"bytes={start}-{end}"}
+        request = urllib.request.Request(str(cloud_path), headers=headers)
+        try:
+            with self.opener.open(request) as response:
+                return response.read()
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                raise FileNotFoundError(f"HTTP resource not found: {cloud_path}")
+            elif e.code == 416:  # Range not satisfiable
+                return b""
+            raise
+
+    def _get_content_length(self, cloud_path: "HttpPath") -> int:
+        """Get the size of an HTTP resource."""
+        request = urllib.request.Request(str(cloud_path), method="HEAD")
+        try:
+            with self.opener.open(request) as response:
+                content_length = response.headers.get("Content-Length")
+                if content_length:
+                    return int(content_length)
+                # If no Content-Length header, we can't determine size
+                raise ValueError(f"HTTP resource does not provide Content-Length: {cloud_path}")
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                raise FileNotFoundError(f"HTTP resource not found: {cloud_path}")
+            raise
+
+    def _initiate_multipart_upload(self, cloud_path: "HttpPath") -> str:
+        """HTTP clients don't support uploads."""
+        raise NotImplementedError("HTTP clients are read-only and don't support uploads")
+
+    def _upload_part(
+        self, cloud_path: "HttpPath", upload_id: str, part_number: int, data: bytes
+    ) -> dict:
+        """HTTP clients don't support uploads."""
+        raise NotImplementedError("HTTP clients are read-only and don't support uploads")
+
+    def _complete_multipart_upload(
+        self, cloud_path: "HttpPath", upload_id: str, parts: list
+    ) -> None:
+        """HTTP clients don't support uploads."""
+        raise NotImplementedError("HTTP clients are read-only and don't support uploads")
+
+    def _abort_multipart_upload(self, cloud_path: "HttpPath", upload_id: str) -> None:
+        """HTTP clients don't support uploads."""
+        raise NotImplementedError("HTTP clients are read-only and don't support uploads")
+
+    def _put_data(self, cloud_path: "HttpPath", data: bytes) -> None:
+        """
+        Upload data to HTTP server using PUT request with chunked transfer encoding.
+
+        Args:
+            cloud_path: HttpPath to upload to
+            data: Bytes to upload
+
+        Raises:
+            NotImplementedError: If the server doesn't support PUT requests
+            OSError: If the upload fails
+        """
+        import urllib.request
+
+        url = str(cloud_path)
+
+        # Create a PUT request with chunked transfer encoding
+        request = urllib.request.Request(url, data=data, method="PUT")
+        request.add_header("Content-Type", "application/octet-stream")
+        request.add_header("Content-Length", str(len(data)))
+
+        try:
+            # HttpsClient may have ssl_context, HttpClient won't
+            context = getattr(self, "ssl_context", None)
+            with urllib.request.urlopen(request, context=context) as response:
+                if response.status not in (200, 201, 204):
+                    raise OSError(
+                        f"HTTP PUT failed with status {response.status}: {response.reason}"
+                    )
+        except urllib.error.HTTPError as e:
+            if e.code == 405:  # Method Not Allowed
+                raise NotImplementedError(f"HTTP server does not support PUT requests for {url}")
+            raise OSError(f"HTTP PUT failed: {e}")
+        except Exception as e:
+            raise OSError(f"HTTP PUT failed: {e}")
+
 
 HttpClient.HttpPath = HttpClient.CloudPath  # type: ignore
 

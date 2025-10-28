@@ -4,6 +4,9 @@ from ...cloudpath import CloudImplementation
 from ..localclient import LocalClient
 from ..localpath import LocalPath
 
+# Import raw I/O class to ensure it's registered
+from ...gs.gs_io import _GSStorageRaw  # noqa: F401
+
 
 local_gs_implementation = CloudImplementation()
 """Replacement for "gs" CloudImplementation meta object in cloudpathlib.implementation_registry"""
@@ -65,3 +68,4 @@ LocalGSPath.__name__ = "GSPath"
 local_gs_implementation.name = "gs"
 local_gs_implementation._client_class = LocalGSClient
 local_gs_implementation._path_class = LocalGSPath
+local_gs_implementation._raw_io_class = _GSStorageRaw

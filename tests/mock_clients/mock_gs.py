@@ -72,6 +72,27 @@ class MockBlob:
         to_path.parent.mkdir(exist_ok=True, parents=True)
         to_path.write_bytes(from_path.read_bytes())
 
+    def download_as_bytes(self, start=None, end=None, timeout=None, retry=None):
+        """Download blob content as bytes with optional byte range."""
+        # if timeout is not None, assume that the test wants a timeout and throw it
+        if timeout is not None:
+            raise TimeoutError("Download timed out")
+
+        # indicate that retry object made it through to the GS lib
+        if retry is not None:
+            retry.mocked_retries = 1
+
+        from_path = self.bucket / self.name
+        data = from_path.read_bytes()
+
+        # Handle byte range if specified
+        if start is not None:
+            if end is not None:
+                return data[start : end + 1]
+            else:
+                return data[start:]
+        return data
+
     def patch(self):
         if "updated" in self.metadata:
             (self.bucket / self.name).touch()
@@ -104,6 +125,25 @@ class MockBlob:
         path = self.bucket / self.name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
+
+        self.client.metadata_cache[self.bucket / self.name] = content_type
+
+    def upload_from_string(self, data, content_type=None, timeout=None, retry=None):
+        """Upload from bytes/string data."""
+        # if timeout is not None, assume that the test wants a timeout and throw it
+        if timeout is not None:
+            raise TimeoutError("Upload timed out")
+
+        # indicate that retry object made it through to the GS lib
+        if retry is not None:
+            retry.mocked_retries = 1
+
+        path = self.bucket / self.name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(data, str):
+            path.write_text(data)
+        else:
+            path.write_bytes(data)
 
         self.client.metadata_cache[self.bucket / self.name] = content_type
 

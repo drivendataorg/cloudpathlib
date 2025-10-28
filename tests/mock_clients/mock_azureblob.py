@@ -60,6 +60,9 @@ class MockBlobServiceClient:
         self.metadata_cache = _JsonCache(self.root / ".metadata")
         self.adls_gen2 = adls
 
+        # For block blob uploads (multipart) - shared across all blob clients
+        self._staged_blocks = {}
+
     @classmethod
     def from_connection_string(cls, conn_str, credential):
         # configured in conftest.py
@@ -113,7 +116,7 @@ class MockBlobClient:
     def get_blob_properties(self):
         path = self.root / self.key
         if path.exists() and path.is_file():
-            return BlobProperties(
+            props = BlobProperties(
                 **{
                     "name": self.key,
                     "Last-Modified": datetime.fromtimestamp(path.stat().st_mtime),
@@ -124,11 +127,14 @@ class MockBlobClient:
                     "metadata": dict(),
                 }
             )
+            # Set size directly as BlobProperties doesn't accept it in constructor
+            props.size = path.stat().st_size
+            return props
         else:
             raise ResourceNotFoundError
 
-    def download_blob(self):
-        return MockStorageStreamDownloader(self.root, self.key)
+    def download_blob(self, offset=None, length=None):
+        return MockStorageStreamDownloader(self.root, self.key, offset=offset, length=length)
 
     def set_blob_metadata(self, metadata):
         path = self.root / self.key
@@ -154,14 +160,45 @@ class MockBlobClient:
                 content_settings.content_type
             )
 
+    def stage_block(self, block_id, data, length):
+        """Stage a block for block blob upload."""
+        # Store the block data indexed by blob key in service client's staged blocks
+        if self.key not in self.service_client._staged_blocks:
+            self.service_client._staged_blocks[self.key] = {}
+        self.service_client._staged_blocks[self.key][block_id] = data
+
+    def commit_block_list(self, block_ids):
+        """Commit a list of staged blocks to create a blob."""
+        path = self.root / self.key
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Concatenate blocks in order
+        if self.key in self.service_client._staged_blocks:
+            complete_data = b""
+            for block_id in block_ids:
+                complete_data += self.service_client._staged_blocks[self.key][block_id]
+
+            path.write_bytes(complete_data)
+
+            # Clean up staged blocks
+            del self.service_client._staged_blocks[self.key]
+
 
 class MockStorageStreamDownloader:
-    def __init__(self, root, key):
+    def __init__(self, root, key, offset=None, length=None):
         self.root = root
         self.key = key
+        self.offset = offset
+        self.length = length
 
     def readall(self):
-        return (self.root / self.key).read_bytes()
+        data = (self.root / self.key).read_bytes()
+        if self.offset is not None:
+            if self.length is not None:
+                return data[self.offset : self.offset + self.length]
+            else:
+                return data[self.offset :]
+        return data
 
     def content_as_bytes(self):
         return self.readall()

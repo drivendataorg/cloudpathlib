@@ -1,5 +1,19 @@
 # cloudpathlib Changelog
 
+## Unreleased
+
+- Added streaming I/O support for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS via `FileCacheMode.streaming`. (Issue [#XXX](https://github.com/drivendataorg/cloudpathlib/issues/XXX), PR [#XXX](https://github.com/drivendataorg/cloudpathlib/pull/XXX))
+  - Added `FileCacheMode.streaming` enum value to enable direct streaming I/O without local caching.
+  - Added `CloudBufferedIO` class implementing `io.BufferedIOBase` for binary streaming operations.
+  - Added `CloudTextIO` class implementing `io.TextIOBase` for text streaming operations.
+  - Added provider-specific raw I/O implementations: `_S3StorageRaw`, `_AzureBlobStorageRaw`, `_GSStorageRaw`, `_HttpStorageRaw`.
+  - Added `register_raw_io_class` decorator for registering streaming I/O implementations.
+  - Added `buffer_size` parameter to `CloudPath.open()` for controlling streaming buffer size.
+  - Added abstract methods to `Client` for streaming operations: `_range_download`, `_get_content_length`, `_initiate_multipart_upload`, `_upload_part`, `_complete_multipart_upload`, `_abort_multipart_upload`.
+  - Updated `CloudPath.__fspath__()` to raise `CloudPathNotImplementedError` when `file_cache_mode` is set to `streaming`, as streaming mode does not create cached files on disk.
+  - Updated documentation with streaming I/O guide and examples.
+  - Updated caching documentation to include streaming mode.
+
 ## v0.23.0 (2025-10-07)
 
 - Added support for Python 3.14 (Issue [#529](https://github.com/drivendataorg/cloudpathlib/issues/529), PR [#530](https://github.com/drivendataorg/cloudpathlib/pull/530))

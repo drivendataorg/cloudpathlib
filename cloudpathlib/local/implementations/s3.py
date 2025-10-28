@@ -4,6 +4,9 @@ from ...cloudpath import CloudImplementation
 from ..localclient import LocalClient
 from ..localpath import LocalPath
 
+# Import raw I/O class to ensure it's registered
+from ...s3.s3_io import _S3StorageRaw  # noqa: F401
+
 
 local_s3_implementation = CloudImplementation()
 """Replacement for "s3" CloudImplementation meta object in cloudpathlib.implementation_registry"""
@@ -61,3 +64,4 @@ LocalS3Path.__name__ = "S3Path"
 local_s3_implementation.name = "s3"
 local_s3_implementation._client_class = LocalS3Client
 local_s3_implementation._path_class = LocalS3Path
+local_s3_implementation._raw_io_class = _S3StorageRaw

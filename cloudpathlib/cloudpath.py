@@ -109,22 +109,25 @@ from .cloudpath_info import CloudPathInfo
 
 
 class CloudImplementation:
-    name: str
+    name: Optional[str] = None
     dependencies_loaded: bool = True
     _client_class: Type["Client"]
     _path_class: Type["CloudPath"]
+    _raw_io_class: Optional[Type] = None
 
     def validate_completeness(self) -> None:
-        expected = ["client_class", "path_class"]
+        expected = ["client_class", "path_class", "raw_io_class"]
         missing = [cls for cls in expected if getattr(self, f"_{cls}") is None]
         if missing:
             raise IncompleteImplementationError(
                 f"Implementation is missing registered components: {missing}"
             )
         if not self.dependencies_loaded:
+            # Use name if available, otherwise fall back to client class name
+            pkg_name = self.name if self.name else self._client_class.__name__.lower()
             raise MissingDependenciesError(
                 f"Missing dependencies for {self._client_class.__name__}. You can install them "
-                f"with 'pip install cloudpathlib[{self.name}]'."
+                f"with 'pip install cloudpathlib[{pkg_name}]'."
             )
 
     @property
@@ -136,6 +139,11 @@ class CloudImplementation:
     def path_class(self) -> Type["CloudPath"]:
         self.validate_completeness()
         return self._path_class
+
+    @property
+    def raw_io_class(self) -> Optional[Type]:
+        self.validate_completeness()
+        return self._raw_io_class
 
 
 implementation_registry: Dict[str, CloudImplementation] = defaultdict(CloudImplementation)
@@ -151,6 +159,23 @@ def register_path_class(key: str) -> Callable[[Type[CloudPathT]], Type[CloudPath
             raise TypeError("Only subclasses of CloudPath can be registered.")
         implementation_registry[key]._path_class = cls
         cls._cloud_meta = implementation_registry[key]
+        return cls
+
+    return decorator
+
+
+def register_raw_io_class(key: str) -> Callable[[Type[T]], Type[T]]:
+    """Decorator to register a raw I/O class for a cloud provider.
+
+    Args:
+        key: The cloud provider key (e.g., 's3', 'azure', 'gs')
+
+    Returns:
+        Decorator function
+    """
+
+    def decorator(cls: Type[T]) -> Type[T]:
+        implementation_registry[key]._raw_io_class = cls
         return cls
 
     return decorator
@@ -356,6 +381,14 @@ class CloudPath(metaclass=CloudPathMeta):
         return isinstance(other, type(self)) and str(self) == str(other)
 
     def __fspath__(self) -> str:
+        # Check if streaming mode is enabled
+        if self.client.file_cache_mode == FileCacheMode.streaming:
+            raise CloudPathNotImplementedError(
+                "fspath is not available in streaming mode. "
+                "Streaming mode does not create cached files on disk. "
+                "Use CloudPath.open() to read/write data directly."
+            )
+
         if self.is_file():
             self._refresh_cache()
         return str(self._local)
@@ -696,6 +729,7 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: Optional[str] = None,
         force_overwrite_from_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
         force_overwrite_to_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
+        buffer_size: Optional[int] = None,  # extra kwarg for streaming mode
     ) -> "IO[Any]":
         # if trying to call open on a directory that exists
         exists_on_cloud = self.exists()
@@ -713,7 +747,52 @@ class CloudPath(metaclass=CloudPathMeta):
         if mode == "x" and self.exists():
             raise CloudPathFileExistsError(f"Cannot open existing file ({self}) for creation.")
 
-        # TODO: consider streaming from client rather than DLing entire file to cache
+        # Use streaming I/O if file_cache_mode is streaming
+        if self.client.file_cache_mode == FileCacheMode.streaming:
+            # Import here to keep it localized to streaming functionality
+            from .cloud_io import CloudBufferedIO, CloudTextIO
+
+            # Get the raw IO class from the cloud implementation
+            raw_io_class = self._cloud_meta.raw_io_class
+            if raw_io_class is None:
+                raise NotImplementedError(
+                    f"Streaming I/O is not implemented for {self._cloud_meta.name}"
+                )
+
+            # Calculate buffer size from buffering or buffer_size parameter
+            if buffer_size is None:
+                if buffering == 0:
+                    # Unbuffered binary mode
+                    buffer_size = 1  # Minimal buffering
+                    if "b" not in mode:
+                        mode += "b"  # Force binary mode for unbuffered
+                elif buffering > 0:
+                    buffer_size = buffering
+                else:
+                    buffer_size = 64 * 1024  # Default 64 KiB
+
+            # Return appropriate streaming I/O object
+            if "b" in mode:
+                return CloudBufferedIO(  # type: ignore[return-value]
+                    raw_io_class=raw_io_class,
+                    client=self.client,
+                    cloud_path=self,
+                    mode=mode,
+                    buffer_size=buffer_size,
+                )
+            else:
+                return CloudTextIO(  # type: ignore[return-value]
+                    raw_io_class=raw_io_class,
+                    client=self.client,
+                    cloud_path=self,
+                    mode=mode,
+                    encoding=encoding,
+                    errors=errors,
+                    newline=newline,
+                    buffer_size=buffer_size,
+                )
+
+        # Standard cached mode
         self._refresh_cache(force_overwrite_from_cloud=force_overwrite_from_cloud)
 
         # create any directories that may be needed if the file is new

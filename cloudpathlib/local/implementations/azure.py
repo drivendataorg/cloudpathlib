@@ -6,6 +6,9 @@ from ...exceptions import MissingCredentialsError
 from ..localclient import LocalClient
 from ..localpath import LocalPath
 
+# Import raw I/O class to ensure it's registered
+from ...azure.azure_io import _AzureBlobStorageRaw  # noqa: F401
+
 
 local_azure_blob_implementation = CloudImplementation()
 """Replacement for "azure" CloudImplementation meta object in
@@ -82,3 +85,4 @@ LocalAzureBlobPath.__name__ = "AzureBlobPath"
 local_azure_blob_implementation.name = "azure"
 local_azure_blob_implementation._client_class = LocalAzureBlobClient
 local_azure_blob_implementation._path_class = LocalAzureBlobPath
+local_azure_blob_implementation._raw_io_class = _AzureBlobStorageRaw
