@@ -14,9 +14,12 @@ def test_pydantic_cloudpath(rig):
 
     obj = PydanticModel(cloud_path=cp)
     assert obj.cloud_path == cp
+    assert obj.model_dump_json() == f'{{"cloud_path":"{cp}"}}'
 
     obj = PydanticModel(cloud_path=str(cp))
     assert obj.cloud_path == cp
+    assert obj.model_dump_json() == f'{{"cloud_path":"{cp}"}}'
+
 
     with pytest.raises(ValidationError):
         _ = PydanticModel(cloud_path=0)
@@ -30,9 +33,11 @@ def test_pydantic_anypath(rig):
 
     obj = PydanticModel(any_path=cp)
     assert obj.any_path == cp
+    assert obj.model_dump_json() == f'{{"any_path":"{cp}"}}'
 
     obj = PydanticModel(any_path=str(cp))
     assert obj.any_path == cp
+    assert obj.model_dump_json() == f'{{"any_path":"{cp}"}}'
 
     obj = PydanticModel(any_path=Path("a/b/c"))
     assert obj.any_path == Path("a/b/c")
