@@ -45,12 +45,8 @@ from typing import Annotated
 from cloudpathlib import S3Path
 from pydantic import BaseModel, PlainSerializer
 
-def serialize_as_http(path: S3Path) -> str:
-    """Convert S3Path to HTTP URL"""
-    return f"https://{path.bucket}.s3.amazonaws.com/{path.key}"
-
 class MyModel(BaseModel):
-    s3_file: Annotated[S3Path, PlainSerializer(serialize_as_http)]
+    s3_file: Annotated[S3Path, PlainSerializer(lambda x: x.as_url())]
 
 inst = MyModel(s3_file="s3://mybucket/myfile.txt")
 inst.model_dump_json()
