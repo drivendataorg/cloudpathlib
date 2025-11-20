@@ -14,6 +14,8 @@ class MyModel(BaseModel):
 inst = MyModel(s3_file="s3://mybucket/myfile.txt")
 inst.s3_file
 #> S3Path('s3://mybucket/myfile.txt')
+inst.model_dump_json()
+#> '{"s3_file":"s3://mybucket/myfile.txt"}'
 ```
 
 This also works with the `AnyPath` polymorphic class. Inputs will get dispatched and instantiated as the appropriate class.
@@ -32,6 +34,23 @@ fancy1.path
 fancy2 = FancyModel(path="mydir/myfile.txt")
 fancy2.path
 #> PosixPath('mydir/myfile.txt')
+fancy2.model_dump_json()
+#> '{"path":"mydir/myfile.txt"}'
+```
+
+As seen above, the default serialization uses the URI but Pydantic supports custom serializers.
+
+```python
+from typing import Annotated
+from cloudpathlib import S3Path
+from pydantic import BaseModel, PlainSerializer
+
+class MyModel(BaseModel):
+    s3_file: Annotated[S3Path, PlainSerializer(lambda x: x.as_url())]
+
+inst = MyModel(s3_file="s3://mybucket/myfile.txt")
+inst.model_dump_json()
+#> '{"s3_file":"https://mybucket.s3.amazonaws.com/myfile.txt"}'
 ```
 
 ---
