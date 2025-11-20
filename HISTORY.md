@@ -1,5 +1,8 @@
 # cloudpathlib Changelog
 
+## UNRELEASED
+- Added support for Pydantic serialization (Issue [#537](https://github.com/drivendataorg/cloudpathlib/issues/537), PR [#538](https://github.com/drivendataorg/cloudpathlib/pull/538))
+
 ## v0.23.0 (2025-10-07)
 
 - Added support for Python 3.14 (Issue [#529](https://github.com/drivendataorg/cloudpathlib/issues/529), PR [#530](https://github.com/drivendataorg/cloudpathlib/pull/530))
