@@ -20,7 +20,6 @@ def test_pydantic_cloudpath(rig):
     assert obj.cloud_path == cp
     assert obj.model_dump_json() == f'{{"cloud_path":"{cp}"}}'
 
-
     with pytest.raises(ValidationError):
         _ = PydanticModel(cloud_path=0)
 
