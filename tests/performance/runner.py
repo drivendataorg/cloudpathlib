@@ -16,7 +16,6 @@ from cloudpathlib import CloudPath
 
 from perf_file_listing import folder_list, glob, walk
 
-
 # make loguru and tqdm play nicely together
 logger.remove()
 logger.add(lambda msg: tqdm.write(msg, end=""), colorize=True)

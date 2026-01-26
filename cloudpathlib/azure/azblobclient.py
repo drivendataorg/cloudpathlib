@@ -17,7 +17,6 @@ from ..enums import FileCacheMode
 from ..exceptions import MissingCredentialsError
 from .azblobpath import AzureBlobPath
 
-
 try:
     from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
     from azure.core.credentials import AzureNamedKeyCredential

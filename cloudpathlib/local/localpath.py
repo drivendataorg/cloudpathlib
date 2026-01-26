@@ -2,7 +2,6 @@ from typing import Any, Optional, TYPE_CHECKING
 
 from ..cloudpath import CloudPath, NoStatError
 
-
 if TYPE_CHECKING:
     from .localclient import LocalClient
 

@@ -51,7 +51,6 @@ from .mock_clients.mock_gs import (
 from .mock_clients.mock_s3 import mocked_session_class_factory, DEFAULT_S3_BUCKET_NAME
 from .utils import _sync_filesystem
 
-
 if os.getenv("USE_LIVE_CLOUD") == "1":
     load_dotenv(find_dotenv())
 

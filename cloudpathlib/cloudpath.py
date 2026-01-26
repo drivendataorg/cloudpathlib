@@ -101,7 +101,6 @@ from .exceptions import (
     OverwriteNewerLocalError,
 )
 
-
 if TYPE_CHECKING:
     from .client import Client
 

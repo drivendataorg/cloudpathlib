@@ -4,7 +4,6 @@ from ...cloudpath import CloudImplementation
 from ..localclient import LocalClient
 from ..localpath import LocalPath
 
-
 local_s3_implementation = CloudImplementation()
 """Replacement for "s3" CloudImplementation meta object in cloudpathlib.implementation_registry"""
 

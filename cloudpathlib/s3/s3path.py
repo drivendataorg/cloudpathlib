@@ -5,7 +5,6 @@ from typing import Any, Optional, TYPE_CHECKING
 
 from ..cloudpath import CloudPath, NoStatError, register_path_class
 
-
 if TYPE_CHECKING:
     from .s3client import S3Client
 

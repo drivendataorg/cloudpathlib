@@ -5,7 +5,6 @@ from typing import Any, TYPE_CHECKING, Optional
 
 from ..cloudpath import CloudPath, NoStatError, register_path_class
 
-
 if TYPE_CHECKING:
     from .gsclient import GSClient
 
