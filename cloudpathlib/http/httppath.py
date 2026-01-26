@@ -8,7 +8,6 @@ import urllib
 
 from ..cloudpath import CloudPath, NoStatError, register_path_class
 
-
 if TYPE_CHECKING:
     from .httpclient import HttpClient, HttpsClient
 

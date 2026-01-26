@@ -6,7 +6,6 @@ from ...exceptions import MissingCredentialsError
 from ..localclient import LocalClient
 from ..localpath import LocalPath
 
-
 local_azure_blob_implementation = CloudImplementation()
 """Replacement for "azure" CloudImplementation meta object in
 cloudpathlib.implementation_registry"""

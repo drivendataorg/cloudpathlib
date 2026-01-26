@@ -10,7 +10,6 @@ from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 from .enums import FileCacheMode
 from .exceptions import InvalidConfigurationException
 
-
 BoundedCloudPath = TypeVar("BoundedCloudPath", bound=CloudPath)
 
 

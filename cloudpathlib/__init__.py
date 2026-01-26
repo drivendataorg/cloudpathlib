@@ -13,7 +13,6 @@ from .http.httppath import HttpPath, HttpsPath
 from .s3.s3client import S3Client
 from .s3.s3path import S3Path
 
-
 if sys.version_info[:2] >= (3, 8):
     import importlib.metadata as importlib_metadata
 else:

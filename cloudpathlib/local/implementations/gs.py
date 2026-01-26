@@ -4,7 +4,6 @@ from ...cloudpath import CloudImplementation
 from ..localclient import LocalClient
 from ..localpath import LocalPath
 
-
 local_gs_implementation = CloudImplementation()
 """Replacement for "gs" CloudImplementation meta object in cloudpathlib.implementation_registry"""
 
