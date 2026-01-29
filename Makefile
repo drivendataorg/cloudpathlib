@@ -61,7 +61,10 @@ help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
 install: clean ## install the package to the active Python's site-packages
-	python setup.py install
+	pip install .
+
+install-dev: clean ## install the package and development requirements
+	pip install -e .
 
 lint: ## check style with black, flake8, and mypy
 	black --check cloudpathlib tests docs
