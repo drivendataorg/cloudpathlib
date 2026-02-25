@@ -118,6 +118,9 @@ class S3Client(Client):
         self.boto3_ul_extra_args = {
             k: v for k, v in extra_args.items() if k in S3Transfer.ALLOWED_UPLOAD_ARGS
         }
+        self.boto3_copy_extra_args = {
+            k: v for k, v in extra_args.items() if k in S3Transfer.ALLOWED_COPY_ARGS
+        }
 
         # listing ops (list_objects_v2, filter, delete) only accept these extras:
         # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html
@@ -302,7 +305,7 @@ class S3Client(Client):
             target = self.s3.Object(dst.bucket, dst.key)
             target.copy(
                 {"Bucket": src.bucket, "Key": src.key},
-                ExtraArgs=self.boto3_dl_extra_args,
+                ExtraArgs=self.boto3_copy_extra_args,
                 Config=self.boto3_transfer_config,
             )
 
