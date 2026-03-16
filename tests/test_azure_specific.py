@@ -1,5 +1,4 @@
 import os
-from unittest.mock import MagicMock, patch
 
 from azure.core.credentials import AzureNamedKeyCredential
 from azure.identity import DefaultAzureCredential
@@ -11,6 +10,7 @@ from azure.storage.blob import (
 from azure.storage.filedatalake import DataLakeServiceClient
 import pytest
 
+import cloudpathlib.azure.azblobclient
 from urllib.parse import urlparse, parse_qs
 from cloudpathlib import AzureBlobClient, AzureBlobPath
 from cloudpathlib.exceptions import (
@@ -20,7 +20,8 @@ from cloudpathlib.exceptions import (
 )
 from cloudpathlib.local import LocalAzureBlobClient, LocalAzureBlobPath
 
-from .mock_clients.mock_azureblob import MockStorageStreamDownloader
+from .mock_clients.mock_azureblob import MockBlobServiceClient, MockStorageStreamDownloader
+from .mock_clients.mock_adls_gen2 import MockedDataLakeServiceClient
 
 
 @pytest.mark.parametrize("path_class", [AzureBlobPath, LocalAzureBlobPath])
@@ -48,51 +49,47 @@ def test_azureblobpath_nocreds(client_class, monkeypatch):
         client_class()
 
 
+def _mock_azure_clients(monkeypatch):
+    """Monkeypatch BlobServiceClient and DataLakeServiceClient with mocks."""
+    monkeypatch.setattr(
+        cloudpathlib.azure.azblobclient, "BlobServiceClient", MockBlobServiceClient
+    )
+    monkeypatch.setattr(
+        cloudpathlib.azure.azblobclient, "DataLakeServiceClient", MockedDataLakeServiceClient
+    )
+
+
 def test_default_credential_used_with_account_url(monkeypatch):
     """DefaultAzureCredential is used when account_url is provided without credential."""
     monkeypatch.delenv("AZURE_STORAGE_CONNECTION_STRING", raising=False)
     monkeypatch.delenv("AZURE_STORAGE_ACCOUNT_URL", raising=False)
+    _mock_azure_clients(monkeypatch)
 
-    mock_dac = MagicMock()
-    mock_dac_class = MagicMock(return_value=mock_dac)
-    monkeypatch.setattr(
-        "cloudpathlib.azure.azblobclient.DefaultAzureCredential", mock_dac_class
-    )
+    client = AzureBlobClient(account_url="https://myaccount.blob.core.windows.net")
 
-    with patch.object(BlobServiceClient, "__init__", return_value=None) as mock_blob, patch.object(
-        DataLakeServiceClient, "__init__", return_value=None
-    ) as mock_datalake:
-        AzureBlobClient(account_url="https://myaccount.blob.core.windows.net")
+    assert isinstance(client.service_client, MockBlobServiceClient)
+    assert client.service_client._account_url == "https://myaccount.blob.core.windows.net"
+    assert isinstance(client.service_client._credential, DefaultAzureCredential)
 
-    mock_dac_class.assert_called_once()
-    mock_blob.assert_called_once_with(
-        account_url="https://myaccount.blob.core.windows.net", credential=mock_dac
-    )
-    mock_datalake.assert_called_once_with(
-        account_url="https://myaccount.dfs.core.windows.net", credential=mock_dac
-    )
+    assert isinstance(client.data_lake_client, MockedDataLakeServiceClient)
+    assert client.data_lake_client._account_url == "https://myaccount.dfs.core.windows.net"
+    assert isinstance(client.data_lake_client._credential, DefaultAzureCredential)
 
 
 def test_no_default_credential_when_explicit_credential(monkeypatch):
     """DefaultAzureCredential is NOT used when an explicit credential is provided."""
     monkeypatch.delenv("AZURE_STORAGE_CONNECTION_STRING", raising=False)
     monkeypatch.delenv("AZURE_STORAGE_ACCOUNT_URL", raising=False)
+    _mock_azure_clients(monkeypatch)
 
-    mock_dac_class = MagicMock()
-    monkeypatch.setattr(
-        "cloudpathlib.azure.azblobclient.DefaultAzureCredential", mock_dac_class
+    explicit_cred = "my-explicit-credential"
+    client = AzureBlobClient(
+        account_url="https://myaccount.blob.core.windows.net",
+        credential=explicit_cred,
     )
 
-    explicit_cred = MagicMock()
-    with patch.object(BlobServiceClient, "__init__", return_value=None), patch.object(
-        DataLakeServiceClient, "__init__", return_value=None
-    ):
-        AzureBlobClient(
-            account_url="https://myaccount.blob.core.windows.net",
-            credential=explicit_cred,
-        )
-
-    mock_dac_class.assert_not_called()
+    assert client.service_client._credential == explicit_cred
+    assert not isinstance(client.service_client._credential, DefaultAzureCredential)
 
 
 def test_fallback_when_azure_identity_not_installed(monkeypatch):
@@ -100,17 +97,13 @@ def test_fallback_when_azure_identity_not_installed(monkeypatch):
     monkeypatch.delenv("AZURE_STORAGE_CONNECTION_STRING", raising=False)
     monkeypatch.delenv("AZURE_STORAGE_ACCOUNT_URL", raising=False)
     monkeypatch.setattr(
-        "cloudpathlib.azure.azblobclient.DefaultAzureCredential", None
+        cloudpathlib.azure.azblobclient, "DefaultAzureCredential", None
     )
+    _mock_azure_clients(monkeypatch)
 
-    with patch.object(BlobServiceClient, "__init__", return_value=None) as mock_blob, patch.object(
-        DataLakeServiceClient, "__init__", return_value=None
-    ):
-        AzureBlobClient(account_url="https://myaccount.blob.core.windows.net")
+    client = AzureBlobClient(account_url="https://myaccount.blob.core.windows.net")
 
-    mock_blob.assert_called_once_with(
-        account_url="https://myaccount.blob.core.windows.net", credential=None
-    )
+    assert client.service_client._credential is None
 
 
 def test_account_url_env_var_blob(monkeypatch):
@@ -119,25 +112,17 @@ def test_account_url_env_var_blob(monkeypatch):
     monkeypatch.setenv(
         "AZURE_STORAGE_ACCOUNT_URL", "https://myaccount.blob.core.windows.net"
     )
+    _mock_azure_clients(monkeypatch)
 
-    mock_dac = MagicMock()
-    mock_dac_class = MagicMock(return_value=mock_dac)
-    monkeypatch.setattr(
-        "cloudpathlib.azure.azblobclient.DefaultAzureCredential", mock_dac_class
-    )
+    client = AzureBlobClient()
 
-    with patch.object(BlobServiceClient, "__init__", return_value=None) as mock_blob, patch.object(
-        DataLakeServiceClient, "__init__", return_value=None
-    ) as mock_datalake:
-        AzureBlobClient()
+    assert isinstance(client.service_client, MockBlobServiceClient)
+    assert client.service_client._account_url == "https://myaccount.blob.core.windows.net"
+    assert isinstance(client.service_client._credential, DefaultAzureCredential)
 
-    mock_dac_class.assert_called_once()
-    mock_blob.assert_called_once_with(
-        account_url="https://myaccount.blob.core.windows.net", credential=mock_dac
-    )
-    mock_datalake.assert_called_once_with(
-        account_url="https://myaccount.dfs.core.windows.net", credential=mock_dac
-    )
+    assert isinstance(client.data_lake_client, MockedDataLakeServiceClient)
+    assert client.data_lake_client._account_url == "https://myaccount.dfs.core.windows.net"
+    assert isinstance(client.data_lake_client._credential, DefaultAzureCredential)
 
 
 def test_account_url_env_var_dfs(monkeypatch):
@@ -146,24 +131,12 @@ def test_account_url_env_var_dfs(monkeypatch):
     monkeypatch.setenv(
         "AZURE_STORAGE_ACCOUNT_URL", "https://myaccount.dfs.core.windows.net"
     )
+    _mock_azure_clients(monkeypatch)
 
-    mock_dac = MagicMock()
-    mock_dac_class = MagicMock(return_value=mock_dac)
-    monkeypatch.setattr(
-        "cloudpathlib.azure.azblobclient.DefaultAzureCredential", mock_dac_class
-    )
+    client = AzureBlobClient()
 
-    with patch.object(BlobServiceClient, "__init__", return_value=None) as mock_blob, patch.object(
-        DataLakeServiceClient, "__init__", return_value=None
-    ) as mock_datalake:
-        AzureBlobClient()
-
-    mock_blob.assert_called_once_with(
-        account_url="https://myaccount.blob.core.windows.net", credential=mock_dac
-    )
-    mock_datalake.assert_called_once_with(
-        account_url="https://myaccount.dfs.core.windows.net", credential=mock_dac
-    )
+    assert client.service_client._account_url == "https://myaccount.blob.core.windows.net"
+    assert client.data_lake_client._account_url == "https://myaccount.dfs.core.windows.net"
 
 
 def test_missing_creds_error_no_env_vars(monkeypatch):
@@ -171,7 +144,7 @@ def test_missing_creds_error_no_env_vars(monkeypatch):
     monkeypatch.delenv("AZURE_STORAGE_CONNECTION_STRING", raising=False)
     monkeypatch.delenv("AZURE_STORAGE_ACCOUNT_URL", raising=False)
     monkeypatch.setattr(
-        "cloudpathlib.azure.azblobclient.DefaultAzureCredential", None
+        cloudpathlib.azure.azblobclient, "DefaultAzureCredential", None
     )
     with pytest.raises(MissingCredentialsError):
         AzureBlobClient()
