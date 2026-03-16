@@ -42,6 +42,8 @@ try:
 except ModuleNotFoundError:
     implementation_registry["azure"].dependencies_loaded = False
 
+# azure-identity is an additional optional dependency; users can use cloudpathlib's
+# Azure functionality without it, but will not get automatic DefaultAzureCredential support.
 try:
     from azure.identity import DefaultAzureCredential
 except ImportError:
