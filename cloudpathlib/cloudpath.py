@@ -58,26 +58,14 @@ else:
 
 
 if sys.version_info < (3, 12):
-    from pathlib import _posix_flavour  # type: ignore[attr-defined] # noqa: F811
-    from pathlib import _make_selector as _make_selector_pathlib  # type: ignore[attr-defined] # noqa: F811
     from pathlib import _PathParents  # type: ignore[attr-defined]
-
-    def _make_selector(pattern_parts, _flavour, case_sensitive=True):  # noqa: F811
-        return _make_selector_pathlib(tuple(pattern_parts), _flavour)
 
 elif sys.version_info[:2] == (3, 12):
     from pathlib import _PathParents  # type: ignore[attr-defined]
-    from pathlib import posixpath as _posix_flavour  # type: ignore[attr-defined]
-    from pathlib import _make_selector  # type: ignore[attr-defined]
 elif sys.version_info[:2] == (3, 13):
     from pathlib._local import _PathParents
-    import posixpath as _posix_flavour  # type: ignore[attr-defined]   # noqa: F811
-
-    from .legacy.glob import _make_selector  # noqa: F811
 elif sys.version_info >= (3, 14):
     from pathlib import _PathParents  # type: ignore[attr-defined]
-    import posixpath as _posix_flavour  # type: ignore[attr-defined]
-    from .legacy.glob import _make_selector  # noqa: F811
 
 
 from cloudpathlib.enums import FileCacheMode
@@ -485,7 +473,14 @@ class CloudPath(metaclass=CloudPathMeta):
 
         return str_pattern
 
-    def _build_subtree(self, recursive):
+    def _build_subtree(self, recursive: bool):
+        """Build a tree structure for all files.
+
+        Parameters
+        ----------
+        recursive : bool
+            Whether to list recursively.
+        """
         # build a tree structure for all files out of default dicts
         Tree: Callable = lambda: defaultdict(Tree)
 
@@ -503,6 +498,7 @@ class CloudPath(metaclass=CloudPathMeta):
         file_tree = Tree()
 
         for f, is_dir in self.client._list_dir(self, recursive=recursive):
+            # Get path relative to self for correct tree structure
             parts = str(f.relative_to(self)).split("/")
 
             # skip self
@@ -514,18 +510,78 @@ class CloudPath(metaclass=CloudPathMeta):
 
         return dict(file_tree)  # freeze as normal dict before passing in
 
-    def _glob(self, selector, recursive: bool) -> Generator[Self, None, None]:
-        file_tree = self._build_subtree(recursive)
+    def _glob(
+        self, pattern: str, case_sensitive: Optional[bool] = None
+    ) -> Generator[Self, None, None]:
+        """Core glob implementation using regex matching.
 
-        root = _CloudPathSelectable(
-            self.name,
-            [],  # nothing above self will be returned, so initial parents is empty
-            file_tree,
-        )
+        Collects entries from _list_dir and infers intermediate directories
+        for recursive listings (cloud backends may only return files/blobs).
+        Results are sorted for consistent ordering.
 
-        for p in selector.select_from(root):
-            # select_from returns self.name/... so strip before joining
-            yield (self / str(p)[len(self.name) + 1 :])
+        Args:
+            pattern: The glob pattern (relative to self)
+            case_sensitive: Whether matching is case-sensitive
+        """
+        from .glob_utils import _get_glob_prefix, _glob_has_magic, _glob_to_regex
+
+        needs_recursive = "/" in pattern or "**" in pattern
+
+        # Extract prefix for server-side filtering
+        start_path = self
+        if _glob_has_magic(pattern):
+            prefix = _get_glob_prefix(pattern)
+            if prefix:
+                start_path = self / prefix.rstrip("/")
+
+        regex = _glob_to_regex(pattern, case_sensitive=case_sensitive)
+
+        # Collect all relative paths, inferring directories for recursive listings.
+        # Cloud backends like Azure/S3/GCS may only return files for recursive
+        # listings, so we reconstruct directory entries from file paths.
+        seen = set()
+        entries = []
+
+        for f, is_dir in self.client._list_dir(start_path, recursive=needs_recursive):
+            if f == self:
+                continue
+            try:
+                rel_path = str(f.relative_to(self))
+            except ValueError:
+                continue
+            if rel_path == ".":
+                continue
+
+            # Strip trailing slash for consistent handling (HTTP backends
+            # return directory entries with trailing slashes)
+            clean_rel = rel_path.rstrip("/")
+            if not clean_rel:
+                continue
+
+            # For recursive listings, infer intermediate directories
+            if needs_recursive:
+                parts = clean_rel.split("/")
+                for j in range(1, len(parts)):
+                    dir_rel = "/".join(parts[:j])
+                    if dir_rel not in seen:
+                        seen.add(dir_rel)
+                        entries.append(dir_rel)
+
+            if clean_rel not in seen:
+                seen.add(clean_rel)
+                entries.append(clean_rel)
+
+        # Sort for consistent ordering (shallowest first, matching pathlib)
+        entries.sort()
+
+        # Build base string once for constructing result paths
+        self_str = str(self)
+        if not self_str.endswith("/"):
+            self_str += "/"
+
+        for rel_path in entries:
+            if regex.match(rel_path):
+                yield self._new_cloudpath(self_str + rel_path)
 
     def glob(
         self,
@@ -534,18 +590,7 @@ class CloudPath(metaclass=CloudPathMeta):
         recurse_symlinks: bool = True,
     ) -> Generator[Self, None, None]:
         pattern = self._glob_checks(pattern)
-
-        pattern_parts = PurePosixPath(pattern).parts
-        selector = _make_selector(
-            tuple(pattern_parts), _posix_flavour, case_sensitive=case_sensitive
-        )
-
-        yield from self._glob(
-            selector,
-            "/" in pattern
-            or "**"
-            in pattern,  # recursive listing needed if explicit ** or any sub folder in pattern
-        )
+        yield from self._glob(pattern, case_sensitive=case_sensitive)
 
     def rglob(
         self,
@@ -554,13 +599,10 @@ class CloudPath(metaclass=CloudPathMeta):
         recurse_symlinks: bool = True,
     ) -> Generator[Self, None, None]:
         pattern = self._glob_checks(pattern)
-
-        pattern_parts = PurePosixPath(pattern).parts
-        selector = _make_selector(
-            ("**",) + tuple(pattern_parts), _posix_flavour, case_sensitive=case_sensitive
-        )
-
-        yield from self._glob(selector, True)
+        # rglob is equivalent to glob with **/ prepended
+        # But we need to match at any depth, so we use **/pattern
+        rglob_pattern = f"**/{pattern}"
+        yield from self._glob(rglob_pattern, case_sensitive=case_sensitive)
 
     def iterdir(self) -> Generator[Self, None, None]:
         for f, _ in self.client._list_dir(self, recursive=False):
@@ -1642,83 +1684,3 @@ def _resolve(path: PurePosixPath) -> str:
         newpath = newpath + sep + name
 
     return newpath or sep
-
-
-# These objects are used to wrap CloudPaths in a context where we can use
-# the python pathlib implementations for `glob` and `rglob`, which depend
-# on the Selector created by the `_make_selector` method being passed
-# an object like the below when `select_from` is called. We implement these methods
-# in a simple wrapper to use the same glob recursion and pattern logic without
-# rolling our own.
-#
-# Designed to be compatible when used by these selector implementations from pathlib:
-# https://github.com/python/cpython/blob/3.10/Lib/pathlib.py#L385-L500
-class _CloudPathSelectableAccessor:
-    def __init__(self, scandir_func: Callable) -> None:
-        self.scandir = scandir_func
-
-
-class _CloudPathSelectable:
-    def __init__(
-        self,
-        name: str,
-        parents: List[str],
-        children: Any,  # Nested dictionaries as tree
-        exists: bool = True,
-    ) -> None:
-        self._name = name
-        self._all_children = children
-        self._parents = parents
-        self._exists = exists
-
-        self._accessor = _CloudPathSelectableAccessor(self.scandir)
-
-    def __repr__(self) -> str:
-        return "/".join(self._parents + [self.name])
-
-    def is_dir(self, follow_symlinks: bool = False) -> bool:
-        return self._all_children is not None
-
-    def exists(self) -> bool:
-        return self._exists
-
-    def is_symlink(self) -> bool:
-        return False
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    def _make_child_relpath(self, part):
-        # pathlib internals shortcut; makes a relative path, even if it doesn't actually exist
-        return _CloudPathSelectable(
-            part,
-            self._parents + [self.name],
-            self._all_children.get(part, None),
-            exists=part in self._all_children,
-        )
-
-    @staticmethod
-    @contextmanager
-    def scandir(
-        root: "_CloudPathSelectable",
-    ) -> Generator[Generator["_CloudPathSelectable", None, None], None, None]:
-        yield (
-            _CloudPathSelectable(child, root._parents + [root._name], grand_children)
-            for child, grand_children in root._all_children.items()
-        )
-
-    _scandir = scandir  # Py 3.11 compatibility
-
-    def walk(self):
-        # split into dirs and files
-        dirs_files = defaultdict(list)
-        with self.scandir(self) as items:
-            for child in items:
-                dirs_files[child.is_dir()].append(child)
-
-            # top-down, so yield self before recursive call
-            yield self, [f.name for f in dirs_files[True]], [f.name for f in dirs_files[False]]
-
-            for child_dir in dirs_files[True]:
-                yield from child_dir.walk()
