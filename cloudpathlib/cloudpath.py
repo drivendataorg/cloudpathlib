@@ -1,7 +1,6 @@
 import abc
 from collections import defaultdict
 import collections.abc
-from contextlib import contextmanager
 from io import BufferedRandom, BufferedReader, BufferedWriter, FileIO, TextIOWrapper
 import os
 from pathlib import (  # type: ignore
@@ -525,22 +524,39 @@ class CloudPath(metaclass=CloudPathMeta):
         """
         from .glob_utils import _get_glob_prefix, _glob_has_magic, _glob_to_regex
 
-        needs_recursive = "/" in pattern or "**" in pattern
+        # Detect directory-only patterns: trailing "/" means match only dirs
+        # (e.g. "*/"), and a bare terminal "**" is directory-only per pathlib
+        # semantics (e.g. "**", "a/**").
+        dir_only = False
+        match_pattern = pattern
+
+        if match_pattern.endswith("/"):
+            dir_only = True
+            match_pattern = match_pattern.rstrip("/")
+            if not match_pattern:
+                match_pattern = "*"
+
+        if match_pattern == "**" or match_pattern.endswith("/**"):
+            dir_only = True
+
+        # Use cleaned pattern for recursion decision so a trailing "/"
+        # doesn't force an unnecessary recursive listing.
+        needs_recursive = "/" in match_pattern or "**" in match_pattern
 
         # Extract prefix for server-side filtering
         start_path = self
-        if _glob_has_magic(pattern):
-            prefix = _get_glob_prefix(pattern)
+        if _glob_has_magic(match_pattern):
+            prefix = _get_glob_prefix(match_pattern)
             if prefix:
                 start_path = self / prefix.rstrip("/")
 
-        regex = _glob_to_regex(pattern, case_sensitive=case_sensitive)
+        regex = _glob_to_regex(match_pattern, case_sensitive=case_sensitive)
 
-        # Collect all relative paths, inferring directories for recursive listings.
+        # Collect all relative paths, tracking directory status.
         # Cloud backends like Azure/S3/GCS may only return files for recursive
         # listings, so we reconstruct directory entries from file paths.
-        seen = set()
-        entries = []
+        seen: Dict[str, bool] = {}  # rel_path -> is_dir
+        entries: List[str] = []
 
         for f, is_dir in self.client._list_dir(start_path, recursive=needs_recursive):
             if f == self:
@@ -564,24 +580,21 @@ class CloudPath(metaclass=CloudPathMeta):
                 for j in range(1, len(parts)):
                     dir_rel = "/".join(parts[:j])
                     if dir_rel not in seen:
-                        seen.add(dir_rel)
+                        seen[dir_rel] = True
                         entries.append(dir_rel)
 
             if clean_rel not in seen:
-                seen.add(clean_rel)
+                seen[clean_rel] = is_dir
                 entries.append(clean_rel)
 
         # Sort for consistent ordering (shallowest first, matching pathlib)
         entries.sort()
 
-        # Build base string once for constructing result paths
-        self_str = str(self)
-        if not self_str.endswith("/"):
-            self_str += "/"
-
         for rel_path in entries:
+            if dir_only and not seen[rel_path]:
+                continue
             if regex.match(rel_path):
-                yield self._new_cloudpath(self_str + rel_path)
+                yield self / rel_path
 
     def glob(
         self,
