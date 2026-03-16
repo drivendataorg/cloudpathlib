@@ -1,9 +1,9 @@
 import mimetypes
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
 
-from ..client import Client, register_client_class
+from ..client import Client, _prefetch_iterator, register_client_class
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
 from ..exceptions import CloudPathException
@@ -208,7 +208,9 @@ class S3Client(Client):
                 None,
             )
 
-    def _list_dir(self, cloud_path: S3Path, recursive=False) -> Iterable[Tuple[S3Path, bool]]:
+    def _list_dir_raw(
+        self, cloud_path: S3Path, recursive=False, include_dirs: bool = True
+    ) -> Iterable[Tuple[str, bool]]:
         # shortcut if listing all available buckets
         if not cloud_path.bucket:
             if recursive:
@@ -216,12 +218,11 @@ class S3Client(Client):
                     "Cannot recursively list all buckets and contents; you can get all the buckets then recursively list each separately."
                 )
 
-            yield from (
-                (self.CloudPath(f"{cloud_path.cloud_prefix}{b['Name']}"), True)
-                for b in self.client.list_buckets().get("Buckets", [])
-            )
+            for b in self.client.list_buckets().get("Buckets", []):
+                yield f"{cloud_path.cloud_prefix}{b['Name']}", True
             return
 
+        uri_prefix = f"{cloud_path.cloud_prefix}{cloud_path.bucket}/"
         prefix = cloud_path.key
         if prefix and not prefix.endswith("/"):
             prefix += "/"
@@ -230,62 +231,42 @@ class S3Client(Client):
 
         paginator = self.client.get_paginator("list_objects_v2")
 
-        for result in paginator.paginate(
+        pages = paginator.paginate(
             Bucket=cloud_path.bucket,
             Prefix=prefix,
             Delimiter=("" if recursive else "/"),
             **self.boto3_list_extra_args,
-        ):
+        )
+        for result in _prefetch_iterator(pages):
             # yield everything in common prefixes as directories
             for result_prefix in result.get("CommonPrefixes", []):
-                canonical = result_prefix.get("Prefix").rstrip("/")  # keep a canonical form
+                canonical = result_prefix.get("Prefix").rstrip("/")
                 if canonical not in yielded_dirs:
-                    yield (
-                        self.CloudPath(
-                            f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{canonical}"
-                        ),
-                        True,
-                    )
+                    yield f"{uri_prefix}{canonical}", True
                     yielded_dirs.add(canonical)
 
             # check all the keys
             for result_key in result.get("Contents", []):
-                # yield all the parents of any key that have not been yielded already
-                o_relative_path = result_key.get("Key")[len(prefix) :]
-                for parent in PurePosixPath(o_relative_path).parents:
-                    parent_canonical = prefix + str(parent).rstrip("/")
-                    if parent_canonical not in yielded_dirs and str(parent) != ".":
-                        yield (
-                            self.CloudPath(
-                                f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{parent_canonical}"
-                            ),
-                            True,
-                        )
-                        yielded_dirs.add(parent_canonical)
+                if include_dirs:
+                    o_relative_path = result_key.get("Key")[len(prefix) :]
+                    parts = o_relative_path.split("/")
+                    for j in range(1, len(parts)):
+                        parent_canonical = prefix + "/".join(parts[:j])
+                        if parent_canonical not in yielded_dirs:
+                            yield f"{uri_prefix}{parent_canonical}", True
+                            yielded_dirs.add(parent_canonical)
 
-                # if we already yielded this dir, go to next item in contents
                 canonical = result_key.get("Key").rstrip("/")
                 if canonical in yielded_dirs:
                     continue
 
                 # s3 fake directories have 0 size and end with "/"
                 if result_key.get("Key").endswith("/") and result_key.get("Size") == 0:
-                    yield (
-                        self.CloudPath(
-                            f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{canonical}"
-                        ),
-                        True,
-                    )
-                    yielded_dirs.add(canonical)
-
-                # yield object as file
+                    if include_dirs:
+                        yield f"{uri_prefix}{canonical}", True
+                        yielded_dirs.add(canonical)
                 else:
-                    yield (
-                        self.CloudPath(
-                            f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{result_key.get('Key')}"
-                        ),
-                        False,
-                    )
+                    yield f"{uri_prefix}{result_key.get('Key')}", False
 
     def _move_file(self, src: S3Path, dst: S3Path, remove_src: bool = True) -> S3Path:
         # just a touch, so "REPLACE" metadata

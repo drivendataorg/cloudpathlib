@@ -249,8 +249,6 @@ class CloudPath(metaclass=CloudPathMeta):
 
         # versions of the raw string that provide useful methods
         self._str = str(cloud_path)
-        self._url = urlparse(self._str)
-        self._path = PurePosixPath(f"/{self._no_prefix}")
 
         # setup client
         if client is None:
@@ -275,6 +273,26 @@ class CloudPath(metaclass=CloudPathMeta):
             self._client = self._cloud_meta.client_class.get_default_client()
 
         return self._client
+
+    @property
+    def _path(self):
+        try:
+            return self.__path
+        except AttributeError:
+            self.__path = PurePosixPath(f"/{self._no_prefix}")
+            return self.__path
+
+    @_path.setter
+    def _path(self, value):
+        self.__path = value
+
+    @property
+    def _url(self):
+        try:
+            return self.__url
+        except AttributeError:
+            self.__url = urlparse(self._str)
+            return self.__url
 
     def __del__(self) -> None:
         # make sure that file handle to local path is closed
@@ -475,34 +493,40 @@ class CloudPath(metaclass=CloudPathMeta):
     def _build_subtree(self, recursive: bool):
         """Build a tree structure for all files.
 
+        Uses _list_dir_raw with pure string operations to avoid constructing
+        CloudPath objects and calling relative_to for every listed item.
+
         Parameters
         ----------
         recursive : bool
             Whether to list recursively.
         """
-        # build a tree structure for all files out of default dicts
         Tree: Callable = lambda: defaultdict(Tree)
 
         def _build_tree(trunk, branch, nodes, is_dir):
-            """Utility to build a tree from nested defaultdicts with a generator
-            of nodes (parts) of a path."""
             next_branch = next(nodes, None)
 
             if next_branch is None:
                 trunk[branch] = Tree() if is_dir else None  # leaf node
-
             else:
                 _build_tree(trunk[branch], next_branch, nodes, is_dir)
 
         file_tree = Tree()
 
-        for f, is_dir in self.client._list_dir(self, recursive=recursive):
-            # Get path relative to self for correct tree structure
-            parts = str(f.relative_to(self)).split("/")
+        self_str = self._str
+        if not self_str.endswith("/"):
+            self_str += "/"
+        self_str_len = len(self_str)
 
-            # skip self
-            if len(parts) == 1 and parts[0] == ".":
+        for raw_uri, is_dir in self.client._list_dir_raw(self, recursive=recursive):
+            if not raw_uri.startswith(self_str):
                 continue
+
+            rel_path = raw_uri[self_str_len:].rstrip("/")
+            if not rel_path:
+                continue
+
+            parts = rel_path.split("/")
 
             nodes = (p for p in parts)
             _build_tree(file_tree, next(nodes, None), nodes, is_dir)
@@ -512,21 +536,13 @@ class CloudPath(metaclass=CloudPathMeta):
     def _glob(
         self, pattern: str, case_sensitive: Optional[bool] = None
     ) -> Generator[Self, None, None]:
-        """Core glob implementation using regex matching.
+        """Core glob implementation using regex matching on raw URI strings.
 
-        Collects entries from _list_dir and infers intermediate directories
-        for recursive listings (cloud backends may only return files/blobs).
-        Results are sorted for consistent ordering.
-
-        Args:
-            pattern: The glob pattern (relative to self)
-            case_sensitive: Whether matching is case-sensitive
+        Uses _list_dir_raw to avoid constructing CloudPath objects during
+        filtering.  CloudPath objects are only created for matching results.
         """
         from .glob_utils import _get_glob_prefix, _glob_has_magic, _glob_to_regex
 
-        # Detect directory-only patterns: trailing "/" means match only dirs
-        # (e.g. "*/"), and a bare terminal "**" is directory-only per pathlib
-        # semantics (e.g. "**", "a/**").
         dir_only = False
         match_pattern = pattern
 
@@ -539,11 +555,8 @@ class CloudPath(metaclass=CloudPathMeta):
         if match_pattern == "**" or match_pattern.endswith("/**"):
             dir_only = True
 
-        # Use cleaned pattern for recursion decision so a trailing "/"
-        # doesn't force an unnecessary recursive listing.
         needs_recursive = "/" in match_pattern or "**" in match_pattern
 
-        # Extract prefix for server-side filtering
         start_path = self
         if _glob_has_magic(match_pattern):
             prefix = _get_glob_prefix(match_pattern)
@@ -552,59 +565,46 @@ class CloudPath(metaclass=CloudPathMeta):
 
         regex = _glob_to_regex(match_pattern, case_sensitive=case_sensitive)
 
-        # Collect all relative paths, tracking directory status.
-        # Cloud backends like Azure/S3/GCS may only return files for recursive
-        # listings, so we reconstruct directory entries from file paths.
-        seen: Dict[str, bool] = {}  # rel_path -> is_dir
-        entries: List[str] = []
+        # Skip expensive directory inference for recursive listings when the
+        # pattern's final component contains a literal dot (file extension).
+        if needs_recursive and not dir_only:
+            last_part = match_pattern.rsplit("/", 1)[-1]
+            include_dirs = "." not in last_part
+        else:
+            include_dirs = True
 
-        for f, is_dir in self.client._list_dir(start_path, recursive=needs_recursive):
-            if f == self:
-                continue
-            try:
-                rel_path = str(f.relative_to(self))
-            except ValueError:
-                continue
-            if rel_path == ".":
+        # Pre-compute the string prefix for fast relative-path extraction
+        # instead of calling CloudPath.relative_to (which triggers expensive
+        # pathlib operations).
+        self_str = self._str
+        if not self_str.endswith("/"):
+            self_str += "/"
+        self_str_len = len(self_str)
+
+        for raw_uri, is_dir in self.client._list_dir_raw(
+            start_path, recursive=needs_recursive, include_dirs=include_dirs
+        ):
+            # Fast string-based relative path extraction
+            if not raw_uri.startswith(self_str):
+                if raw_uri.rstrip("/") == self._str:
+                    continue
                 continue
 
-            # Strip trailing slash for consistent regex matching. HTTP backends
-            # return directory entries with trailing slashes; we normalize here
-            # and re-apply the slash for directory entries at yield time.
+            rel_path = raw_uri[self_str_len:]
             clean_rel = rel_path.rstrip("/")
             if not clean_rel:
                 continue
 
-            # For recursive listings, infer intermediate directories
-            if needs_recursive:
-                parts = clean_rel.split("/")
-                for j in range(1, len(parts)):
-                    dir_rel = "/".join(parts[:j])
-                    if dir_rel not in seen:
-                        seen[dir_rel] = True
-                        entries.append(dir_rel)
-
-            if clean_rel not in seen:
-                seen[clean_rel] = is_dir
-                entries.append(clean_rel)
-
-        # Sort for consistent ordering (shallowest first, matching pathlib)
-        entries.sort()
-
-        for rel_path in entries:
-            if dir_only and not seen[rel_path]:
+            if dir_only and not is_dir:
                 continue
-            if regex.match(rel_path):
-                # For directory-only patterns, join with a trailing "/" so that
-                # backends like HttpPath (whose _dispatch_to_path preserves it)
-                # produce URLs that the default dir_matcher recognises as dirs.
-                # Non-HTTP backends normalise the slash away via PurePosixPath.
-                # Query parameters / fragments are intentionally dropped here:
-                # they are request metadata, not part of the path hierarchy,
-                # and every other path operation (/, parent, iterdir) already
-                # strips them — see HttpPath._path which uses _url.path only.
-                child = rel_path + "/" if dir_only else rel_path
-                yield self / child
+
+            if regex.match(clean_rel):
+                # Construct CloudPath only for matches; use clean_rel to
+                # normalize trailing slashes from HTTP-style backends.
+                if dir_only:
+                    yield self.client._make_cloudpath(f"{self_str}{clean_rel}/")
+                else:
+                    yield self.client._make_cloudpath(f"{self_str}{clean_rel}")
 
     def glob(
         self,
@@ -628,9 +628,10 @@ class CloudPath(metaclass=CloudPathMeta):
         yield from self._glob(rglob_pattern, case_sensitive=case_sensitive)
 
     def iterdir(self) -> Generator[Self, None, None]:
-        for f, _ in self.client._list_dir(self, recursive=False):
-            if f != self:  # iterdir does not include itself in pathlib
-                yield f
+        self_str = self._str.rstrip("/")
+        for raw_uri, _ in self.client._list_dir_raw(self, recursive=False):
+            if raw_uri.rstrip("/") != self_str:
+                yield self.client._make_cloudpath(raw_uri)
 
     @staticmethod
     def _walk_results_from_tree(root, tree, top_down=True):
@@ -645,8 +646,10 @@ class CloudPath(metaclass=CloudPathMeta):
         if top_down:
             yield root, dirs, files
 
+        root_str = root._str.rstrip("/")
         for dir in dirs:
-            yield from CloudPath._walk_results_from_tree(root / dir, tree[dir], top_down=top_down)
+            child = root.client._make_cloudpath(f"{root_str}/{dir}")
+            yield from CloudPath._walk_results_from_tree(child, tree[dir], top_down=top_down)
 
         if not top_down:
             yield root, dirs, files

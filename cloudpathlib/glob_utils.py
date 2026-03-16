@@ -1,4 +1,3 @@
-from pathlib import PurePosixPath
 import re
 from typing import Optional, Pattern
 
@@ -21,7 +20,7 @@ def _get_glob_prefix(pattern: str) -> str:
         "foo/bar/baz.txt" -> "foo/bar/baz.txt"
         "foo/**/bar" -> "foo/"
     """
-    parts = PurePosixPath(pattern).parts
+    parts = pattern.split("/")
     prefix_parts = []
     for part in parts:
         if _glob_has_magic(part):

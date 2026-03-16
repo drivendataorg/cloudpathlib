@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import mimetypes
 import os
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union
 import warnings
 
@@ -189,7 +189,9 @@ class GSClient(Client):
 
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
-    def _list_dir(self, cloud_path: GSPath, recursive=False) -> Iterable[Tuple[GSPath, bool]]:
+    def _list_dir_raw(
+        self, cloud_path: GSPath, recursive=False, include_dirs: bool = True
+    ) -> Iterable[Tuple[str, bool]]:
         # shortcut if listing all available buckets
         if not cloud_path.bucket:
             if recursive:
@@ -197,51 +199,39 @@ class GSClient(Client):
                     "Cannot recursively list all buckets and contents; you can get all the buckets then recursively list each separately."
                 )
 
-            yield from (
-                (self.CloudPath(f"{cloud_path.cloud_prefix}{str(b)}"), True)
-                for b in self.client.list_buckets()
-            )
+            for b in self.client.list_buckets():
+                yield f"{cloud_path.cloud_prefix}{str(b)}", True
             return
 
         bucket = self.client.bucket(cloud_path.bucket)
+        uri_prefix = f"{cloud_path.cloud_prefix}{cloud_path.bucket}/"
 
         prefix = cloud_path.blob
         if prefix and not prefix.endswith("/"):
             prefix += "/"
         if recursive:
-            yielded_dirs = set()
+            if include_dirs:
+                yielded_dirs = set()
             for o in bucket.list_blobs(prefix=prefix):
-                # get directory from this path
-                for parent in PurePosixPath(o.name[len(prefix) :]).parents:
-                    # if we haven't surfaced this directory already
-                    if parent not in yielded_dirs and str(parent) != ".":
-                        yield (
-                            self.CloudPath(
-                                f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{prefix}{parent}"
-                            ),
-                            True,  # is a directory
-                        )
-                        yielded_dirs.add(parent)
-                yield (
-                    self.CloudPath(f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{o.name}"),
-                    False,
-                )  # is a file
+                if include_dirs:
+                    rel = o.name[len(prefix) :]
+                    parts = rel.split("/")
+                    for j in range(1, len(parts)):
+                        dir_path = "/".join(parts[:j])
+                        if dir_path not in yielded_dirs:
+                            yield f"{uri_prefix}{prefix}{dir_path}", True
+                            yielded_dirs.add(dir_path)
+                yield f"{uri_prefix}{o.name}", False
         else:
             iterator = bucket.list_blobs(delimiter="/", prefix=prefix)
 
             # files must be iterated first for `.prefixes` to be populated:
             #   see: https://github.com/googleapis/python-storage/issues/863
             for file in iterator:
-                yield (
-                    self.CloudPath(f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{file.name}"),
-                    False,  # is a file
-                )
+                yield f"{uri_prefix}{file.name}", False
 
             for directory in iterator.prefixes:
-                yield (
-                    self.CloudPath(f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{directory}"),
-                    True,  # is a directory
-                )
+                yield f"{uri_prefix}{directory}", True
 
     def _move_file(self, src: GSPath, dst: GSPath, remove_src: bool = True) -> GSPath:
         # just a touch, so "REPLACE" metadata
