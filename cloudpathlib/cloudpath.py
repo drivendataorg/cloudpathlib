@@ -568,8 +568,9 @@ class CloudPath(metaclass=CloudPathMeta):
             if rel_path == ".":
                 continue
 
-            # Strip trailing slash for consistent handling (HTTP backends
-            # return directory entries with trailing slashes)
+            # Strip trailing slash for consistent regex matching. HTTP backends
+            # return directory entries with trailing slashes; we normalize here
+            # and re-apply the slash for directory entries at yield time.
             clean_rel = rel_path.rstrip("/")
             if not clean_rel:
                 continue
@@ -594,7 +595,16 @@ class CloudPath(metaclass=CloudPathMeta):
             if dir_only and not seen[rel_path]:
                 continue
             if regex.match(rel_path):
-                yield self / rel_path
+                # For directory-only patterns, join with a trailing "/" so that
+                # backends like HttpPath (whose _dispatch_to_path preserves it)
+                # produce URLs that the default dir_matcher recognises as dirs.
+                # Non-HTTP backends normalise the slash away via PurePosixPath.
+                # Query parameters / fragments are intentionally dropped here:
+                # they are request metadata, not part of the path hierarchy,
+                # and every other path operation (/, parent, iterdir) already
+                # strips them — see HttpPath._path which uses _url.path only.
+                child = rel_path + "/" if dir_only else rel_path
+                yield self / child
 
     def glob(
         self,
