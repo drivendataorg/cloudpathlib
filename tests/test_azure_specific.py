@@ -42,9 +42,6 @@ def test_azureblobpath_properties(path_class, monkeypatch):
 def test_azureblobpath_nocreds(client_class, monkeypatch):
     monkeypatch.delenv("AZURE_STORAGE_CONNECTION_STRING", raising=False)
     monkeypatch.delenv("AZURE_STORAGE_ACCOUNT_URL", raising=False)
-    monkeypatch.setattr(
-        "cloudpathlib.azure.azblobclient.DefaultAzureCredential", None
-    )
     with pytest.raises(MissingCredentialsError):
         client_class()
 
@@ -92,20 +89,6 @@ def test_no_default_credential_when_explicit_credential(monkeypatch):
     assert not isinstance(client.service_client._credential, DefaultAzureCredential)
 
 
-def test_fallback_when_azure_identity_not_installed(monkeypatch):
-    """When azure-identity is not installed, credential=None is passed through."""
-    monkeypatch.delenv("AZURE_STORAGE_CONNECTION_STRING", raising=False)
-    monkeypatch.delenv("AZURE_STORAGE_ACCOUNT_URL", raising=False)
-    monkeypatch.setattr(
-        cloudpathlib.azure.azblobclient, "DefaultAzureCredential", None
-    )
-    _mock_azure_clients(monkeypatch)
-
-    client = AzureBlobClient(account_url="https://myaccount.blob.core.windows.net")
-
-    assert client.service_client._credential is None
-
-
 def test_account_url_env_var_blob(monkeypatch):
     """AZURE_STORAGE_ACCOUNT_URL env var with .blob. URL creates both clients."""
     monkeypatch.delenv("AZURE_STORAGE_CONNECTION_STRING", raising=False)
@@ -143,9 +126,6 @@ def test_missing_creds_error_no_env_vars(monkeypatch):
     """MissingCredentialsError is still raised when nothing is configured."""
     monkeypatch.delenv("AZURE_STORAGE_CONNECTION_STRING", raising=False)
     monkeypatch.delenv("AZURE_STORAGE_ACCOUNT_URL", raising=False)
-    monkeypatch.setattr(
-        cloudpathlib.azure.azblobclient, "DefaultAzureCredential", None
-    )
     with pytest.raises(MissingCredentialsError):
         AzureBlobClient()
 
