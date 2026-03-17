@@ -4,6 +4,8 @@ import pytest
 
 from cloudpathlib.glob_utils import _get_glob_prefix, _glob_has_magic, _glob_to_regex
 
+REGEX_COMPILE_ERROR = getattr(re, "PatternError", re.error)
+
 
 @pytest.mark.parametrize(
     "pattern,expected",
@@ -64,5 +66,5 @@ def test_glob_to_regex_case_insensitive():
 
 
 def test_glob_to_regex_unclosed_character_class_raises():
-    with pytest.raises(re.PatternError):
+    with pytest.raises(REGEX_COMPILE_ERROR):
         _glob_to_regex("foo[bar")
