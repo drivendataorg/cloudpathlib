@@ -228,6 +228,10 @@ def test_client_instantiation(azure_rigs, monkeypatch):
     cl: AzureBlobClient = azure_rigs.client_class(credential=credential, account_url=bsc.url)
     _check_access(cl, gen2=azure_rigs.is_adls_gen2)
 
+    # test DefaultAzureCredential used automatically with only account_url
+    cl = azure_rigs.client_class(account_url=bsc.url)
+    _check_access(cl, gen2=azure_rigs.is_adls_gen2)
+
     # add basic checks for gen2 to exercise limited-privilege access scenarios
     p = azure_rigs.create_cloud_path("new_dir/new_file.txt", client=cl)
     assert cl._check_hns(p) == azure_rigs.is_adls_gen2
