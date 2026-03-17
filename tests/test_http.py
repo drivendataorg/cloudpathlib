@@ -1,5 +1,7 @@
 import urllib
 
+from cloudpathlib.http.httpclient import HttpClient
+
 from tests.conftest import CloudProviderTestRig
 
 
@@ -126,3 +128,57 @@ def test_http_url_decorations(http_like_rig: CloudProviderTestRig):
     _test_preserved_properties(p, p.with_name("other_file.txt"))
     _test_preserved_properties(p, p.with_suffix(".txt"))
     _test_preserved_properties(p, p.with_stem("other_file"))
+
+
+def test_http_parse_list_dir_response_raw_and_wrapper():
+    client = HttpClient()
+    response = '<a href="subdir/">subdir</a><a href="file.txt">file</a>'
+
+    raw = list(client._parse_list_dir_response_raw(response, "http://example.test/base"))
+    assert raw == [
+        ("http://example.test/base/subdir/", True),
+        ("http://example.test/base/file.txt", False),
+    ]
+
+    wrapped = list(client._parse_list_dir_response(response, "http://example.test/base"))
+    assert [str(p) for p, _ in wrapped] == [u for u, _ in raw]
+    assert [is_dir for _, is_dir in wrapped] == [is_dir for _, is_dir in raw]
+
+    p = client._make_cloudpath("http://example.test/base/file.txt")
+    assert str(p) == "http://example.test/base/file.txt"
+
+
+def test_http_list_dir_raw_recursive_without_dirs(monkeypatch):
+    class _Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return b"ignored"
+
+    client = HttpClient()
+    root = client.CloudPath("http://example.test/base/")
+
+    monkeypatch.setattr(client.opener, "open", lambda *_args, **_kwargs: _Response())
+
+    responses = {
+        str(root): [
+            ("http://example.test/base/dir/", True),
+            ("http://example.test/base/top.txt", False),
+        ],
+        "http://example.test/base/dir/": [("http://example.test/base/dir/nested.txt", False)],
+    }
+
+    def _fake_parser(_response: str, base_url: str):
+        return responses.get(base_url, [])
+
+    monkeypatch.setattr(client, "_parse_list_dir_response_raw", _fake_parser)
+
+    results = list(client._list_dir_raw(root, recursive=True, include_dirs=False))
+    assert results == [
+        ("http://example.test/base/dir/nested.txt", False),
+        ("http://example.test/base/top.txt", False),
+    ]
