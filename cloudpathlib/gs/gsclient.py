@@ -190,7 +190,11 @@ class GSClient(Client):
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
     def _list_dir_raw(
-        self, cloud_path: GSPath, recursive=False, include_dirs: bool = True
+        self,
+        cloud_path: GSPath,
+        recursive=False,
+        include_dirs: bool = True,
+        prefilter_pattern: Optional[str] = None,
     ) -> Iterable[Tuple[str, bool]]:
         # shortcut if listing all available buckets
         if not cloud_path.bucket:
@@ -209,10 +213,23 @@ class GSClient(Client):
         prefix = cloud_path.blob
         if prefix and not prefix.endswith("/"):
             prefix += "/"
+
+        extra_kwargs: dict = {}
+        if prefilter_pattern is not None:
+            extra_kwargs["match_glob"] = f"{prefix}{prefilter_pattern}"
+
         if recursive:
             if include_dirs:
                 yielded_dirs = set()
-            for o in bucket.list_blobs(prefix=prefix):
+            try:
+                blob_iter = bucket.list_blobs(prefix=prefix, **extra_kwargs)
+            except TypeError:
+                if "match_glob" in extra_kwargs:
+                    extra_kwargs.pop("match_glob")
+                    blob_iter = bucket.list_blobs(prefix=prefix, **extra_kwargs)
+                else:
+                    raise
+            for o in blob_iter:
                 if include_dirs:
                     rel = o.name[len(prefix) :]
                     parts = rel.split("/")
@@ -223,7 +240,14 @@ class GSClient(Client):
                             yielded_dirs.add(dir_path)
                 yield f"{uri_prefix}{o.name}", False
         else:
-            iterator = bucket.list_blobs(delimiter="/", prefix=prefix)
+            try:
+                iterator = bucket.list_blobs(delimiter="/", prefix=prefix, **extra_kwargs)
+            except TypeError:
+                if "match_glob" in extra_kwargs:
+                    extra_kwargs.pop("match_glob")
+                    iterator = bucket.list_blobs(delimiter="/", prefix=prefix, **extra_kwargs)
+                else:
+                    raise
 
             # files must be iterated first for `.prefixes` to be populated:
             #   see: https://github.com/googleapis/python-storage/issues/863

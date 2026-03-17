@@ -330,6 +330,7 @@ class AzureBlobClient(Client):
         cloud_path: AzureBlobPath,
         recursive: bool = False,
         include_dirs: bool = True,
+        prefilter_pattern: Optional[str] = None,
     ) -> Iterable[Tuple[str, bool]]:
         if not cloud_path.container:
             for container in self.service_client.list_containers():

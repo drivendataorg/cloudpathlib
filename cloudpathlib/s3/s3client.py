@@ -209,7 +209,11 @@ class S3Client(Client):
             )
 
     def _list_dir_raw(
-        self, cloud_path: S3Path, recursive=False, include_dirs: bool = True
+        self,
+        cloud_path: S3Path,
+        recursive=False,
+        include_dirs: bool = True,
+        prefilter_pattern: Optional[str] = None,
     ) -> Iterable[Tuple[str, bool]]:
         # shortcut if listing all available buckets
         if not cloud_path.bucket:

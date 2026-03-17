@@ -534,12 +534,23 @@ class CloudPath(metaclass=CloudPathMeta):
         return dict(file_tree)  # freeze as normal dict before passing in
 
     def _glob(
-        self, pattern: str, case_sensitive: Optional[bool] = None
+        self,
+        pattern: str,
+        case_sensitive: Optional[bool] = None,
+        _prefilter: bool = True,
     ) -> Generator[Self, None, None]:
         """Core glob implementation using regex matching on raw URI strings.
 
         Uses _list_dir_raw to avoid constructing CloudPath objects during
         filtering.  CloudPath objects are only created for matching results.
+
+        Parameters
+        ----------
+        _prefilter : bool
+            When True (default), a server-side prefilter pattern is computed
+            and passed to the backend when the glob pattern is amenable.
+            Set to False to bypass server-side filtering (useful for
+            benchmarking).
         """
         from .glob_utils import _get_glob_prefix, _glob_has_magic, _glob_to_regex
 
@@ -558,6 +569,7 @@ class CloudPath(metaclass=CloudPathMeta):
         needs_recursive = "/" in match_pattern or "**" in match_pattern
 
         start_path = self
+        prefix = ""
         if _glob_has_magic(match_pattern):
             prefix = _get_glob_prefix(match_pattern)
             if prefix:
@@ -573,6 +585,22 @@ class CloudPath(metaclass=CloudPathMeta):
         else:
             include_dirs = True
 
+        # Compute prefilter_pattern for server-side filtering.  Only safe when:
+        #  - the listing won't need to infer directories (recursive +
+        #    include_dirs could miss directories whose children are filtered)
+        #  - the glob is case-sensitive (backends filter case-sensitively; a
+        #    case-insensitive regex would miss results the backend discarded)
+        prefilter_pattern = None
+        if _prefilter and case_sensitive is not False:
+            remaining = match_pattern[len(prefix) :] if prefix else match_pattern
+            if (
+                remaining
+                and _glob_has_magic(remaining)
+                and remaining not in ("*", "**", "**/*")
+                and not (needs_recursive and include_dirs)
+            ):
+                prefilter_pattern = remaining
+
         # Pre-compute the string prefix for fast relative-path extraction
         # instead of calling CloudPath.relative_to (which triggers expensive
         # pathlib operations).
@@ -582,7 +610,10 @@ class CloudPath(metaclass=CloudPathMeta):
         self_str_len = len(self_str)
 
         for raw_uri, is_dir in self.client._list_dir_raw(
-            start_path, recursive=needs_recursive, include_dirs=include_dirs
+            start_path,
+            recursive=needs_recursive,
+            include_dirs=include_dirs,
+            prefilter_pattern=prefilter_pattern,
         ):
             # Fast string-based relative path extraction
             if not raw_uri.startswith(self_str):

@@ -182,7 +182,11 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
 
     @abc.abstractmethod
     def _list_dir_raw(
-        self, cloud_path: BoundedCloudPath, recursive: bool, include_dirs: bool = True
+        self,
+        cloud_path: BoundedCloudPath,
+        recursive: bool,
+        include_dirs: bool = True,
+        prefilter_pattern: Optional[str] = None,
     ) -> Iterable[Tuple[str, bool]]:
         """List files and folders, yielding raw URI strings.
 
@@ -201,18 +205,31 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
             yielded for recursive listings.  When False, only actual objects
             (files / blobs) are yielded, skipping the expensive parent-
             directory reconstruction.  Ignored for non-recursive listings.
+        prefilter_pattern : str, optional
+            A glob pattern (relative to *cloud_path*) that the backend may
+            use for server-side filtering to reduce the number of results
+            returned.  Backends that do not support server-side pattern
+            matching should silently ignore this parameter.  Client-side
+            regex matching in ``_glob`` still validates every result, so this
+            is purely an optimisation hint.
         """
         pass
 
     def _list_dir(
-        self, cloud_path: BoundedCloudPath, recursive: bool, include_dirs: bool = True
+        self,
+        cloud_path: BoundedCloudPath,
+        recursive: bool,
+        include_dirs: bool = True,
+        prefilter_pattern: Optional[str] = None,
     ) -> Iterable[Tuple[BoundedCloudPath, bool]]:
         """List files and folders, yielding ``(CloudPath, is_dir)`` tuples.
 
         Thin wrapper around :meth:`_list_dir_raw` that constructs CloudPath
         objects from the raw URI strings.
         """
-        for raw_uri, is_dir in self._list_dir_raw(cloud_path, recursive, include_dirs):
+        for raw_uri, is_dir in self._list_dir_raw(
+            cloud_path, recursive, include_dirs, prefilter_pattern=prefilter_pattern
+        ):
             yield self._make_cloudpath(raw_uri), is_dir
 
     @abc.abstractmethod

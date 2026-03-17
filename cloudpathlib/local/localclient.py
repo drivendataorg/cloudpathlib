@@ -127,9 +127,16 @@ class LocalClient(Client):
             raise FileNotFoundError(f"Path could not be identified as file or dir: {cloud_path}")
 
     def _list_dir_raw(
-        self, cloud_path: "LocalPath", recursive=False, include_dirs: bool = True
+        self,
+        cloud_path: "LocalPath",
+        recursive=False,
+        include_dirs: bool = True,
+        prefilter_pattern: Optional[str] = None,
     ) -> Iterable[Tuple[str, bool]]:
-        pattern = "**/*" if recursive else "*"
+        if prefilter_pattern is not None:
+            pattern = prefilter_pattern
+        else:
+            pattern = "**/*" if recursive else "*"
         for obj in self._cloud_path_to_local(cloud_path).glob(pattern):
             is_dir = obj.is_dir()
             if not include_dirs and is_dir:

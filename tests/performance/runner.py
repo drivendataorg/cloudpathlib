@@ -14,14 +14,21 @@ from loguru import logger
 from cloudpathlib import CloudPath
 
 
-from perf_file_listing import folder_list, glob, walk
+from perf_file_listing import (
+    folder_list,
+    glob,
+    glob_no_prefilter,
+    walk,
+    vanilla_list,
+    vanilla_glob,
+)
 
 # make loguru and tqdm play nicely together
 logger.remove()
 logger.add(lambda msg: tqdm.write(msg, end=""), colorize=True)
 
 
-def construct_tree(folder_depth, sub_folders, items_per_folder):
+def construct_tree(folder_depth, sub_folders, items_per_folder, extensions=(".item",)):
     for limit in range(0, folder_depth + 1):
         if limit == 0:
             prefix = ""
@@ -36,11 +43,15 @@ def construct_tree(folder_depth, sub_folders, items_per_folder):
                 folder_prefix = f"{prefix}folder_{f:05}/"
 
             for i in range(1, items_per_folder + 1):
-                yield f"{folder_prefix}{i:05}.item"
+                ext = extensions[(i - 1) % len(extensions)]
+                yield f"{folder_prefix}{i:05}{ext}"
 
 
-def setup_test(root, folder_depth, sub_folders, items_per_folder, overwrite=False):
-    test_config_str = f"{folder_depth}_{sub_folders}_{items_per_folder}"
+def setup_test(
+    root, folder_depth, sub_folders, items_per_folder, overwrite=False, extensions=(".item",)
+):
+    ext_tag = "_".join(e.lstrip(".") for e in extensions)
+    test_config_str = f"{folder_depth}_{sub_folders}_{items_per_folder}_{ext_tag}"
     test_folder = CloudPath(root) / test_config_str
 
     if test_folder.exists():
@@ -60,7 +71,7 @@ def setup_test(root, folder_depth, sub_folders, items_per_folder, overwrite=Fals
     # create folders and files for test in parallel
     thread_map(
         lambda x: (test_folder / x).touch(),
-        list(construct_tree(folder_depth, sub_folders, items_per_folder)),
+        list(construct_tree(folder_depth, sub_folders, items_per_folder, extensions=extensions)),
         desc="creating...",
     )
 
@@ -111,6 +122,12 @@ def main(root, iterations, burn_in):
     normal = setup_test(root, 5, 100, 12)
     deep = setup_test(root, 50, 5, 25)
 
+    # Mixed-extension trees: 1 in 5 files is .item, rest are .noise/.junk/.tmp/.skip.
+    # This lets prefilter (match_glob / Path.glob) demonstrate actual filtering.
+    mixed_exts = (".item", ".noise", ".junk", ".tmp", ".skip")
+    mixed_shallow = setup_test(root, 0, 0, 5_500, extensions=mixed_exts)
+    mixed_normal = setup_test(root, 5, 100, 12, extensions=mixed_exts)
+
     test_suite = [
         (
             "List Folders",
@@ -134,6 +151,83 @@ def main(root, iterations, burn_in):
                 PerfRunConfig(name="Glob normal non-recursive", args=[normal, False], kwargs={}),
                 PerfRunConfig(name="Glob deep recursive", args=[deep, True], kwargs={}),
                 PerfRunConfig(name="Glob deep non-recursive", args=[deep, False], kwargs={}),
+            ],
+        ),
+        (
+            "Glob no prefilter",
+            glob_no_prefilter,
+            [
+                PerfRunConfig(
+                    name="Glob-nopre shallow recursive", args=[shallow, True], kwargs={}
+                ),
+                PerfRunConfig(
+                    name="Glob-nopre shallow non-recursive", args=[shallow, False], kwargs={}
+                ),
+                PerfRunConfig(name="Glob-nopre normal recursive", args=[normal, True], kwargs={}),
+                PerfRunConfig(
+                    name="Glob-nopre normal non-recursive", args=[normal, False], kwargs={}
+                ),
+                PerfRunConfig(name="Glob-nopre deep recursive", args=[deep, True], kwargs={}),
+                PerfRunConfig(name="Glob-nopre deep non-recursive", args=[deep, False], kwargs={}),
+            ],
+        ),
+        (
+            "Glob mixed (prefilter)",
+            glob,
+            [
+                PerfRunConfig(
+                    name="Glob-mixed shallow recursive", args=[mixed_shallow, True], kwargs={}
+                ),
+                PerfRunConfig(
+                    name="Glob-mixed shallow non-recursive", args=[mixed_shallow, False], kwargs={}
+                ),
+                PerfRunConfig(
+                    name="Glob-mixed normal recursive", args=[mixed_normal, True], kwargs={}
+                ),
+                PerfRunConfig(
+                    name="Glob-mixed normal non-recursive", args=[mixed_normal, False], kwargs={}
+                ),
+            ],
+        ),
+        (
+            "Glob mixed (no prefilter)",
+            glob_no_prefilter,
+            [
+                PerfRunConfig(
+                    name="Glob-mixed-nopre shallow recursive",
+                    args=[mixed_shallow, True],
+                    kwargs={},
+                ),
+                PerfRunConfig(
+                    name="Glob-mixed-nopre shallow non-recursive",
+                    args=[mixed_shallow, False],
+                    kwargs={},
+                ),
+                PerfRunConfig(
+                    name="Glob-mixed-nopre normal recursive", args=[mixed_normal, True], kwargs={}
+                ),
+                PerfRunConfig(
+                    name="Glob-mixed-nopre normal non-recursive",
+                    args=[mixed_normal, False],
+                    kwargs={},
+                ),
+            ],
+        ),
+        (
+            "Vanilla SDK list",
+            vanilla_list,
+            [
+                PerfRunConfig(name="Vanilla-list shallow", args=[shallow], kwargs={}),
+                PerfRunConfig(name="Vanilla-list normal", args=[normal], kwargs={}),
+                PerfRunConfig(name="Vanilla-list deep", args=[deep], kwargs={}),
+            ],
+        ),
+        (
+            "Vanilla SDK glob",
+            vanilla_glob,
+            [
+                PerfRunConfig(name="Vanilla-glob mixed shallow", args=[mixed_shallow], kwargs={}),
+                PerfRunConfig(name="Vanilla-glob mixed normal", args=[mixed_normal], kwargs={}),
             ],
         ),
         (

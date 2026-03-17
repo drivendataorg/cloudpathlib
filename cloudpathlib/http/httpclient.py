@@ -136,7 +136,11 @@ class HttpClient(Client):
                 raise FileNotFoundError(f"Failed to delete {cloud_path}.")
 
     def _list_dir_raw(
-        self, cloud_path: HttpPath, recursive: bool, include_dirs: bool = True
+        self,
+        cloud_path: HttpPath,
+        recursive: bool,
+        include_dirs: bool = True,
+        prefilter_pattern: Optional[str] = None,
     ) -> Iterable[Tuple[str, bool]]:
         try:
             with self.opener.open(cloud_path.as_url()) as response:
