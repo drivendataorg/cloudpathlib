@@ -120,7 +120,7 @@ class S3Client(Client):
 
         self.boto3_cp_extra_args = {
             k: v for k, v in extra_args.items() if k in TransferManager.ALLOWED_COPY_ARGS
-            }
+        }
 
         # listing ops (list_objects_v2, filter, delete) only accept these extras:
         # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html
@@ -298,7 +298,7 @@ class S3Client(Client):
                 CopySource={"Bucket": src.bucket, "Key": src.key},
                 Metadata=self._get_metadata(src).get("extra", {}),
                 MetadataDirective="REPLACE",
-                **self.boto3_cp_extra_args,
+                **{**self.boto3_ul_extra_args, **self.boto3_cp_extra_args}
             )
 
         else:
