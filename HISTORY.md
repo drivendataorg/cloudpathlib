@@ -1,6 +1,7 @@
 # cloudpathlib Changelog
 
 ## UNRELEASED
+- Replaced deprecated pytest `tmpdir` fixture usage with `tmp_path` in the remaining tests. (Issue [#370](https://github.com/drivendataorg/cloudpathlib/issues/370), PR [#554](https://github.com/drivendataorg/cloudpathlib/pull/554))
 - Added support for Pydantic serialization (Issue [#537](https://github.com/drivendataorg/cloudpathlib/issues/537), PR [#538](https://github.com/drivendataorg/cloudpathlib/pull/538))
 
 ## v0.23.0 (2025-10-07)

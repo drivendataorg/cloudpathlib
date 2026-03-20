@@ -1,7 +1,6 @@
 import gc
 import os
 from time import sleep
-from pathlib import Path
 
 from google.api_core.exceptions import TooManyRequests
 import pytest
@@ -156,10 +155,10 @@ def test_tmp_dir_mode(rig: CloudProviderTestRig):
     assert not client_cache_dir.exists()
 
 
-def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
+def test_persistent_mode(rig: CloudProviderTestRig, tmp_path):
     client = rig.client_class(
         file_cache_mode=FileCacheMode.persistent,
-        local_cache_dir=tmpdir,
+        local_cache_dir=tmp_path,
         **rig.required_client_kwargs,
     )
 
@@ -190,7 +189,7 @@ def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
     assert client_cache_dir.exists()
 
 
-def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
+def test_loc_dir(rig: CloudProviderTestRig, tmp_path, wait_for_mkdir):
     """Tests that local cache dir is used when specified and works'
     with the different cache modes.
 
@@ -204,12 +203,12 @@ def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
         )
 
     # automatically set to persistent if not specified
-    client = rig.client_class(local_cache_dir=tmpdir, **rig.required_client_kwargs)
+    client = rig.client_class(local_cache_dir=tmp_path, **rig.required_client_kwargs)
     assert client.file_cache_mode == FileCacheMode.persistent
 
     # test setting close_file explicitly works
     client = rig.client_class(
-        local_cache_dir=tmpdir,
+        local_cache_dir=tmp_path,
         file_cache_mode=FileCacheMode.close_file,
         **rig.required_client_kwargs,
     )
@@ -225,7 +224,7 @@ def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
 
     # setting cloudpath_object still works
     client = rig.client_class(
-        local_cache_dir=tmpdir,
+        local_cache_dir=tmp_path,
         file_cache_mode=FileCacheMode.cloudpath_object,
         **rig.required_client_kwargs,
     )
@@ -245,7 +244,9 @@ def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
 
     # setting tmp_dir still works
     client = rig.client_class(
-        local_cache_dir=tmpdir, file_cache_mode=FileCacheMode.tmp_dir, **rig.required_client_kwargs
+        local_cache_dir=tmp_path,
+        file_cache_mode=FileCacheMode.tmp_dir,
+        **rig.required_client_kwargs,
     )
     cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
     assert cp.client.file_cache_mode == FileCacheMode.tmp_dir
@@ -274,24 +275,24 @@ def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
     assert not client_cache_dir.exists()
 
 
-def test_string_instantiation(rig: CloudProviderTestRig, tmpdir):
+def test_string_instantiation(rig: CloudProviderTestRig, tmp_path):
     # string instantiation
     for v in FileCacheMode:
-        local = tmpdir if v == FileCacheMode.persistent else None
+        local = tmp_path if v == FileCacheMode.persistent else None
         client = rig.client_class(
             file_cache_mode=v.value, local_cache_dir=local, **rig.required_client_kwargs
         )
         assert client.file_cache_mode == v
 
 
-def test_environment_variable_instantiation(rig: CloudProviderTestRig, tmpdir):
+def test_environment_variable_instantiation(rig: CloudProviderTestRig, tmp_path):
     # environment instantiation
     original_env_setting = os.environ.get("CLOUDPATHLIB_FILE_CACHE_MODE", "")
 
     try:
         for v in FileCacheMode:
             os.environ["CLOUDPATHLIB_FILE_CACHE_MODE"] = v.value
-            local = tmpdir if v == FileCacheMode.persistent else None
+            local = tmp_path if v == FileCacheMode.persistent else None
             client = rig.client_class(local_cache_dir=local, **rig.required_client_kwargs)
             assert client.file_cache_mode == v
 
@@ -299,18 +300,18 @@ def test_environment_variable_instantiation(rig: CloudProviderTestRig, tmpdir):
         os.environ["CLOUDPATHLIB_FILE_CACHE_MODE"] = original_env_setting
 
 
-def test_environment_variable_local_cache_dir(rig: CloudProviderTestRig, tmpdir):
+def test_environment_variable_local_cache_dir(rig: CloudProviderTestRig, tmp_path):
     # environment instantiation
     original_env_setting = os.environ.get("CLOUDPATHLIB_LOCAL_CACHE_DIR", "")
 
     try:
-        os.environ["CLOUDPATHLIB_LOCAL_CACHE_DIR"] = tmpdir.strpath
+        os.environ["CLOUDPATHLIB_LOCAL_CACHE_DIR"] = str(tmp_path)
         client = rig.client_class(**rig.required_client_kwargs)
-        assert client._local_cache_dir == Path(tmpdir.strpath)
+        assert client._local_cache_dir == tmp_path
 
         cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
         cp.fspath  # download from cloud into the cache
-        assert (tmpdir / cp._no_prefix).exists()
+        assert (tmp_path / cp._no_prefix).exists()
 
         # "" treated as None; falls back to temp dir for cache
         os.environ["CLOUDPATHLIB_LOCAL_CACHE_DIR"] = ""
@@ -322,7 +323,7 @@ def test_environment_variable_local_cache_dir(rig: CloudProviderTestRig, tmpdir)
 
 
 @pytest.mark.flaky(reruns=3, reruns_delay=1, condition=os.getenv("USE_LIVE_CLOUD") == "1")
-def test_environment_variables_force_overwrite_from(rig: CloudProviderTestRig, tmpdir):
+def test_environment_variables_force_overwrite_from(rig: CloudProviderTestRig, tmp_path):
     # environment instantiation
     original_env_setting = os.environ.get("CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD", "")
 
@@ -358,7 +359,7 @@ def test_environment_variables_force_overwrite_from(rig: CloudProviderTestRig, t
 
 
 @pytest.mark.flaky(reruns=3, reruns_delay=1, condition=os.getenv("USE_LIVE_CLOUD") == "1")
-def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmpdir):
+def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp_path):
     # environment instantiation
     original_env_setting = os.environ.get("CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD", "")
 
@@ -368,13 +369,16 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
 
         p = rig.create_cloud_path("dir_0/file0_0.txt")
 
-        new_local = Path((tmpdir / "new_content.txt").strpath)
+        new_local = tmp_path / "new_content.txt"
         new_local.write_text("hello")
         new_also_cloud = rig.create_cloud_path("dir_0/another_cloud_file.txt")
         new_also_cloud.write_text("newer")
 
         # make cloud newer than local or other cloud file
-        os.utime(new_local, (new_local.stat().st_mtime - 2, new_local.stat().st_mtime - 2))
+        os.utime(
+            new_local,
+            (new_local.stat().st_mtime - 2, new_local.stat().st_mtime - 2),
+        )
 
         p.write_text("updated")
 

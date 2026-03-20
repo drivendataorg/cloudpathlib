@@ -15,9 +15,9 @@ from tests.utils import _sync_filesystem
 
 
 @pytest.fixture
-def upload_assets_dir(tmpdir):
-    tmp_assets = tmpdir.mkdir("test_upload_from_dir")
-    p = Path(tmp_assets)
+def upload_assets_dir(tmp_path):
+    p = tmp_path / "test_upload_from_dir"
+    p.mkdir()
     (p / "upload_1.txt").write_text("Hello from 1")
     (p / "upload_2.txt").write_text("Hello from 2")
 
@@ -27,6 +27,12 @@ def upload_assets_dir(tmpdir):
     (sub / "sub_upload_2.txt").write_text("Hello from sub 2")
 
     yield p
+
+
+def _mkdir(base: Path, dirname: str) -> Path:
+    path = base / dirname
+    path.mkdir()
+    return path
 
 
 def assert_mirrored(cloud_path, local_path, check_no_extra=True):
@@ -118,7 +124,7 @@ def test_upload_from_dir(rig, upload_assets_dir):
     assert assert_mirrored(p, upload_assets_dir)
 
 
-def test_copy(rig, upload_assets_dir, tmpdir):
+def test_copy(rig, upload_assets_dir, tmp_path):
     to_upload = upload_assets_dir / "upload_1.txt"
     p = rig.create_cloud_path("upload_test.txt")
     assert not p.exists()
@@ -126,7 +132,7 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     assert p.exists()
 
     # cloud to local dir
-    dst = Path(tmpdir.mkdir("test_copy_to_local"))
+    dst = _mkdir(tmp_path, "test_copy_to_local")
     out_file = p.copy(dst)
     assert out_file.exists()
     assert out_file.read_text() == "Hello from 1"
@@ -206,7 +212,7 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     cloud_dir = rig.create_cloud_path("dir_1/")  # created by fixtures
 
     # Copy cloud directory to local directory
-    local_dst = Path(tmpdir.mkdir("test_copy_dir_to_local"))
+    local_dst = _mkdir(tmp_path, "test_copy_dir_to_local")
     result = cloud_dir.copy(local_dst)
     assert isinstance(result, Path)
     assert result.exists()
@@ -227,7 +233,7 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     assert (result / "dir_1_0").exists()
 
     # Copy cloud directory to string path
-    local_dst2 = Path(tmpdir.mkdir("test_copy_dir_to_str"))
+    local_dst2 = _mkdir(tmp_path, "test_copy_dir_to_str")
     result = cloud_dir.copy(str(local_dst2))
     assert result.exists()
     assert result.is_dir()
@@ -236,11 +242,11 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     assert (result / "dir_1_0").exists()
 
 
-def test_copytree(rig, tmpdir):
+def test_copytree(rig, tmp_path):
     # cloud file raises
     with pytest.raises(CloudPathNotADirectoryError):
         p = rig.create_cloud_path("dir_0/file0_0.txt")
-        local_out = Path(tmpdir.mkdir("copytree_fail_on_file"))
+        local_out = _mkdir(tmp_path, "copytree_fail_on_file")
         p.copytree(local_out)
 
     with pytest.raises(CloudPathFileExistsError):
@@ -250,12 +256,12 @@ def test_copytree(rig, tmpdir):
 
     # cloud dir to local dir that exists
     p = rig.create_cloud_path("dir_1/")
-    local_out = Path(tmpdir.mkdir("copytree_from_cloud"))
+    local_out = _mkdir(tmp_path, "copytree_from_cloud")
     p.copytree(local_out)
     assert assert_mirrored(p, local_out)
 
     # str version of path
-    local_out = Path(tmpdir.mkdir("copytree_to_str_path"))
+    local_out = _mkdir(tmp_path, "copytree_to_str_path")
     p.copytree(str(local_out))
     assert assert_mirrored(p, local_out)
 
@@ -337,14 +343,14 @@ def test_info(rig):
     assert info.is_symlink() is False  # Cloud paths are never symlinks
 
 
-def test_copy_into(rig, tmpdir):
+def test_copy_into(rig, tmp_path):
     """Test the copy_into() method."""
     # Create a test file
     p = rig.create_cloud_path("test_file.txt")
     p.write_text("Hello from copy_into")
 
     # Test copying into a local directory
-    local_dir = Path(tmpdir.mkdir("copy_into_local"))
+    local_dir = _mkdir(tmp_path, "copy_into_local")
     result = p.copy_into(local_dir)
 
     assert isinstance(result, Path)
@@ -362,7 +368,7 @@ def test_copy_into(rig, tmpdir):
     assert result.read_text() == "Hello from copy_into"
 
     # Test copying into a string path
-    local_dir2 = Path(tmpdir.mkdir("copy_into_str"))
+    local_dir2 = _mkdir(tmp_path, "copy_into_str")
     result = p.copy_into(str(local_dir2))
 
     assert result.exists()
@@ -373,7 +379,7 @@ def test_copy_into(rig, tmpdir):
     cloud_dir = rig.create_cloud_path("dir_1/")  # created by fixtures
 
     # Copy cloud directory into local directory
-    local_dst = Path(tmpdir.mkdir("copy_into_dir_local"))
+    local_dst = _mkdir(tmp_path, "copy_into_dir_local")
     result = cloud_dir.copy_into(local_dst)
     assert isinstance(result, Path)
     assert result.exists()
@@ -398,7 +404,7 @@ def test_copy_into(rig, tmpdir):
     assert (result / "dir_1_0").exists()
 
     # Copy cloud directory into string path
-    local_dst2 = Path(tmpdir.mkdir("copy_into_dir_str"))
+    local_dst2 = _mkdir(tmp_path, "copy_into_dir_str")
     result = cloud_dir.copy_into(str(local_dst2))
     assert result.exists()
     assert result.is_dir()
@@ -408,14 +414,14 @@ def test_copy_into(rig, tmpdir):
     assert (result / "dir_1_0").exists()
 
 
-def test_move(rig, tmpdir):
+def test_move(rig, tmp_path):
     """Test the move() method."""
     # Create a test file
     p = rig.create_cloud_path("test_move_file.txt")
     p.write_text("Hello from move")
 
     # Test moving to a local file
-    local_file = Path(tmpdir) / "moved_file.txt"
+    local_file = tmp_path / "moved_file.txt"
     result = p.move(local_file)
 
     assert isinstance(result, Path)
@@ -438,7 +444,7 @@ def test_move(rig, tmpdir):
     p3 = rig.create_cloud_path("test_move_file3.txt")
     p3.write_text("Hello from move 3")
 
-    local_file2 = Path(tmpdir) / "moved_file3.txt"
+    local_file2 = tmp_path / "moved_file3.txt"
     result = p3.move(str(local_file2))
 
     assert result.exists()
@@ -446,14 +452,14 @@ def test_move(rig, tmpdir):
     # Note: When moving cloud->local, the source may still exist due to download_to behavior
 
 
-def test_move_into(rig, tmpdir):
+def test_move_into(rig, tmp_path):
     """Test the move_into() method."""
     # Create a test file
     p = rig.create_cloud_path("test_move_into_file.txt")
     p.write_text("Hello from move_into")
 
     # Test moving into a local directory
-    local_dir = Path(tmpdir.mkdir("move_into_local"))
+    local_dir = _mkdir(tmp_path, "move_into_local")
     result = p.move_into(local_dir)
 
     assert isinstance(result, Path)
@@ -479,7 +485,7 @@ def test_move_into(rig, tmpdir):
     p3 = rig.create_cloud_path("test_move_into_file3.txt")
     p3.write_text("Hello from move_into 3")
 
-    local_dir2 = Path(tmpdir.mkdir("move_into_str"))
+    local_dir2 = _mkdir(tmp_path, "move_into_str")
     result = p3.move_into(str(local_dir2))
 
     assert result.exists()
@@ -499,7 +505,7 @@ def test_copy_nonexistent_file_error(rig):
         p.copy(rig.create_cloud_path("destination.txt"))
 
 
-def test_copy_with_cloudpath_objects(rig, tmpdir):
+def test_copy_with_cloudpath_objects(rig):
     """Test copy operations using CloudPath objects directly (not strings)."""
     # Create a test file
     p = rig.create_cloud_path("test_copy_objects.txt")
@@ -529,7 +535,7 @@ def test_copy_with_cloudpath_objects(rig, tmpdir):
     assert result.read_text() == "Hello from copy objects"
 
 
-def test_copy_into_with_cloudpath_objects(rig, tmpdir):
+def test_copy_into_with_cloudpath_objects(rig):
     """Test copy_into with CloudPath objects to cover line 1292."""
     # Create a test file
     p = rig.create_cloud_path("test_copy_into_objects.txt")
@@ -545,7 +551,7 @@ def test_copy_into_with_cloudpath_objects(rig, tmpdir):
     assert result.read_text() == "Hello from copy_into objects"
 
 
-def test_move_into_with_cloudpath_objects(rig, tmpdir):
+def test_move_into_with_cloudpath_objects(rig):
     """Test move_into with CloudPath objects to cover line 1450."""
     # Create a test file
     p = rig.create_cloud_path("test_move_into_objects.txt")

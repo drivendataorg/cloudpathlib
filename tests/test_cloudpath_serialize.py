@@ -3,13 +3,13 @@ import pickle
 from cloudpathlib import CloudPath
 
 
-def test_pickle(rig, tmpdir):
+def test_pickle(rig, tmp_path):
     p = rig.create_cloud_path("dir_0/file0_0.txt")
 
-    with (tmpdir / "test.pkl").open("wb") as f:
+    with (tmp_path / "test.pkl").open("wb") as f:
         pickle.dump(p, f)
 
-    with (tmpdir / "test.pkl").open("rb") as f:
+    with (tmp_path / "test.pkl").open("rb") as f:
         pickled = pickle.load(f)
 
     # test a call to the network
