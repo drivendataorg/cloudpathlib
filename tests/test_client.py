@@ -56,7 +56,7 @@ def test_different_clients(rig):
     assert p._local is not p2._local
 
 
-def test_content_type_setting(rig, tmpdir):
+def test_content_type_setting(rig, tmp_path):
     random.seed(1337)  # reproducible file names
 
     mimes = [
@@ -74,7 +74,7 @@ def test_content_type_setting(rig, tmpdir):
 
     def _test_write_content_type(suffix, expected, rig_ref, check=True):
         filename = "".join(random.choices(string.ascii_letters, k=8)) + suffix
-        filepath = Path(tmpdir / filename)
+        filepath = tmp_path / filename
         filepath.write_text("testing")
 
         cp = rig_ref.create_cloud_path(filename)
