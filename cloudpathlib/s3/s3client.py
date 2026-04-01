@@ -119,6 +119,21 @@ class S3Client(Client):
             k: v for k, v in extra_args.items() if k in S3Transfer.ALLOWED_UPLOAD_ARGS
         }
 
+        # copy ops need SSE-C args for both source (CopySource*) and destination (SSE*)
+        # https://docs.aws.amazon.com/AmazonS3/latest/userguide/copysource-encrypted-sse-c.html
+        self.boto3_copy_extra_args = {
+            k: v
+            for k, v in extra_args.items()
+            if k in [
+                "CopySourceSSECustomerAlgorithm",
+                "CopySourceSSECustomerKey",
+                "CopySourceSSECustomerKeyMD5",
+                "SSECustomerAlgorithm",
+                "SSECustomerKey",
+                "SSECustomerKeyMD5",
+            ]
+        }
+
         # listing ops (list_objects_v2, filter, delete) only accept these extras:
         # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html
         self.boto3_list_extra_args = {
@@ -299,10 +314,13 @@ class S3Client(Client):
             )
 
         else:
+            # Merge upload args (for destination encryption) and copy-specific SSE-C args
+            # (for source decryption). See: https://docs.aws.amazon.com/AmazonS3/latest/userguide/copysource-encrypted-sse-c.html
+            copy_extra_args = {**self.boto3_ul_extra_args, **self.boto3_copy_extra_args}
             target = self.s3.Object(dst.bucket, dst.key)
             target.copy(
                 {"Bucket": src.bucket, "Key": src.key},
-                ExtraArgs=self.boto3_dl_extra_args,
+                ExtraArgs=copy_extra_args,
                 Config=self.boto3_transfer_config,
             )
 
