@@ -10,6 +10,7 @@ from boto3.s3.transfer import TransferConfig
 import botocore
 from cloudpathlib import S3Client, S3Path
 from cloudpathlib.local import LocalS3Path
+from cloudpathlib.s3.s3path import _MRAP_PATTERN
 import psutil
 
 
@@ -290,3 +291,96 @@ def test_as_url_presign(s3_rig):
         assert "Signature" in query_params
     else:
         assert False, "Unknown presigned URL format"
+
+
+_MRAP_ARN = "arn:aws:s3::123456789012:accesspoint/my-mrap.mrap"
+
+
+def test_mrap_bucket_and_key():
+    """MRAP paths return the full ARN as bucket and the path suffix as key."""
+    # MRAP path without key
+    p = S3Path(f"s3://{_MRAP_ARN}")
+    assert p.bucket == _MRAP_ARN
+    assert p.key == ""
+
+    # MRAP path with trailing slash
+    p2 = S3Path(f"s3://{_MRAP_ARN}/")
+    assert p2.bucket == _MRAP_ARN
+    assert p2.key == ""
+
+    # MRAP path with a single key segment
+    p3 = S3Path(f"s3://{_MRAP_ARN}/file.txt")
+    assert p3.bucket == _MRAP_ARN
+    assert p3.key == "file.txt"
+
+    # MRAP path with a nested key
+    p4 = S3Path(f"s3://{_MRAP_ARN}/folder/sub/file.txt")
+    assert p4.bucket == _MRAP_ARN
+    assert p4.key == "folder/sub/file.txt"
+
+    # Regular S3 path is unaffected
+    p5 = S3Path("s3://my-bucket/folder/file.txt")
+    assert p5.bucket == "my-bucket"
+    assert p5.key == "folder/file.txt"
+
+
+def test_mrap_path_manipulation():
+    """MRAP paths support standard path manipulation operations."""
+    base = S3Path(f"s3://{_MRAP_ARN}")
+
+    # Joining via /
+    child = base / "folder" / "file.txt"
+    assert str(child) == f"s3://{_MRAP_ARN}/folder/file.txt"
+    assert child.bucket == _MRAP_ARN
+    assert child.key == "folder/file.txt"
+
+    # name, stem, suffix
+    assert child.name == "file.txt"
+    assert child.stem == "file"
+    assert child.suffix == ".txt"
+
+    # parent preserves the MRAP ARN as bucket
+    parent = child.parent
+    assert str(parent) == f"s3://{_MRAP_ARN}/folder"
+    assert parent.bucket == _MRAP_ARN
+    assert parent.key == "folder"
+
+    # with_name and with_suffix
+    assert str(child.with_name("other.csv")) == f"s3://{_MRAP_ARN}/folder/other.csv"
+    assert str(child.with_suffix(".csv")) == f"s3://{_MRAP_ARN}/folder/file.csv"
+
+    # str / repr round-trip
+    url = f"s3://{_MRAP_ARN}/folder/file.txt"
+    assert str(S3Path(url)) == url
+    assert repr(S3Path(url)) == f"S3Path('{url}')"
+
+
+@pytest.mark.parametrize(
+    "url, should_match",
+    [
+        # valid MRAP ARNs
+        (f"s3://{_MRAP_ARN}", True),
+        (f"s3://{_MRAP_ARN}/", True),
+        (f"s3://{_MRAP_ARN}/key", True),
+        (f"s3://{_MRAP_ARN}/deep/nested/key.txt", True),
+        ("s3://arn:aws:s3::000000000000:accesspoint/another.mrap", True),
+        # invalid: regular bucket
+        ("s3://my-bucket", False),
+        ("s3://my-bucket/key", False),
+        # invalid: account ID wrong length
+        ("s3://arn:aws:s3::12345:accesspoint/x.mrap", False),
+        ("s3://arn:aws:s3::1234567890123:accesspoint/x.mrap", False),
+        # invalid: missing .mrap suffix
+        ("s3://arn:aws:s3::123456789012:accesspoint/notmrap", False),
+        # invalid: .mrap not at the end of the accesspoint name (extra segment)
+        ("s3://arn:aws:s3::123456789012:accesspoint/x.mrap.extra", False),
+    ],
+)
+def test_mrap_pattern(url, should_match):
+    """_MRAP_PATTERN matches only well-formed MRAP ARN URLs."""
+    match = _MRAP_PATTERN.match(url)
+    if should_match:
+        assert match is not None, f"Expected {url!r} to match MRAP pattern"
+        assert match.group("arn").endswith(".mrap")
+    else:
+        assert match is None, f"Expected {url!r} NOT to match MRAP pattern"

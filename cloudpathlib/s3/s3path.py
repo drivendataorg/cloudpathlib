@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Optional, TYPE_CHECKING
@@ -7,6 +8,10 @@ from ..cloudpath import CloudPath, NoStatError, register_path_class
 
 if TYPE_CHECKING:
     from .s3client import S3Client
+
+_MRAP_PATTERN = re.compile(
+    r"^s3://(?P<arn>arn:aws:s3::\d{12}:accesspoint/[^/]+\.mrap)(?:/(?P<key>.*))?$"
+)
 
 
 @register_path_class("s3")
@@ -74,6 +79,13 @@ class S3Path(CloudPath):
 
     @property
     def bucket(self) -> str:
+        """The bucket name, or the full MRAP ARN for MRAP paths.
+
+        :type: :class:`str`
+        """
+        match = _MRAP_PATTERN.match(str(self))
+        if match is not None:
+            return match.group("arn")
         return self._no_prefix.split("/", 1)[0]
 
     @property
