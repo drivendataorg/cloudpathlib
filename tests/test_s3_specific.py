@@ -9,8 +9,8 @@ import pytest
 from boto3.s3.transfer import TransferConfig
 import botocore
 from cloudpathlib import S3Client, S3Path
+import cloudpathlib.s3.s3client
 from cloudpathlib.local import LocalS3Path
-from cloudpathlib.s3.s3path import _MRAP_PATTERN
 import psutil
 
 
@@ -323,6 +323,14 @@ def test_mrap_bucket_and_key():
     assert p5.bucket == "my-bucket"
     assert p5.key == "folder/file.txt"
 
+    # ARN-like strings that are NOT valid MRAPs fall back to normal bucket parsing
+    # (wrong account ID length, missing .mrap suffix)
+    p6 = S3Path("s3://arn:aws:s3::12345:accesspoint/x.mrap/key")
+    assert p6.bucket == "arn:aws:s3::12345:accesspoint"  # treated as normal bucket
+
+    p7 = S3Path("s3://arn:aws:s3::123456789012:accesspoint/notmrap/key")
+    assert p7.bucket == "arn:aws:s3::123456789012:accesspoint"  # treated as normal bucket
+
 
 def test_mrap_path_manipulation():
     """MRAP paths support standard path manipulation operations."""
@@ -355,32 +363,44 @@ def test_mrap_path_manipulation():
     assert repr(S3Path(url)) == f"S3Path('{url}')"
 
 
-@pytest.mark.parametrize(
-    "url, should_match",
-    [
-        # valid MRAP ARNs
-        (f"s3://{_MRAP_ARN}", True),
-        (f"s3://{_MRAP_ARN}/", True),
-        (f"s3://{_MRAP_ARN}/key", True),
-        (f"s3://{_MRAP_ARN}/deep/nested/key.txt", True),
-        ("s3://arn:aws:s3::000000000000:accesspoint/another.mrap", True),
-        # invalid: regular bucket
-        ("s3://my-bucket", False),
-        ("s3://my-bucket/key", False),
-        # invalid: account ID wrong length
-        ("s3://arn:aws:s3::12345:accesspoint/x.mrap", False),
-        ("s3://arn:aws:s3::1234567890123:accesspoint/x.mrap", False),
-        # invalid: missing .mrap suffix
-        ("s3://arn:aws:s3::123456789012:accesspoint/notmrap", False),
-        # invalid: .mrap not at the end of the accesspoint name (extra segment)
-        ("s3://arn:aws:s3::123456789012:accesspoint/x.mrap.extra", False),
-    ],
-)
-def test_mrap_pattern(url, should_match):
-    """_MRAP_PATTERN matches only well-formed MRAP ARN URLs."""
-    match = _MRAP_PATTERN.match(url)
-    if should_match:
-        assert match is not None, f"Expected {url!r} to match MRAP pattern"
-        assert match.group("arn").endswith(".mrap")
-    else:
-        assert match is None, f"Expected {url!r} NOT to match MRAP pattern"
+def test_mrap_file_operations(monkeypatch):
+    """MRAP paths work end-to-end with the mock S3 backend."""
+    from tests.mock_clients.mock_s3 import mocked_session_class_factory
+
+    test_dir = "test_mrap_ops"
+    monkeypatch.setattr(
+        cloudpathlib.s3.s3client,
+        "Session",
+        mocked_session_class_factory(test_dir),
+    )
+
+    client = S3Client()
+    base = f"s3://{_MRAP_ARN}/{test_dir}"
+
+    # seeded file from test assets
+    existing = client.CloudPath(f"{base}/dir_0/file0_0.txt")
+    assert existing.exists()
+    assert existing.is_file()
+    assert not existing.is_dir()
+    assert client.CloudPath(f"{base}/dir_0").is_dir()
+
+    # iterdir on the test_dir level: expects dir_0 and dir_1
+    top_level = list(client.CloudPath(base).iterdir())
+    assert len(top_level) == 2
+    assert all(p.is_dir() for p in top_level)
+    assert {p.name for p in top_level} == {"dir_0", "dir_1"}
+
+    # iterdir on dir_0: expects 3 files
+    dir0_contents = list(client.CloudPath(f"{base}/dir_0").iterdir())
+    assert len(dir0_contents) == 3
+    assert all(p.is_file() for p in dir0_contents)
+
+    # write / read / delete
+    new_file = client.CloudPath(f"{base}/mrap_write_test.txt")
+    assert not new_file.exists()
+    new_file.write_text("hello from mrap")
+    assert new_file.exists()
+    assert new_file.read_text() == "hello from mrap"
+    assert new_file.bucket == _MRAP_ARN
+    new_file.unlink()
+    assert not new_file.exists()
