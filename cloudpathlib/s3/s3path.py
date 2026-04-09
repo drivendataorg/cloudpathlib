@@ -83,8 +83,7 @@ class S3Path(CloudPath):
 
         :type: :class:`str`
         """
-        match = _MRAP_PATTERN.match(str(self))
-        if match is not None:
+        if match := _MRAP_PATTERN.match(str(self)):
             return match.group("arn")
         return self._no_prefix.split("/", 1)[0]
 
