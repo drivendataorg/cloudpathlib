@@ -83,9 +83,13 @@ class S3Path(CloudPath):
 
         :type: :class:`str`
         """
+        if hasattr(self, "_bucket"):
+            return self._bucket
         if match := _MRAP_PATTERN.match(str(self)):
-            return match.group("arn")
-        return self._no_prefix.split("/", 1)[0]
+            self._bucket = match.group("arn")
+        else:
+            self._bucket = self._no_prefix.split("/", 1)[0]
+        return self._bucket
 
     @property
     def key(self) -> str:
