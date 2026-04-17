@@ -9,7 +9,6 @@ import pytest
 from boto3.s3.transfer import TransferConfig
 import botocore
 from cloudpathlib import S3Client, S3Path
-import cloudpathlib.s3.s3client
 from cloudpathlib.local import LocalS3Path
 import psutil
 
@@ -363,19 +362,10 @@ def test_mrap_path_manipulation():
     assert repr(S3Path(url)) == f"S3Path('{url}')"
 
 
-def test_mrap_file_operations(monkeypatch):
+def test_mrap_file_operations(s3_rig):
     """MRAP paths work end-to-end with the mock S3 backend."""
-    from tests.mock_clients.mock_s3 import mocked_session_class_factory
-
-    test_dir = "test_mrap_ops"
-    monkeypatch.setattr(
-        cloudpathlib.s3.s3client,
-        "Session",
-        mocked_session_class_factory(test_dir),
-    )
-
-    client = S3Client()
-    base = f"s3://{_MRAP_ARN}/{test_dir}"
+    client = s3_rig.client_class()
+    base = f"s3://{_MRAP_ARN}/{s3_rig.test_dir}"
 
     # seeded file from test assets
     existing = client.CloudPath(f"{base}/dir_0/file0_0.txt")

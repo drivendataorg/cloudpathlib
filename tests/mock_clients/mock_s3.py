@@ -222,6 +222,8 @@ class MockBoto3Client:
     def head_object(self, Bucket, Key, **kwargs):
         if not (self.root / Key).exists() or (self.root / Key).is_dir():
             raise ClientError({}, {})
+        if Bucket != DEFAULT_S3_BUCKET_NAME and ".mrap" not in Bucket:
+            raise ClientError({}, {})
         return {"key": Key}
 
     def generate_presigned_url(self, op: str, Params: dict, ExpiresIn: int):
