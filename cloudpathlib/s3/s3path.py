@@ -31,6 +31,7 @@ class S3Path(CloudPath):
 
     cloud_prefix: str = "s3://"
     client: "S3Client"
+    _bucket: str
 
     @property
     def drive(self) -> str:
