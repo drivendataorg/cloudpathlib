@@ -394,3 +394,14 @@ def test_mrap_file_operations(s3_rig):
     assert new_file.bucket == _MRAP_ARN
     new_file.unlink()
     assert not new_file.exists()
+
+
+def test_mrap_local_path_windows_encoding(monkeypatch, s3_rig):
+    """On Windows, colons in MRAP ARNs must be percent-encoded in the local cache path."""
+    import cloudpathlib.s3.s3path as s3path_module
+
+    monkeypatch.setattr(s3path_module.sys, "platform", "win32")
+    client = s3_rig.client_class()
+    p = client.CloudPath(f"s3://{_MRAP_ARN}/some/key.txt")
+    assert ":" not in str(p._local), f"Colon found in local path on simulated Windows: {p._local}"
+    assert "%3A" in str(p._local)
