@@ -220,14 +220,11 @@ class MockBoto3Client:
         return {"Buckets": [{"Name": DEFAULT_S3_BUCKET_NAME}]}
 
     def head_object(self, Bucket, Key, **kwargs):
-        if (
-            not (self.root / Key).exists()
-            or (self.root / Key).is_dir()
-            or Bucket != DEFAULT_S3_BUCKET_NAME
-        ):
+        if not (self.root / Key).exists() or (self.root / Key).is_dir():
             raise ClientError({}, {})
-        else:
-            return {"key": Key}
+        if Bucket != DEFAULT_S3_BUCKET_NAME and ".mrap" not in Bucket:
+            raise ClientError({}, {})
+        return {"key": Key}
 
     def generate_presigned_url(self, op: str, Params: dict, ExpiresIn: int):
         mock_presigned_url = f"https://{Params['Bucket']}.s3.amazonaws.com/{Params['Key']}?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=TEST%2FTEST%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240131T194721Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=TEST"
