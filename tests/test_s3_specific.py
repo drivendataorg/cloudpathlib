@@ -290,3 +290,120 @@ def test_as_url_presign(s3_rig):
         assert "Signature" in query_params
     else:
         assert False, "Unknown presigned URL format"
+
+
+_MRAP_ARN = "arn:aws:s3::123456789012:accesspoint/my-mrap.mrap"
+
+
+def test_mrap_bucket_and_key():
+    """MRAP paths return the full ARN as bucket and the path suffix as key."""
+    # MRAP path without key
+    p = S3Path(f"s3://{_MRAP_ARN}")
+    assert p.bucket == _MRAP_ARN
+    assert p.key == ""
+
+    # MRAP path with trailing slash
+    p2 = S3Path(f"s3://{_MRAP_ARN}/")
+    assert p2.bucket == _MRAP_ARN
+    assert p2.key == ""
+
+    # MRAP path with a single key segment
+    p3 = S3Path(f"s3://{_MRAP_ARN}/file.txt")
+    assert p3.bucket == _MRAP_ARN
+    assert p3.key == "file.txt"
+
+    # MRAP path with a nested key
+    p4 = S3Path(f"s3://{_MRAP_ARN}/folder/sub/file.txt")
+    assert p4.bucket == _MRAP_ARN
+    assert p4.key == "folder/sub/file.txt"
+
+    # Regular S3 path is unaffected
+    p5 = S3Path("s3://my-bucket/folder/file.txt")
+    assert p5.bucket == "my-bucket"
+    assert p5.key == "folder/file.txt"
+
+    # ARN-like strings that are NOT valid MRAPs fall back to normal bucket parsing
+    # (wrong account ID length, missing .mrap suffix)
+    p6 = S3Path("s3://arn:aws:s3::12345:accesspoint/x.mrap/key")
+    assert p6.bucket == "arn:aws:s3::12345:accesspoint"  # treated as normal bucket
+
+    p7 = S3Path("s3://arn:aws:s3::123456789012:accesspoint/notmrap/key")
+    assert p7.bucket == "arn:aws:s3::123456789012:accesspoint"  # treated as normal bucket
+
+
+def test_mrap_path_manipulation():
+    """MRAP paths support standard path manipulation operations."""
+    base = S3Path(f"s3://{_MRAP_ARN}")
+
+    # Joining via /
+    child = base / "folder" / "file.txt"
+    assert str(child) == f"s3://{_MRAP_ARN}/folder/file.txt"
+    assert child.bucket == _MRAP_ARN
+    assert child.key == "folder/file.txt"
+
+    # name, stem, suffix
+    assert child.name == "file.txt"
+    assert child.stem == "file"
+    assert child.suffix == ".txt"
+
+    # parent preserves the MRAP ARN as bucket
+    parent = child.parent
+    assert str(parent) == f"s3://{_MRAP_ARN}/folder"
+    assert parent.bucket == _MRAP_ARN
+    assert parent.key == "folder"
+
+    # with_name and with_suffix
+    assert str(child.with_name("other.csv")) == f"s3://{_MRAP_ARN}/folder/other.csv"
+    assert str(child.with_suffix(".csv")) == f"s3://{_MRAP_ARN}/folder/file.csv"
+
+    # str / repr round-trip
+    url = f"s3://{_MRAP_ARN}/folder/file.txt"
+    assert str(S3Path(url)) == url
+    assert repr(S3Path(url)) == f"S3Path('{url}')"
+
+
+def test_mrap_file_operations(s3_rig):
+    """MRAP paths work end-to-end with the mock S3 backend."""
+    client = s3_rig.client_class()
+    base = f"s3://{_MRAP_ARN}/{s3_rig.test_dir}"
+
+    # seeded file from test assets
+    existing = client.CloudPath(f"{base}/dir_0/file0_0.txt")
+    assert existing.exists()
+    assert existing.is_file()
+    assert not existing.is_dir()
+    assert client.CloudPath(f"{base}/dir_0").is_dir()
+
+    # iterdir on the test_dir level: expects dir_0 and dir_1
+    top_level = list(client.CloudPath(base).iterdir())
+    assert len(top_level) == 2
+    assert all(p.is_dir() for p in top_level)
+    assert {p.name for p in top_level} == {"dir_0", "dir_1"}
+
+    # iterdir on dir_0: expects 3 files
+    dir0_contents = list(client.CloudPath(f"{base}/dir_0").iterdir())
+    assert len(dir0_contents) == 3
+    assert all(p.is_file() for p in dir0_contents)
+
+    # write / read / delete
+    new_file = client.CloudPath(f"{base}/mrap_write_test.txt")
+    assert not new_file.exists()
+    new_file.write_text("hello from mrap")
+    assert new_file.exists()
+    assert new_file.read_text() == "hello from mrap"
+    assert new_file.bucket == _MRAP_ARN
+    new_file.unlink()
+    assert not new_file.exists()
+
+
+def test_mrap_local_path_windows_encoding(monkeypatch, s3_rig):
+    """On Windows, colons in MRAP ARNs must be percent-encoded in the local cache path."""
+    import cloudpathlib.s3.s3path as s3path_module
+
+    monkeypatch.setattr(s3path_module.sys, "platform", "win32")
+    client = s3_rig.client_class()
+    p = client.CloudPath(f"s3://{_MRAP_ARN}/some/key.txt")
+    # strip drive (e.g. "C:") since it legitimately contains a colon on Windows
+    local_no_drive = str(p._local)[len(p._local.drive) :]
+    assert ":" not in local_no_drive, f"Colon found in local path on simulated Windows: {p._local}"
+    assert "%3A" in local_no_drive

@@ -1,6 +1,7 @@
 # cloudpathlib Changelog
 
 ## UNRELEASED
+- Added support for S3 Multi-Region Access Point (MRAP) URLs in `S3Path` (Issue [#556](https://github.com/drivendataorg/cloudpathlib/issues/556), PR [#557](https://github.com/drivendataorg/cloudpathlib/pull/557))
 - Added support for Pydantic serialization (Issue [#537](https://github.com/drivendataorg/cloudpathlib/issues/537), PR [#538](https://github.com/drivendataorg/cloudpathlib/pull/538))
 
 ## v0.23.0 (2025-10-07)

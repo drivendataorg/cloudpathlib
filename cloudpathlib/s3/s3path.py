@@ -1,4 +1,6 @@
 import os
+import re
+import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Optional, TYPE_CHECKING
@@ -7,6 +9,10 @@ from ..cloudpath import CloudPath, NoStatError, register_path_class
 
 if TYPE_CHECKING:
     from .s3client import S3Client
+
+_MRAP_PATTERN = re.compile(
+    r"^s3://(?P<arn>arn:aws:s3::\d{12}:accesspoint/[^/]+\.mrap)(?:/(?P<key>.*))?$"
+)
 
 
 @register_path_class("s3")
@@ -26,6 +32,8 @@ class S3Path(CloudPath):
 
     cloud_prefix: str = "s3://"
     client: "S3Client"
+    _bucket: str
+    _local_path: Path
 
     @property
     def drive(self) -> str:
@@ -74,7 +82,17 @@ class S3Path(CloudPath):
 
     @property
     def bucket(self) -> str:
-        return self._no_prefix.split("/", 1)[0]
+        """The bucket name, or the full MRAP ARN for MRAP paths.
+
+        :type: :class:`str`
+        """
+        if hasattr(self, "_bucket"):
+            return self._bucket
+        if match := _MRAP_PATTERN.match(str(self)):
+            self._bucket = match.group("arn")
+        else:
+            self._bucket = self._no_prefix.split("/", 1)[0]
+        return self._bucket
 
     @property
     def key(self) -> str:
@@ -90,3 +108,14 @@ class S3Path(CloudPath):
     @property
     def etag(self):
         return self.client._get_metadata(self).get("etag")
+
+    @property
+    def _local(self) -> Path:
+        if hasattr(self, "_local_path"):
+            return self._local_path
+        no_prefix = self._no_prefix
+        # `:` is invalid in Windows paths; percent-encode it for MRAP ARNs
+        if sys.platform == "win32":
+            no_prefix = no_prefix.replace(":", "%3A")
+        self._local_path = self.client._local_cache_dir / no_prefix
+        return self._local_path
