@@ -1,5 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
 from itertools import islice
+import os
 from time import sleep
 import time
 
@@ -363,9 +364,19 @@ def test_mrap_path_manipulation():
 
 
 def test_mrap_file_operations(s3_rig):
-    """MRAP paths work end-to-end with the mock S3 backend."""
+    """MRAP paths work end-to-end with the mock S3 backend (or a real MRAP in live mode)."""
+    if s3_rig.live_server:
+        mrap_arn = os.getenv("LIVE_S3_MRAP_ARN")
+        if not mrap_arn:
+            pytest.skip(
+                "LIVE_S3_MRAP_ARN is not set; set it to the ARN of an MRAP "
+                "fronting LIVE_S3_BUCKET to run this test live."
+            )
+    else:
+        mrap_arn = _MRAP_ARN
+
     client = s3_rig.client_class()
-    base = f"s3://{_MRAP_ARN}/{s3_rig.test_dir}"
+    base = f"s3://{mrap_arn}/{s3_rig.test_dir}"
 
     # seeded file from test assets
     existing = client.CloudPath(f"{base}/dir_0/file0_0.txt")
@@ -391,7 +402,7 @@ def test_mrap_file_operations(s3_rig):
     new_file.write_text("hello from mrap")
     assert new_file.exists()
     assert new_file.read_text() == "hello from mrap"
-    assert new_file.bucket == _MRAP_ARN
+    assert new_file.bucket == mrap_arn
     new_file.unlink()
     assert not new_file.exists()
 
