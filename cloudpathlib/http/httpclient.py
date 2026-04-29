@@ -79,6 +79,11 @@ class HttpClient(Client):
                 "content_type": response.headers.get("Content-Type", None),
             }
 
+    def _make_cloudpath(self, uri_str: str) -> HttpPath:
+        # HttpPath.__init__ overrides _path with URL-aware logic;
+        # use the full constructor to ensure correct behavior.
+        return self.CloudPath(uri_str)
+
     def _is_file_or_dir(self, cloud_path: HttpPath) -> Optional[str]:
         if self.dir_matcher(cloud_path.as_url()):
             return "dir"
@@ -130,18 +135,31 @@ class HttpClient(Client):
             else:
                 raise FileNotFoundError(f"Failed to delete {cloud_path}.")
 
-    def _list_dir(self, cloud_path: HttpPath, recursive: bool) -> Iterable[Tuple[HttpPath, bool]]:
+    def _list_dir_raw(
+        self,
+        cloud_path: HttpPath,
+        recursive: bool,
+        include_dirs: bool = True,
+        prefilter_pattern: Optional[str] = None,
+    ) -> Iterable[Tuple[str, bool]]:
         try:
             with self.opener.open(cloud_path.as_url()) as response:
-                # Parse the directory listing
-                for path, is_dir in self._parse_list_dir_response(
+                for uri, is_dir in self._parse_list_dir_response_raw(
                     response.read().decode(), base_url=str(cloud_path)
                 ):
-                    yield path, is_dir
+                    if not include_dirs and is_dir:
+                        if recursive:
+                            yield from self._list_dir_raw(
+                                self.CloudPath(uri), recursive=True, include_dirs=include_dirs
+                            )
+                        continue
 
-                    # If it's a directory and recursive is True, list the contents of the directory
+                    yield uri, is_dir
+
                     if recursive and is_dir:
-                        yield from self._list_dir(path, recursive=True)
+                        yield from self._list_dir_raw(
+                            self.CloudPath(uri), recursive=True, include_dirs=include_dirs
+                        )
 
         except Exception as e:  # noqa E722
             raise NotImplementedError(
@@ -173,10 +191,10 @@ class HttpClient(Client):
     def _generate_presigned_url(self, cloud_path: HttpPath, expire_seconds: int = 60 * 60) -> str:
         raise NotImplementedError("Presigned URLs are not supported using urllib.")
 
-    def _parse_list_dir_response(
+    def _parse_list_dir_response_raw(
         self, response: str, base_url: str
-    ) -> Iterable[Tuple[HttpPath, bool]]:
-        # Ensure base_url ends with a trailing slash so joining works
+    ) -> Iterable[Tuple[str, bool]]:
+        """Parse an HTTP directory listing page and yield ``(uri, is_dir)`` string tuples."""
         if not base_url.endswith("/"):
             base_url += "/"
 
@@ -189,10 +207,14 @@ class HttpClient(Client):
             else _simple_links
         )
 
-        yield from (
-            (self.CloudPath((urllib.parse.urljoin(base_url, match))), self.dir_matcher(match))
-            for match in parser(response)
-        )
+        for match in parser(response):
+            yield urllib.parse.urljoin(base_url, match), self.dir_matcher(match)
+
+    def _parse_list_dir_response(
+        self, response: str, base_url: str
+    ) -> Iterable[Tuple[HttpPath, bool]]:
+        for uri, is_dir in self._parse_list_dir_response_raw(response, base_url):
+            yield self.CloudPath(uri), is_dir
 
     def request(
         self, url: HttpPath, method: str, **kwargs

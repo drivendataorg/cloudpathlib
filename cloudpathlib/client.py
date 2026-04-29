@@ -2,15 +2,49 @@ import abc
 import mimetypes
 import os
 from pathlib import Path
+from queue import Queue
 import shutil
 from tempfile import TemporaryDirectory
-from typing import Generic, Callable, Iterable, Optional, Tuple, TypeVar, Union
+from threading import Thread
+from typing import Generic, Callable, Iterable, Iterator, Optional, Tuple, TypeVar, Union
 
 from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 from .enums import FileCacheMode
 from .exceptions import InvalidConfigurationException
 
 BoundedCloudPath = TypeVar("BoundedCloudPath", bound=CloudPath)
+
+_SENTINEL = object()
+
+
+def _prefetch_iterator(iterable: Iterable, buffer_size: int = 1) -> Iterator:
+    """Wrap an iterable so the next item is fetched in a background thread.
+
+    This overlaps the producer (e.g. network page fetch + XML parsing) with
+    the consumer (e.g. yielding items from the current page).  A *buffer_size*
+    of 1 means one item is fetched ahead; increase for deeper pipelines.
+    """
+    q: Queue = Queue(maxsize=buffer_size + 1)
+
+    def _producer():
+        try:
+            for item in iterable:
+                q.put(item)
+        except BaseException as exc:
+            q.put(exc)
+        finally:
+            q.put(_SENTINEL)
+
+    t = Thread(target=_producer, daemon=True)
+    t.start()
+
+    while True:
+        item = q.get()
+        if item is _SENTINEL:
+            break
+        if isinstance(item, BaseException):
+            raise item
+        yield item
 
 
 def register_client_class(key: str) -> Callable:
@@ -111,6 +145,20 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     def CloudPath(self, cloud_path: Union[str, BoundedCloudPath], *parts: str) -> BoundedCloudPath:
         return self._cloud_meta.path_class(cloud_path, *parts, client=self)  # type: ignore
 
+    def _make_cloudpath(self, uri_str: str) -> BoundedCloudPath:
+        """Fast internal CloudPath constructor for trusted URI strings.
+
+        Bypasses the metaclass dispatcher, is_valid_cloudpath,
+        validate_completeness, and isinstance checks that are redundant
+        when the URI originates from a backend listing operation.
+        """
+        obj = object.__new__(self._cloud_meta._path_class)
+        obj._handle = None
+        obj._client = self
+        obj._str = uri_str
+        obj._dirty = False
+        return obj  # type: ignore
+
     def clear_cache(self):
         """Clears the contents of the cache folder.
         Does not remove folder so it can keep being written to.
@@ -133,10 +181,18 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         pass
 
     @abc.abstractmethod
-    def _list_dir(
-        self, cloud_path: BoundedCloudPath, recursive: bool
-    ) -> Iterable[Tuple[BoundedCloudPath, bool]]:
-        """List all the files and folders in a directory.
+    def _list_dir_raw(
+        self,
+        cloud_path: BoundedCloudPath,
+        recursive: bool,
+        include_dirs: bool = True,
+        prefilter_pattern: Optional[str] = None,
+    ) -> Iterable[Tuple[str, bool]]:
+        """List files and folders, yielding raw URI strings.
+
+        This is the low-level listing method that backends must implement.
+        It yields ``(uri_string, is_dir)`` tuples where *uri_string* is
+        the full cloud URI (e.g. ``"s3://bucket/key"``).
 
         Parameters
         ----------
@@ -144,13 +200,37 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
             The folder to start from.
         recursive : bool
             Whether or not to list recursively.
-
-        Returns
-        -------
-        contents : Iterable[Tuple]
-            Of the form [(CloudPath, is_dir), ...] for every child of the dir.
+        include_dirs : bool
+            When True (default), intermediate directories are inferred and
+            yielded for recursive listings.  When False, only actual objects
+            (files / blobs) are yielded, skipping the expensive parent-
+            directory reconstruction.  Ignored for non-recursive listings.
+        prefilter_pattern : str, optional
+            A glob pattern (relative to *cloud_path*) that the backend may
+            use for server-side filtering to reduce the number of results
+            returned.  Backends that do not support server-side pattern
+            matching should silently ignore this parameter.  Client-side
+            regex matching in ``_glob`` still validates every result, so this
+            is purely an optimisation hint.
         """
         pass
+
+    def _list_dir(
+        self,
+        cloud_path: BoundedCloudPath,
+        recursive: bool,
+        include_dirs: bool = True,
+        prefilter_pattern: Optional[str] = None,
+    ) -> Iterable[Tuple[BoundedCloudPath, bool]]:
+        """List files and folders, yielding ``(CloudPath, is_dir)`` tuples.
+
+        Thin wrapper around :meth:`_list_dir_raw` that constructs CloudPath
+        objects from the raw URI strings.
+        """
+        for raw_uri, is_dir in self._list_dir_raw(
+            cloud_path, recursive, include_dirs, prefilter_pattern=prefilter_pattern
+        ):
+            yield self._make_cloudpath(raw_uri), is_dir
 
     @abc.abstractmethod
     def _move_file(

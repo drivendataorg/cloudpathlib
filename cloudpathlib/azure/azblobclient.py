@@ -325,22 +325,30 @@ class AzureBlobClient(Client):
 
         return self._is_file_or_dir(cloud_path) in ["file", "dir"]
 
-    def _list_dir(
-        self, cloud_path: AzureBlobPath, recursive: bool = False
-    ) -> Iterable[Tuple[AzureBlobPath, bool]]:
+    def _list_dir_raw(
+        self,
+        cloud_path: AzureBlobPath,
+        recursive: bool = False,
+        include_dirs: bool = True,
+        prefilter_pattern: Optional[str] = None,
+    ) -> Iterable[Tuple[str, bool]]:
         if not cloud_path.container:
             for container in self.service_client.list_containers():
-                yield self.CloudPath(f"{cloud_path.cloud_prefix}{container.name}"), True
+                container_uri = f"{cloud_path.cloud_prefix}{container.name}"
+                yield container_uri, True
 
                 if not recursive:
                     continue
 
-                yield from self._list_dir(
-                    self.CloudPath(f"{cloud_path.cloud_prefix}{container.name}"), recursive=True
+                yield from self._list_dir_raw(
+                    self.CloudPath(container_uri),
+                    recursive=True,
+                    include_dirs=include_dirs,
                 )
             return
 
         container_client = self.service_client.get_container_client(cloud_path.container)
+        uri_prefix = f"{cloud_path.cloud_prefix}{cloud_path.container}/"
 
         prefix = cloud_path.blob
         if prefix and not prefix.endswith("/"):
@@ -351,9 +359,9 @@ class AzureBlobClient(Client):
             paths = file_system_client.get_paths(path=cloud_path.blob, recursive=recursive)
 
             for path in paths:
-                yield self.CloudPath(
-                    f"{cloud_path.cloud_prefix}{cloud_path.container}/{path.name}"
-                ), path.is_directory
+                if not include_dirs and path.is_directory:
+                    continue
+                yield f"{uri_prefix}{path.name}", path.is_directory
 
         else:
             if not recursive:
@@ -361,18 +369,26 @@ class AzureBlobClient(Client):
             else:
                 blobs = container_client.list_blobs(name_starts_with=prefix)  # type: ignore
 
-            for blob in blobs:
-                # walk_blobs returns folders with a trailing slash
-                blob_path = blob.name.rstrip("/")
-                blob_cloud_path = self.CloudPath(
-                    f"{cloud_path.cloud_prefix}{cloud_path.container}/{blob_path}"
-                )
+            if recursive and include_dirs:
+                yielded_dirs: set = set()
 
-                yield blob_cloud_path, (
-                    isinstance(blob, BlobPrefix)
-                    if not recursive
-                    else False  # no folders from list_blobs in non-hns storage accounts
-                )
+            for blob in blobs:
+                blob_path = blob.name.rstrip("/")
+
+                if not recursive:
+                    is_dir = isinstance(blob, BlobPrefix)
+                else:
+                    is_dir = False
+                    if include_dirs:
+                        rel = blob_path[len(prefix) :] if prefix else blob_path
+                        parts = rel.split("/")
+                        for j in range(1, len(parts)):
+                            dir_path = prefix + "/".join(parts[:j])
+                            if dir_path not in yielded_dirs:
+                                yield f"{uri_prefix}{dir_path}", True
+                                yielded_dirs.add(dir_path)
+
+                yield f"{uri_prefix}{blob_path}", is_dir
 
     def _move_file(
         self, src: AzureBlobPath, dst: AzureBlobPath, remove_src: bool = True
