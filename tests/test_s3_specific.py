@@ -405,7 +405,5 @@ def test_mrap_local_path_windows_encoding(monkeypatch, s3_rig):
     p = client.CloudPath(f"s3://{_MRAP_ARN}/some/key.txt")
     # strip drive (e.g. "C:") since it legitimately contains a colon on Windows
     local_no_drive = str(p._local)[len(p._local.drive) :]
-    assert ":" not in local_no_drive, (
-        f"Colon found in local path on simulated Windows: {p._local}"
-    )
+    assert ":" not in local_no_drive, f"Colon found in local path on simulated Windows: {p._local}"
     assert "%3A" in local_no_drive
