@@ -1,0 +1,29 @@
+.doc.doc-heading {
+    padding-left: 1ch;
+    padding-bottom: 5px;
+    background-color: #F8F8F8;
+}
+
+div.doc-contents:not(.first) {
+    padding-left: 2ch;
+}
+
+/* Class name headings for module docs */
+h3.doc.doc-heading>code {
+    font-weight: bold;
+}
+
+/* Class attribute and method headings for module docs */
+h5.doc.doc-heading {
+    font-size: 1em;
+    text-transform: none;
+}
+
+/* Bold function, method, and attribute names */
+.doc.doc-heading>code span {
+    font-weight: bold;
+}
+
+.doc.doc-heading>code span~span {
+    font-weight: normal;
+}
