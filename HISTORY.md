@@ -3,6 +3,7 @@
 ## v0.24.0 (2026-04-29)
 - Added support for S3 Multi-Region Access Point (MRAP) URLs in `S3Path` (Issue [#556](https://github.com/drivendataorg/cloudpathlib/issues/556), PR [#557](https://github.com/drivendataorg/cloudpathlib/pull/557))
 - Added support for Pydantic serialization (Issue [#537](https://github.com/drivendataorg/cloudpathlib/issues/537), PR [#538](https://github.com/drivendataorg/cloudpathlib/pull/538))
+- Improved import time by lazy-loading cloud provider modules (Issue [#544](https://github.com/drivendataorg/cloudpathlib/issues/544), PR [#TBD](https://github.com/drivendataorg/cloudpathlib/pull/TBD))
 
 ## v0.23.0 (2025-10-07)
 

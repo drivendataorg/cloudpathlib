@@ -80,9 +80,8 @@ elif sys.version_info >= (3, 14):
     from .legacy.glob import _make_selector  # noqa: F811
 
 
-from cloudpathlib.enums import FileCacheMode
+from .enums import FileCacheMode
 
-from . import anypath
 from .exceptions import (
     ClientMismatchError,
     CloudPathFileExistsError,
@@ -1143,6 +1142,8 @@ class CloudPath(metaclass=CloudPathMeta):
         force_overwrite_to_cloud: Optional[bool] = None,
         remove_src: bool = False,
     ) -> Union[Path, Self]:
+        from . import anypath
+
         if not self.exists():
             raise ValueError(f"Path {self} must exist to copy.")
 
@@ -1275,6 +1276,8 @@ class CloudPath(metaclass=CloudPathMeta):
         force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Union[Path, Self]:
         """Copy self into target directory, preserving the filename."""
+        from . import anypath
+
         target_path = anypath.to_anypath(target_dir) / self.name
 
         result = self._copy(
@@ -1312,6 +1315,8 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def copytree(self, destination, force_overwrite_to_cloud=None, ignore=None):
         """Copy self to a directory, if self is a directory."""
+        from . import anypath
+
         if not self.is_dir():
             raise CloudPathNotADirectoryError(
                 f"Origin path {self} must be a directory. To copy a single file use the method copy."
@@ -1427,6 +1432,8 @@ class CloudPath(metaclass=CloudPathMeta):
         force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Union[Path, Self]:
         """Move self into target directory, preserving the filename and removing the source."""
+        from . import anypath
+
         target_path = anypath.to_anypath(target_dir) / self.name
 
         result = self._copy(
