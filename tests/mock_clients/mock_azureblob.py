@@ -49,7 +49,13 @@ class _JsonCache:
 
 
 class MockBlobServiceClient:
-    def __init__(self, test_dir, adls):
+    def __init__(self, test_dir=None, adls=None, account_url=None, credential=None):
+        if account_url is not None:
+            # account_url-based construction: store url and credential for verification
+            self._account_url = account_url
+            self._credential = credential
+            return
+
         # copy test assets for reference in tests without affecting assets
         shutil.copytree(TEST_ASSETS, test_dir, dirs_exist_ok=True)
 
