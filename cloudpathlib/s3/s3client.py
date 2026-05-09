@@ -11,7 +11,7 @@ from .s3path import S3Path
 
 try:
     from boto3.session import Session
-    from boto3.s3.transfer import TransferConfig, S3Transfer
+    from boto3.s3.transfer import TransferConfig, S3Transfer, TransferManager
     from botocore.config import Config
     from botocore.exceptions import ClientError
     import botocore.session
@@ -117,6 +117,9 @@ class S3Client(Client):
         }
         self.boto3_ul_extra_args = {
             k: v for k, v in extra_args.items() if k in S3Transfer.ALLOWED_UPLOAD_ARGS
+        }
+        self.boto3_cp_extra_args = {
+            k: v for k, v in extra_args.items() if k in TransferManager.ALLOWED_COPY_ARGS
         }
 
         # listing ops (list_objects_v2, filter, delete) only accept these extras:
@@ -295,14 +298,14 @@ class S3Client(Client):
                 CopySource={"Bucket": src.bucket, "Key": src.key},
                 Metadata=self._get_metadata(src).get("extra", {}),
                 MetadataDirective="REPLACE",
-                **self.boto3_ul_extra_args,
+                **self.boto3_cp_extra_args,
             )
 
         else:
             target = self.s3.Object(dst.bucket, dst.key)
             target.copy(
                 {"Bucket": src.bucket, "Key": src.key},
-                ExtraArgs=self.boto3_dl_extra_args,
+                ExtraArgs=self.boto3_cp_extra_args,
                 Config=self.boto3_transfer_config,
             )
 
