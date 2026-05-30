@@ -799,6 +799,8 @@ class CloudPath(metaclass=CloudPathMeta):
             target.unlink()
 
         self.client._move_file(self, target)
+        self.clear_cache()
+        target.clear_cache()
         return target
 
     def rename(self, target: Self) -> Self:
@@ -819,6 +821,7 @@ class CloudPath(metaclass=CloudPathMeta):
         except StopIteration:
             pass
         self.client._remove(self)
+        self.clear_cache()
 
     def samefile(self, other_path: Union[str, os.PathLike]) -> bool:
         # all cloud paths are absolute and the paths are used for hash
@@ -831,6 +834,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"Path {self} is a directory; call rmdir instead of unlink."
             )
         self.client._remove(self, missing_ok)
+        self.clear_cache()
 
     def write_bytes(self, data: bytes) -> int:
         """Open the file in bytes mode, write to it, and close the file.
@@ -1110,6 +1114,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"Path {self} is a file; call unlink instead of rmtree."
             )
         self.client._remove(self)
+        self.clear_cache()
 
     def upload_from(
         self,

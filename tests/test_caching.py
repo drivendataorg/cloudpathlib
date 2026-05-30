@@ -18,6 +18,7 @@ from cloudpathlib.exceptions import (
     OverwriteNewerCloudError,
     OverwriteNewerLocalError,
 )
+from cloudpathlib.http.httppath import HttpPath, HttpsPath
 from tests.conftest import CloudProviderTestRig
 from tests.utils import _sync_filesystem
 
@@ -540,3 +541,39 @@ def test_reuse_cache_after_manual_cache_clear(rig: CloudProviderTestRig):
         _ = f.read()
 
     assert cp._local.exists()
+
+def test_cache_cleared_after_mutation(rig: CloudProviderTestRig):
+    # --- unlink ---
+    client = rig.client_class(**rig.required_client_kwargs)
+    cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
+    with cp.open("r") as f:
+        _ = f.read()
+    assert cp._local.exists()
+    cp.unlink()
+    assert not cp._local.exists()
+
+    # --- replace ---
+    client2 = rig.client_class(**rig.required_client_kwargs)
+    src = rig.create_cloud_path("dir_0/file0_1.txt", client=client2)
+    dst = rig.create_cloud_path("dir_0/file0_2.txt", client=client2)
+    # read both to populate cache, then replace, then assert both caches cleared
+    with src.open("r") as f:
+        _ = f.read()
+    with dst.open("r") as f:
+        _ = f.read()
+    assert src._local.exists()
+    assert dst._local.exists()
+    dst.replace(src)
+    assert not src._local.exists()
+    assert not dst._local.exists()
+
+    # --- rmtree ---
+    if rig.path_class not in [HttpPath, HttpsPath]:
+        client3 = rig.client_class(**rig.required_client_kwargs)
+        dp = rig.create_cloud_path("dir_0", client=client3)
+        _ = rig.create_cloud_path("dir_0/file0_1.txt", client=client3)
+        with _.open("r") as f:
+            _ = f.read()
+        assert dp._local.exists()
+        dp.rmtree()
+        assert not dp._local.exists()
