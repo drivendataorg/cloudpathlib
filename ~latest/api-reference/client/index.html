@@ -1192,12 +1192,12 @@
   <a href="#cloudpathlib.client-functions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Functions
+        Functions:
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Functions">
+    <nav class="md-nav" aria-label="Functions:">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1421,12 +1421,12 @@
   <a href="#cloudpathlib.client-functions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Functions
+        Functions:
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Functions">
+    <nav class="md-nav" aria-label="Functions:">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1704,7 +1704,7 @@
 <span class="normal">185</span>
 <span class="normal">186</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Client</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">,</span> <span class="n">Generic</span><span class="p">[</span><span class="n">BoundedCloudPath</span><span class="p">]):</span>
     <span class="n">_cloud_meta</span><span class="p">:</span> <span class="n">CloudImplementation</span>
-    <span class="n">_default_client</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_default_client</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Client[BoundedCloudPath]&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1772,7 +1772,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_local_cache_dir</span><span class="o">.</span><span class="n">rmdir</span><span class="p">()</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_default_client</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Client&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_default_client</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Client[BoundedCloudPath]&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the default client, which the one that is used when instantiating a cloud path</span>
 <span class="sd">        instance for this cloud without a client specified.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1915,7 +1915,7 @@
 </div>
 
 
-<h4 id="cloudpathlib.client.Client-functions">Functions<a href="#cloudpathlib.client.Client-functions" class="headerlink" title="Permanent link">&para;</a></h4>
+<h4 id="cloudpathlib.client.Client-functions">Methods:<a href="#cloudpathlib.client.Client-functions" class="headerlink" title="Permanent link">&para;</a></h4>
 
 <div class="doc doc-object doc-function">
 
@@ -2107,7 +2107,7 @@ Does not remove folder so it can keep being written to.</p>
 
 
 <h5 id="cloudpathlib.client.Client.get_default_client" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">get_default_client</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Client</span></code>
+            <code class="highlight language-python"><span class="n">get_default_client</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Client</span><span class="p">[</span><span class="n">BoundedCloudPath</span><span class="p">]</span></code>
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -2132,7 +2132,7 @@ instance for this cloud without a client specified.</p>
 <span class="normal">102</span>
 <span class="normal">103</span>
 <span class="normal">104</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_default_client</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Client&quot;</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_default_client</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Client[BoundedCloudPath]&quot;</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the default client, which the one that is used when instantiating a cloud path</span>
 <span class="sd">    instance for this cloud without a client specified.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -2182,7 +2182,7 @@ instances for this cloud without a client specified.</p>
     </div>
 
 </div>
-<h2 id="cloudpathlib.client-functions">Functions<a href="#cloudpathlib.client-functions" class="headerlink" title="Permanent link">&para;</a></h2>
+<h2 id="cloudpathlib.client-functions">Functions:<a href="#cloudpathlib.client-functions" class="headerlink" title="Permanent link">&para;</a></h2>
 
 <div class="doc doc-object doc-function">
 

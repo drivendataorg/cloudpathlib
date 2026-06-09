@@ -844,12 +844,12 @@
   <a href="#cloudpathlib.cloudpath.CloudPath-functions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Functions
+        Methods:
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Functions">
+    <nav class="md-nav" aria-label="Methods:">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2157,12 +2157,12 @@
   <a href="#cloudpathlib.cloudpath.CloudPath-functions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Functions
+        Methods:
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Functions">
+    <nav class="md-nav" aria-label="Methods:">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -4157,7 +4157,9 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 <span class="normal">1616</span>
 <span class="normal">1617</span>
 <span class="normal">1618</span>
-<span class="normal">1619</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CloudPath</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">CloudPathMeta</span><span class="p">):</span>
+<span class="normal">1619</span>
+<span class="normal">1620</span>
+<span class="normal">1621</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CloudPath</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">CloudPathMeta</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for cloud storage file URIs, in the style of the Python standard library&#39;s</span>
 <span class="sd">    [`pathlib` module](https://docs.python.org/3/library/pathlib.html). Instances represent a path</span>
 <span class="sd">    in cloud storage with filesystem path semantics, and convenient methods allow for basic</span>
@@ -4843,8 +4845,10 @@ storage URI (e.g., <code>"s3://"</code>).</p>
             <span class="n">sequence_class</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="nb">type</span><span class="p">(</span><span class="n">path_version</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path_version</span><span class="p">,</span> <span class="n">_PathParents</span><span class="p">)</span> <span class="k">else</span> <span class="nb">tuple</span>
             <span class="p">)</span>
-            <span class="k">return</span> <span class="n">sequence_class</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_new_cloudpath</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">path_version</span> <span class="k">if</span> <span class="n">_resolve</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">!=</span> <span class="n">p</span><span class="o">.</span><span class="n">root</span>
+            <span class="k">return</span> <span class="n">sequence_class</span><span class="p">(</span>  <span class="c1"># type: ignore[call-arg]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_new_cloudpath</span><span class="p">(</span><span class="n">_resolve</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">path_version</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">PurePosixPath</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_resolve</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">!=</span> <span class="n">p</span><span class="o">.</span><span class="n">root</span>
             <span class="p">)</span>
 
         <span class="c1"># when pathlib returns something else, we probably just want that thing</span>
@@ -5830,7 +5834,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 </div>
 
 
-<h2 id="cloudpathlib.cloudpath.CloudPath-functions">Functions<a href="#cloudpathlib.cloudpath.CloudPath-functions" class="headerlink" title="Permanent link">&para;</a></h2>
+<h2 id="cloudpathlib.cloudpath.CloudPath-functions">Methods:<a href="#cloudpathlib.cloudpath.CloudPath-functions" class="headerlink" title="Permanent link">&para;</a></h2>
 
 <div class="doc doc-object doc-function">
 
@@ -5949,8 +5953,8 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">928</span>
-<span class="normal">929</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">930</span>
+<span class="normal">931</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
     <span class="k">return</span> <span class="bp">self</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -6028,13 +6032,13 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1441</span>
-<span class="normal">1442</span>
-<span class="normal">1443</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1443</span>
 <span class="normal">1444</span>
 <span class="normal">1445</span>
 <span class="normal">1446</span>
-<span class="normal">1447</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="normal">1447</span>
+<span class="normal">1448</span>
+<span class="normal">1449</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Removes cache if it exists&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
@@ -6083,9 +6087,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1227</span>
-<span class="normal">1228</span>
-<span class="normal">1229</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1229</span>
 <span class="normal">1230</span>
 <span class="normal">1231</span>
 <span class="normal">1232</span>
@@ -6097,7 +6099,9 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 <span class="normal">1238</span>
 <span class="normal">1239</span>
 <span class="normal">1240</span>
-<span class="normal">1241</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span>
+<span class="normal">1241</span>
+<span class="normal">1242</span>
+<span class="normal">1243</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">target</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">Self</span><span class="p">],</span>
     <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -6154,9 +6158,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1270</span>
-<span class="normal">1271</span>
-<span class="normal">1272</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1272</span>
 <span class="normal">1273</span>
 <span class="normal">1274</span>
 <span class="normal">1275</span>
@@ -6171,7 +6173,9 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 <span class="normal">1284</span>
 <span class="normal">1285</span>
 <span class="normal">1286</span>
-<span class="normal">1287</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">copy_into</span><span class="p">(</span>
+<span class="normal">1287</span>
+<span class="normal">1288</span>
+<span class="normal">1289</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">copy_into</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">target_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">Self</span><span class="p">],</span>
     <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -6234,9 +6238,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1313</span>
-<span class="normal">1314</span>
-<span class="normal">1315</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1315</span>
 <span class="normal">1316</span>
 <span class="normal">1317</span>
 <span class="normal">1318</span>
@@ -6271,7 +6273,9 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 <span class="normal">1347</span>
 <span class="normal">1348</span>
 <span class="normal">1349</span>
-<span class="normal">1350</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">copytree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="normal">1350</span>
+<span class="normal">1351</span>
+<span class="normal">1352</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">copytree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">force_overwrite_to_cloud</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Copy self to a directory, if self is a directory.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
         <span class="k">raise</span> <span class="n">CloudPathNotADirectoryError</span><span class="p">(</span>
@@ -6329,9 +6333,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1084</span>
-<span class="normal">1085</span>
-<span class="normal">1086</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1086</span>
 <span class="normal">1087</span>
 <span class="normal">1088</span>
 <span class="normal">1089</span>
@@ -6349,7 +6351,9 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 <span class="normal">1101</span>
 <span class="normal">1102</span>
 <span class="normal">1103</span>
-<span class="normal">1104</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">download_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="normal">1104</span>
+<span class="normal">1105</span>
+<span class="normal">1106</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">download_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">destination</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
     <span class="n">destination</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
@@ -6442,9 +6446,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">965</span>
-<span class="normal">966</span>
-<span class="normal">967</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">967</span>
 <span class="normal">968</span>
 <span class="normal">969</span>
 <span class="normal">970</span>
@@ -6456,7 +6458,9 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 <span class="normal">976</span>
 <span class="normal">977</span>
 <span class="normal">978</span>
-<span class="normal">979</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">full_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="normal">979</span>
+<span class="normal">980</span>
+<span class="normal">981</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">full_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">13</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;full_match requires Python 3.13 or higher&quot;</span><span class="p">)</span>
 
@@ -6550,9 +6554,9 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1079</span>
-<span class="normal">1080</span>
-<span class="normal">1081</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CloudPathInfo&quot;</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1081</span>
+<span class="normal">1082</span>
+<span class="normal">1083</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CloudPathInfo&quot;</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a CloudPathInfo object for this path.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">CloudPathInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -6575,8 +6579,8 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">931</span>
-<span class="normal">932</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">is_absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">933</span>
+<span class="normal">934</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">is_absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="k">return</span> <span class="kc">True</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -6667,12 +6671,12 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">954</span>
-<span class="normal">955</span>
-<span class="normal">956</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">956</span>
 <span class="normal">957</span>
 <span class="normal">958</span>
-<span class="normal">959</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">is_relative_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="normal">959</span>
+<span class="normal">960</span>
+<span class="normal">961</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">is_relative_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
@@ -6780,8 +6784,8 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">925</span>
-<span class="normal">926</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">joinpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pathsegments</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">927</span>
+<span class="normal">928</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">joinpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pathsegments</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;joinpath&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">pathsegments</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -6803,9 +6807,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">981</span>
-<span class="normal">982</span>
-<span class="normal">983</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">983</span>
 <span class="normal">984</span>
 <span class="normal">985</span>
 <span class="normal">986</span>
@@ -6813,7 +6815,9 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 <span class="normal">988</span>
 <span class="normal">989</span>
 <span class="normal">990</span>
-<span class="normal">991</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="normal">991</span>
+<span class="normal">992</span>
+<span class="normal">993</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="c1"># strip scheme from start of pattern before testing</span>
     <span class="k">if</span> <span class="n">path_pattern</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">drive</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
         <span class="n">path_pattern</span> <span class="o">=</span> <span class="n">path_pattern</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">drive</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="p">:]</span>
@@ -6903,9 +6907,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1379</span>
-<span class="normal">1380</span>
-<span class="normal">1381</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1381</span>
 <span class="normal">1382</span>
 <span class="normal">1383</span>
 <span class="normal">1384</span>
@@ -6917,7 +6919,9 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 <span class="normal">1390</span>
 <span class="normal">1391</span>
 <span class="normal">1392</span>
-<span class="normal">1393</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">move</span><span class="p">(</span>
+<span class="normal">1393</span>
+<span class="normal">1394</span>
+<span class="normal">1395</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">move</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">target</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">Self</span><span class="p">],</span>
     <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -6974,9 +6978,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1422</span>
-<span class="normal">1423</span>
-<span class="normal">1424</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1424</span>
 <span class="normal">1425</span>
 <span class="normal">1426</span>
 <span class="normal">1427</span>
@@ -6991,7 +6993,9 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 <span class="normal">1436</span>
 <span class="normal">1437</span>
 <span class="normal">1438</span>
-<span class="normal">1439</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">move_into</span><span class="p">(</span>
+<span class="normal">1439</span>
+<span class="normal">1440</span>
+<span class="normal">1441</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">move_into</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">target_dir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">Self</span><span class="p">],</span>
     <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -7359,9 +7363,7 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">937</span>
-<span class="normal">938</span>
-<span class="normal">939</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">939</span>
 <span class="normal">940</span>
 <span class="normal">941</span>
 <span class="normal">942</span>
@@ -7374,7 +7376,9 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 <span class="normal">949</span>
 <span class="normal">950</span>
 <span class="normal">951</span>
-<span class="normal">952</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">relative_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Self</span><span class="p">,</span> <span class="n">walk_up</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PurePosixPath</span><span class="p">:</span>
+<span class="normal">952</span>
+<span class="normal">953</span>
+<span class="normal">954</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">relative_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Self</span><span class="p">,</span> <span class="n">walk_up</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PurePosixPath</span><span class="p">:</span>
     <span class="c1"># We don&#39;t dispatch regularly since this never returns a cloud path (since it is relative, and cloud paths are</span>
     <span class="c1"># absolute)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">CloudPath</span><span class="p">):</span>
@@ -7496,8 +7500,8 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">934</span>
-<span class="normal">935</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">936</span>
+<span class="normal">937</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
     <span class="k">return</span> <span class="bp">self</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -7613,13 +7617,13 @@ storage URI (e.g., <code>"s3://"</code>).</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1106</span>
-<span class="normal">1107</span>
-<span class="normal">1108</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1108</span>
 <span class="normal">1109</span>
 <span class="normal">1110</span>
 <span class="normal">1111</span>
-<span class="normal">1112</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="normal">1112</span>
+<span class="normal">1113</span>
+<span class="normal">1114</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Delete an entire directory tree.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">raise</span> <span class="n">CloudPathNotADirectoryError</span><span class="p">(</span>
@@ -7675,16 +7679,16 @@ API calls.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1068</span>
-<span class="normal">1069</span>
-<span class="normal">1070</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1070</span>
 <span class="normal">1071</span>
 <span class="normal">1072</span>
 <span class="normal">1073</span>
 <span class="normal">1074</span>
 <span class="normal">1075</span>
 <span class="normal">1076</span>
-<span class="normal">1077</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">os</span><span class="o">.</span><span class="n">stat_result</span><span class="p">:</span>
+<span class="normal">1077</span>
+<span class="normal">1078</span>
+<span class="normal">1079</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">os</span><span class="o">.</span><span class="n">stat_result</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Note: for many clients, we may want to override so we don&#39;t incur</span>
 <span class="sd">    network costs since many of these properties are available as</span>
 <span class="sd">    API calls.</span>
@@ -7782,9 +7786,7 @@ API calls.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1114</span>
-<span class="normal">1115</span>
-<span class="normal">1116</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1116</span>
 <span class="normal">1117</span>
 <span class="normal">1118</span>
 <span class="normal">1119</span>
@@ -7804,7 +7806,9 @@ API calls.</p>
 <span class="normal">1133</span>
 <span class="normal">1134</span>
 <span class="normal">1135</span>
-<span class="normal">1136</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">upload_from</span><span class="p">(</span>
+<span class="normal">1136</span>
+<span class="normal">1137</span>
+<span class="normal">1138</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">upload_from</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">source</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span>
     <span class="n">force_overwrite_to_cloud</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -7854,11 +7858,11 @@ https://docs.pydantic.dev/2.0/usage/types/custom/</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1603</span>
-<span class="normal">1604</span>
-<span class="normal">1605</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1605</span>
 <span class="normal">1606</span>
-<span class="normal">1607</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="normal">1607</span>
+<span class="normal">1608</span>
+<span class="normal">1609</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Used as a Pydantic validator. See</span>
 <span class="sd">    https://docs.pydantic.dev/2.0/usage/types/custom/&quot;&quot;&quot;</span>
@@ -7932,8 +7936,8 @@ https://docs.pydantic.dev/2.0/usage/types/custom/</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1035</span>
-<span class="normal">1036</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">with_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1037</span>
+<span class="normal">1038</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">with_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;with_name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -7958,11 +7962,11 @@ The first segment will be interpreted as the bucket/container name.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1038</span>
-<span class="normal">1039</span>
-<span class="normal">1040</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1040</span>
 <span class="normal">1041</span>
-<span class="normal">1042</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">with_segments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pathsegments</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="normal">1042</span>
+<span class="normal">1043</span>
+<span class="normal">1044</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">with_segments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pathsegments</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new CloudPath with the same client out of the given segments.</span>
 <span class="sd">    The first segment will be interpreted as the bucket/container name.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -7987,12 +7991,12 @@ The first segment will be interpreted as the bucket/container name.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1028</span>
-<span class="normal">1029</span>
-<span class="normal">1030</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1030</span>
 <span class="normal">1031</span>
 <span class="normal">1032</span>
-<span class="normal">1033</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">with_stem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stem</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="normal">1033</span>
+<span class="normal">1034</span>
+<span class="normal">1035</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">with_stem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stem</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;with_stem&quot;</span><span class="p">,</span> <span class="n">stem</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
@@ -8018,8 +8022,8 @@ The first segment will be interpreted as the bucket/container name.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>cloudpathlib/cloudpath.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1044</span>
-<span class="normal">1045</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">with_suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1046</span>
+<span class="normal">1047</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">with_suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dispatch_to_path</span><span class="p">(</span><span class="s2">&quot;with_suffix&quot;</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
