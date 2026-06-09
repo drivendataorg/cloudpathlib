@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import shutil
 from tempfile import TemporaryDirectory
-from typing import Generic, Callable, Iterable, Optional, Tuple, TypeVar, Union
+from typing import ClassVar, Generic, Callable, Iterable, Optional, Tuple, TypeVar, Union
 
 from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 from .enums import FileCacheMode
@@ -27,7 +27,7 @@ def register_client_class(key: str) -> Callable:
 
 class Client(abc.ABC, Generic[BoundedCloudPath]):
     _cloud_meta: CloudImplementation
-    _default_client = None
+    _default_client: ClassVar[Optional["Client[BoundedCloudPath]"]] = None
 
     def __init__(
         self,
@@ -95,7 +95,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
                 self._local_cache_dir.rmdir()
 
     @classmethod
-    def get_default_client(cls) -> "Client":
+    def get_default_client(cls) -> "Client[BoundedCloudPath]":
         """Get the default client, which the one that is used when instantiating a cloud path
         instance for this cloud without a client specified.
         """
