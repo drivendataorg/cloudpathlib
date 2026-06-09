@@ -220,11 +220,27 @@ class MockBoto3Client:
         return {"Buckets": [{"Name": DEFAULT_S3_BUCKET_NAME}]}
 
     def head_object(self, Bucket, Key, **kwargs):
-        if not (self.root / Key).exists() or (self.root / Key).is_dir():
-            raise ClientError({}, {})
-        if Bucket != DEFAULT_S3_BUCKET_NAME and ".mrap" not in Bucket:
-            raise ClientError({}, {})
-        return {"key": Key}
+        path = self.root / Key
+        if (
+            not path.exists()
+            or path.is_dir()
+            or (Bucket != DEFAULT_S3_BUCKET_NAME and ".mrap" not in Bucket)
+        ):
+            # missing key -> 404 ClientError (head_object has no body, so not NoSuchKey)
+            raise ClientError(
+                {
+                    "Error": {"Code": "404", "Message": "Not Found"},
+                    "ResponseMetadata": {"HTTPStatusCode": 404},
+                },
+                "HeadObject",
+            )
+        return {
+            "LastModified": datetime.fromtimestamp(path.stat().st_mtime),
+            "ContentLength": path.stat().st_size,
+            "ETag": hash(str(path)),
+            "ContentType": self.session.metadata_cache.get(path, None),
+            "Metadata": {},
+        }
 
     def generate_presigned_url(self, op: str, Params: dict, ExpiresIn: int):
         mock_presigned_url = f"https://{Params['Bucket']}.s3.amazonaws.com/{Params['Key']}?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=TEST%2FTEST%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240131T194721Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=TEST"
@@ -232,8 +248,8 @@ class MockBoto3Client:
 
     @property
     def exceptions(self):
-        Ex = collections.namedtuple("Ex", "NoSuchKey")
-        return Ex(NoSuchKey=NoSuchKey)
+        Ex = collections.namedtuple("Ex", "NoSuchKey ClientError")
+        return Ex(NoSuchKey=NoSuchKey, ClientError=ClientError)
 
 
 class MockBoto3Paginator:
