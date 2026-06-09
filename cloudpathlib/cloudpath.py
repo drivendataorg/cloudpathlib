@@ -907,8 +907,10 @@ class CloudPath(metaclass=CloudPathMeta):
             sequence_class = (
                 type(path_version) if not isinstance(path_version, _PathParents) else tuple
             )
-            return sequence_class(  # type: ignore
-                self._new_cloudpath(_resolve(p)) for p in path_version if _resolve(p) != p.root
+            return sequence_class(  # type: ignore[call-arg]
+                self._new_cloudpath(_resolve(p))
+                for p in path_version
+                if isinstance(p, PurePosixPath) and _resolve(p) != p.root
             )
 
         # when pathlib returns something else, we probably just want that thing
