@@ -2137,6 +2137,7 @@
 <h2 id="unreleased">UNRELEASED<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Fixed mypy 2.x type errors in <code>Client</code> and <code>CloudPath</code> that caused CI lint failures (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/563">#563</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/566">#566</a>)</li>
+<li>Changed <code>S3Client._get_metadata</code> to read object metadata with <code>HeadObject</code> instead of <code>GetObject</code>, so <code>stat</code>, <code>etag</code>, and <code>size</code> no longer open the object body. Also fixes a <code>KeyError</code> on <code>ContentLength</code> against S3-compatible gateways that drop <code>Content-Length</code> from <code>GetObject</code> responses. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/564">#564</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/565">#565</a>)</li>
 </ul>
 <h2 id="v0240-2026-04-29">v0.24.0 (2026-04-29)<a class="headerlink" href="#v0240-2026-04-29" title="Permanent link">&para;</a></h2>
 <ul>

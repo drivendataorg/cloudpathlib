@@ -2932,7 +2932,12 @@ documentation for more details.</p>
 <span class="normal">118</span>
 <span class="normal">119</span>
 <span class="normal">120</span>
-<span class="normal">121</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_path_class</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">)</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_path_class</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">S3Path</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for representing and operating on AWS S3 URIs, in the style of the Python standard</span>
 <span class="sd">    library&#39;s [`pathlib` module](https://docs.python.org/3/library/pathlib.html). Instances</span>
@@ -2977,10 +2982,15 @@ documentation for more details.</p>
     <span class="k">def</span><span class="w"> </span><span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">except</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">NoSuchKey</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">NoStatError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;No stats available for </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">; it may be a directory or not exist.&quot;</span>
-            <span class="p">)</span>
+        <span class="k">except</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ClientError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="c1"># head_object returns a 404 (not NoSuchKey) for a missing key; let other errors raise</span>
+            <span class="n">error_info</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Error&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">status_code</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ResponseMetadata&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;HTTPStatusCode&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">error_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Code&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;404&quot;</span><span class="p">,</span> <span class="s2">&quot;NoSuchKey&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">NoStatError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No stats available for </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">; it may be a directory or not exist.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">raise</span>
 
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">stat_result</span><span class="p">(</span>
             <span class="p">(</span>
@@ -5224,13 +5234,23 @@ documentation for more details.</p>
 <span class="normal">78</span>
 <span class="normal">79</span>
 <span class="normal">80</span>
-<span class="normal">81</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">stat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">follow_symlinks</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">_get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-    <span class="k">except</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">NoSuchKey</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">NoStatError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;No stats available for </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">; it may be a directory or not exist.&quot;</span>
-        <span class="p">)</span>
+    <span class="k">except</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ClientError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="c1"># head_object returns a 404 (not NoSuchKey) for a missing key; let other errors raise</span>
+        <span class="n">error_info</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Error&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">status_code</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ResponseMetadata&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;HTTPStatusCode&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">error_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Code&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;404&quot;</span><span class="p">,</span> <span class="s2">&quot;NoSuchKey&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">status_code</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NoStatError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No stats available for </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">; it may be a directory or not exist.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">raise</span>
 
     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">stat_result</span><span class="p">(</span>
         <span class="p">(</span>
