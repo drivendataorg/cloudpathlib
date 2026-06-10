@@ -13,6 +13,7 @@ from cloudpathlib.exceptions import (
     CloudPathIsADirectoryError,
     CloudPathNotImplementedError,
     DirectoryNotEmptyError,
+    NoStatError,
 )
 from cloudpathlib.http.httpclient import HttpClient, HttpsClient
 from cloudpathlib.http.httppath import HttpPath, HttpsPath
@@ -360,6 +361,15 @@ def test_is_dir_is_file(rig, tmp_path):
     non_existent = rig.create_cloud_path("dir_0/not_a_file")
     assert not non_existent.is_file()
     assert not non_existent.is_dir()
+
+
+def test_stat_nonexistent(rig):
+    # stat on a path that does not exist raises NoStatError on every backend
+    non_existent = rig.create_cloud_path("dir_0/not_a_real_file.txt")
+    assert not non_existent.exists()
+
+    with pytest.raises(NoStatError):
+        non_existent.stat()
 
 
 def test_file_read_writes(rig, tmp_path):

@@ -135,9 +135,11 @@ class S3Client(Client):
         )
 
     def _get_metadata(self, cloud_path: S3Path) -> Dict[str, Any]:
-        # get accepts all download extra args
-        data = self.s3.ObjectSummary(cloud_path.bucket, cloud_path.key).get(
-            **self.boto3_dl_extra_args
+        # head_object accepts all download extra args and reads metadata without the body
+        data = self.client.head_object(
+            Bucket=cloud_path.bucket,
+            Key=cloud_path.key,
+            **self.boto3_dl_extra_args,
         )
 
         return {

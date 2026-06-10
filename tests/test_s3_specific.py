@@ -3,6 +3,7 @@ from itertools import islice
 import os
 from time import sleep
 import time
+from unittest.mock import patch
 
 from urllib.parse import urlparse, parse_qs
 import pytest
@@ -54,6 +55,22 @@ def test_transfer_config(s3_rig, tmp_path):
         assert client.s3.upload_config == transfer_config
 
     p2.unlink()
+
+
+def test_get_metadata_uses_head_object(s3_rig):
+    # metadata lookups should use HeadObject, not GetObject (issue #564)
+    client = s3_rig.client_class()
+    client.set_as_default_client()
+    p = s3_rig.create_cloud_path("dir_0/file0_0.txt")
+
+    head_spy = patch.object(client.client, "head_object", wraps=client.client.head_object)
+    get_spy = patch.object(client.s3, "ObjectSummary", wraps=client.s3.ObjectSummary)
+    with head_spy as head_object, get_spy as object_summary:
+        meta = client._get_metadata(p)
+
+    head_object.assert_called_once()
+    object_summary.assert_not_called()
+    assert set(meta) == {"last_modified", "size", "etag", "content_type", "extra"}
 
 
 def _download_with_threads(s3_rig, tmp_path, use_threads):

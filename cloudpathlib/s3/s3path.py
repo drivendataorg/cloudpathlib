@@ -60,10 +60,15 @@ class S3Path(CloudPath):
     def stat(self, follow_symlinks=True):
         try:
             meta = self.client._get_metadata(self)
-        except self.client.client.exceptions.NoSuchKey:
-            raise NoStatError(
-                f"No stats available for {self}; it may be a directory or not exist."
-            )
+        except self.client.client.exceptions.ClientError as error:
+            # head_object returns a 404 (not NoSuchKey) for a missing key; let other errors raise
+            error_info = error.response.get("Error", {})
+            status_code = error.response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+            if error_info.get("Code") in ("404", "NoSuchKey") or status_code == 404:
+                raise NoStatError(
+                    f"No stats available for {self}; it may be a directory or not exist."
+                )
+            raise
 
         return os.stat_result(
             (
