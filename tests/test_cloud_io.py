@@ -794,7 +794,7 @@ def test_read_write_mode_not_implemented(temp_cloud_file):
 
 def test_s3_multipart_upload(rig):
     """Test that S3 multipart upload is triggered for large writes."""
-    if not hasattr(rig, "s3_path"):
+    if rig.path_class.cloud_prefix != "s3://":
         pytest.skip("Not testing S3")
 
     path = rig.create_cloud_path("test_multipart.bin")
@@ -816,7 +816,7 @@ def test_s3_multipart_upload(rig):
 
 def test_azure_block_upload(rig):
     """Test that Azure block upload works."""
-    if not hasattr(rig, "azure_path"):
+    if rig.path_class.cloud_prefix != "az://":
         pytest.skip("Not testing Azure")
 
     path = rig.create_cloud_path("test_blocks.bin")
@@ -836,7 +836,7 @@ def test_azure_block_upload(rig):
 
 def test_gs_resumable_upload(rig):
     """Test that GCS upload works."""
-    if not hasattr(rig, "gs_path"):
+    if rig.path_class.cloud_prefix != "gs://":
         pytest.skip("Not testing GCS")
 
     path = rig.create_cloud_path("test_resumable.bin")
