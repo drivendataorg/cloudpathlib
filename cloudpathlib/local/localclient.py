@@ -209,6 +209,109 @@ class LocalClient(Client):
     ) -> str:
         raise NotImplementedError("Cannot generate a presigned URL for a local path.")
 
+    # ====================== STREAMING I/O METHODS ======================
+    # For local clients, streaming uses local file operations.
+
+    def _range_download(self, cloud_path: LocalPath, start: int, end: int) -> bytes:
+        """Download a byte range from local storage."""
+        local_path = self._cloud_path_to_local(cloud_path)
+        if not local_path.exists():
+            raise FileNotFoundError(f"File not found: {cloud_path}")
+
+        with open(local_path, "rb") as f:
+            f.seek(start)
+            length = end - start + 1
+            return f.read(length)
+
+    def _get_content_length(self, cloud_path: LocalPath) -> int:
+        """Get the size of a local file."""
+        local_path = self._cloud_path_to_local(cloud_path)
+        if not local_path.exists():
+            raise FileNotFoundError(f"File not found: {cloud_path}")
+        return local_path.stat().st_size
+
+    def _initiate_multipart_upload(self, cloud_path: LocalPath) -> str:
+        """Return a unique upload ID so concurrent uploads don't share a buffer."""
+        import uuid
+
+        return str(uuid.uuid4())
+
+    def _upload_part(
+        self, cloud_path: LocalPath, upload_id: str, part_number: int, data: bytes
+    ) -> dict:
+        """Buffer a part keyed by upload_id (not by path) for concurrent-write safety."""
+        if not hasattr(self, "_local_upload_buffers"):
+            self._local_upload_buffers: dict = {}
+        if upload_id not in self._local_upload_buffers:
+            self._local_upload_buffers[upload_id] = []
+        self._local_upload_buffers[upload_id].append((part_number, data))
+        return {"part_number": part_number}
+
+    def _complete_multipart_upload(
+        self, cloud_path: LocalPath, upload_id: str, parts: list
+    ) -> None:
+        """Complete local file upload by joining all buffered parts."""
+        if (
+            not hasattr(self, "_local_upload_buffers")
+            or upload_id not in self._local_upload_buffers
+        ):
+            return
+
+        buffer = self._local_upload_buffers.pop(upload_id, [])
+        buffer.sort(key=lambda x: x[0])
+        complete_data = b"".join([data for _, data in buffer])
+
+        local_path = self._cloud_path_to_local(cloud_path)
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        local_path.write_bytes(complete_data)
+
+    def _abort_multipart_upload(self, cloud_path: LocalPath, upload_id: str) -> None:
+        """Abort local file upload by cleaning up the buffer."""
+        if hasattr(self, "_local_upload_buffers"):
+            self._local_upload_buffers.pop(upload_id, None)
+
+    def _open_write_stream(self, cloud_path: LocalPath) -> "_LocalWriteStream":
+        """Return a write stream that buffers data and writes to the local file on close."""
+        local_path = self._cloud_path_to_local(cloud_path)
+        return _LocalWriteStream(local_path)
+
+    def _put_empty_object(self, cloud_path: LocalPath) -> None:
+        """Create a zero-byte local file."""
+        local_path = self._cloud_path_to_local(cloud_path)
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        local_path.write_bytes(b"")
+
+
+class _LocalWriteStream:
+    """File-like writer that accumulates bytes and flushes to a local path on close.
+
+    Used by LocalClient._open_write_stream so that _GSStorageRaw (and other adapters
+    that call _open_write_stream) can work correctly against local test clients.
+    """
+
+    def __init__(self, local_path: Path) -> None:
+        self._local_path = local_path
+        self._buf: bytearray = bytearray()
+        self._closed: bool = False
+
+    def write(self, data: bytes) -> int:
+        if self._closed:
+            raise ValueError("I/O operation on closed stream")
+        self._buf.extend(data)
+        return len(data)
+
+    def close(self) -> None:
+        if not self._closed:
+            self._closed = True
+            self._local_path.parent.mkdir(parents=True, exist_ok=True)
+            self._local_path.write_bytes(bytes(self._buf))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
 
 _temp_dirs_to_clean: List[TemporaryDirectory] = []
 

@@ -242,6 +242,133 @@ class MockBoto3Client:
             "Metadata": {},
         }
 
+    def get_object(self, Bucket, Key, Range=None, **kwargs):
+        """Get an S3 object with optional byte range."""
+        if (
+            not (self.root / Key).exists()
+            or (self.root / Key).is_dir()
+            or Bucket != DEFAULT_S3_BUCKET_NAME
+        ):
+            raise ClientError(
+                {"Error": {"Code": "NoSuchKey", "Message": "The specified key does not exist."}},
+                {},
+            )
+
+        path = self.root / Key
+        data = path.read_bytes()
+
+        if Range:
+            import re
+
+            match = re.match(r"bytes=(\d+)-(\d+)", Range)
+            if match:
+                start, end = int(match.group(1)), int(match.group(2))
+                data = data[start : end + 1]
+            else:
+                raise ClientError(
+                    {
+                        "Error": {
+                            "Code": "InvalidRange",
+                            "Message": "The requested range is not satisfiable",
+                        }
+                    },
+                    {},
+                )
+
+        from io import BytesIO
+
+        return {"Body": BytesIO(data), "ContentLength": len(data)}
+
+    def create_multipart_upload(self, Bucket, Key, **kwargs):
+        """Start a multipart upload."""
+        import uuid
+
+        upload_id = str(uuid.uuid4())
+        if not hasattr(self, "_uploads"):
+            self._uploads = {}
+        self._uploads[upload_id] = {"Bucket": Bucket, "Key": Key, "Parts": []}
+        return {"UploadId": upload_id}
+
+    def upload_part(self, Bucket, Key, UploadId, PartNumber, Body, **kwargs):
+        """Upload a part in a multipart upload."""
+        if not hasattr(self, "_uploads") or UploadId not in self._uploads:
+            raise ClientError(
+                {
+                    "Error": {
+                        "Code": "NoSuchUpload",
+                        "Message": "The specified upload does not exist.",
+                    }
+                },
+                {},
+            )
+
+        upload = self._uploads[UploadId]
+        if isinstance(Body, bytes):
+            data = Body
+        else:
+            data = Body.read() if hasattr(Body, "read") else Body
+
+        upload["Parts"].append({"PartNumber": PartNumber, "Data": data})
+
+        import hashlib
+
+        etag = hashlib.md5(data).hexdigest()
+        return {"ETag": etag}
+
+    def complete_multipart_upload(self, Bucket, Key, UploadId, MultipartUpload, **kwargs):
+        """Complete a multipart upload."""
+        if not hasattr(self, "_uploads") or UploadId not in self._uploads:
+            raise ClientError(
+                {
+                    "Error": {
+                        "Code": "NoSuchUpload",
+                        "Message": "The specified upload does not exist.",
+                    }
+                },
+                {},
+            )
+
+        upload = self._uploads[UploadId]
+        parts = sorted(upload["Parts"], key=lambda p: p["PartNumber"])
+        complete_data = b"".join([p["Data"] for p in parts])
+
+        path = self.root / Key
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(complete_data)
+
+        del self._uploads[UploadId]
+
+        return {"Location": f"https://{Bucket}.s3.amazonaws.com/{Key}"}
+
+    def abort_multipart_upload(self, Bucket, Key, UploadId, **kwargs):
+        """Abort a multipart upload."""
+        if hasattr(self, "_uploads") and UploadId in self._uploads:
+            del self._uploads[UploadId]
+
+    def put_object(self, Bucket, Key, Body=b"", **kwargs):
+        """Upload data directly (single PUT)."""
+        if Bucket != DEFAULT_S3_BUCKET_NAME and ".mrap" not in Bucket:
+            raise ClientError(
+                {
+                    "Error": {
+                        "Code": "NoSuchBucket",
+                        "Message": "The specified bucket does not exist.",
+                    }
+                },
+                "PutObject",
+            )
+        path = self.root / Key
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(Body, bytes):
+            path.write_bytes(Body)
+        else:
+            path.write_bytes(Body.read() if hasattr(Body, "read") else b"")
+        if "ContentType" in kwargs and self.session is not None:
+            self.session.metadata_cache[path] = kwargs["ContentType"]
+        import hashlib
+
+        return {"ETag": f'"{hashlib.md5(path.read_bytes()).hexdigest()}"'}
+
     def generate_presigned_url(self, op: str, Params: dict, ExpiresIn: int):
         mock_presigned_url = f"https://{Params['Bucket']}.s3.amazonaws.com/{Params['Key']}?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=TEST%2FTEST%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240131T194721Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=TEST"
         return mock_presigned_url

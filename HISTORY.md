@@ -2,6 +2,13 @@
 
 ## UNRELEASED
 
+- Added streaming I/O support for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS via `FileCacheMode.streaming`. (PR [#535](https://github.com/drivendataorg/cloudpathlib/pull/535))
+  - Added `FileCacheMode.streaming` enum value to enable direct streaming I/O without local caching.
+  - Added `CloudBufferedIO` class implementing `io.BufferedIOBase` for binary streaming operations.
+  - Added `CloudTextIO` class implementing `io.TextIOBase` for text streaming operations.
+  - Added provider-specific raw I/O implementations: `_S3StorageRaw`, `_AzureBlobStorageRaw`, `_GSStorageRaw`, `_HttpStorageRaw`.
+  - Added `register_raw_io_class` decorator for registering streaming I/O implementations.
+  - Added `buffer_size` parameter to `CloudPath.open()` for controlling streaming buffer size.
 - Fixed mypy 2.x type errors in `Client` and `CloudPath` that caused CI lint failures (Issue [#563](https://github.com/drivendataorg/cloudpathlib/issues/563), PR [#566](https://github.com/drivendataorg/cloudpathlib/pull/566))
 - Changed `S3Client._get_metadata` to read object metadata with `HeadObject` instead of `GetObject`, so `stat`, `etag`, and `size` no longer open the object body. Also fixes a `KeyError` on `ContentLength` against S3-compatible gateways that drop `Content-Length` from `GetObject` responses. (Issue [#564](https://github.com/drivendataorg/cloudpathlib/issues/564), PR [#565](https://github.com/drivendataorg/cloudpathlib/pull/565))
 

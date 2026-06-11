@@ -103,14 +103,14 @@ def test_idempotency(rig):
 
 
 def test_dependencies_not_loaded(rig, monkeypatch):
-    monkeypatch.setattr(rig.path_class._cloud_meta, "dependencies_loaded", False)
+    monkeypatch.setattr(rig.cloud_implementation, "dependencies_loaded", False)
     with pytest.raises(MissingDependenciesError):
         CloudPath(f"{rig.cloud_prefix}{rig.drive}/{rig.test_dir}/dir_0/file0_0.txt")
     with pytest.raises(MissingDependenciesError):
         rig.create_cloud_path("dir_0/file0_0.txt")
 
     # manual reset for teardown order so teardown doesn't fail
-    monkeypatch.setattr(rig.path_class._cloud_meta, "dependencies_loaded", True)
+    monkeypatch.setattr(rig.cloud_implementation, "dependencies_loaded", True)
 
 
 def test_is_pathlike(rig):
