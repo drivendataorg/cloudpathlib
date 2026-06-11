@@ -1307,6 +1307,49 @@ def test_s3_no_small_non_final_parts(rig):
             pass
 
 
+# H3b — S3 aborts multipart upload when complete fails
+def test_s3_abort_multipart_on_complete_failure(rig):
+    """If _complete_multipart_upload fails, _abort_multipart_upload is attempted."""
+    if rig.path_class.cloud_prefix != "s3://":
+        pytest.skip("S3-specific test")
+
+    path = rig.create_cloud_path("test_abort_on_complete_fail.bin")
+    data = b"X" * (6 * 1024 * 1024)  # 6 MiB → one 5 MiB part + final part
+
+    original_mode = path.client.file_cache_mode
+    path.client.file_cache_mode = FileCacheMode.streaming
+
+    real_complete = path.client._complete_multipart_upload
+    real_abort = path.client._abort_multipart_upload
+    abort_calls = []
+
+    def fail_complete(cloud_path, upload_id, parts):
+        raise RuntimeError("complete failed")
+
+    def spy_abort(cloud_path, upload_id):
+        abort_calls.append(upload_id)
+        return real_abort(cloud_path, upload_id)
+
+    path.client._complete_multipart_upload = fail_complete
+    path.client._abort_multipart_upload = spy_abort
+
+    try:
+        with pytest.raises(RuntimeError, match="complete failed"):
+            with path.open("wb") as f:
+                f.write(data)
+
+        assert len(abort_calls) == 1
+        assert not path.exists()
+    finally:
+        path.client._complete_multipart_upload = real_complete
+        path.client._abort_multipart_upload = real_abort
+        path.client.file_cache_mode = original_mode
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
 # H4 — concurrent writes to two paths on one client don't cross buffers
 def test_concurrent_writes_dont_cross_buffers(rig):
     """Two simultaneous streaming writers must not share upload state."""
