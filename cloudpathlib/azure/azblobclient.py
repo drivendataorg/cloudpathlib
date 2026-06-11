@@ -497,6 +497,94 @@ class AzureBlobClient(Client):
         url = f"{self._get_public_url(cloud_path)}?{sas_token}"
         return url
 
+    # ====================== STREAMING I/O METHODS ======================
+
+    def _range_download(self, cloud_path: AzureBlobPath, start: int, end: int) -> bytes:
+        """Download a byte range from Azure Blob Storage."""
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        try:
+            length = end - start + 1
+            downloader = blob_client.download_blob(offset=start, length=length)
+            return downloader.readall()
+        except ResourceNotFoundError:
+            raise FileNotFoundError(f"Azure blob not found: {cloud_path}")
+        except HttpResponseError as e:
+            if (e.error and e.error.code == "InvalidRange") or e.status_code == 416:
+                return b""
+            raise
+
+    def _get_content_length(self, cloud_path: AzureBlobPath) -> int:
+        """Get the size of an Azure blob."""
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        try:
+            properties = blob_client.get_blob_properties()
+            return properties.size
+        except ResourceNotFoundError:
+            raise FileNotFoundError(f"Azure blob not found: {cloud_path}")
+
+    def _initiate_multipart_upload(self, cloud_path: AzureBlobPath) -> str:
+        """Start an Azure block blob upload.
+
+        Azure doesn't need explicit initialization; return empty string.
+        """
+        return ""
+
+    def _upload_part(
+        self, cloud_path: AzureBlobPath, upload_id: str, part_number: int, data: bytes
+    ) -> dict:
+        """Upload a block in an Azure block blob upload."""
+        import base64
+
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        # Azure uses base64-encoded block IDs
+        block_id = base64.b64encode(f"block-{part_number:06d}".encode()).decode()
+        blob_client.stage_block(block_id=block_id, data=data, length=len(data))
+        return {"block_id": block_id}
+
+    def _complete_multipart_upload(
+        self, cloud_path: AzureBlobPath, upload_id: str, parts: list
+    ) -> None:
+        """Commit an Azure block blob upload, threading content-type."""
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        block_ids = [part["block_id"] for part in parts]
+        content_settings = None
+        if self.content_type_method is not None:
+            content_type, content_encoding = self.content_type_method(str(cloud_path))
+            if content_type or content_encoding:
+                content_settings = ContentSettings(
+                    content_type=content_type, content_encoding=content_encoding
+                )
+        blob_client.commit_block_list(block_ids, content_settings=content_settings)
+
+    def _abort_multipart_upload(self, cloud_path: AzureBlobPath, upload_id: str) -> None:
+        """Abort an Azure block blob upload.
+
+        Azure automatically expires uncommitted blocks; nothing explicit to do.
+        """
+        pass
+
+    def _put_empty_object(self, cloud_path: AzureBlobPath) -> None:
+        """Upload a zero-byte Azure blob, threading content-type."""
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        content_settings = None
+        if self.content_type_method is not None:
+            content_type, content_encoding = self.content_type_method(str(cloud_path))
+            if content_type or content_encoding:
+                content_settings = ContentSettings(
+                    content_type=content_type, content_encoding=content_encoding
+                )
+        blob_client.upload_blob(b"", overwrite=True, content_settings=content_settings)
+
 
 def _hns_rmtree(data_lake_client, container, directory):
     """Stateless implementation so can be used in test suite cleanup as well.

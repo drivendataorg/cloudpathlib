@@ -8,10 +8,15 @@ import pytest
 
 from cloudpathlib import CloudPath
 from cloudpathlib.client import register_client_class
-from cloudpathlib.cloudpath import implementation_registry, register_path_class
+from cloudpathlib.cloudpath import (
+    implementation_registry,
+    register_path_class,
+    register_raw_io_class,
+)
 from cloudpathlib.http.httpclient import HttpClient, HttpsClient
 from cloudpathlib.s3.s3client import S3Client
 from cloudpathlib.s3.s3path import S3Path
+from cloudpathlib.s3.s3_io import _S3StorageRaw
 
 
 def test_default_client_instantiation(rig):
@@ -138,6 +143,10 @@ def custom_s3_path():
 
     @register_client_class("mys3")
     class MyS3Client(S3Client):
+        pass
+
+    @register_raw_io_class("mys3")
+    class MyS3StorageRaw(_S3StorageRaw):
         pass
 
     yield (MyS3Path, MyS3Client)

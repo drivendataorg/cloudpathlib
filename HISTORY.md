@@ -5,6 +5,13 @@
 - Added `AGENTS.md` with repository-specific guidance for coding agents covering contributor
   workflow, compatibility expectations, test rig and mock usage, live backend validation, and PR
   hygiene.
+- Added streaming I/O support for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS via `FileCacheMode.streaming`. (PR [#535](https://github.com/drivendataorg/cloudpathlib/pull/535))
+  - Added `FileCacheMode.streaming` enum value to enable direct streaming I/O without local caching.
+  - Added `CloudBufferedIO` class implementing `io.BufferedIOBase` for binary streaming operations.
+  - Added `CloudTextIO` class implementing `io.TextIOBase` for text streaming operations.
+  - Added provider-specific raw I/O implementations: `_S3StorageRaw`, `_AzureBlobStorageRaw`, `_GSStorageRaw`, `_HttpStorageRaw`.
+  - Added `register_raw_io_class` decorator for registering streaming I/O implementations.
+  - Added `buffer_size` parameter to `CloudPath.open()` for controlling streaming buffer size.
 - Fixed mypy 2.x type errors in `Client` and `CloudPath` that caused CI lint failures (Issue [#563](https://github.com/drivendataorg/cloudpathlib/issues/563), PR [#566](https://github.com/drivendataorg/cloudpathlib/pull/566))
 - Changed `S3Client._get_metadata` to read object metadata with `HeadObject` instead of `GetObject`, so `stat`, `etag`, and `size` no longer open the object body. Also fixes a `KeyError` on `ContentLength` against S3-compatible gateways that drop `Content-Length` from `GetObject` responses. (Issue [#564](https://github.com/drivendataorg/cloudpathlib/issues/564), PR [#565](https://github.com/drivendataorg/cloudpathlib/pull/565))
 - Added a `lazy` keyword argument to `CloudPath.walk`. By default (`lazy=False`) the existing fast behavior is preserved: the whole subtree is fetched up front with a single recursive listing. Passing `lazy=True` lists each directory on demand so that, when `top_down=True`, callers can prune subdirectories by modifying `dirnames` in-place (à la `os.walk` / `Path.walk`) to skip fetching the contents of those subtrees entirely — dramatically reducing API calls for large, sparsely-traversed trees. (Issue [#518](https://github.com/drivendataorg/cloudpathlib/issues/518))

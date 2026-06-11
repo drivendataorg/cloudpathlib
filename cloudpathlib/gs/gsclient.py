@@ -15,12 +15,14 @@ try:
         from google.auth.credentials import Credentials
         from google.api_core.retry import Retry
 
+    from google.api_core.exceptions import NotFound as GCSNotFound
     from google.auth import default as google_default_auth
     from google.auth.exceptions import DefaultCredentialsError
     from google.cloud.storage import Client as StorageClient
 
 except ModuleNotFoundError:
     implementation_registry["gs"].dependencies_loaded = False
+    GCSNotFound = Exception  # type: ignore[misc, assignment]  # fallback so name is always defined
 
 
 try:
@@ -309,6 +311,57 @@ class GSClient(Client):
             version="v4", expiration=timedelta(seconds=expire_seconds), method="GET"
         )
         return url
+
+    # ====================== STREAMING I/O METHODS ======================
+
+    def _range_download(self, cloud_path: GSPath, start: int, end: int) -> bytes:
+        """Download a byte range from GCS."""
+        blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
+        try:
+            # GCS end is exclusive in the API, our API is inclusive
+            return blob.download_as_bytes(start=start, end=end + 1)
+        except GCSNotFound:
+            raise FileNotFoundError(f"GCS object not found: {cloud_path}")
+        except Exception as e:
+            error_str = str(e)
+            if "416" in error_str or "Requested Range Not Satisfiable" in error_str:
+                return b""
+            if hasattr(e, "code") and e.code == 416:
+                return b""
+            raise
+
+    def _get_content_length(self, cloud_path: GSPath) -> int:
+        """Get the size of a GCS object."""
+        blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
+        try:
+            blob.reload()
+            return blob.size
+        except GCSNotFound:
+            raise FileNotFoundError(f"GCS object not found: {cloud_path}")
+
+    def _open_write_stream(self, cloud_path: GSPath):
+        """Open a GCS resumable upload stream.
+
+        Returns a file-like writer. Data written to it streams incrementally
+        to GCS rather than being buffered in memory. The caller must close()
+        the writer to finalize the upload.
+        """
+        blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
+        kwargs: Dict[str, Any] = {}
+        if self.content_type_method is not None:
+            content_type, _ = self.content_type_method(str(cloud_path))
+            if content_type is not None:
+                kwargs["content_type"] = content_type
+        # blob_kwargs may carry timeout/retry; pass through where blob.open accepts them
+        for k in ("timeout", "retry"):
+            if k in self.blob_kwargs:
+                kwargs[k] = self.blob_kwargs[k]
+        return blob.open("wb", **kwargs)
+
+    def _put_empty_object(self, cloud_path: GSPath) -> None:
+        """Upload a zero-byte GCS object."""
+        blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
+        blob.upload_from_string(b"", **self.blob_kwargs)
 
 
 GSClient.GSPath = GSClient.CloudPath  # type: ignore
