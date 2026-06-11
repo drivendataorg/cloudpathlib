@@ -33,6 +33,13 @@
 - Added `AGENTS.md` with repository-specific guidance for coding agents covering contributor
   workflow, compatibility expectations, test rig and mock usage, live backend validation, and PR
   hygiene. (PR [#573](https://github.com/drivendataorg/cloudpathlib/pull/573))
+- Added streaming I/O support for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS via `FileCacheMode.streaming`. (PR [#535](https://github.com/drivendataorg/cloudpathlib/pull/535))
+  - Added `FileCacheMode.streaming` enum value to enable direct streaming I/O without local caching.
+  - Added `CloudBufferedIO` class implementing `io.BufferedIOBase` for binary streaming operations.
+  - Added `CloudTextIO` class implementing `io.TextIOBase` for text streaming operations.
+  - Added provider-specific raw I/O implementations: `_S3StorageRaw`, `_AzureBlobStorageRaw`, `_GSStorageRaw`, `_HttpStorageRaw`.
+  - Added `register_raw_io_class` decorator for registering streaming I/O implementations.
+  - Added `buffer_size` parameter to `CloudPath.open()` for controlling streaming buffer size.
 
 ## v0.24.0 (2026-04-29)
 

@@ -72,6 +72,27 @@ class MockBlob:
         to_path.parent.mkdir(exist_ok=True, parents=True)
         to_path.write_bytes(from_path.read_bytes())
 
+    def download_as_bytes(self, start=None, end=None, timeout=None, retry=None):
+        """Download blob content as bytes with optional byte range."""
+        # if timeout is not None, assume that the test wants a timeout and throw it
+        if timeout is not None:
+            raise TimeoutError("Download timed out")
+
+        # indicate that retry object made it through to the GS lib
+        if retry is not None:
+            retry.mocked_retries = 1
+
+        from_path = self.bucket / self.name
+        data = from_path.read_bytes()
+
+        # Handle byte range if specified
+        if start is not None:
+            if end is not None:
+                return data[start : end + 1]
+            else:
+                return data[start:]
+        return data
+
     def patch(self):
         if "updated" in self.metadata:
             (self.bucket / self.name).touch()
@@ -107,6 +128,25 @@ class MockBlob:
 
         self.client.metadata_cache[self.bucket / self.name] = content_type
 
+    def upload_from_string(self, data, content_type=None, timeout=None, retry=None):
+        """Upload from bytes/string data."""
+        # if timeout is not None, assume that the test wants a timeout and throw it
+        if timeout is not None:
+            raise TimeoutError("Upload timed out")
+
+        # indicate that retry object made it through to the GS lib
+        if retry is not None:
+            retry.mocked_retries = 1
+
+        path = self.bucket / self.name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(data, str):
+            path.write_text(data)
+        else:
+            path.write_bytes(data)
+
+        self.client.metadata_cache[self.bucket / self.name] = content_type
+
     @property
     def etag(self):
         return "etag"
@@ -135,6 +175,38 @@ class MockBlob:
 
     def generate_signed_url(self, version: str, expiration: timedelta, method: str):
         return f"https://storage.googleapis.com{self.bucket}/{self.name}?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=TEST&X-Goog-Date=20240131T185515Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=TEST"
+
+    def open(self, mode="rb", **kwargs):
+        """Return a file-like writer/reader for resumable uploads (mock implementation)."""
+        if mode == "wb":
+            return _MockBlobWriter(self)
+        raise NotImplementedError(f"Mock blob.open() only supports 'wb', not {mode!r}")
+
+
+class _MockBlobWriter:
+    """Simulates a GCS resumable upload stream (blob.open('wb'))."""
+
+    def __init__(self, blob: "MockBlob") -> None:
+        self._blob = blob
+        self._buf: bytearray = bytearray()
+        self._closed: bool = False
+
+    def write(self, data: bytes) -> int:
+        if self._closed:
+            raise ValueError("I/O operation on closed stream")
+        self._buf.extend(data)
+        return len(data)
+
+    def close(self) -> None:
+        if not self._closed:
+            self._closed = True
+            self._blob.upload_from_string(bytes(self._buf))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
 
 
 class MockBucket:

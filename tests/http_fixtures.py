@@ -75,7 +75,59 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
 
     @retry(stop=stop_after_attempt(5), wait=wait_fixed(0.1))
     def do_GET(self):
-        super().do_GET()
+        """Handle GET requests with optional Range header support."""
+        # Check if this is a range request
+        range_header = self.headers.get("Range")
+        if range_header:
+            self._handle_range_request(range_header)
+        else:
+            super().do_GET()
+
+    def _handle_range_request(self, range_header):
+        """Handle Range requests for partial content."""
+        path = Path(self.translate_path(self.path))
+
+        if not path.exists() or not path.is_file():
+            self.send_error(404, "File not found")
+            return
+
+        # Parse the Range header (format: "bytes=start-end")
+        try:
+            range_spec = range_header.replace("bytes=", "").strip()
+            parts = range_spec.split("-")
+            start = int(parts[0]) if parts[0] else 0
+
+            file_size = path.stat().st_size
+
+            # Handle end byte
+            if len(parts) > 1 and parts[1]:
+                end = int(parts[1])
+            else:
+                end = file_size - 1
+
+            # Validate range
+            if start < 0 or end >= file_size or start > end:
+                self.send_error(416, "Requested Range Not Satisfiable")
+                self.send_header("Content-Range", f"bytes */{file_size}")
+                self.end_headers()
+                return
+
+            # Read the requested range
+            with path.open("rb") as f:
+                f.seek(start)
+                content = f.read(end - start + 1)
+
+            # Send partial content response
+            self.send_response(206)  # Partial Content
+            self.send_header("Content-Type", self.guess_type(str(path)))
+            self.send_header("Content-Length", str(len(content)))
+            self.send_header("Content-Range", f"bytes {start}-{end}/{file_size}")
+            self.send_header("Accept-Ranges", "bytes")
+            self.end_headers()
+            self.wfile.write(content)
+
+        except (ValueError, IndexError) as e:
+            self.send_error(400, f"Bad Range header: {e}")
 
     @retry(stop=stop_after_attempt(5), wait=wait_fixed(0.1))
     def do_HEAD(self):

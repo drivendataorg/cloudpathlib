@@ -4,6 +4,7 @@ import os
 from .anypath import AnyPath
 from .azure.azblobclient import AzureBlobClient
 from .azure.azblobpath import AzureBlobPath
+from .cloud_io import CloudBufferedIO, CloudTextIO
 from .cloudpath import CloudPath, implementation_registry
 from .patches import patch_open, patch_os_functions, patch_glob, patch_all_builtins
 from .gs.gsclient import GSClient
@@ -20,7 +21,9 @@ __all__ = [
     "AnyPath",
     "AzureBlobClient",
     "AzureBlobPath",
+    "CloudBufferedIO",
     "CloudPath",
+    "CloudTextIO",
     "implementation_registry",
     "GSClient",
     "GSPath",
