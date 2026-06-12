@@ -8,7 +8,9 @@
 # ## cloudpathlib.local module
 # 
 # In the `cloudpathlib.local` module, we provide "Local" classes that use the local filesystem in place of cloud storage. These classes are drop-in replacements for the normal cloud path classes, with the intent that you can use them as mock or monkeypatch substitutes in your tests. 
-# 
+#
+# Local paths return placeholder URLs from `as_url(presign=True)` so code that generates pre-signed URLs can be tested. These URLs are not signed and cannot be used to access files.
+#
 # We also provide `CloudImplementation` objects which can be used to replace a registered implementation in the `cloudpathlib.implementation_registry` dictionary. Replacing the registered implementation will make `CloudPath`'s automatic dispatching use the replacement. 
 # 
 # See the examples below for how to use these replacements in your tests.
@@ -79,4 +81,3 @@ get_ipython().run_cell_magic('run_pytest[clean]', '', '\nfrom cloudpathlib impor
 # Finally, the `reset_default_storage_dir` class method will clean up the current local storage temporary directory and set up a new one. We recommend you do this in the teardown of the test fixture. 
 
 get_ipython().run_cell_magic('run_pytest[clean]', '', '\nimport pytest\n\nfrom cloudpathlib import CloudPath, implementation_registry\nfrom cloudpathlib.local import LocalS3Client, LocalS3Path, local_s3_implementation\n\n\n@pytest.fixture\ndef cloud_asset_file(monkeypatch):\n    """Fixture that patches CloudPath dispatch and also sets up test assets in LocalS3Client\'s\n    local storage directory."""\n\n    monkeypatch.setitem(implementation_registry, "s3", local_s3_implementation)\n\n    # Option 1: Use LocalS3Path to set up test assets directly\n    local_cloud_path = LocalS3Path("s3://cloudpathlib-test-bucket/altostratus.txt")\n    local_cloud_path.write_text("altostratus")\n    \n    # Option 2: Use the pathlib.Path object that points to the local storage directory\n    local_pathlib_path: Path = (\n        LocalS3Client.get_default_storage_dir() / "cloudpathlib-test-bucket" / "nimbostratus.txt"\n    )\n    local_pathlib_path.parent.mkdir(exist_ok=True, parents=True)\n    local_pathlib_path.write_text("nimbostratus")\n\n    yield\n\n    LocalS3Client.reset_default_storage_dir()  # clean up temp directory and replace with new one\n\n\ndef test_with_assets(cloud_asset_file):\n    """Testing that a patched CloudPath finds the test asset created in the fixture."""\n\n    cloud_path_1 = CloudPath("s3://cloudpathlib-test-bucket/altostratus.txt")\n    assert isinstance(cloud_path_1, LocalS3Path)\n    assert cloud_path_1.exists()\n    assert cloud_path_1.read_text() == "altostratus"\n    \n    cloud_path_2 = CloudPath("s3://cloudpathlib-test-bucket/nimbostratus.txt")\n    assert isinstance(cloud_path_2, LocalS3Path)\n    assert cloud_path_2.exists()\n    assert cloud_path_2.read_text() == "nimbostratus"\n')
-

@@ -8,6 +8,7 @@ import sys
 from tempfile import TemporaryDirectory
 from time import sleep
 from typing import Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
+from urllib.parse import urlencode
 
 from ..client import Client
 from ..enums import FileCacheMode
@@ -207,7 +208,13 @@ class LocalClient(Client):
     def _generate_presigned_url(
         self, cloud_path: "LocalPath", expire_seconds: int = 60 * 60
     ) -> str:
-        raise NotImplementedError("Cannot generate a presigned URL for a local path.")
+        query = urlencode(
+            {
+                "cloudpathlib-local": "true",
+                "expires": expire_seconds,
+            }
+        )
+        return f"{cloud_path.as_uri()}?{query}"
 
 
 _temp_dirs_to_clean: List[TemporaryDirectory] = []
