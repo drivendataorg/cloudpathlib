@@ -2,6 +2,7 @@
 
 ## UNRELEASED
 
+- Delegated `AWS_ENDPOINT_URL` handling to boto3 now that the AWS SDK supports endpoint environment variables directly (Issue [#194](https://github.com/drivendataorg/cloudpathlib/issues/194)).
 - Fixed mypy 2.x type errors in `Client` and `CloudPath` that caused CI lint failures (Issue [#563](https://github.com/drivendataorg/cloudpathlib/issues/563), PR [#566](https://github.com/drivendataorg/cloudpathlib/pull/566))
 - Changed `S3Client._get_metadata` to read object metadata with `HeadObject` instead of `GetObject`, so `stat`, `etag`, and `size` no longer open the object body. Also fixes a `KeyError` on `ContentLength` against S3-compatible gateways that drop `Content-Length` from `GetObject` responses. (Issue [#564](https://github.com/drivendataorg/cloudpathlib/issues/564), PR [#565](https://github.com/drivendataorg/cloudpathlib/pull/565))
 
