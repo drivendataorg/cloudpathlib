@@ -1,6 +1,7 @@
 import pytest
 
 from inspect import signature
+from urllib.parse import parse_qs, urlparse
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
 from cloudpathlib.local import (
@@ -120,6 +121,26 @@ def test_reset_default_storage_dir_with_default_client():
     LocalS3Client.reset_default_storage_dir()
     s3p2 = LocalS3Path("s3://drive/file.txt")
     assert not s3p2.exists()
+
+
+@pytest.mark.parametrize("client_class", [LocalAzureBlobClient, LocalGSClient, LocalS3Client])
+def test_presigned_url_placeholder(client_class, monkeypatch):
+    if client_class is LocalAzureBlobClient:
+        monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
+
+    cloud_prefix = client_class._cloud_meta.path_class.cloud_prefix
+    path = client_class().CloudPath(f"{cloud_prefix}drive/file.txt")
+    expire_seconds = 300
+
+    url = urlparse(path.as_url(presign=True, expire_seconds=expire_seconds))
+
+    assert url.scheme == cloud_prefix.removesuffix("://")
+    assert url.netloc == "drive"
+    assert url.path == "/file.txt"
+    assert parse_qs(url.query) == {
+        "cloudpathlib-local": ["true"],
+        "expires": [str(expire_seconds)],
+    }
 
 
 @pytest.mark.parametrize("client_class", [LocalAzureBlobClient, LocalGSClient, LocalS3Client])

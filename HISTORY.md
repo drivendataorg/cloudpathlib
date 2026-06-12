@@ -2,6 +2,7 @@
 
 ## UNRELEASED
 
+- Added placeholder pre-signed URLs for local cloud path implementations to support testing code that generates signed URLs (Issue [#525](https://github.com/drivendataorg/cloudpathlib/issues/525), PR [#568](https://github.com/drivendataorg/cloudpathlib/pull/568)).
 - Fixed mypy 2.x type errors in `Client` and `CloudPath` that caused CI lint failures (Issue [#563](https://github.com/drivendataorg/cloudpathlib/issues/563), PR [#566](https://github.com/drivendataorg/cloudpathlib/pull/566))
 - Changed `S3Client._get_metadata` to read object metadata with `HeadObject` instead of `GetObject`, so `stat`, `etag`, and `size` no longer open the object body. Also fixes a `KeyError` on `ContentLength` against S3-compatible gateways that drop `Content-Length` from `GetObject` responses. (Issue [#564](https://github.com/drivendataorg/cloudpathlib/issues/564), PR [#565](https://github.com/drivendataorg/cloudpathlib/pull/565))
 
