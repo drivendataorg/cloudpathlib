@@ -714,6 +714,7 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: Optional[str] = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
+        buffer_size: Optional[int] = None,
     ) -> "TextIOWrapper": ...
 
     @overload
@@ -726,6 +727,7 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: None = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
+        buffer_size: Optional[int] = None,
     ) -> "FileIO": ...
 
     @overload
@@ -738,6 +740,7 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: None = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
+        buffer_size: Optional[int] = None,
     ) -> "BufferedRandom": ...
 
     @overload
@@ -750,6 +753,7 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: None = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
+        buffer_size: Optional[int] = None,
     ) -> "BufferedWriter": ...
 
     @overload
@@ -762,6 +766,7 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: None = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
+        buffer_size: Optional[int] = None,
     ) -> "BufferedReader": ...
 
     @overload
@@ -774,6 +779,7 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: None = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
+        buffer_size: Optional[int] = None,
     ) -> "BinaryIO": ...
 
     @overload
@@ -786,6 +792,7 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: Optional[str] = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
+        buffer_size: Optional[int] = None,
     ) -> "IO[Any]": ...
 
     def open(
