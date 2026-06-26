@@ -16,8 +16,12 @@ class _AzureBlobStorageRaw(_CloudStorageRaw):
     Azure Blob Storage-specific raw I/O adapter.
 
     Implements efficient range-based reads and block blob uploads for Azure.
-    Each block is staged independently (true streaming) and committed on finalize.
+    Writes are accumulated and staged in larger blocks to stay under Azure's
+    50,000 committed-block limit per blob.
     """
+
+    # Target block size before staging (Azure allows up to 50,000 blocks per blob)
+    _BLOCK_SIZE = 4 * 1024 * 1024
 
     def __init__(self, client, cloud_path, mode: str = "rb"):
         super().__init__(client, cloud_path, mode)
@@ -25,6 +29,8 @@ class _AzureBlobStorageRaw(_CloudStorageRaw):
         # Block blob upload state
         self._upload_id: str = ""  # Azure doesn't use upload IDs
         self._parts: list = []
+        self._part_number: int = 1
+        self._write_buffer: bytearray = bytearray()
 
     def _range_get(self, start: int, end: int) -> bytes:
         return self._client._range_download(self._cloud_path, start, end)
@@ -46,14 +52,32 @@ class _AzureBlobStorageRaw(_CloudStorageRaw):
         if not data:
             return
 
-        if not self._upload_id:
-            self._upload_id = self._client._initiate_multipart_upload(self._cloud_path)
+        self._write_buffer.extend(data)
 
-        part_number = len(self._parts) + 1
-        part_info = self._client._upload_part(self._cloud_path, self._upload_id, part_number, data)
-        self._parts.append(part_info)
+        while len(self._write_buffer) >= self._BLOCK_SIZE:
+            chunk = bytes(self._write_buffer[: self._BLOCK_SIZE])
+            del self._write_buffer[: self._BLOCK_SIZE]
+            if not self._upload_id:
+                self._upload_id = self._client._initiate_multipart_upload(self._cloud_path)
+            part_info = self._client._upload_part(
+                self._cloud_path, self._upload_id, self._part_number, chunk
+            )
+            self._parts.append(part_info)
+            self._part_number += 1
 
     def _finalize_upload(self, upload_state: Optional[Dict[str, Any]] = None) -> None:
+        if self._write_buffer:
+            if not self._upload_id:
+                self._upload_id = self._client._initiate_multipart_upload(self._cloud_path)
+            part_info = self._client._upload_part(
+                self._cloud_path,
+                self._upload_id,
+                self._part_number,
+                bytes(self._write_buffer),
+            )
+            self._parts.append(part_info)
+            self._write_buffer.clear()
+
         if not self._parts:
             # No blocks staged — create an empty blob directly
             self._client._put_empty_object(self._cloud_path)
@@ -64,6 +88,7 @@ class _AzureBlobStorageRaw(_CloudStorageRaw):
         finally:
             self._upload_id = ""
             self._parts = []
+            self._part_number = 1
 
     def close(self) -> None:
         super().close()
