@@ -114,7 +114,8 @@ Before opening or updating a PR:
 1. Rebase onto the latest base branch.
 2. Confirm an issue exists and include `Closes #<issue>` in the PR body.
 3. Confirm the change is demonstrated by failure-before/fix-after evidence.
-4. Update `HISTORY.md` under `## UNRELEASED` for user-visible behavior changes.
+4. Update `HISTORY.md` under `## UNRELEASED` to satisfy this repo's PR checklist; include
+   issue and PR references when they are known.
 5. Verify API changes include doc/docstring updates and generated-doc refresh as needed.
 6. If working from an external contributor context, note any live-backend limitations that
    maintainers need to validate on a repo-local branch.
