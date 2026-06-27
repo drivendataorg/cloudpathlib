@@ -567,23 +567,44 @@ class CloudPath(metaclass=CloudPathMeta):
             if f != self:  # iterdir does not include itself in pathlib
                 yield f
 
-    @staticmethod
-    def _walk_results_from_tree(root, tree, top_down=True):
-        """Utility to yield tuples in the form expected by `.walk` from the file
-        tree constructed by `_build_substree`.
+    def _walk(
+        self,
+        root: "Self",
+        top_down: bool = True,
+        on_error: Optional[Callable] = None,
+    ) -> "Generator[Tuple[Self, List[str], List[str]], None, None]":
+        """Iterative walk that lists one directory level at a time.
+
+        Listing is deferred until each directory is actually visited, so
+        callers can prune ``dirnames`` in-place (when ``top_down=True``) to
+        avoid fetching the contents of skipped subtrees.
         """
-        dirs = []
-        files = []
-        for item, branch in tree.items():
-            files.append(item) if branch is None else dirs.append(item)
+        dirs: List[str] = []
+        files: List[str] = []
+        try:
+            for f, is_dir in self.client._list_dir(root, recursive=False):
+                if f == root:
+                    continue
+                if is_dir:
+                    dirs.append(f.name)
+                else:
+                    files.append(f.name)
+        except Exception as e:
+            if on_error is not None:
+                on_error(e)
+                return
+            else:
+                raise
 
         if top_down:
+            # Yield current directory first; caller may modify dirs in-place
+            # to prune which subdirectories are visited.
             yield root, dirs, files
-
-        for dir in dirs:
-            yield from CloudPath._walk_results_from_tree(root / dir, tree[dir], top_down=top_down)
-
-        if not top_down:
+            for d in dirs:
+                yield from self._walk(root / d, top_down=top_down, on_error=on_error)
+        else:
+            for d in dirs:
+                yield from self._walk(root / d, top_down=top_down, on_error=on_error)
             yield root, dirs, files
 
     def walk(
@@ -591,16 +612,8 @@ class CloudPath(metaclass=CloudPathMeta):
         top_down: bool = True,
         on_error: Optional[Callable] = None,
         follow_symlinks: bool = False,
-    ) -> Generator[Tuple[Self, List[str], List[str]], None, None]:
-        try:
-            file_tree = self._build_subtree(recursive=True)  # walking is always recursive
-            yield from self._walk_results_from_tree(self, file_tree, top_down=top_down)
-
-        except Exception as e:
-            if on_error is not None:
-                on_error(e)
-            else:
-                raise
+    ) -> "Generator[Tuple[Self, List[str], List[str]], None, None]":
+        yield from self._walk(self, top_down=top_down, on_error=on_error)
 
     @overload
     def open(

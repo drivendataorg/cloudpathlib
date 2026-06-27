@@ -6,6 +6,7 @@ import shutil
 
 
 from azure.storage.blob import BlobProperties
+from azure.storage.blob._list_blobs_helper import BlobPrefix
 from azure.storage.blob._shared.authentication import SharedKeyCredentialPolicy
 from azure.core.exceptions import ResourceNotFoundError
 
@@ -194,8 +195,6 @@ class MockContainerClient:
 
 
 def mock_item_paged(root, name_starts_with=None, recursive=True):
-    items = []
-
     if recursive:
         items = [
             (PurePosixPath(f), f)
@@ -206,16 +205,31 @@ def mock_item_paged(root, name_starts_with=None, recursive=True):
                 and (root / name_starts_with) in [f, *f.parents]
             )
         ]
+        for mocked, local in items:
+            # BlobProperties
+            # https://github.com/Azure/azure-sdk-for-python/blob/b83018de46d4ecb6554ab33ecc22d4c7e7b77129/sdk/storage/azure-storage-blob/azure/storage/blob/_models.py#L517
+            yield BlobProperties(
+                **{
+                    "name": str(mocked.relative_to(PurePosixPath(root))),
+                    "Last-Modified": datetime.fromtimestamp(local.stat().st_mtime),
+                    "ETag": "etag",
+                }
+            )
     else:
-        items = [(PurePosixPath(f), f) for f in (root / name_starts_with).iterdir()]
-
-    for mocked, local in items:
-        # BlobProperties
-        # https://github.com/Azure/azure-sdk-for-python/blob/b83018de46d4ecb6554ab33ecc22d4c7e7b77129/sdk/storage/azure-storage-blob/azure/storage/blob/_models.py#L517
-        yield BlobProperties(
-            **{
-                "name": str(mocked.relative_to(PurePosixPath(root))),
-                "Last-Modified": datetime.fromtimestamp(local.stat().st_mtime),
-                "ETag": "etag",
-            }
-        )
+        # Non-recursive listing: yield BlobPrefix for directories and
+        # BlobProperties for files, matching real Azure SDK walk_blobs() behavior.
+        for local in (root / (name_starts_with or "")).iterdir():
+            mocked = PurePosixPath(local)
+            rel_name = str(mocked.relative_to(PurePosixPath(root)))
+            if local.is_dir():
+                bp = BlobPrefix()
+                bp["name"] = rel_name + "/"
+                yield bp
+            else:
+                yield BlobProperties(
+                    **{
+                        "name": rel_name,
+                        "Last-Modified": datetime.fromtimestamp(local.stat().st_mtime),
+                        "ETag": "etag",
+                    }
+                )

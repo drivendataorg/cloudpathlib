@@ -189,6 +189,48 @@ def test_walk(glob_test_dirs):
     )
 
 
+def test_walk_dirnames_pruning(glob_test_dirs):
+    """Test that modifying dirnames in-place during top-down walk prunes the traversal,
+    i.e. the contents of pruned subdirectories are never fetched (issue #518).
+
+    Directory structure used by glob_test_dirs:
+        glob-tests/
+          dirB/fileB.txt
+          dirC/dirD/fileD.txt
+          dirC/fileC.txt
+          fileA.txt
+    """
+    cloud_root, local_root = glob_test_dirs
+
+    # Prune "dirC" from cloud walk and from an equivalent os.walk call
+    def _pruned_walk(root_path, use_os_walk=False):
+        results = {}
+        walker = os.walk(root_path) if use_os_walk else root_path.walk()
+        for top, dirs, files in walker:
+            top_key = str(top)
+            results[top_key] = (list(dirs), list(files))
+            # prune dirC in-place so it (and its children) are not visited
+            dirs[:] = [d for d in dirs if d != "dirC"]
+        return results
+
+    cloud_results = _pruned_walk(cloud_root)
+    local_results = _pruned_walk(local_root, use_os_walk=True)
+
+    # Same set of visited directories
+    def _strip(path, root):
+        return str(path)[len(str(root)) :].strip("/")
+
+    cloud_keys = {_strip(k, cloud_root) for k in cloud_results}
+    local_keys = {_strip(k, local_root) for k in local_results}
+    assert cloud_keys == local_keys
+
+    # dirC and its children should not appear anywhere
+    assert not any("dirC" in k for k in cloud_keys)
+
+    # dirB and its files should still appear
+    assert any("dirB" in k for k in cloud_keys)
+
+
 def test_list_buckets(rig):
     if rig.path_class in [HttpPath, HttpsPath]:
         return  # no bucket listing for HTTP
