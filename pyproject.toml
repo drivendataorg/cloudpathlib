@@ -72,3 +72,20 @@ testpaths = ["tests"]
 [tool.coverage.run]
 source = ["cloudpathlib"]
 omit = ["cloudpathlib/legacy/glob.py"]
+
+[tool.pyright]
+include = ["cloudpathlib"]
+typeCheckingMode = "basic"
+# The rules below are disabled only for type-checking cloudpathlib's own source.
+# They are all internal concerns that do not affect the types we expose to consumers
+# (downstream projects do not inherit this configuration). The diagnostics they
+# silence come from dynamically-typed cloud SDKs (boto3, azure, google-cloud), optional
+# dependencies that may be absent, version-dependent CPython `pathlib` internals, and
+# the fact that `CloudPath` intentionally mirrors but does not subclass `pathlib.Path`.
+reportAttributeAccessIssue = "none"  # boto3/azure/gcs dynamic attrs; pathlib private internals
+reportArgumentType = "none"          # passing CloudPath where stdlib stubs expect str/Path
+reportCallIssue = "none"             # shutil/pathlib overloads that don't know about CloudPath
+reportGeneralTypeIssues = "none"     # ClassVar parameterized by the Client TypeVar
+reportMissingImports = "none"        # optional deps (e.g. importlib_metadata backport)
+reportOptionalMemberAccess = "none"  # Optional values returned by cloud SDK calls
+reportInconsistentOverload = "none"  # CloudPath vs Path in copy/copytree overloads

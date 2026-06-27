@@ -63,10 +63,11 @@ help:
 install: clean ## install the package to the active Python's site-packages
 	python setup.py install
 
-lint: ## check style with black, flake8, and mypy
+lint: ## check style with black, flake8, mypy, and pyright
 	black --check cloudpathlib tests docs
 	flake8 cloudpathlib tests docs
 	mypy cloudpathlib
+	pyright cloudpathlib
 
 release: dist ## package and upload a release
 	twine upload dist/*

@@ -133,6 +133,11 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         pass
 
     @abc.abstractmethod
+    def _is_file_or_dir(self, cloud_path: BoundedCloudPath) -> Optional[str]:
+        """Return ``"file"``, ``"dir"``, or ``None`` for the given path."""
+        pass
+
+    @abc.abstractmethod
     def _list_dir(
         self, cloud_path: BoundedCloudPath, recursive: bool
     ) -> Iterable[Tuple[BoundedCloudPath, bool]]:

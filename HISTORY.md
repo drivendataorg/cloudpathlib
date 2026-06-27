@@ -5,6 +5,14 @@
 - Added `AGENTS.md` with repository-specific guidance for coding agents covering contributor
   workflow, compatibility expectations, test rig and mock usage, live backend validation, and PR
   hygiene.
+- Added pyright to development linting and configured it so `pyright cloudpathlib` passes as part
+  of the standard `make lint` command. Annotated the `CloudPath.client` property as returning a
+  non-optional `Client` (instead of an inferred optional) and promoted `_is_file_or_dir` to an
+  abstract method on the base `Client`, so the bulk of pyright's `reportOptionalMemberAccess`
+  diagnostics are resolved by real types rather than suppression. The remaining suppressions are
+  scoped to cloudpathlib's own source and cover dynamically-typed cloud SDKs, optional
+  dependencies, and `pathlib` internals; they do not affect the types exposed to downstream
+  consumers. (Issue [#179](https://github.com/drivendataorg/cloudpathlib/issues/179))
 - Fixed mypy 2.x type errors in `Client` and `CloudPath` that caused CI lint failures (Issue [#563](https://github.com/drivendataorg/cloudpathlib/issues/563), PR [#566](https://github.com/drivendataorg/cloudpathlib/pull/566))
 - Changed `S3Client._get_metadata` to read object metadata with `HeadObject` instead of `GetObject`, so `stat`, `etag`, and `size` no longer open the object body. Also fixes a `KeyError` on `ContentLength` against S3-compatible gateways that drop `Content-Length` from `GetObject` responses. (Issue [#564](https://github.com/drivendataorg/cloudpathlib/issues/564), PR [#565](https://github.com/drivendataorg/cloudpathlib/pull/565))
 

@@ -283,11 +283,11 @@ class CloudPath(metaclass=CloudPathMeta):
         self._dirty = False
 
     @property
-    def client(self):
+    def client(self) -> "Client":
         if getattr(self, "_client", None) is None:
             self._client = self._cloud_meta.client_class.get_default_client()
 
-        return self._client
+        return cast("Client", self._client)
 
     def __del__(self) -> None:
         # make sure that file handle to local path is closed

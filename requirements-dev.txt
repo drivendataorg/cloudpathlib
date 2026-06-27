@@ -28,6 +28,7 @@ pytest-duration-insights
 pytest-reportlog
 pytest-rerunfailures<16.0
 pytest-xdist
+pyright
 python-dotenv
 pywin32; sys_platform == 'win32'
 rich
