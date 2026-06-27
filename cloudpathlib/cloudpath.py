@@ -567,53 +567,60 @@ class CloudPath(metaclass=CloudPathMeta):
             if f != self:  # iterdir does not include itself in pathlib
                 yield f
 
-    def _walk(
-        self,
-        root: "Self",
-        top_down: bool = True,
-        on_error: Optional[Callable] = None,
-    ) -> "Generator[Tuple[Self, List[str], List[str]], None, None]":
-        """Iterative walk that lists one directory level at a time.
-
-        Listing is deferred until each directory is actually visited, so
-        callers can prune ``dirnames`` in-place (when ``top_down=True``) to
-        avoid fetching the contents of skipped subtrees.
-        """
-        dirs: List[str] = []
-        files: List[str] = []
-        try:
-            for f, is_dir in self.client._list_dir(root, recursive=False):
-                if f == root:
-                    continue
-                if is_dir:
-                    dirs.append(f.name)
-                else:
-                    files.append(f.name)
-        except Exception as e:
-            if on_error is not None:
-                on_error(e)
-                return
-            else:
-                raise
-
-        if top_down:
-            # Yield current directory first; caller may modify dirs in-place
-            # to prune which subdirectories are visited.
-            yield root, dirs, files
-            for d in dirs:
-                yield from self._walk(root / d, top_down=top_down, on_error=on_error)
-        else:
-            for d in dirs:
-                yield from self._walk(root / d, top_down=top_down, on_error=on_error)
-            yield root, dirs, files
-
     def walk(
         self,
         top_down: bool = True,
         on_error: Optional[Callable] = None,
         follow_symlinks: bool = False,
-    ) -> "Generator[Tuple[Self, List[str], List[str]], None, None]":
-        yield from self._walk(self, top_down=top_down, on_error=on_error)
+    ) -> Generator[Tuple[Self, List[str], List[str]], None, None]:
+        """Walk the directory tree rooted at this path, mirroring
+        :meth:`pathlib.Path.walk` and :func:`os.walk`.
+
+        Each directory is listed only when it is visited (one non-recursive
+        ``_list_dir`` call per directory), so when ``top_down=True`` callers can
+        prune ``dirnames`` in place to avoid fetching the contents of skipped
+        subtrees (issue #518).
+
+        The traversal is implemented iteratively with an explicit stack (like
+        CPython's ``pathlib.Path.walk``) to avoid recursion limits on deeply
+        nested trees. ``follow_symlinks`` is accepted for signature parity with
+        ``pathlib`` but has no effect on cloud backends, which do not have
+        symlinks.
+        """
+        # The stack holds either a directory still to be listed, or, for
+        # bottom-up traversal, a deferred ``(dirpath, dirnames, filenames)``
+        # result tuple whose children have already been queued.
+        stack: List[Union[Self, Tuple[Self, List[str], List[str]]]] = [self]
+
+        while stack:
+            top = stack.pop()
+
+            if isinstance(top, tuple):
+                yield top
+                continue
+
+            dirnames: List[str] = []
+            filenames: List[str] = []
+            try:
+                for child, is_dir in self.client._list_dir(top, recursive=False):
+                    if child == top:  # some backends include the directory itself
+                        continue
+                    (dirnames if is_dir else filenames).append(child.name)
+            except Exception as error:
+                if on_error is not None:
+                    on_error(error)
+                    continue
+                raise
+
+            if top_down:
+                yield top, dirnames, filenames
+                # Push children in reverse so they pop in listing order. Reading
+                # ``dirnames`` here (after the yield) is what lets callers prune.
+                stack += [top / d for d in reversed(dirnames)]
+            else:
+                # Defer this directory until after its children are walked.
+                stack.append((top, dirnames, filenames))
+                stack += [top / d for d in reversed(dirnames)]
 
     @overload
     def open(

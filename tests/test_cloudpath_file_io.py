@@ -226,6 +226,26 @@ def test_walk_dirnames_pruning(glob_test_dirs):
     assert any("dirB" in k for k in cloud_results)
 
 
+def test_walk_skips_self(glob_test_dirs):
+    """Test that walk does not include the directory being listed in its own
+    dirnames, even when a backend's _list_dir yields the directory itself."""
+    from unittest.mock import patch
+
+    cloud_root, _ = glob_test_dirs
+
+    original_list_dir = cloud_root.client._list_dir
+
+    def list_dir_including_self(path, recursive=False):
+        # Prepend the directory itself to mimic backends that include it.
+        yield path, True
+        yield from original_list_dir(path, recursive=recursive)
+
+    with patch.object(cloud_root.client, "_list_dir", list_dir_including_self):
+        top, dirs, files = next(iter(cloud_root.walk()))
+        assert top == cloud_root
+        assert cloud_root.name not in dirs
+
+
 def test_walk_on_error(glob_test_dirs):
     """Test that on_error is invoked when _list_dir raises, matching os.walk behavior."""
     from unittest.mock import patch
