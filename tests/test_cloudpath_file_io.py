@@ -202,33 +202,54 @@ def test_walk_dirnames_pruning(glob_test_dirs):
     """
     cloud_root, local_root = glob_test_dirs
 
-    # Prune "dirC" from cloud walk and from an equivalent os.walk call
-    def _pruned_walk(root_path, use_os_walk=False):
-        results = {}
-        walker = os.walk(root_path) if use_os_walk else root_path.walk()
-        for top, dirs, files in walker:
-            top_key = str(top)
-            results[top_key] = (list(dirs), list(files))
-            # prune dirC in-place so it (and its children) are not visited
-            dirs[:] = [d for d in dirs if d != "dirC"]
-        return results
+    # Prune "dirC" from cloud walk
+    cloud_results = {}
+    for top, dirs, files in cloud_root.walk():
+        cloud_results[_lstrip_path_root(top, cloud_root)] = (list(dirs), list(files))
+        dirs[:] = [d for d in dirs if d != "dirC"]
 
-    cloud_results = _pruned_walk(cloud_root)
-    local_results = _pruned_walk(local_root, use_os_walk=True)
+    # Prune "dirC" from equivalent os.walk; convert top to posix for consistent separators
+    local_results = {}
+    for top, dirs, files in os.walk(local_root):
+        local_results[_lstrip_path_root(Path(top).as_posix(), local_root)] = (
+            list(dirs),
+            list(files),
+        )
+        dirs[:] = [d for d in dirs if d != "dirC"]
 
-    # Same set of visited directories
-    def _strip(path, root):
-        return str(path)[len(str(root)) :].strip("/")
-
-    cloud_keys = {_strip(k, cloud_root) for k in cloud_results}
-    local_keys = {_strip(k, local_root) for k in local_results}
-    assert cloud_keys == local_keys
+    assert set(cloud_results.keys()) == set(local_results.keys())
 
     # dirC and its children should not appear anywhere
-    assert not any("dirC" in k for k in cloud_keys)
+    assert not any("dirC" in k for k in cloud_results)
 
     # dirB and its files should still appear
-    assert any("dirB" in k for k in cloud_keys)
+    assert any("dirB" in k for k in cloud_results)
+
+
+def test_walk_on_error(glob_test_dirs):
+    """Test that on_error is invoked when _list_dir raises, matching os.walk behavior."""
+    from unittest.mock import patch
+
+    cloud_root, _ = glob_test_dirs
+
+    original_list_dir = cloud_root.client._list_dir
+    expected_error = ValueError("simulated listing error")
+
+    def failing_list_dir(path, recursive=False):
+        if path == cloud_root:
+            raise expected_error
+        return original_list_dir(path, recursive=recursive)
+
+    with patch.object(cloud_root.client, "_list_dir", failing_list_dir):
+        # on_error should capture the error; walk should produce no results
+        errors = []
+        results = list(cloud_root.walk(on_error=errors.append))
+        assert results == []
+        assert errors == [expected_error]
+
+        # Without on_error, the error should propagate
+        with pytest.raises(ValueError, match="simulated listing error"):
+            list(cloud_root.walk())
 
 
 def test_list_buckets(rig):
