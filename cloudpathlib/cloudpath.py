@@ -567,25 +567,36 @@ class CloudPath(metaclass=CloudPathMeta):
             if f != self:  # iterdir does not include itself in pathlib
                 yield f
 
-    def walk(
+    @staticmethod
+    def _walk_results_from_tree(root, tree, top_down=True):
+        """Utility to yield tuples in the form expected by `.walk` from the file
+        tree constructed by `_build_subtree`.
+        """
+        dirs = []
+        files = []
+        for item, branch in tree.items():
+            files.append(item) if branch is None else dirs.append(item)
+
+        if top_down:
+            yield root, dirs, files
+
+        for dir in dirs:
+            yield from CloudPath._walk_results_from_tree(root / dir, tree[dir], top_down=top_down)
+
+        if not top_down:
+            yield root, dirs, files
+
+    def _walk_lazy(
         self,
         top_down: bool = True,
         on_error: Optional[Callable] = None,
-        follow_symlinks: bool = False,
     ) -> Generator[Tuple[Self, List[str], List[str]], None, None]:
-        """Walk the directory tree rooted at this path, mirroring
-        :meth:`pathlib.Path.walk` and :func:`os.walk`.
+        """Iterative walk that lists one directory level at a time, so callers
+        can prune ``dirnames`` in place (when ``top_down=True``) to avoid
+        fetching the contents of skipped subtrees (issue #518).
 
-        Each directory is listed only when it is visited (one non-recursive
-        ``_list_dir`` call per directory), so when ``top_down=True`` callers can
-        prune ``dirnames`` in place to avoid fetching the contents of skipped
-        subtrees (issue #518).
-
-        The traversal is implemented iteratively with an explicit stack (like
-        CPython's ``pathlib.Path.walk``) to avoid recursion limits on deeply
-        nested trees. ``follow_symlinks`` is accepted for signature parity with
-        ``pathlib`` but has no effect on cloud backends, which do not have
-        symlinks.
+        Implemented with an explicit stack (like CPython's
+        ``pathlib.Path.walk``) to avoid recursion limits on deeply nested trees.
         """
         # The stack holds either a directory still to be listed, or, for
         # bottom-up traversal, a deferred ``(dirpath, dirnames, filenames)``
@@ -621,6 +632,46 @@ class CloudPath(metaclass=CloudPathMeta):
                 # Defer this directory until after its children are walked.
                 stack.append((top, dirnames, filenames))
                 stack += [top / d for d in reversed(dirnames)]
+
+    def walk(
+        self,
+        top_down: bool = True,
+        on_error: Optional[Callable] = None,
+        follow_symlinks: bool = False,
+        lazy: bool = False,
+    ) -> Generator[Tuple[Self, List[str], List[str]], None, None]:
+        """Walk the directory tree rooted at this path, similar to
+        :meth:`pathlib.Path.walk` and :func:`os.walk`.
+
+        By default (``lazy=False``) the entire subtree is listed up front with a
+        single recursive listing, which is the fastest option for a full walk on
+        cloud backends (one paginated request stream rather than one request per
+        directory). As with ``pathlib``, modifying ``dirnames`` in place when
+        ``top_down=True`` prunes which subdirectories are *yielded*, but because
+        the tree was already fetched it does not save any API calls.
+
+        Pass ``lazy=True`` to defer listing until each directory is visited (one
+        non-recursive listing per directory). This is slower for a full walk,
+        but lets callers prune ``dirnames`` in place (when ``top_down=True``) to
+        avoid fetching the contents of skipped subtrees entirely -- which can be
+        dramatically faster and cheaper for sparse traversals (issue #518).
+
+        ``follow_symlinks`` is accepted for signature parity with ``pathlib``
+        but has no effect on cloud backends, which do not have symlinks.
+        """
+        if lazy:
+            yield from self._walk_lazy(top_down=top_down, on_error=on_error)
+            return
+
+        try:
+            file_tree = self._build_subtree(recursive=True)  # walking is always recursive
+            yield from self._walk_results_from_tree(self, file_tree, top_down=top_down)
+
+        except Exception as e:
+            if on_error is not None:
+                on_error(e)
+            else:
+                raise
 
     @overload
     def open(
