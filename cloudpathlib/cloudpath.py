@@ -593,7 +593,7 @@ class CloudPath(metaclass=CloudPathMeta):
     ) -> Generator[Tuple[Self, List[str], List[str]], None, None]:
         """Iterative walk that lists one directory level at a time, so callers
         can prune ``dirnames`` in place (when ``top_down=True``) to avoid
-        fetching the contents of skipped subtrees (issue #518).
+        fetching the contents of skipped subtrees.
 
         Implemented with an explicit stack (like CPython's
         ``pathlib.Path.walk``) to avoid recursion limits on deeply nested trees.
@@ -645,16 +645,13 @@ class CloudPath(metaclass=CloudPathMeta):
 
         By default (``lazy=False``) the entire subtree is listed up front with a
         single recursive listing, which is the fastest option for a full walk on
-        cloud backends (one paginated request stream rather than one request per
-        directory). As with ``pathlib``, modifying ``dirnames`` in place when
-        ``top_down=True`` prunes which subdirectories are *yielded*, but because
-        the tree was already fetched it does not save any API calls.
+        cloud backends.
 
         Pass ``lazy=True`` to defer listing until each directory is visited (one
         non-recursive listing per directory). This is slower for a full walk,
         but lets callers prune ``dirnames`` in place (when ``top_down=True``) to
         avoid fetching the contents of skipped subtrees entirely -- which can be
-        dramatically faster and cheaper for sparse traversals (issue #518).
+        dramatically faster and cheaper for sparse traversals.
 
         ``follow_symlinks`` is accepted for signature parity with ``pathlib``
         but has no effect on cloud backends, which do not have symlinks.
