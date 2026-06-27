@@ -79,7 +79,6 @@ class S3Client(Client):
                 args that are supported look at the upload and download lists in the
                 [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer).
         """
-        endpoint_url = endpoint_url or os.getenv("AWS_ENDPOINT_URL")
         if boto3_session is not None:
             self.sess = boto3_session
         else:
