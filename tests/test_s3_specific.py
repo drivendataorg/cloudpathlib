@@ -253,6 +253,165 @@ def test_extra_args_via_requester_pays(s3_rig, tmp_path):
     assert local.stat().st_size > 0
 
 
+def test_copy_and_move_pass_copy_extra_args(s3_rig):
+    if s3_rig.live_server:
+        pytest.skip("This test only runs against mocked S3 backends.")
+
+    copy_args = {
+        "SSECustomerAlgorithm": "AES256",
+        "SSECustomerKey": "test-key",
+        "CopySourceSSECustomerAlgorithm": "AES256",
+        "CopySourceSSECustomerKey": "test-key",
+    }
+    client = s3_rig.client_class(extra_args=copy_args)
+
+    copy_source = s3_rig.create_cloud_path("dir_0/file0_0.txt", client=client)
+    copy_target = s3_rig.create_cloud_path("dir_0/file0_0_copy.txt", client=client)
+    moved_source = s3_rig.create_cloud_path("dir_0/file0_1.txt", client=client)
+    move_target = s3_rig.create_cloud_path("dir_0/file0_1_moved.txt", client=client)
+
+    copy_source.copy(copy_target)
+    assert client.s3.last_copy["ExtraArgs"] == copy_args
+    assert client.s3.last_copy["Config"] == client.boto3_transfer_config
+
+    moved_source.move(move_target)
+    assert client.s3.last_copy["ExtraArgs"] == copy_args
+    assert client.s3.last_copy["Config"] == client.boto3_transfer_config
+
+
+def test_touch_passes_copy_extra_args_without_collision(s3_rig):
+    if s3_rig.live_server:
+        pytest.skip("This test only runs against mocked S3 backends.")
+
+    # Include Metadata + MetadataDirective in extra_args alongside SSE-C copy keys;
+    # touch's copy_from sets those explicitly and must not raise a kwarg collision.
+    extra_args = {
+        "Metadata": {"user": "set"},
+        "MetadataDirective": "COPY",
+        "SSECustomerAlgorithm": "AES256",
+        "SSECustomerKey": "test-key",
+        "CopySourceSSECustomerAlgorithm": "AES256",
+        "CopySourceSSECustomerKey": "test-key",
+    }
+    client = s3_rig.client_class(extra_args=extra_args)
+    path = s3_rig.create_cloud_path("dir_0/file0_0.txt", client=client)
+
+    path.touch()
+
+    forwarded = client.s3.last_copy_from
+    assert forwarded["MetadataDirective"] == "REPLACE"
+    for k in (
+        "SSECustomerAlgorithm",
+        "SSECustomerKey",
+        "CopySourceSSECustomerAlgorithm",
+        "CopySourceSSECustomerKey",
+    ):
+        assert forwarded[k] == extra_args[k]
+
+
+def test_s3_addressing_style_virtual_passed_to_boto3(s3_rig):
+    client = s3_rig.client_class(addressing_style="virtual")
+
+    if s3_rig.live_server:
+        assert client.client.meta.config.s3["addressing_style"] == "virtual"
+        assert client.s3.meta.client.meta.config.s3["addressing_style"] == "virtual"
+    else:
+        assert client.sess.client_config.s3["addressing_style"] == "virtual"
+        assert client.sess.resource_config.s3["addressing_style"] == "virtual"
+
+
+def test_sse_c_copy_and_move_live(s3_rig):
+    """Live regression test for #500: with SSE-C extras set, copy/move/touch
+    must forward the `CopySourceSSECustomer*` keys to the underlying CopyObject
+    call. Without that, S3 rejects the request with InvalidRequest because the
+    source object was stored with SSE-C and the copy doesn't supply the key.
+    """
+    if not s3_rig.live_server:
+        pytest.skip("This test only runs against live servers.")
+
+    # 32 raw bytes for AES-256. botocore's sse_md5 handler base64-encodes the
+    # key and computes the MD5 itself, so we must pass raw bytes (not an
+    # already-base64-encoded string, which would get double-encoded).
+    sse_key = os.urandom(32)
+    sse_args = {
+        "SSECustomerAlgorithm": "AES256",
+        "SSECustomerKey": sse_key,
+        "CopySourceSSECustomerAlgorithm": "AES256",
+        "CopySourceSSECustomerKey": sse_key,
+    }
+    client = s3_rig.client_class(extra_args=sse_args)
+
+    src = s3_rig.create_cloud_path("sse_c/src.txt", client=client)
+    copy_dst = s3_rig.create_cloud_path("sse_c/copy_dst.txt", client=client)
+    move_src = s3_rig.create_cloud_path("sse_c/move_src.txt", client=client)
+    move_dst = s3_rig.create_cloud_path("sse_c/move_dst.txt", client=client)
+
+    payload = "hello sse-c"
+    try:
+        try:
+            src.write_text(payload)
+        except Exception as e:
+            # Some buckets (including drivendata's CI bucket) have a policy
+            # that explicitly blocks SSE-C uploads. We can't exercise the
+            # regression there, so skip rather than fail.
+            if "blocked upload requests that specify Server Side Encryption" in str(e):
+                pytest.skip(f"Bucket policy blocks SSE-C uploads: {e}")
+            raise
+
+        # Copy: would fail on master with InvalidRequest because
+        # CopySourceSSECustomerKey was filtered out of ExtraArgs.
+        src.copy(copy_dst)
+        assert copy_dst.read_text() == payload
+
+        # Same-key "touch" exercises the copy_from path.
+        src.touch()
+        assert src.read_text() == payload
+
+        # Move (cross-key copy + delete source).
+        move_src.write_text(payload)
+        move_src.move(move_dst)
+        assert move_dst.read_text() == payload
+        assert not move_src.exists()
+    finally:
+        for p in (src, copy_dst, move_dst):
+            if p.exists():
+                p.unlink()
+
+
+def test_addressing_style_virtual_live(s3_rig):
+    """Live regression test for #527: addressing_style='virtual' should produce
+    virtual-hosted-style URLs (bucket as subdomain) and still allow normal
+    read/write/list operations against a real bucket.
+    """
+    if not s3_rig.live_server:
+        pytest.skip("This test only runs against live servers.")
+
+    client = s3_rig.client_class(addressing_style="virtual")
+
+    # The generated presigned URL should be virtual-hosted (bucket.s3...),
+    # not path-style (s3.../bucket/...).
+    presigned = client.client.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": s3_rig.drive, "Key": "any-key"},
+    )
+    host = urlparse(presigned).netloc
+    assert host.startswith(
+        f"{s3_rig.drive}."
+    ), f"Expected virtual-hosted URL with bucket subdomain, got host={host!r}"
+
+    # Round-trip an object to confirm the client still works end-to-end.
+    p = s3_rig.create_cloud_path("addressing_style/hello.txt", client=client)
+    try:
+        p.write_text("virtual-host works")
+        assert p.read_text() == "virtual-host works"
+        assert p.exists()
+        names = [child.name for child in p.parent.iterdir()]
+        assert "hello.txt" in names
+    finally:
+        if p.exists():
+            p.unlink()
+
+
 def test_aws_endpoint_url_env(monkeypatch):
     """Allows setting endpoint_url from env variable
     until upstream boto3 PR is merged.

@@ -169,6 +169,8 @@ The args supported for downloads are the same as `boto3.s3.transfer.S3Transfer.A
 
 To use any of these extra args, pass them as a dict to `extra_args` when instantiating and `S3Client`.
 
+Copy operations use `boto3.s3.transfer.S3Transfer.ALLOWED_COPY_ARGS`, including the `CopySourceSSECustomer*` args used for SSE-C.
+
 ```python
 from cloudpathlib import S3Client
 
@@ -181,7 +183,7 @@ c = S3Client(extra_args={
 c.set_as_default_client()
 ```
 
-**Note:** The `extra_args` kwargs accepts the union of upload and download args, and will only pass on the relevant subset to the `boto3` method that is called by the internals of `S3Client`.
+**Note:** The `extra_args` kwargs accepts the union of upload, download, and copy args, and will only pass on the relevant subset to the `boto3` method that is called by the internals of `S3Client`.
 
 **Note:** The ExtraArgs on the client will be used for every call that client makes. If you need to set different `ExtraArgs` in different code paths, we recommend creating separate explicit client objects and using those to create and manage the CloudPath objects with different needs.
 
@@ -210,6 +212,8 @@ cp2 = CloudPath("s3://cloudpathlib-test-bucket/", client=client)
 client.set_as_default_client()
 cp3 = CloudPath("s3://cloudpathlib-test-bucket/")
 ```
+
+If your endpoint needs virtual-hosted-style URLs, pass `addressing_style="virtual"` to `S3Client` (see the [S3Client API reference](../api-reference/s3client/) for details).
 
 ## Accessing Azure DataLake Storage Gen2 (ADLS Gen2) storage with hierarchical namespace enabled
 
