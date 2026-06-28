@@ -348,7 +348,15 @@ def test_sse_c_copy_and_move_live(s3_rig):
 
     payload = "hello sse-c"
     try:
-        src.write_text(payload)
+        try:
+            src.write_text(payload)
+        except Exception as e:
+            # Some buckets (including drivendata's CI bucket) have a policy
+            # that explicitly blocks SSE-C uploads. We can't exercise the
+            # regression there, so skip rather than fail.
+            if "blocked upload requests that specify Server Side Encryption" in str(e):
+                pytest.skip(f"Bucket policy blocks SSE-C uploads: {e}")
+            raise
 
         # Copy: would fail on master with InvalidRequest because
         # CopySourceSSECustomerKey was filtered out of ExtraArgs.
