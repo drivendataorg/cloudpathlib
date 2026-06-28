@@ -1,4 +1,3 @@
-import base64
 from concurrent.futures import ProcessPoolExecutor
 from itertools import islice
 import os
@@ -330,8 +329,10 @@ def test_sse_c_copy_and_move_live(s3_rig):
     if not s3_rig.live_server:
         pytest.skip("This test only runs against live servers.")
 
-    # 256-bit key, base64-encoded as the S3 API expects.
-    sse_key = base64.b64encode(os.urandom(32)).decode()
+    # 32 raw bytes for AES-256. botocore's sse_md5 handler base64-encodes the
+    # key and computes the MD5 itself, so we must pass raw bytes (not an
+    # already-base64-encoded string, which would get double-encoded).
+    sse_key = os.urandom(32)
     sse_args = {
         "SSECustomerAlgorithm": "AES256",
         "SSECustomerKey": sse_key,
