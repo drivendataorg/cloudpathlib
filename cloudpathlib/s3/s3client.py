@@ -37,6 +37,7 @@ class S3Client(Client):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         endpoint_url: Optional[str] = None,
+        addressing_style: Optional[str] = None,
         boto3_transfer_config: Optional["TransferConfig"] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
         extra_args: Optional[dict] = None,
@@ -70,13 +71,16 @@ class S3Client(Client):
                 the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
             endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.
                 Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.
+            addressing_style (Optional[str]): S3 addressing style to pass through to boto3's S3 config.
+                Use `"virtual"` for virtual-hosted style URLs.
             boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing
                 [s3 transfers](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
-            extra_args (Optional[dict]): A dictionary of extra args passed to download, upload, and list functions as relevant. You
-                can include any keys supported by upload or download, and we will pass on only the relevant args. To see the extra
-                args that are supported look at the upload and download lists in the
+            extra_args (Optional[dict]): A dictionary of extra args passed to download, upload, copy,
+                and list functions as relevant. You can include any keys supported by upload,
+                download, or copy operations, and we will pass on only the relevant args. To see the
+                extra args that are supported look at the upload, download, and copy lists in the
                 [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer).
         """
         endpoint_url = endpoint_url or os.getenv("AWS_ENDPOINT_URL")
@@ -91,20 +95,13 @@ class S3Client(Client):
                 profile_name=profile_name,
             )
 
-        if no_sign_request:
-            self.s3 = self.sess.resource(
-                "s3",
-                endpoint_url=endpoint_url,
-                config=Config(signature_version=botocore.session.UNSIGNED),
-            )
-            self.client = self.sess.client(
-                "s3",
-                endpoint_url=endpoint_url,
-                config=Config(signature_version=botocore.session.UNSIGNED),
-            )
-        else:
-            self.s3 = self.sess.resource("s3", endpoint_url=endpoint_url)
-            self.client = self.sess.client("s3", endpoint_url=endpoint_url)
+        self._s3_config = {"addressing_style": addressing_style} if addressing_style else {}
+        self._boto3_config = self._get_boto3_config(
+            signature_version=botocore.session.UNSIGNED if no_sign_request else None
+        )
+
+        self.s3 = self.sess.resource("s3", endpoint_url=endpoint_url, config=self._boto3_config)
+        self.client = self.sess.client("s3", endpoint_url=endpoint_url, config=self._boto3_config)
 
         self.boto3_transfer_config = boto3_transfer_config
 
@@ -117,6 +114,9 @@ class S3Client(Client):
         }
         self.boto3_ul_extra_args = {
             k: v for k, v in extra_args.items() if k in S3Transfer.ALLOWED_UPLOAD_ARGS
+        }
+        self.boto3_copy_extra_args = {
+            k: v for k, v in extra_args.items() if k in S3Transfer.ALLOWED_COPY_ARGS
         }
 
         # listing ops (list_objects_v2, filter, delete) only accept these extras:
@@ -133,6 +133,15 @@ class S3Client(Client):
             content_type_method=content_type_method,
             file_cache_mode=file_cache_mode,
         )
+
+    def _get_boto3_config(self, signature_version: Optional[str] = None):
+        config_kwargs: Dict[str, Any] = {}
+        if signature_version is not None:
+            config_kwargs["signature_version"] = signature_version
+        if self._s3_config:
+            config_kwargs["s3"] = self._s3_config
+
+        return Config(**config_kwargs) if config_kwargs else None
 
     def _get_metadata(self, cloud_path: S3Path) -> Dict[str, Any]:
         # head_object accepts all download extra args and reads metadata without the body
@@ -293,18 +302,24 @@ class S3Client(Client):
         # just a touch, so "REPLACE" metadata
         if src == dst:
             o = self.s3.Object(src.bucket, src.key)
+            # drop Metadata/MetadataDirective from copy extras since we set them explicitly
+            touch_extras = {
+                k: v
+                for k, v in self.boto3_copy_extra_args.items()
+                if k not in ("Metadata", "MetadataDirective")
+            }
             o.copy_from(
                 CopySource={"Bucket": src.bucket, "Key": src.key},
                 Metadata=self._get_metadata(src).get("extra", {}),
                 MetadataDirective="REPLACE",
-                **self.boto3_ul_extra_args,
+                **touch_extras,
             )
 
         else:
             target = self.s3.Object(dst.bucket, dst.key)
             target.copy(
                 {"Bucket": src.bucket, "Key": src.key},
-                ExtraArgs=self.boto3_dl_extra_args,
+                ExtraArgs=self.boto3_copy_extra_args,
                 Config=self.boto3_transfer_config,
             )
 
@@ -366,7 +381,7 @@ class S3Client(Client):
         the correct URL
         See: https://stackoverflow.com/a/48197877
         """
-        unsigned_config = Config(signature_version=botocore.UNSIGNED)
+        unsigned_config = self._get_boto3_config(signature_version=botocore.UNSIGNED)
         unsigned_client = self.sess.client(
             "s3", endpoint_url=self._endpoint_url, config=unsigned_config
         )
