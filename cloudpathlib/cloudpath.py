@@ -488,16 +488,30 @@ class CloudPath(metaclass=CloudPathMeta):
     def _build_subtree(self, recursive):
         # build a tree structure for all files out of default dicts
         Tree: Callable = lambda: defaultdict(Tree)
+        _MISSING = object()
 
         def _build_tree(trunk, branch, nodes, is_dir):
             """Utility to build a tree from nested defaultdicts with a generator
             of nodes (parts) of a path."""
             next_branch = next(nodes, None)
 
+            existing = trunk.get(branch) if branch in trunk else _MISSING
+
             if next_branch is None:
-                trunk[branch] = Tree() if is_dir else None  # leaf node
+                # Leaf node. Cloud object stores can have a blob and a
+                # "directory" with the same name; if we've already recorded a
+                # subtree here, keep it (it represents descendants we still
+                # need to walk). Otherwise set the marker for file/dir.
+                if existing is _MISSING or not isinstance(existing, defaultdict):
+                    trunk[branch] = Tree() if is_dir else None
 
             else:
+                # Recursing into a deeper level: if we previously recorded a
+                # file leaf (None) at this branch, promote it to a subtree so
+                # descendants are reachable. If a subtree already exists,
+                # reuse it rather than overwriting.
+                if existing is None:
+                    trunk[branch] = Tree()
                 _build_tree(trunk[branch], next_branch, nodes, is_dir)
 
         file_tree = Tree()
