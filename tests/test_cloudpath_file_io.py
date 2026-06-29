@@ -472,6 +472,31 @@ def test_glob_many_open_files(rig):
             assert next(it) == p
 
 
+def test_rglob_file_and_dir_same_name(rig, monkeypatch):
+    """Regression test for #431: a blob and a "directory" can share the same
+    name in cloud storage. Recursive globbing must not error in that case."""
+    base = rig.create_cloud_path("")
+
+    # Simulate _list_dir returning both a blob and a "directory" with the
+    # same name "output". Cloud object stores allow this; local filesystems
+    # do not, which is why we patch _list_dir instead of writing files.
+    fake_entries = [
+        (base / "output", False),
+        (base / "output" / "13655" / "0" / "file1.json", False),
+        (base / "output" / "13655" / "0", True),
+        (base / "output" / "13655", True),
+    ]
+
+    def fake_list_dir(self, cloud_path, recursive=False):
+        return iter(fake_entries)
+
+    monkeypatch.setattr(rig.client_class, "_list_dir", fake_list_dir)
+
+    results = list(base.rglob("*"))
+    paths = {str(p) for p in results}
+    assert str(base / "output" / "13655" / "0" / "file1.json") in paths
+
+
 def test_glob_exceptions(rig):
     cp = rig.create_cloud_path("dir_0/")
 
