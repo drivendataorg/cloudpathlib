@@ -189,6 +189,167 @@ def test_walk(glob_test_dirs):
     )
 
 
+def _walk_collect(root, **kwargs):
+    """Collect walk results keyed by root-relative path, with dirs/files sorted
+    since cloud listing order is not guaranteed."""
+    results = {}
+    for top, dirs, files in root.walk(**kwargs):
+        results[_lstrip_path_root(top, root)] = (sorted(dirs), sorted(files))
+    return results
+
+
+@pytest.mark.parametrize("top_down", [True, False])
+def test_walk_lazy_matches_eager(glob_test_dirs, top_down):
+    """Without pruning, lazy=True yields the same results as the default eager
+    walk (and as os.walk) for both traversal orders."""
+    cloud_root, local_root = glob_test_dirs
+
+    eager = _walk_collect(cloud_root, top_down=top_down, lazy=False)
+    lazy = _walk_collect(cloud_root, top_down=top_down, lazy=True)
+    assert eager == lazy
+
+    local = {}
+    for top, dirs, files in os.walk(local_root, topdown=top_down):
+        local[_lstrip_path_root(Path(top).as_posix(), local_root)] = (
+            sorted(dirs),
+            sorted(files),
+        )
+    assert lazy == local
+
+
+def test_walk_lazy_pruning_skips_subtree(glob_test_dirs):
+    """With lazy=True and top_down, pruning dirnames in place skips the pruned
+    subtree entirely -- it is neither yielded nor listed (issue #518).
+
+    Directory structure used by glob_test_dirs:
+        glob-tests/
+          dirB/fileB.txt
+          dirC/dirD/fileD.txt
+          dirC/fileC.txt
+          fileA.txt
+    """
+    from unittest.mock import patch
+
+    cloud_root, local_root = glob_test_dirs
+
+    listed = []
+    original_list_dir = cloud_root.client._list_dir
+
+    def recording_list_dir(path, recursive=False):
+        listed.append(_lstrip_path_root(path, cloud_root))
+        yield from original_list_dir(path, recursive=recursive)
+
+    with patch.object(cloud_root.client, "_list_dir", recording_list_dir):
+        cloud_results = {}
+        for top, dirs, files in cloud_root.walk(lazy=True):
+            cloud_results[_lstrip_path_root(top, cloud_root)] = (list(dirs), list(files))
+            dirs[:] = [d for d in dirs if d != "dirC"]
+
+    # Equivalent pruning with os.walk for the expected yielded structure
+    local_results = {}
+    for top, dirs, files in os.walk(local_root):
+        local_results[_lstrip_path_root(Path(top).as_posix(), local_root)] = (
+            list(dirs),
+            list(files),
+        )
+        dirs[:] = [d for d in dirs if d != "dirC"]
+
+    assert set(cloud_results.keys()) == set(local_results.keys())
+
+    # dirC and its descendants are never yielded and never listed (no API calls)
+    assert not any("dirC" in k for k in cloud_results)
+    assert not any("dirC" in p for p in listed)
+
+    # non-pruned dirB is still visited
+    assert "dirB" in cloud_results
+
+
+def test_walk_eager_pruning_does_not_save_listings(glob_test_dirs):
+    """The default (eager) walk fetches the whole subtree up front with a
+    recursive listing; pruning dirnames only changes what is yielded, not the
+    listings performed."""
+    from unittest.mock import patch
+
+    cloud_root, _ = glob_test_dirs
+    original_list_dir = cloud_root.client._list_dir
+
+    def make_recorder(store):
+        def recording_list_dir(path, recursive=False):
+            store.append((_lstrip_path_root(path, cloud_root), recursive))
+            yield from original_list_dir(path, recursive=recursive)
+
+        return recording_list_dir
+
+    # eager walk, pruning dirC
+    pruned_calls = []
+    with patch.object(cloud_root.client, "_list_dir", make_recorder(pruned_calls)):
+        yielded = []
+        for top, dirs, files in cloud_root.walk():  # default: lazy=False
+            yielded.append(_lstrip_path_root(top, cloud_root))
+            dirs[:] = [d for d in dirs if d != "dirC"]
+
+    # eager walk, no pruning
+    full_calls = []
+    with patch.object(cloud_root.client, "_list_dir", make_recorder(full_calls)):
+        for _ in cloud_root.walk():
+            pass
+
+    # Pruning removes dirC from the yielded output...
+    assert not any("dirC" in k for k in yielded)
+    # ...but the eager walk performed exactly the same listings either way
+    # (i.e. pruning saved no API calls), using a recursive listing.
+    assert pruned_calls == full_calls
+    assert any(recursive for _, recursive in full_calls)
+
+
+def test_walk_lazy_skips_self(glob_test_dirs):
+    """The lazy walk does not include the directory being listed in its own
+    dirnames, even when a backend's _list_dir yields the directory itself."""
+    from unittest.mock import patch
+
+    cloud_root, _ = glob_test_dirs
+
+    original_list_dir = cloud_root.client._list_dir
+
+    def list_dir_including_self(path, recursive=False):
+        # Prepend the directory itself to mimic backends that include it.
+        yield path, True
+        yield from original_list_dir(path, recursive=recursive)
+
+    with patch.object(cloud_root.client, "_list_dir", list_dir_including_self):
+        top, dirs, files = next(iter(cloud_root.walk(lazy=True)))
+        assert top == cloud_root
+        assert cloud_root.name not in dirs
+
+
+@pytest.mark.parametrize("lazy", [False, True])
+def test_walk_on_error(glob_test_dirs, lazy):
+    """on_error is invoked when a listing raises (both eager and lazy walks),
+    and the error propagates when on_error is not provided."""
+    from unittest.mock import patch
+
+    cloud_root, _ = glob_test_dirs
+
+    original_list_dir = cloud_root.client._list_dir
+    expected_error = ValueError("simulated listing error")
+
+    def failing_list_dir(path, recursive=False):
+        if path == cloud_root:
+            raise expected_error
+        return original_list_dir(path, recursive=recursive)
+
+    with patch.object(cloud_root.client, "_list_dir", failing_list_dir):
+        # on_error should capture the error; walk should produce no results
+        errors = []
+        results = list(cloud_root.walk(on_error=errors.append, lazy=lazy))
+        assert results == []
+        assert errors == [expected_error]
+
+        # Without on_error, the error should propagate
+        with pytest.raises(ValueError, match="simulated listing error"):
+            list(cloud_root.walk(lazy=lazy))
+
+
 def test_list_buckets(rig):
     if rig.path_class in [HttpPath, HttpsPath]:
         return  # no bucket listing for HTTP

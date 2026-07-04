@@ -570,7 +570,7 @@ def http_rig(request, assets_dir, http_server):  # noqa: F811
     yield rig
 
     rig.client_class._default_client = None  # reset default client
-    shutil.rmtree(server_dir)
+    shutil.rmtree(server_dir / test_dir, ignore_errors=True)
     _sync_filesystem()
 
 
@@ -605,7 +605,7 @@ def https_rig(request, assets_dir, https_server):  # noqa: F811
     yield rig
 
     rig.client_class._default_client = None  # reset default client
-    shutil.rmtree(server_dir)
+    shutil.rmtree(server_dir / test_dir, ignore_errors=True)
     _sync_filesystem()
 
 

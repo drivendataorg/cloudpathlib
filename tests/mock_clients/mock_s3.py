@@ -29,14 +29,18 @@ def mocked_session_class_factory(test_dir: str):
             shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
 
             self.metadata_cache = {}
+            self.resource_config = None
+            self.client_config = None
 
         def __del__(self):
             self.tmp.cleanup()
 
         def resource(self, item, endpoint_url, config=None):
+            self.resource_config = config
             return MockBoto3Resource(self.tmp_path, session=self)
 
         def client(self, item, endpoint_url, config=None):
+            self.client_config = config
             return MockBoto3Client(self.tmp_path, session=self)
 
     return MockBoto3Session
@@ -81,7 +85,13 @@ class MockBoto3Object:
     def key(self):
         return str(PurePosixPath(self.path).relative_to(PurePosixPath(self.root)))
 
-    def copy_from(self, CopySource=None, Metadata=None, MetadataDirective=None):
+    def copy_from(self, CopySource=None, Metadata=None, MetadataDirective=None, **kwargs):
+        self.resource.last_copy_from = {
+            "CopySource": CopySource,
+            "Metadata": Metadata,
+            "MetadataDirective": MetadataDirective,
+            **kwargs,
+        }
         if CopySource["Key"] == str(self.path.relative_to(self.root)):
             # same file, touch
             self.path.touch()
@@ -115,6 +125,11 @@ class MockBoto3Object:
         # boto3 is more like "copy from"
         source = self.root / source["Key"]
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.resource.last_copy = {
+            "source": source,
+            "ExtraArgs": ExtraArgs,
+            "Config": Config,
+        }
 
         return shutil.copy(str(source), str(self.path))
 

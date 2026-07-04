@@ -1,6 +1,7 @@
 import pytest
 
 from inspect import signature
+from urllib.parse import parse_qs, urlsplit
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
 from cloudpathlib.local import (
@@ -133,3 +134,22 @@ def test_glob_matches(client_class, monkeypatch):
 
     # match CloudPath, which returns empty; not glob module, which raises
     assert list(p.glob("*")) == []
+
+
+@pytest.mark.parametrize("client_class", [LocalAzureBlobClient, LocalGSClient, LocalS3Client])
+def test_as_url_presign(client_class, monkeypatch):
+    if client_class is LocalAzureBlobClient:
+        monkeypatch.setenv("AZURE_STORAGE_CONNECTION_STRING", "")
+
+    cloud_prefix = client_class._cloud_meta.path_class.cloud_prefix
+    p = client_class().CloudPath(f"{cloud_prefix}drive/file.txt")
+    p.write_text("hello")
+
+    expire_seconds = 123
+    presigned_url = p.as_url(presign=True, expire_seconds=expire_seconds)
+    parts = urlsplit(presigned_url)
+    query_params = parse_qs(parts.query)
+
+    assert parts.path.endswith("file.txt")
+    assert query_params["expires"] == [str(expire_seconds)]
+    assert query_params["signature"] == ["local"]
