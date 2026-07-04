@@ -2,6 +2,7 @@
 
 ## UNRELEASED
 
+- Delegated `AWS_ENDPOINT_URL` handling to boto3 now that the AWS SDK supports endpoint environment variables directly (Issue [#194](https://github.com/drivendataorg/cloudpathlib/issues/194)).
 - Added `AGENTS.md` with repository-specific guidance for coding agents covering contributor
   workflow, compatibility expectations, test rig and mock usage, live backend validation, and PR
   hygiene.

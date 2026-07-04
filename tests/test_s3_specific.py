@@ -413,12 +413,10 @@ def test_addressing_style_virtual_live(s3_rig):
 
 
 def test_aws_endpoint_url_env(monkeypatch):
-    """Allows setting endpoint_url from env variable
-    until upstream boto3 PR is merged.
-    https://github.com/boto/boto3/pull/2746
-    """
+    """Delegates AWS_ENDPOINT_URL handling to boto3."""
     s3_url = "https://s3.amazonaws.com"
     localstack_url = "http://localhost:4566"
+    explicit_url = "http://localhost:9000"
 
     s3_client = S3Client()
     assert s3_client.client.meta.endpoint_url == s3_url
@@ -426,6 +424,9 @@ def test_aws_endpoint_url_env(monkeypatch):
     monkeypatch.setenv("AWS_ENDPOINT_URL", localstack_url)
     s3_client_custom_endpoint = S3Client()
     assert s3_client_custom_endpoint.client.meta.endpoint_url == localstack_url
+
+    s3_client_explicit_endpoint = S3Client(endpoint_url=explicit_url)
+    assert s3_client_explicit_endpoint.client.meta.endpoint_url == explicit_url
 
 
 def test_as_url_local(monkeypatch):
