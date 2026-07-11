@@ -51,9 +51,13 @@ class _AzureBlobStorageRaw(_CloudStorageRaw):
 
     # ---- Write support (Azure block blob upload) ----
 
+    @classmethod
+    def _block_size_for_number(cls, block_number: int) -> int:
+        tier = (block_number - 1) // cls._BLOCKS_PER_SIZE_TIER
+        return min(cls._BLOCK_SIZE * (2**tier), cls._MAX_BLOCK_SIZE)
+
     def _target_block_size(self) -> int:
-        tier = (self._part_number - 1) // self._BLOCKS_PER_SIZE_TIER
-        return min(self._BLOCK_SIZE * (2**tier), self._MAX_BLOCK_SIZE)
+        return self._block_size_for_number(self._part_number)
 
     def _upload_chunk(self, data: bytes, upload_state: Optional[Dict[str, Any]] = None) -> None:
         if not data:

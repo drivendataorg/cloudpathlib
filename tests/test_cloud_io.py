@@ -1656,15 +1656,15 @@ def test_provider_part_sizes_grow_for_large_streams():
     from cloudpathlib.azure.azure_io import _AzureBlobStorageRaw
     from cloudpathlib.s3.s3_io import _S3StorageRaw
 
-    s3_raw = object.__new__(_S3StorageRaw)
-    s3_raw._closed = True
-    s3_raw._part_number = s3_raw._PARTS_PER_SIZE_TIER + 1
-    assert s3_raw._target_part_size() == 2 * s3_raw._MIN_PART_SIZE
+    assert (
+        _S3StorageRaw._part_size_for_number(_S3StorageRaw._PARTS_PER_SIZE_TIER + 1)
+        == 2 * _S3StorageRaw._MIN_PART_SIZE
+    )
 
-    azure_raw = object.__new__(_AzureBlobStorageRaw)
-    azure_raw._closed = True
-    azure_raw._part_number = azure_raw._BLOCKS_PER_SIZE_TIER + 1
-    assert azure_raw._target_block_size() == 2 * azure_raw._BLOCK_SIZE
+    assert (
+        _AzureBlobStorageRaw._block_size_for_number(_AzureBlobStorageRaw._BLOCKS_PER_SIZE_TIER + 1)
+        == 2 * _AzureBlobStorageRaw._BLOCK_SIZE
+    )
 
 
 def test_s3_invalid_object_state_is_not_eof(s3_rig):
