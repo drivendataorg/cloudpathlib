@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from cloudpathlib import CloudPath
-from cloudpathlib.client import register_client_class
+from cloudpathlib.client import Client, register_client_class
 from cloudpathlib.cloudpath import (
     implementation_registry,
     register_path_class,
@@ -181,3 +181,47 @@ def test_custom_mys3client_default_client(custom_s3_path):
     path = CloudPath("mys3://bucket/dir/file.txt")
     assert isinstance(path.client, CustomClient)
     assert path.cloud_prefix == "mys3://"
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda client, path: Client._range_download(client, path, 0, 0),
+        lambda client, path: Client._get_content_length(client, path),
+        lambda client, path: Client._initiate_multipart_upload(client, path),
+        lambda client, path: Client._upload_part(client, path, "upload", 1, b"data"),
+        lambda client, path: Client._complete_multipart_upload(client, path, "upload", []),
+        lambda client, path: Client._abort_multipart_upload(client, path, "upload"),
+        lambda client, path: Client._open_write_stream(client, path),
+        lambda client, path: Client._put_empty_object(client, path),
+    ],
+)
+def test_default_streaming_hooks_raise_not_implemented(local_s3_rig, call):
+    path = local_s3_rig.create_cloud_path("unsupported-stream.bin")
+
+    with pytest.raises(NotImplementedError, match="streaming I/O"):
+        call(path.client, path)
+
+
+def test_default_write_stream_hooks_delegate(local_s3_rig):
+    class Stream:
+        def __init__(self):
+            self.calls = []
+
+        def write(self, data):
+            self.calls.append(("write", data))
+            return len(data)
+
+        def close(self):
+            self.calls.append(("close",))
+
+        def terminate(self):
+            self.calls.append(("terminate",))
+
+    client = local_s3_rig.client_class(**local_s3_rig.required_client_kwargs)
+    stream = Stream()
+
+    assert Client._write_stream(client, stream, b"data") == 4
+    Client._close_write_stream(client, stream)
+    Client._abort_write_stream(client, stream)
+    assert stream.calls == [("write", b"data"), ("close",), ("terminate",)]
