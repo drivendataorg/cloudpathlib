@@ -50,9 +50,13 @@ class _S3StorageRaw(_CloudStorageRaw):
             and "InvalidRange" in error.__class__.__name__
         )
 
+    @classmethod
+    def _part_size_for_number(cls, part_number: int) -> int:
+        tier = (part_number - 1) // cls._PARTS_PER_SIZE_TIER
+        return min(cls._MIN_PART_SIZE * (2**tier), cls._MAX_PART_SIZE)
+
     def _target_part_size(self) -> int:
-        tier = (self._part_number - 1) // self._PARTS_PER_SIZE_TIER
-        return min(self._MIN_PART_SIZE * (2**tier), self._MAX_PART_SIZE)
+        return self._part_size_for_number(self._part_number)
 
     # ---- Write support (multipart upload with 5 MiB minimum part size) ----
 
