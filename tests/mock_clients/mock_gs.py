@@ -202,6 +202,10 @@ class _MockBlobWriter:
             self._closed = True
             self._blob.upload_from_string(bytes(self._buf))
 
+    def terminate(self) -> None:
+        self._closed = True
+        self._buf.clear()
+
     def __enter__(self):
         return self
 

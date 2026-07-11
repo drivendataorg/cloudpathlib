@@ -318,8 +318,8 @@ class GSClient(Client):
         """Download a byte range from GCS."""
         blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
         try:
-            # GCS end is exclusive in the API, our API is inclusive
-            return blob.download_as_bytes(start=start, end=end + 1)
+            # GCS and our internal API both use an inclusive end offset.
+            return blob.download_as_bytes(start=start, end=end, **self.blob_kwargs)
         except GCSNotFound:
             raise FileNotFoundError(f"GCS object not found: {cloud_path}")
         except Exception as e:
@@ -334,7 +334,7 @@ class GSClient(Client):
         """Get the size of a GCS object."""
         blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
         try:
-            blob.reload()
+            blob.reload(**self.blob_kwargs)
             return blob.size
         except GCSNotFound:
             raise FileNotFoundError(f"GCS object not found: {cloud_path}")

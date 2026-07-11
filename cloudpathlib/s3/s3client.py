@@ -445,9 +445,66 @@ class S3Client(Client):
                 raise FileNotFoundError(f"S3 object not found: {cloud_path}")
             raise
 
+    def _streaming_extra_args(self, operation_name: str) -> dict:
+        """Return upload extras accepted by a specific low-level S3 operation."""
+        try:
+            operation = self.client.meta.service_model.operation_model(operation_name)
+            allowed = set(operation.input_shape.members)
+        except AttributeError:
+            # The test client intentionally implements only a small boto3 surface.
+            fallback_allowed = {
+                "CreateMultipartUpload": {
+                    "ACL",
+                    "CacheControl",
+                    "ChecksumAlgorithm",
+                    "ContentDisposition",
+                    "ContentEncoding",
+                    "ContentLanguage",
+                    "ContentType",
+                    "ExpectedBucketOwner",
+                    "Expires",
+                    "Metadata",
+                    "ObjectLockLegalHoldStatus",
+                    "ObjectLockMode",
+                    "ObjectLockRetainUntilDate",
+                    "RequestPayer",
+                    "SSECustomerAlgorithm",
+                    "SSECustomerKey",
+                    "SSECustomerKeyMD5",
+                    "SSEKMSEncryptionContext",
+                    "SSEKMSKeyId",
+                    "ServerSideEncryption",
+                    "StorageClass",
+                    "Tagging",
+                    "WebsiteRedirectLocation",
+                },
+                "UploadPart": {
+                    "ChecksumAlgorithm",
+                    "ExpectedBucketOwner",
+                    "RequestPayer",
+                    "SSECustomerAlgorithm",
+                    "SSECustomerKey",
+                    "SSECustomerKeyMD5",
+                },
+                "CompleteMultipartUpload": {
+                    "ChecksumCRC32",
+                    "ChecksumCRC32C",
+                    "ChecksumCRC64NVME",
+                    "ChecksumSHA1",
+                    "ChecksumSHA256",
+                    "ChecksumType",
+                    "ExpectedBucketOwner",
+                    "MpuObjectSize",
+                    "RequestPayer",
+                },
+                "PutObject": set(self.boto3_ul_extra_args),
+            }
+            allowed = fallback_allowed[operation_name]
+        return {key: value for key, value in self.boto3_ul_extra_args.items() if key in allowed}
+
     def _initiate_multipart_upload(self, cloud_path: S3Path) -> str:
         """Start an S3 multipart upload, threading content-type and upload extra args."""
-        extra_args = self.boto3_ul_extra_args.copy()
+        extra_args = self._streaming_extra_args("CreateMultipartUpload")
         if self.content_type_method is not None:
             content_type, content_encoding = self.content_type_method(str(cloud_path))
             if content_type is not None:
@@ -471,8 +528,11 @@ class S3Client(Client):
             UploadId=upload_id,
             PartNumber=part_number,
             Body=data,
+            **self._streaming_extra_args("UploadPart"),
         )
-        return {"PartNumber": part_number, "ETag": response["ETag"]}
+        part = {"PartNumber": part_number, "ETag": response["ETag"]}
+        part.update({key: value for key, value in response.items() if key.startswith("Checksum")})
+        return part
 
     def _complete_multipart_upload(self, cloud_path: S3Path, upload_id: str, parts: list) -> None:
         """Complete an S3 multipart upload."""
@@ -481,6 +541,7 @@ class S3Client(Client):
             Key=cloud_path.key,
             UploadId=upload_id,
             MultipartUpload={"Parts": parts},
+            **self._streaming_extra_args("CompleteMultipartUpload"),
         )
 
     def _abort_multipart_upload(self, cloud_path: S3Path, upload_id: str) -> None:
@@ -491,7 +552,7 @@ class S3Client(Client):
 
     def _put_empty_object(self, cloud_path: S3Path) -> None:
         """Upload a zero-byte object, threading content-type and upload extra args."""
-        extra_args = self.boto3_ul_extra_args.copy()
+        extra_args = self._streaming_extra_args("PutObject")
         if self.content_type_method is not None:
             content_type, content_encoding = self.content_type_method(str(cloud_path))
             if content_type is not None:

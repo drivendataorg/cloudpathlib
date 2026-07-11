@@ -4,6 +4,7 @@ HTTP-specific streaming I/O implementations.
 Provides streaming I/O for HTTP/HTTPS using range requests and single-PUT uploads.
 """
 
+import tempfile
 from typing import Optional, Dict, Any
 
 from ..cloud_io import _CloudStorageRaw
@@ -24,7 +25,7 @@ class _HttpStorageRaw(_CloudStorageRaw):
 
     def __init__(self, client, cloud_path, mode: str = "rb"):
         super().__init__(client, cloud_path, mode)
-        self._upload_buffer: list = []
+        self._upload_buffer: Any = tempfile.SpooledTemporaryFile(max_size=8 * 1024 * 1024)
 
     def _range_get(self, start: int, end: int) -> bytes:
         return self._client._range_download(self._cloud_path, start, end)
@@ -45,13 +46,19 @@ class _HttpStorageRaw(_CloudStorageRaw):
     def _upload_chunk(self, data: bytes, upload_state: Optional[Dict[str, Any]] = None) -> None:
         if not data:
             return
-        self._upload_buffer.append(data)
+        self._upload_buffer.write(data)
 
     def _finalize_upload(self, upload_state: Optional[Dict[str, Any]] = None) -> None:
-        # Concatenate buffered chunks (may be empty for an empty write)
-        complete_data = b"".join(self._upload_buffer)
-        self._upload_buffer.clear()
-        self._client._put_data(self._cloud_path, complete_data)
+        self._upload_buffer.seek(0, 2)
+        content_length = self._upload_buffer.tell()
+        self._upload_buffer.seek(0)
+        try:
+            self._client._put_data(self._cloud_path, self._upload_buffer, content_length)
+        finally:
+            self._upload_buffer.close()
+
+    def _abort_upload(self) -> None:
+        self._upload_buffer.close()
 
     def close(self) -> None:
         super().close()

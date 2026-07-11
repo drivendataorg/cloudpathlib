@@ -806,6 +806,23 @@ class CloudPath(metaclass=CloudPathMeta):
         force_overwrite_to_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
         buffer_size: Optional[int] = None,  # extra kwarg for streaming mode
     ) -> "IO[Any]":
+        from .cloud_io import _validate_file_mode
+
+        _validate_file_mode(mode)
+        binary_mode = "b" in mode
+        if binary_mode and encoding is not None:
+            raise ValueError("binary mode doesn't take an encoding argument")
+        if binary_mode and errors is not None:
+            raise ValueError("binary mode doesn't take an errors argument")
+        if binary_mode and newline is not None:
+            raise ValueError("binary mode doesn't take a newline argument")
+        if not binary_mode and buffering == 0:
+            raise ValueError("can't have unbuffered text I/O")
+        if buffering < -1:
+            raise ValueError("invalid buffering size")
+        if buffer_size is not None and buffer_size <= 0:
+            raise ValueError("buffer_size must be greater than zero")
+
         # if trying to call open on a directory that exists
         exists_on_cloud = self.exists()
 
@@ -814,12 +831,12 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"Cannot open directory, only files. Tried to open ({self})"
             )
 
-        if not exists_on_cloud and any(m in mode for m in ("r", "a")):
+        if not exists_on_cloud and "r" in mode:
             raise CloudPathFileNotFoundError(
-                f"File opened for read or append, but it does not exist on cloud: {self}"
+                f"File opened for read, but it does not exist on cloud: {self}"
             )
 
-        if "x" in mode and self.exists():
+        if "x" in mode and exists_on_cloud:
             raise CloudPathFileExistsError(f"Cannot open existing file ({self}) for creation.")
 
         # Use streaming I/O if file_cache_mode is streaming AND the mode is supported.
@@ -840,10 +857,8 @@ class CloudPath(metaclass=CloudPathMeta):
             # Calculate buffer size from buffering or buffer_size parameter
             if buffer_size is None:
                 if buffering == 0:
-                    # Unbuffered binary mode
-                    buffer_size = 1  # Minimal buffering
-                    if "b" not in mode:
-                        mode += "b"  # Force binary mode for unbuffered
+                    # A raw provider adapter is the streaming equivalent of FileIO.
+                    return raw_io_class(self.client, self, mode)  # type: ignore[return-value]
                 elif buffering > 0:
                     buffer_size = buffering
                 else:
@@ -868,6 +883,7 @@ class CloudPath(metaclass=CloudPathMeta):
                     errors=errors,
                     newline=newline,
                     buffer_size=buffer_size,
+                    line_buffering=buffering == 1,
                 )
 
         # Standard cached mode

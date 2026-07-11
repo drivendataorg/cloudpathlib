@@ -6,7 +6,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 from pathlib import Path
-from typing import Iterable, Optional, Tuple, Union, Callable
+from typing import BinaryIO, Iterable, Optional, Tuple, Union, Callable
 import shutil
 import mimetypes
 import warnings
@@ -217,12 +217,13 @@ class HttpClient(Client):
         try:
             with self.opener.open(request) as response:
                 status = response.status
-                data = response.read()
                 if status == 206:
-                    return data
+                    return response.read(end - start + 1)
                 elif status == 200:
-                    # Server ignored the Range header; slice locally
-                    return data[start : end + 1]
+                    raise OSError(
+                        f"HTTP server ignored the Range header for {cloud_path}; "
+                        "streaming reads require byte-range support"
+                    )
                 else:
                     raise OSError(f"Unexpected status {status} for range request on {cloud_path}")
         except urllib.error.HTTPError as e:
@@ -271,16 +272,19 @@ class HttpClient(Client):
         """Nothing to abort for HTTP single-PUT uploads."""
         pass
 
-    def _put_data(self, cloud_path: "HttpPath", data: bytes) -> None:
-        """Upload data to HTTP server using a PUT request.
+    def _put_data(self, cloud_path: "HttpPath", data: BinaryIO, content_length: int) -> None:
+        """Upload a file-like body using the client's configured write method.
 
         Uses self.opener so that any SSL context or auth handlers configured on
         this client are applied (important for HttpsClient with self-signed certs).
         """
         url = str(cloud_path)
-        request = urllib.request.Request(url, data=data, method="PUT")
-        request.add_header("Content-Type", "application/octet-stream")
-        request.add_header("Content-Length", str(len(data)))
+        request = urllib.request.Request(url, data=data, method=self.write_file_http_method)
+        content_type = None
+        if self.content_type_method is not None:
+            content_type, _ = self.content_type_method(str(cloud_path))
+        request.add_header("Content-Type", content_type or "application/octet-stream")
+        request.add_header("Content-Length", str(content_length))
 
         try:
             with self.opener.open(request) as response:
@@ -290,8 +294,10 @@ class HttpClient(Client):
                     )
         except urllib.error.HTTPError as e:
             if e.code == 405:  # Method Not Allowed
-                raise NotImplementedError(f"HTTP server does not support PUT requests for {url}")
-            raise OSError(f"HTTP PUT failed: {e}")
+                raise NotImplementedError(
+                    f"HTTP server does not support {self.write_file_http_method} requests for {url}"
+                )
+            raise OSError(f"HTTP upload failed: {e}")
 
 
 HttpClient.HttpPath = HttpClient.CloudPath  # type: ignore

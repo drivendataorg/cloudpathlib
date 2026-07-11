@@ -22,6 +22,9 @@ class _AzureBlobStorageRaw(_CloudStorageRaw):
 
     # Target block size before staging (Azure allows up to 50,000 blocks per blob)
     _BLOCK_SIZE = 4 * 1024 * 1024
+    _MAX_BLOCK_SIZE = 4_000 * 1024 * 1024
+    _MAX_BLOCKS = 50_000
+    _BLOCKS_PER_SIZE_TIER = 1_000
 
     def __init__(self, client, cloud_path, mode: str = "rb"):
         super().__init__(client, cloud_path, mode)
@@ -48,25 +51,35 @@ class _AzureBlobStorageRaw(_CloudStorageRaw):
 
     # ---- Write support (Azure block blob upload) ----
 
+    def _target_block_size(self) -> int:
+        tier = (self._part_number - 1) // self._BLOCKS_PER_SIZE_TIER
+        return min(self._BLOCK_SIZE * (2**tier), self._MAX_BLOCK_SIZE)
+
     def _upload_chunk(self, data: bytes, upload_state: Optional[Dict[str, Any]] = None) -> None:
         if not data:
             return
 
         self._write_buffer.extend(data)
 
-        while len(self._write_buffer) >= self._BLOCK_SIZE:
-            chunk = bytes(self._write_buffer[: self._BLOCK_SIZE])
-            del self._write_buffer[: self._BLOCK_SIZE]
+        target_block_size = self._target_block_size()
+        while len(self._write_buffer) >= target_block_size:
+            if self._part_number > self._MAX_BLOCKS:
+                raise OSError("Azure block upload exceeded the 50,000-block limit")
+            chunk = bytes(self._write_buffer[:target_block_size])
             if not self._upload_id:
                 self._upload_id = self._client._initiate_multipart_upload(self._cloud_path)
             part_info = self._client._upload_part(
                 self._cloud_path, self._upload_id, self._part_number, chunk
             )
+            del self._write_buffer[:target_block_size]
             self._parts.append(part_info)
             self._part_number += 1
+            target_block_size = self._target_block_size()
 
     def _finalize_upload(self, upload_state: Optional[Dict[str, Any]] = None) -> None:
         if self._write_buffer:
+            if self._part_number > self._MAX_BLOCKS:
+                raise OSError("Azure block upload exceeded the 50,000-block limit")
             if not self._upload_id:
                 self._upload_id = self._client._initiate_multipart_upload(self._cloud_path)
             part_info = self._client._upload_part(
@@ -89,6 +102,15 @@ class _AzureBlobStorageRaw(_CloudStorageRaw):
             self._upload_id = ""
             self._parts = []
             self._part_number = 1
+
+    def _abort_upload(self) -> None:
+        try:
+            self._client._abort_multipart_upload(self._cloud_path, self._upload_id)
+        finally:
+            self._upload_id = ""
+            self._parts = []
+            self._part_number = 1
+            self._write_buffer.clear()
 
     def close(self) -> None:
         super().close()

@@ -1,6 +1,6 @@
 # Streaming I/O
 
-CloudPathLib provides high-performance streaming I/O capabilities for cloud storage that work seamlessly with Python's standard I/O interfaces and third-party libraries.
+cloudpathlib provides streaming I/O capabilities for cloud storage through Python's standard I/O interfaces.
 
 ## Overview
 
@@ -86,8 +86,8 @@ with path.open("rb") as f:
 
 ## API Reference
 
-!!! important "Always use `CloudPath.open()`"
-    The recommended way to use streaming I/O is through `CloudPath.open()` with `FileCacheMode.streaming`. The `CloudBufferedIO` and `CloudTextIO` classes are implementation details returned by `open()` and should not be instantiated directly.
+!!! tip "Prefer `CloudPath.open()`"
+    The usual entry point is `CloudPath.open()` with `FileCacheMode.streaming`. `CloudBufferedIO` and `CloudTextIO` are also public for integrations that need to construct a provider-backed file object directly.
 
 ### `FileCacheMode` Enum
 
@@ -128,8 +128,8 @@ CloudPath.open(
 **Parameters:**
 
 - `mode`: File mode - binary (`'rb'`, `'wb'`, etc.) or text (`'r'`, `'w'`, `'rt'`, `'wt'`, etc.)
-- `buffering`: Buffer size (deprecated, use `buffer_size` instead)
-- `encoding`: Text encoding (default: `"utf-8"`, text mode only)
+- `buffering`: Standard Python buffering control. Binary mode supports `0` for an unbuffered raw stream.
+- `encoding`: Text encoding (default: platform locale, text mode only)
 - `errors`: Error handling strategy (default: `"strict"`, text mode only)
 - `newline`: Newline handling (text mode only)
 - `buffer_size`: Size of read/write buffer in bytes (default: 64 KiB)
@@ -144,8 +144,8 @@ CloudPath.open(
 
 Binary file-like object implementing `io.BufferedIOBase`.
 
-!!! note "Use `CloudPath.open()` instead"
-    **Do not instantiate `CloudBufferedIO` directly.** Always use `CloudPath.open()` with the appropriate mode and `FileCacheMode.streaming` to get streaming file objects. The streaming I/O classes are implementation details that are returned by `open()`.
+!!! note "Usually returned by `CloudPath.open()`"
+    Most applications should let `CloudPath.open()` construct this class. Direct construction is supported when implementing file-object integrations.
 
 **Key Methods:**
 
@@ -168,14 +168,14 @@ Binary file-like object implementing `io.BufferedIOBase`.
 
 - `readable()`: Returns True for read modes
 - `writable()`: Returns True for write modes
-- `seekable()`: Returns True (random access supported)
+- `seekable()`: Returns `True` for readable streams. Streaming writes are sequential and return `False`.
 
 ### `CloudTextIO`
 
 Text file-like object implementing `io.TextIOBase`.
 
-!!! note "Use `CloudPath.open()` instead"
-    **Do not instantiate `CloudTextIO` directly.** Always use `CloudPath.open()` with text mode (e.g., `"r"`, `"rt"`, `"w"`, `"wt"`) and `FileCacheMode.streaming` to get streaming text file objects. The streaming I/O classes are implementation details that are returned by `open()`.
+!!! note "Usually returned by `CloudPath.open()`"
+    Most applications should let `CloudPath.open()` construct this class. Direct construction is supported when implementing file-object integrations.
 
 **Key Methods:**
 
@@ -246,7 +246,7 @@ path = S3Path("s3://bucket/data.bin", client=client)
 with path.open("rb") as f:
     header = f.read(1024)  # Read first 1KB
     parse_header(header)
-    
+
     # Seek to specific position
     f.seek(10000)
     chunk = f.read(100)
@@ -370,8 +370,8 @@ For write operations, the streaming I/O system automatically handles:
 - **S3**: Multipart upload; non-final parts are buffered until they reach
   the provider minimum of **5 MiB** (S3 rejects smaller non-final parts).
   The final part may be smaller than 5 MiB.
-- **Azure**: Block blob staging — each flushed chunk is staged as a block
-  and committed on close.
+- **Azure**: Block blob staging — blocks grow adaptively during very large uploads
+  and are committed on close.
 - **GCS**: Resumable upload (`blob.open("wb")`) — data streams
   incrementally to GCS without in-memory buffering.
 
@@ -414,7 +414,7 @@ with path.open("rt") as f:
 ### Google Cloud Storage
 
 - Uses GCS SDK `download_as_bytes()` with start/end for reads
-- Uses `upload_from_string()` for writes
+- Uses a resumable `blob.open("wb")` stream for writes
 - Supports GCS-specific features through client configuration
 
 ```python
@@ -428,11 +428,17 @@ with path.open("rt") as f:
     content = f.read()
 ```
 
+### HTTP and HTTPS
+
+- Requires servers to honor byte-range requests for streaming reads
+- Uses the client's configured `write_file_http_method` for writes
+- Spools single-request upload bodies with bounded memory, using a temporary file above 8 MiB
+
 ## Comparison with Cached Mode
 
 | Feature | Streaming (`FileCacheMode.streaming`) | Cached (default) |
 |---------|--------------------------------------|------------------|
-| **Disk usage** | Minimal (only buffer) | Full file size |
+| **Disk usage** | None for cloud providers; HTTP uploads may use a temporary spool | Full file size |
 | **Memory usage** | Configurable buffer | Varies |
 | **Read performance** | Sequential: Good<br>Random: Moderate | Fast (local disk) |
 | **Write performance** | Good (direct upload) | Fast write, slower close |
@@ -660,14 +666,12 @@ Pass custom clients with specific configurations:
 ```python
 from cloudpathlib import S3Path, S3Client
 from cloudpathlib.enums import FileCacheMode
-from botocore.config import Config
-
-# Custom S3 client with retry configuration
+# Custom S3-compatible endpoint and upload metadata
 client = S3Client(
     file_cache_mode=FileCacheMode.streaming,
-    boto3_config=Config(
-        retries={'max_attempts': 10, 'mode': 'adaptive'}
-    )
+    endpoint_url="https://objects.example.com",
+    addressing_style="path",
+    extra_args={"ServerSideEncryption": "AES256"},
 )
 
 path = S3Path("s3://bucket/file.txt", client=client)
