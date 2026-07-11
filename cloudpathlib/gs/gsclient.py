@@ -5,7 +5,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union
 import warnings
 
-from ..client import Client, register_client_class
+from ..client import Client, _CloudWriteStream, register_client_class
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
 from .gspath import GSPath
@@ -312,13 +312,10 @@ class GSClient(Client):
         )
         return url
 
-    # ====================== STREAMING I/O METHODS ======================
-
     def _range_download(self, cloud_path: GSPath, start: int, end: int) -> bytes:
         """Download a byte range from GCS."""
         blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
         try:
-            # GCS and our internal API both use an inclusive end offset.
             return blob.download_as_bytes(start=start, end=end, **self.blob_kwargs)
         except GCSNotFound:
             raise FileNotFoundError(f"GCS object not found: {cloud_path}")
@@ -339,20 +336,14 @@ class GSClient(Client):
         except GCSNotFound:
             raise FileNotFoundError(f"GCS object not found: {cloud_path}")
 
-    def _open_write_stream(self, cloud_path: GSPath):
-        """Open a GCS resumable upload stream.
-
-        Returns a file-like writer. Data written to it streams incrementally
-        to GCS rather than being buffered in memory. The caller must close()
-        the writer to finalize the upload.
-        """
+    def _open_write_stream(self, cloud_path: GSPath) -> _CloudWriteStream:
+        """Open a GCS resumable upload."""
         blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
         kwargs: Dict[str, Any] = {}
         if self.content_type_method is not None:
             content_type, _ = self.content_type_method(str(cloud_path))
             if content_type is not None:
                 kwargs["content_type"] = content_type
-        # blob_kwargs may carry timeout/retry; pass through where blob.open accepts them
         for k in ("timeout", "retry"):
             if k in self.blob_kwargs:
                 kwargs[k] = self.blob_kwargs[k]

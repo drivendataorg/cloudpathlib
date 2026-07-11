@@ -1162,7 +1162,7 @@ def test_finalize_error_propagates(rig):
     raw_io_class = path._cloud_meta.raw_io_class
 
     class _FailingRaw(raw_io_class):
-        def _finalize_upload(self, upload_state=None):
+        def _finalize_upload(self) -> None:
             raise RuntimeError("simulated upload failure")
 
     original_mode = path.client.file_cache_mode

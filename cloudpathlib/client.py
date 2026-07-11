@@ -4,13 +4,35 @@ import os
 from pathlib import Path
 import shutil
 from tempfile import TemporaryDirectory
-from typing import ClassVar, Generic, Callable, Iterable, Optional, Tuple, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    Generic,
+    Iterable,
+    Optional,
+    Protocol,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 from .enums import FileCacheMode
 from .exceptions import InvalidConfigurationException
 
 BoundedCloudPath = TypeVar("BoundedCloudPath", bound=CloudPath)
+_UploadPart = Dict[str, Any]
+
+
+class _CloudWriteStream(Protocol):
+    def write(self, data: bytes) -> int: ...
+
+    def close(self) -> None: ...
+
+    def terminate(self) -> None: ...
 
 
 def register_client_class(key: str) -> Callable:
@@ -34,7 +56,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
-    ):
+    ) -> None:
         self.file_cache_mode = None
         self._cache_tmp_dir = None
         self._cloud_meta.validate_completeness()
@@ -185,99 +207,64 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     ) -> str:
         pass
 
-    # ====================== STREAMING I/O METHODS ======================
-    # Methods to support efficient streaming without local caching.
-    # Default implementations raise NotImplementedError so that existing Client
-    # subclasses that don't implement streaming still instantiate normally.
-    # Providers override as needed.
-
     def _range_download(self, cloud_path: BoundedCloudPath, start: int, end: int) -> bytes:
-        """Download a byte range from cloud storage.
-
-        Args:
-            cloud_path: Path to download from
-            start: Start byte position (inclusive)
-            end: End byte position (inclusive)
-
-        Returns:
-            Bytes in the requested range
-
-        Raises:
-            FileNotFoundError: If object doesn't exist
-        """
+        """Download an inclusive byte range."""
         raise NotImplementedError(
             f"{type(self).__name__} does not support streaming I/O (_range_download). "
             "Implement this method or use a non-streaming file_cache_mode."
         )
 
     def _get_content_length(self, cloud_path: BoundedCloudPath) -> int:
-        """Get the size of an object without downloading it.
-
-        Args:
-            cloud_path: Path to query
-
-        Returns:
-            Size in bytes
-
-        Raises:
-            FileNotFoundError: If object doesn't exist
-        """
+        """Return object size without downloading it."""
         raise NotImplementedError(
             f"{type(self).__name__} does not support streaming I/O (_get_content_length)."
         )
 
     def _initiate_multipart_upload(self, cloud_path: BoundedCloudPath) -> str:
-        """Start a multipart/chunked upload session.
-
-        Args:
-            cloud_path: Destination path
-
-        Returns:
-            Upload session ID/handle (provider-specific, may be empty string)
-        """
+        """Start a multipart upload."""
         raise NotImplementedError(
             f"{type(self).__name__} does not support streaming I/O (_initiate_multipart_upload)."
         )
 
     def _upload_part(
         self, cloud_path: BoundedCloudPath, upload_id: str, part_number: int, data: bytes
-    ) -> dict:
-        """Upload a single part/chunk in a multipart upload.
-
-        Args:
-            cloud_path: Destination path
-            upload_id: Upload session ID from _initiate_multipart_upload
-            part_number: Sequential part number (1-indexed)
-            data: Bytes to upload
-
-        Returns:
-            Provider-specific metadata needed for finalization
-        """
+    ) -> _UploadPart:
+        """Upload one part."""
         raise NotImplementedError(
             f"{type(self).__name__} does not support streaming I/O (_upload_part)."
         )
 
     def _complete_multipart_upload(
-        self, cloud_path: BoundedCloudPath, upload_id: str, parts: list
+        self, cloud_path: BoundedCloudPath, upload_id: str, parts: Sequence[_UploadPart]
     ) -> None:
-        """Finalize a multipart upload.
-
-        Args:
-            cloud_path: Destination path
-            upload_id: Upload session ID
-            parts: List of part metadata from _upload_part calls
-        """
+        """Complete a multipart upload."""
         raise NotImplementedError(
             f"{type(self).__name__} does not support streaming I/O (_complete_multipart_upload)."
         )
 
     def _abort_multipart_upload(self, cloud_path: BoundedCloudPath, upload_id: str) -> None:
-        """Cancel a multipart upload and clean up.
-
-        Args:
-            cloud_path: Destination path
-            upload_id: Upload session ID
-        """
+        """Abort a multipart upload."""
         raise NotImplementedError(
             f"{type(self).__name__} does not support streaming I/O (_abort_multipart_upload)."
+        )
+
+    def _open_write_stream(self, cloud_path: BoundedCloudPath) -> _CloudWriteStream:
+        """Open a provider write stream."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_open_write_stream)."
+        )
+
+    def _write_stream(self, stream: _CloudWriteStream, data: bytes) -> int:
+        return stream.write(data)
+
+    def _close_write_stream(self, stream: _CloudWriteStream) -> None:
+        stream.close()
+
+    def _abort_write_stream(self, stream: _CloudWriteStream) -> None:
+        stream.terminate()
+
+    def _put_empty_object(self, cloud_path: BoundedCloudPath) -> None:
+        """Create an empty object."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_put_empty_object)."
         )

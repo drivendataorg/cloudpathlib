@@ -203,15 +203,8 @@ class HttpClient(Client):
             # the connection is closed when we exit the context manager.
             return response, response.read()
 
-    # ====================== STREAMING I/O METHODS ======================
-
     def _range_download(self, cloud_path: "HttpPath", start: int, end: int) -> bytes:
-        """Download a byte range from HTTP.
-
-        Verifies the response is 206 Partial Content. If the server returns 200
-        (ignoring the Range header), slices the full body locally so callers
-        always receive exactly the requested bytes.
-        """
+        """Download an HTTP byte range."""
         headers = {"Range": f"bytes={start}-{end}"}
         request = urllib.request.Request(str(cloud_path), headers=headers)
         try:
@@ -229,7 +222,7 @@ class HttpClient(Client):
         except urllib.error.HTTPError as e:
             if e.code == 404:
                 raise FileNotFoundError(f"HTTP resource not found: {cloud_path}")
-            elif e.code == 416:  # Range not satisfiable
+            elif e.code == 416:
                 return b""
             raise
 
@@ -247,37 +240,8 @@ class HttpClient(Client):
                 raise FileNotFoundError(f"HTTP resource not found: {cloud_path}")
             raise
 
-    def _initiate_multipart_upload(self, cloud_path: "HttpPath") -> str:
-        """HTTP uploads are single-shot PUT; no session needed."""
-        return ""
-
-    def _upload_part(
-        self, cloud_path: "HttpPath", upload_id: str, part_number: int, data: bytes
-    ) -> dict:
-        """HTTP does not support true multipart; use _put_data for a single PUT."""
-        raise NotImplementedError(
-            "HTTP uses a single PUT for uploads; multipart is not supported. "
-            "Use _put_data instead."
-        )
-
-    def _complete_multipart_upload(
-        self, cloud_path: "HttpPath", upload_id: str, parts: list
-    ) -> None:
-        """HTTP does not support true multipart; use _put_data for a single PUT."""
-        raise NotImplementedError(
-            "HTTP uses a single PUT for uploads; multipart is not supported."
-        )
-
-    def _abort_multipart_upload(self, cloud_path: "HttpPath", upload_id: str) -> None:
-        """Nothing to abort for HTTP single-PUT uploads."""
-        pass
-
     def _put_data(self, cloud_path: "HttpPath", data: BinaryIO, content_length: int) -> None:
-        """Upload a file-like body using the client's configured write method.
-
-        Uses self.opener so that any SSL context or auth handlers configured on
-        this client are applied (important for HttpsClient with self-signed certs).
-        """
+        """Upload a file-like HTTP body."""
         url = str(cloud_path)
         request = urllib.request.Request(url, data=data, method=self.write_file_http_method)
         content_type = None
@@ -293,7 +257,7 @@ class HttpClient(Client):
                         f"HTTP PUT failed with status {response.status}: {response.reason}"
                     )
         except urllib.error.HTTPError as e:
-            if e.code == 405:  # Method Not Allowed
+            if e.code == 405:
                 raise NotImplementedError(
                     f"HTTP server does not support {self.write_file_http_method} requests for {url}"
                 )
