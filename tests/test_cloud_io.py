@@ -1543,6 +1543,9 @@ def test_streaming_binary_mode_supports_unbuffered_io(local_s3_rig):
 
 
 def test_s3_streaming_routes_extra_args_by_operation(s3_rig):
+    if s3_rig.live_server:
+        pytest.skip("Synthetic SDK argument-routing test")
+
     path = s3_rig.create_cloud_path("streaming-extra-args.bin")
     client = path.client
     original_extra_args = client.boto3_ul_extra_args
@@ -1588,7 +1591,32 @@ def test_s3_streaming_routes_extra_args_by_operation(s3_rig):
         path.unlink(missing_ok=True)
 
 
+def test_s3_streaming_ignores_automatic_part_checksums(s3_rig, monkeypatch):
+    path = s3_rig.create_cloud_path("automatic-checksum.bin")
+    client = path.client
+    original_extra_args = client.boto3_ul_extra_args
+
+    monkeypatch.setattr(
+        client.client,
+        "upload_part",
+        lambda **kwargs: {"ETag": '"etag"', "ChecksumCRC32": "checksum"},
+    )
+    try:
+        client.boto3_ul_extra_args = {}
+        part = client._upload_part(path, "upload", 1, b"data")
+        assert part == {"PartNumber": 1, "ETag": '"etag"'}
+
+        client.boto3_ul_extra_args = {"ChecksumAlgorithm": "CRC32"}
+        part = client._upload_part(path, "upload", 1, b"data")
+        assert part["ChecksumCRC32"] == "checksum"
+    finally:
+        client.boto3_ul_extra_args = original_extra_args
+
+
 def test_gs_streaming_range_is_inclusive_and_forwards_options(gs_rig, monkeypatch):
+    if gs_rig.live_server:
+        pytest.skip("Synthetic SDK option-forwarding test")
+
     from tests.mock_clients.mock_gs import MockBlob
 
     path = gs_rig.create_cloud_path("range-options.bin")
