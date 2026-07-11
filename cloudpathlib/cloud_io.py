@@ -10,6 +10,21 @@ import io
 from abc import abstractmethod
 from typing import Optional, Any, Type, Union, Dict
 
+
+def _validate_file_mode(mode: str) -> None:
+    """Validate an ``open`` mode using the same grammar as the stdlib."""
+    if not isinstance(mode, str):
+        raise TypeError(f"mode must be a string, not {type(mode).__name__}")
+    if not mode or any(character not in "rwaxbt+" for character in mode):
+        raise ValueError(f"invalid mode: {mode!r}")
+    if sum(mode.count(character) for character in "rwax") != 1:
+        raise ValueError("must have exactly one of create/read/write/append mode")
+    if mode.count("+") > 1 or mode.count("b") > 1 or mode.count("t") > 1:
+        raise ValueError(f"invalid mode: {mode!r}")
+    if "b" in mode and "t" in mode:
+        raise ValueError("can't have text and binary mode at once")
+
+
 # ============================================================================
 # Base Raw I/O Adapter (internal)
 # ============================================================================
@@ -44,6 +59,7 @@ class _CloudStorageRaw(io.RawIOBase):
         self._pos = 0
         self._size: Optional[int] = None
         self._closed = False
+        self._upload_error: Optional[BaseException] = None
 
     def readable(self) -> bool:
         """Return whether object was opened for reading."""
@@ -177,12 +193,18 @@ class _CloudStorageRaw(io.RawIOBase):
         Returns:
             Number of bytes written
         """
+        if self._closed:
+            raise ValueError("I/O operation on closed file")
         if not self.writable():
             raise io.UnsupportedOperation("not writable")
+        if self._upload_error is not None:
+            raise self._upload_error
 
-        # Delegate to subclass implementation
-        # Note: Don't check _closed here because BufferedWriter may call write() during close/flush
-        self._upload_chunk(bytes(b), None)
+        try:
+            self._upload_chunk(bytes(b), None)
+        except BaseException as error:
+            self._upload_error = error
+            raise
         return len(b)
 
     def close(self) -> None:
@@ -194,11 +216,29 @@ class _CloudStorageRaw(io.RawIOBase):
         self._closed = True
 
         try:
+            if self.writable() and self._upload_error is not None:
+                try:
+                    self._abort_upload()
+                except Exception:
+                    pass
+                finally:
+                    raise self._upload_error
             if self.writable():
-                self._finalize_upload(None)
+                try:
+                    self._finalize_upload(None)
+                except BaseException:
+                    try:
+                        self._abort_upload()
+                    except Exception:
+                        pass
+                    raise
         finally:
             # Always call parent close() to set the stdlib closed state
             super().close()
+
+    def _abort_upload(self) -> None:
+        """Best-effort cleanup after a write or finalization failure."""
+        pass
 
     @abstractmethod
     def _upload_chunk(self, data: bytes, upload_state: Optional[Dict[str, Any]]) -> None:
@@ -290,11 +330,16 @@ class CloudBufferedIO(io.BufferedIOBase):
             raw_io_class: The raw I/O class to use for this provider
             client: Cloud provider client instance
             cloud_path: CloudPath instance
-            mode: File mode ('rb', 'wb', 'ab', 'r+b', 'w+b', 'a+b', 'xb')
+            mode: Streaming file mode ('rb', 'wb', or 'xb')
             buffer_size: Size of read/write buffer in bytes (default 64 KiB)
         """
+        _validate_file_mode(mode)
         if "b" not in mode:
             raise ValueError("CloudBufferedIO requires binary mode (must include 'b')")
+        if "a" in mode or "+" in mode:
+            raise io.UnsupportedOperation(
+                "append and update modes require the local-cache implementation"
+            )
 
         # Create raw adapter using provided class
         raw = raw_io_class(client, cloud_path, mode)
@@ -411,6 +456,7 @@ class CloudTextIO(io.TextIOWrapper):
         errors: Optional[str] = None,
         newline: Optional[str] = None,
         buffer_size: int = 64 * 1024,
+        line_buffering: bool = False,
     ):
         """
         Initialize cloud text I/O.
@@ -419,14 +465,20 @@ class CloudTextIO(io.TextIOWrapper):
             raw_io_class: The raw I/O class to use for this provider
             client: Cloud provider client instance
             cloud_path: CloudPath instance
-            mode: File mode ('rt', 'wt', 'at', 'r+t', 'w+t', 'a+t', 'xt', or same without 't')
-            encoding: Text encoding (default: utf-8)
+            mode: Streaming file mode ('rt', 'wt', 'xt', or the same without 't')
+            encoding: Text encoding (default: platform locale, matching ``open``)
             errors: Error handling strategy (default: strict)
             newline: Newline handling (None, '', '\\n', '\\r', '\\r\\n')
             buffer_size: Size of buffer in bytes
+            line_buffering: Flush text output whenever a newline is written
         """
+        _validate_file_mode(mode)
         if "b" in mode:
             raise ValueError("CloudTextIO requires text mode (no 'b' in mode)")
+        if "a" in mode or "+" in mode:
+            raise io.UnsupportedOperation(
+                "append and update modes require the local-cache implementation"
+            )
 
         # Ensure mode has 't' or is text mode
         if "t" not in mode and "r" in mode:
@@ -448,9 +500,10 @@ class CloudTextIO(io.TextIOWrapper):
         # Initialize TextIOWrapper with the buffered stream
         super().__init__(
             buffered,
-            encoding=encoding or "utf-8",
+            encoding=encoding,
             errors=errors,
             newline=newline,
+            line_buffering=line_buffering,
         )
 
         # Store additional attributes

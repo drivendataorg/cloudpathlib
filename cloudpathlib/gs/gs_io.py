@@ -58,5 +58,12 @@ class _GSStorageRaw(_CloudStorageRaw):
             # No data was written — create an empty object
             self._client._put_empty_object(self._cloud_path)
 
+    def _abort_upload(self) -> None:
+        if self._writer is not None:
+            try:
+                self._writer.terminate()
+            finally:
+                self._writer = None
+
     def close(self) -> None:
         super().close()

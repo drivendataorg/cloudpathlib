@@ -195,7 +195,7 @@ def test_buffered_io_context_manager(temp_cloud_binary_file):
 def test_write_binary_stream(rig):
     """Test writing binary data via streaming."""
     # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
+    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://", "http://", "https://"):
         pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
 
     path = rig.create_cloud_path("test_write_binary.bin")
@@ -230,7 +230,7 @@ def test_write_binary_stream(rig):
 def test_write_chunks(rig):
     """Test writing data in chunks."""
     # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
+    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://", "http://", "https://"):
         pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
 
     path = rig.create_cloud_path("test_write_chunks.bin")
@@ -389,7 +389,7 @@ def test_text_properties(temp_cloud_file):
 def test_write_text_stream(rig):
     """Test writing text data via streaming."""
     # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
+    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://", "http://", "https://"):
         pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
 
     path = rig.create_cloud_path("test_write_text.txt")
@@ -655,7 +655,7 @@ def test_empty_file_read(rig):
 def test_empty_file_write(rig):
     """Test writing an empty file."""
     # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
+    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://", "http://", "https://"):
         pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
 
     path = rig.create_cloud_path("test_empty_write.txt")
@@ -996,25 +996,42 @@ def test_write_empty_chunks(rig):
 
 
 def test_write_error_cleanup(rig):
-    """Test that write errors are handled gracefully."""
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    """A failed part upload must abort rather than commit earlier parts."""
+    if rig.path_class.cloud_prefix != "s3://":
+        pytest.skip("S3-specific failure injection")
 
-    # This test just verifies that writing and closing work correctly
-    # The error handling paths are tested by the actual upload implementations
     path = rig.create_cloud_path("test_error_cleanup.bin")
+    original_upload_part = path.client._upload_part
+    original_abort = path.client._abort_multipart_upload
+    abort_calls = []
+
+    def fail_second_part(cloud_path, upload_id, part_number, data):
+        if part_number == 2:
+            raise RuntimeError("simulated part failure")
+        return original_upload_part(cloud_path, upload_id, part_number, data)
+
+    def record_abort(cloud_path, upload_id):
+        abort_calls.append(upload_id)
+        return original_abort(cloud_path, upload_id)
 
     try:
         original_mode = path.client.file_cache_mode
         path.client.file_cache_mode = FileCacheMode.streaming
+        path.client._upload_part = fail_second_part
+        path.client._abort_multipart_upload = record_abort
 
-        # Write some data successfully
-        with path.open(mode="wb") as f:
-            f.write(b"test data")
+        stream = path.open(mode="wb")
+        with pytest.raises(RuntimeError, match="simulated part failure"):
+            stream.write(b"x" * (11 * 1024 * 1024))
+        with pytest.raises(RuntimeError, match="simulated part failure"):
+            stream.close()
 
-        path.client.file_cache_mode = original_mode
-        assert path.read_bytes() == b"test data"
+        assert len(abort_calls) == 1
+        assert not path.exists()
     finally:
+        path.client._upload_part = original_upload_part
+        path.client._abort_multipart_upload = original_abort
+        path.client.file_cache_mode = original_mode
         try:
             path.unlink()
         except Exception:
@@ -1026,9 +1043,17 @@ def test_http_write_empty_file(rig):
     if rig.path_class.cloud_prefix not in ("http://", "https://"):
         pytest.skip("Test is specific to HTTP/HTTPS")
 
-    # HTTP writes aren't fully supported in tests, but we can test the code path
-    # Skip for now since HTTP test server doesn't support PUT
-    pytest.skip("HTTP write not supported by test server")
+    path = rig.create_cloud_path("test_http_empty.bin")
+    original_mode = path.client.file_cache_mode
+    path.client.file_cache_mode = FileCacheMode.streaming
+    try:
+        with path.open("wb"):
+            pass
+        path.client.file_cache_mode = original_mode
+        assert path.read_bytes() == b""
+    finally:
+        path.client.file_cache_mode = original_mode
+        path.unlink(missing_ok=True)
 
 
 def test_seek_from_end_without_size(rig, monkeypatch):
@@ -1236,6 +1261,17 @@ def test_append_mode_uses_cache_fallback(rig):
             pass
 
 
+def test_append_mode_creates_missing_file(local_s3_rig):
+    path = local_s3_rig.create_cloud_path("new-append.txt")
+    path.client.file_cache_mode = FileCacheMode.streaming
+
+    with path.open("a") as stream:
+        stream.write("created")
+
+    path.client.file_cache_mode = FileCacheMode.cloudpath_object
+    assert path.read_text() == "created"
+
+
 def test_rplus_mode_uses_cache_fallback(rig):
     """r+b mode with streaming file_cache_mode must fall back to the cached path."""
     if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
@@ -1393,20 +1429,24 @@ def test_concurrent_writes_dont_cross_buffers(rig):
 
 
 # M6/M7 — custom Client without raw_io_class still instantiates in cached mode
-def test_custom_client_without_raw_io_class_instantiates(rig):
-    """A CloudImplementation with no raw_io_class must not raise IncompleteImplementationError."""
+def test_custom_client_without_raw_io_class_instantiates(local_s3_rig, monkeypatch):
+    """A cached custom provider need not implement the optional streaming hooks."""
     from cloudpathlib.cloudpath import CloudImplementation
-    from cloudpathlib.local.localclient import LocalClient
-    from cloudpathlib.local.localpath import LocalPath
 
     minimal = CloudImplementation()
-    minimal._client_class = LocalClient
-    minimal._path_class = LocalPath
-    minimal._raw_io_class = None  # no streaming
+    minimal.name = "minimal"
+    minimal._client_class = local_s3_rig.client_class
+    minimal._path_class = local_s3_rig.path_class
+    minimal._raw_io_class = None
+    monkeypatch.setattr(local_s3_rig.path_class, "_cloud_meta", minimal)
 
-    # Must not raise
-    minimal.validate_completeness()
-    assert minimal.raw_io_class is None
+    path = local_s3_rig.create_cloud_path("no-raw-io.txt")
+    path.write_text("cached")
+    assert path.read_text() == "cached"
+
+    path.client.file_cache_mode = FileCacheMode.streaming
+    with pytest.raises(NotImplementedError, match="Streaming I/O is not implemented"):
+        path.open("r")
 
 
 # M5 — HTTP range reads return the correct slice
@@ -1434,3 +1474,200 @@ def test_http_range_read_returns_correct_bytes(rig):
             path.unlink()
         except Exception:
             pass
+
+
+@pytest.mark.parametrize("mode", ["", "rw", "rr", "r++", "rbt", "q"])
+def test_streaming_open_rejects_invalid_modes_without_mutating(local_s3_rig, mode):
+    path = local_s3_rig.create_cloud_path("invalid-mode.txt")
+    path.write_text("preserve me")
+    path.client.file_cache_mode = FileCacheMode.streaming
+
+    with pytest.raises(ValueError):
+        path.open(mode)
+
+    path.client.file_cache_mode = FileCacheMode.cloudpath_object
+    assert path.read_text() == "preserve me"
+
+
+@pytest.mark.parametrize(
+    "keyword,value,message",
+    [
+        ("encoding", "utf-8", "encoding"),
+        ("errors", "ignore", "errors"),
+        ("newline", "", "newline"),
+    ],
+)
+def test_streaming_binary_mode_rejects_text_arguments(local_s3_rig, keyword, value, message):
+    path = local_s3_rig.create_cloud_path("binary-arguments.bin")
+    path.write_bytes(b"data")
+    path.client.file_cache_mode = FileCacheMode.streaming
+
+    with pytest.raises(ValueError, match=message):
+        path.open("rb", **{keyword: value})
+
+
+def test_streaming_text_mode_rejects_unbuffered_io(local_s3_rig):
+    path = local_s3_rig.create_cloud_path("unbuffered.txt")
+    path.write_text("data")
+    path.client.file_cache_mode = FileCacheMode.streaming
+
+    with pytest.raises(ValueError, match="unbuffered text"):
+        path.open("r", buffering=0)
+
+
+def test_streaming_text_mode_honors_line_buffering(local_s3_rig):
+    path = local_s3_rig.create_cloud_path("line-buffered.txt")
+    path.client.file_cache_mode = FileCacheMode.streaming
+
+    with path.open("w", buffering=1) as stream:
+        assert stream.line_buffering
+        stream.write("line\n")
+
+
+def test_streaming_binary_mode_supports_unbuffered_io(local_s3_rig):
+    path = local_s3_rig.create_cloud_path("unbuffered.bin")
+    path.write_bytes(b"data")
+    path.client.file_cache_mode = FileCacheMode.streaming
+
+    with path.open("rb", buffering=0) as stream:
+        assert isinstance(stream, io.RawIOBase)
+        assert stream.read() == b"data"
+
+
+def test_s3_streaming_routes_extra_args_by_operation(s3_rig):
+    path = s3_rig.create_cloud_path("streaming-extra-args.bin")
+    client = path.client
+    original_extra_args = client.boto3_ul_extra_args
+    original_create = client.client.create_multipart_upload
+    original_upload = client.client.upload_part
+    original_complete = client.client.complete_multipart_upload
+    calls = {}
+
+    def record_create(**kwargs):
+        calls["create"] = kwargs.copy()
+        return original_create(**kwargs)
+
+    def record_upload(**kwargs):
+        calls["upload"] = kwargs.copy()
+        return original_upload(**kwargs)
+
+    def record_complete(**kwargs):
+        calls["complete"] = kwargs.copy()
+        return original_complete(**kwargs)
+
+    client.boto3_ul_extra_args = {
+        "ChecksumCRC32": "whole-object-checksum",
+        "SSECustomerAlgorithm": "AES256",
+        "SSECustomerKey": "secret",
+    }
+    client.client.create_multipart_upload = record_create
+    client.client.upload_part = record_upload
+    client.client.complete_multipart_upload = record_complete
+    client.file_cache_mode = FileCacheMode.streaming
+    try:
+        with path.open("wb") as stream:
+            stream.write(b"x" * (6 * 1024 * 1024))
+
+        assert "ChecksumCRC32" not in calls["create"]
+        assert calls["create"]["SSECustomerKey"] == "secret"
+        assert calls["upload"]["SSECustomerKey"] == "secret"
+        assert calls["complete"]["ChecksumCRC32"] == "whole-object-checksum"
+    finally:
+        client.boto3_ul_extra_args = original_extra_args
+        client.client.create_multipart_upload = original_create
+        client.client.upload_part = original_upload
+        client.client.complete_multipart_upload = original_complete
+        path.unlink(missing_ok=True)
+
+
+def test_gs_streaming_range_is_inclusive_and_forwards_options(gs_rig, monkeypatch):
+    from tests.mock_clients.mock_gs import MockBlob
+
+    path = gs_rig.create_cloud_path("range-options.bin")
+    path.write_bytes(b"0123456789")
+    calls = {}
+
+    def record_download(self, start=None, end=None, **kwargs):
+        calls.update(start=start, end=end, **kwargs)
+        return b"2345"
+
+    monkeypatch.setattr(MockBlob, "download_as_bytes", record_download)
+    retry = object()
+    original_kwargs = path.client.blob_kwargs
+    path.client.blob_kwargs = {"timeout": 12, "retry": retry}
+    try:
+        assert path.client._range_download(path, 2, 5) == b"2345"
+        assert calls == {"start": 2, "end": 5, "timeout": 12, "retry": retry}
+    finally:
+        path.client.blob_kwargs = original_kwargs
+
+
+def test_http_streaming_rejects_servers_that_ignore_ranges(http_rig, monkeypatch):
+    class FullResponse(io.BytesIO):
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            self.close()
+
+    def ignore_range(request):
+        assert request.headers["Range"] == "bytes=2-5"
+        return FullResponse(b"0123456789")
+
+    path = http_rig.create_cloud_path("ignored-range.bin")
+    monkeypatch.setattr(path.client.opener, "open", ignore_range)
+
+    with pytest.raises(OSError, match="ignored the Range header"):
+        path.client._range_download(path, 2, 5)
+
+
+def test_http_streaming_upload_uses_client_configuration(http_rig, monkeypatch):
+    class CreatedResponse:
+        status = 201
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+    calls = {}
+
+    def record_request(request):
+        calls["request"] = request
+        calls["body"] = request.data.read()
+        return CreatedResponse()
+
+    path = http_rig.create_cloud_path("configured.txt")
+    path.client.write_file_http_method = "PATCH"
+    monkeypatch.setattr(path.client.opener, "open", record_request)
+    path.client._put_data(path, io.BytesIO(b"abc"), 3)
+
+    request = calls["request"]
+    assert request.method == "PATCH"
+    assert request.headers["Content-type"] == "text/plain"
+    assert request.headers["Content-length"] == "3"
+    assert calls["body"] == b"abc"
+
+
+def test_provider_part_sizes_grow_for_large_streams():
+    from cloudpathlib.azure.azure_io import _AzureBlobStorageRaw
+    from cloudpathlib.s3.s3_io import _S3StorageRaw
+
+    s3_raw = object.__new__(_S3StorageRaw)
+    s3_raw._closed = True
+    s3_raw._part_number = s3_raw._PARTS_PER_SIZE_TIER + 1
+    assert s3_raw._target_part_size() == 2 * s3_raw._MIN_PART_SIZE
+
+    azure_raw = object.__new__(_AzureBlobStorageRaw)
+    azure_raw._closed = True
+    azure_raw._part_number = azure_raw._BLOCKS_PER_SIZE_TIER + 1
+    assert azure_raw._target_block_size() == 2 * azure_raw._BLOCK_SIZE
+
+
+def test_s3_invalid_object_state_is_not_eof(s3_rig):
+    path = s3_rig.create_cloud_path("archived.bin")
+    raw = path._cloud_meta.raw_io_class(path.client, path, "rb")
+    assert not raw._is_eof_error(Exception("InvalidObjectState"))
