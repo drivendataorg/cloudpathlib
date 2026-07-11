@@ -919,10 +919,8 @@ class CloudPath(metaclass=CloudPathMeta):
                 if not self._dirty:
                     return
 
-                # original mtime should match what was in the cloud; because of system clocks or rounding
-                # by the cloud provider, the new version in our cache is "older" than the original version;
-                # explicitly set the new modified time to be after the original modified time.
-                if self._local.stat().st_mtime < original_mtime:
+                # Keep cached writes newer despite timestamp rounding.
+                if self._local.stat().st_mtime <= original_mtime:
                     new_mtime = original_mtime + 1
                     os.utime(self._local, times=(new_mtime, new_mtime))
 
