@@ -1,9 +1,9 @@
 import mimetypes
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Tuple, Union
 
-from ..client import Client, register_client_class
+from ..client import Client, _UploadPart, register_client_class
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
 from ..exceptions import CloudPathException
@@ -400,8 +400,6 @@ class S3Client(Client):
         )
         return url
 
-    # ====================== STREAMING I/O METHODS ======================
-
     def _range_download(self, cloud_path: S3Path, start: int, end: int) -> bytes:
         """Download a byte range from S3."""
         try:
@@ -445,7 +443,7 @@ class S3Client(Client):
                 raise FileNotFoundError(f"S3 object not found: {cloud_path}")
             raise
 
-    def _streaming_extra_args(self, operation_name: str) -> dict:
+    def _streaming_extra_args(self, operation_name: str) -> Dict[str, Any]:
         """Return upload extras accepted by a specific low-level S3 operation."""
         try:
             operation = self.client.meta.service_model.operation_model(operation_name)
@@ -502,15 +500,19 @@ class S3Client(Client):
             allowed = fallback_allowed[operation_name]
         return {key: value for key, value in self.boto3_ul_extra_args.items() if key in allowed}
 
-    def _initiate_multipart_upload(self, cloud_path: S3Path) -> str:
-        """Start an S3 multipart upload, threading content-type and upload extra args."""
-        extra_args = self._streaming_extra_args("CreateMultipartUpload")
+    def _streaming_object_args(self, operation_name: str, cloud_path: S3Path) -> Dict[str, Any]:
+        extra_args = self._streaming_extra_args(operation_name)
         if self.content_type_method is not None:
             content_type, content_encoding = self.content_type_method(str(cloud_path))
             if content_type is not None:
                 extra_args["ContentType"] = content_type
             if content_encoding is not None:
                 extra_args["ContentEncoding"] = content_encoding
+        return extra_args
+
+    def _initiate_multipart_upload(self, cloud_path: S3Path) -> str:
+        """Start an S3 multipart upload, threading content-type and upload extra args."""
+        extra_args = self._streaming_object_args("CreateMultipartUpload", cloud_path)
         response = self.client.create_multipart_upload(
             Bucket=cloud_path.bucket,
             Key=cloud_path.key,
@@ -520,7 +522,7 @@ class S3Client(Client):
 
     def _upload_part(
         self, cloud_path: S3Path, upload_id: str, part_number: int, data: bytes
-    ) -> dict:
+    ) -> _UploadPart:
         """Upload a part in an S3 multipart upload."""
         response = self.client.upload_part(
             Bucket=cloud_path.bucket,
@@ -534,7 +536,9 @@ class S3Client(Client):
         part.update({key: value for key, value in response.items() if key.startswith("Checksum")})
         return part
 
-    def _complete_multipart_upload(self, cloud_path: S3Path, upload_id: str, parts: list) -> None:
+    def _complete_multipart_upload(
+        self, cloud_path: S3Path, upload_id: str, parts: Sequence[_UploadPart]
+    ) -> None:
         """Complete an S3 multipart upload."""
         self.client.complete_multipart_upload(
             Bucket=cloud_path.bucket,
@@ -552,13 +556,7 @@ class S3Client(Client):
 
     def _put_empty_object(self, cloud_path: S3Path) -> None:
         """Upload a zero-byte object, threading content-type and upload extra args."""
-        extra_args = self._streaming_extra_args("PutObject")
-        if self.content_type_method is not None:
-            content_type, content_encoding = self.content_type_method(str(cloud_path))
-            if content_type is not None:
-                extra_args["ContentType"] = content_type
-            if content_encoding is not None:
-                extra_args["ContentEncoding"] = content_encoding
+        extra_args = self._streaming_object_args("PutObject", cloud_path)
         self.client.put_object(
             Bucket=cloud_path.bucket,
             Key=cloud_path.key,

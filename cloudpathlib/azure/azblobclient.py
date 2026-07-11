@@ -3,7 +3,7 @@ import mimetypes
 import os
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Tuple, Union
 from itertools import islice
 
 try:
@@ -11,7 +11,7 @@ try:
 except ImportError:
     from typing_extensions import cast
 
-from ..client import Client, register_client_class
+from ..client import Client, _UploadPart, register_client_class
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
 from ..exceptions import MissingCredentialsError
@@ -497,8 +497,6 @@ class AzureBlobClient(Client):
         url = f"{self._get_public_url(cloud_path)}?{sas_token}"
         return url
 
-    # ====================== STREAMING I/O METHODS ======================
-
     def _range_download(self, cloud_path: AzureBlobPath, start: int, end: int) -> bytes:
         """Download a byte range from Azure Blob Storage."""
         blob_client = self.service_client.get_blob_client(
@@ -527,48 +525,46 @@ class AzureBlobClient(Client):
             raise FileNotFoundError(f"Azure blob not found: {cloud_path}")
 
     def _initiate_multipart_upload(self, cloud_path: AzureBlobPath) -> str:
-        """Start an Azure block blob upload.
-
-        Azure doesn't need explicit initialization; return empty string.
-        """
+        """Return the stateless Azure upload ID."""
         return ""
 
     def _upload_part(
         self, cloud_path: AzureBlobPath, upload_id: str, part_number: int, data: bytes
-    ) -> dict:
+    ) -> _UploadPart:
         """Upload a block in an Azure block blob upload."""
         import base64
 
         blob_client = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
-        # Azure uses base64-encoded block IDs
         block_id = base64.b64encode(f"block-{part_number:06d}".encode()).decode()
         blob_client.stage_block(block_id=block_id, data=data, length=len(data))
         return {"block_id": block_id}
 
     def _complete_multipart_upload(
-        self, cloud_path: AzureBlobPath, upload_id: str, parts: list
+        self, cloud_path: AzureBlobPath, upload_id: str, parts: Sequence[_UploadPart]
     ) -> None:
         """Commit an Azure block blob upload, threading content-type."""
         blob_client = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
         block_ids = [part["block_id"] for part in parts]
-        content_settings = None
-        if self.content_type_method is not None:
-            content_type, content_encoding = self.content_type_method(str(cloud_path))
-            if content_type or content_encoding:
-                content_settings = ContentSettings(
-                    content_type=content_type, content_encoding=content_encoding
-                )
-        blob_client.commit_block_list(block_ids, content_settings=content_settings)
+        blob_client.commit_block_list(
+            block_ids, content_settings=self._streaming_content_settings(cloud_path)
+        )
+
+    def _streaming_content_settings(
+        self, cloud_path: AzureBlobPath
+    ) -> Optional["ContentSettings"]:
+        if self.content_type_method is None:
+            return None
+        content_type, content_encoding = self.content_type_method(str(cloud_path))
+        if not content_type and not content_encoding:
+            return None
+        return ContentSettings(content_type=content_type, content_encoding=content_encoding)
 
     def _abort_multipart_upload(self, cloud_path: AzureBlobPath, upload_id: str) -> None:
-        """Abort an Azure block blob upload.
-
-        Azure automatically expires uncommitted blocks; nothing explicit to do.
-        """
+        """Let Azure expire uncommitted blocks."""
         pass
 
     def _put_empty_object(self, cloud_path: AzureBlobPath) -> None:
@@ -576,14 +572,9 @@ class AzureBlobClient(Client):
         blob_client = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
-        content_settings = None
-        if self.content_type_method is not None:
-            content_type, content_encoding = self.content_type_method(str(cloud_path))
-            if content_type or content_encoding:
-                content_settings = ContentSettings(
-                    content_type=content_type, content_encoding=content_encoding
-                )
-        blob_client.upload_blob(b"", overwrite=True, content_settings=content_settings)
+        blob_client.upload_blob(
+            b"", overwrite=True, content_settings=self._streaming_content_settings(cloud_path)
+        )
 
 
 def _hns_rmtree(data_lake_client, container, directory):
