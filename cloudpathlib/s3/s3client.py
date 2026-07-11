@@ -533,7 +533,11 @@ class S3Client(Client):
             **self._streaming_extra_args("UploadPart"),
         )
         part = {"PartNumber": part_number, "ETag": response["ETag"]}
-        part.update({key: value for key, value in response.items() if key.startswith("Checksum")})
+        checksum_algorithm = self.boto3_ul_extra_args.get("ChecksumAlgorithm")
+        if checksum_algorithm is not None:
+            checksum_key = f"Checksum{checksum_algorithm}"
+            if checksum_key in response:
+                part[checksum_key] = response[checksum_key]
         return part
 
     def _complete_multipart_upload(
