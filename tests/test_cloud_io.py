@@ -11,6 +11,7 @@ import pytest
 
 from cloudpathlib import S3Path, AzureBlobPath, GSPath
 from cloudpathlib import CloudBufferedIO, CloudTextIO
+from cloudpathlib.cloud_io import _CloudStorageRaw
 from cloudpathlib.enums import FileCacheMode
 
 # Sample test data
@@ -1489,6 +1490,13 @@ def test_streaming_open_rejects_invalid_modes_without_mutating(local_s3_rig, mod
     assert path.read_text() == "preserve me"
 
 
+def test_streaming_open_rejects_non_string_mode(local_s3_rig):
+    path = local_s3_rig.create_cloud_path("invalid-mode.txt")
+
+    with pytest.raises(TypeError, match="mode must be a string"):
+        path.open(None)
+
+
 @pytest.mark.parametrize(
     "keyword,value,message",
     [
@@ -1671,3 +1679,126 @@ def test_s3_invalid_object_state_is_not_eof(s3_rig):
     path = s3_rig.create_cloud_path("archived.bin")
     raw = path._cloud_meta.raw_io_class(path.client, path, "rb")
     assert not raw._is_eof_error(Exception("InvalidObjectState"))
+
+
+def test_raw_read_errors_follow_file_object_semantics(local_s3_rig):
+    class Raw(_CloudStorageRaw):
+        def _upload_chunk(self, data):
+            pass
+
+        def _finalize_upload(self):
+            pass
+
+    path = local_s3_rig.create_cloud_path("raw-errors.bin")
+
+    unreadable = Raw(path.client, path, "wb")
+    with pytest.raises(io.UnsupportedOperation, match="not readable"):
+        unreadable.readinto(bytearray(1))
+
+    unwritable = Raw(path.client, path, "rb")
+    with pytest.raises(io.UnsupportedOperation, match="not writable"):
+        unwritable.write(b"x")
+
+    unwritable.close()
+    for operation in (
+        lambda: unwritable.readinto(bytearray(1)),
+        lambda: unwritable.seek(0),
+        unwritable.tell,
+        lambda: unwritable.write(b"x"),
+    ):
+        with pytest.raises(ValueError, match="closed file"):
+            operation()
+
+
+def test_raw_read_handles_unknown_size_and_provider_eof(local_s3_rig):
+    class Raw(_CloudStorageRaw):
+        eof = False
+        empty = False
+
+        def _get_size(self):
+            raise OSError("size unavailable")
+
+        def _range_get(self, start, end):
+            if self.empty:
+                return b""
+            raise OSError("range unavailable")
+
+        def _is_eof_error(self, error):
+            return self.eof
+
+        def _upload_chunk(self, data):
+            pass
+
+        def _finalize_upload(self):
+            pass
+
+    path = local_s3_rig.create_cloud_path("raw-eof.bin")
+    raw = Raw(path.client, path, "rb")
+
+    with pytest.raises(OSError, match="range unavailable"):
+        raw.readinto(bytearray(1))
+
+    raw.eof = True
+    assert raw.readinto(bytearray(1)) == 0
+
+    raw.eof = False
+    raw.empty = True
+    assert raw.readinto(bytearray(1)) == 0
+
+
+def test_raw_write_failure_is_sticky_and_aborts_on_close(local_s3_rig):
+    error = OSError("upload failed")
+
+    class Raw(_CloudStorageRaw):
+        aborted = False
+
+        def _upload_chunk(self, data):
+            raise error
+
+        def _finalize_upload(self):
+            pass
+
+        def _abort_upload(self):
+            self.aborted = True
+
+    path = local_s3_rig.create_cloud_path("raw-upload-error.bin")
+    raw = Raw(path.client, path, "wb")
+
+    with pytest.raises(OSError, match="upload failed"):
+        raw.write(b"first")
+    with pytest.raises(OSError, match="upload failed"):
+        raw.write(b"second")
+    with pytest.raises(OSError, match="upload failed"):
+        raw.close()
+
+    assert raw.aborted
+    assert raw.closed
+
+
+@pytest.mark.parametrize("fail_during_write", [True, False])
+def test_raw_abort_failure_does_not_mask_original_error(local_s3_rig, fail_during_write):
+    original_error = OSError("original failure")
+
+    class Raw(_CloudStorageRaw):
+        def _upload_chunk(self, data):
+            if fail_during_write:
+                raise original_error
+
+        def _finalize_upload(self):
+            if not fail_during_write:
+                raise original_error
+
+        def _abort_upload(self):
+            raise OSError("cleanup failure")
+
+    path = local_s3_rig.create_cloud_path("raw-abort-error.bin")
+    raw = Raw(path.client, path, "wb")
+
+    if fail_during_write:
+        with pytest.raises(OSError, match="original failure"):
+            raw.write(b"data")
+    else:
+        raw.write(b"data")
+
+    with pytest.raises(OSError, match="original failure"):
+        raw.close()
