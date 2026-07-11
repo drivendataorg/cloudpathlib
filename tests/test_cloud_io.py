@@ -76,7 +76,7 @@ def temp_cloud_multiline_file(rig):
         pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
 
     path = rig.create_cloud_path("test_streaming_multiline.txt")
-    path.write_text(MULTILINE_TEXT)
+    path.write_text(MULTILINE_TEXT, encoding="utf-8")
     # Set client to streaming mode
     original_mode = path.client.file_cache_mode
     path.client.file_cache_mode = FileCacheMode.streaming
@@ -331,7 +331,7 @@ def test_read_text_mode_without_t(temp_cloud_file):
 
 def test_readline(temp_cloud_multiline_file):
     """Test readline method."""
-    with temp_cloud_multiline_file.open(mode="rt") as f:
+    with temp_cloud_multiline_file.open(mode="rt", encoding="utf-8") as f:
         line1 = f.readline()
         assert line1 == "Line 1\n"
 
@@ -341,7 +341,7 @@ def test_readline(temp_cloud_multiline_file):
 
 def test_readlines(temp_cloud_multiline_file):
     """Test readlines method."""
-    with temp_cloud_multiline_file.open(mode="rt") as f:
+    with temp_cloud_multiline_file.open(mode="rt", encoding="utf-8") as f:
         lines = f.readlines()
         assert len(lines) == 4
         assert lines[0] == "Line 1\n"
@@ -350,7 +350,7 @@ def test_readlines(temp_cloud_multiline_file):
 
 def test_iteration(temp_cloud_multiline_file):
     """Test iterating over lines."""
-    with temp_cloud_multiline_file.open(mode="rt") as f:
+    with temp_cloud_multiline_file.open(mode="rt", encoding="utf-8") as f:
         lines = list(f)
         assert len(lines) == 4
         assert lines[0] == "Line 1\n"
