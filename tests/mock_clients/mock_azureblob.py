@@ -8,7 +8,7 @@ import shutil
 from azure.storage.blob import BlobProperties
 from azure.storage.blob._list_blobs_helper import BlobPrefix
 from azure.storage.blob._shared.authentication import SharedKeyCredentialPolicy
-from azure.core.exceptions import ResourceNotFoundError
+from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
 
 from .utils import delete_empty_parents_up_to_root
 
@@ -135,6 +135,14 @@ class MockBlobClient:
             raise ResourceNotFoundError
 
     def download_blob(self, offset=None, length=None):
+        path = self.root / self.key
+        if not (path.exists() and path.is_file()):
+            raise ResourceNotFoundError
+        if offset is not None and offset >= path.stat().st_size:
+            # real Azure rejects ranges starting past EOF (an end past EOF is clamped)
+            error = HttpResponseError("The range specified is invalid for the current size")
+            error.status_code = 416
+            raise error
         return MockStorageStreamDownloader(self.root, self.key, offset=offset, length=length)
 
     def set_blob_metadata(self, metadata):

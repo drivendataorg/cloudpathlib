@@ -7,12 +7,19 @@ streaming without local caching.
 
 import io
 import threading
+import time
+import zipfile
 import pytest
 
 from cloudpathlib import S3Path, AzureBlobPath, GSPath
 from cloudpathlib import CloudBufferedIO, CloudTextIO
 from cloudpathlib.cloud_io import _CloudStorageRaw
 from cloudpathlib.enums import FileCacheMode
+from cloudpathlib.exceptions import (
+    CloudPathFileNotFoundError,
+    CloudPathNotImplementedError,
+    OverwriteNewerCloudError,
+)
 
 # Sample test data
 BINARY_DATA = b"Hello, World! This is binary data.\n" * 100
@@ -835,8 +842,8 @@ def test_azure_block_upload(rig):
             pass
 
 
-def test_gs_resumable_upload(rig):
-    """Test that GCS upload works."""
+def test_gs_multipart_streaming_upload(rig):
+    """Test that GCS streaming upload works (XML multipart under the hood)."""
     if rig.path_class.cloud_prefix != "gs://":
         pytest.skip("Not testing GCS")
 
@@ -1446,7 +1453,7 @@ def test_custom_client_without_raw_io_class_instantiates(local_s3_rig, monkeypat
     assert path.read_text() == "cached"
 
     path.client.file_cache_mode = FileCacheMode.streaming
-    with pytest.raises(NotImplementedError, match="Streaming I/O is not implemented"):
+    with pytest.raises(CloudPathNotImplementedError, match="Streaming I/O is not implemented"):
         path.open("r")
 
 
@@ -1830,3 +1837,936 @@ def test_raw_abort_failure_does_not_mask_original_error(local_s3_rig, fail_durin
 
     with pytest.raises(OSError, match="original failure"):
         raw.close()
+
+
+# ============================================================================
+# Regression tests — PR #535 review fixes
+# ============================================================================
+
+_STREAMING_PREFIXES = ("s3://", "az://", "gs://", "http://", "https://")
+
+
+def _skip_if_no_streaming(rig):
+    if rig.path_class.cloud_prefix not in _STREAMING_PREFIXES:
+        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+
+
+@pytest.fixture
+def streaming_rig(rig):
+    """The rig with its default client switched to streaming mode for the test."""
+    _skip_if_no_streaming(rig)
+    client = rig.client_class._default_client
+    original_mode = client.file_cache_mode
+    client.file_cache_mode = FileCacheMode.streaming
+    yield rig
+    client.file_cache_mode = original_mode
+
+
+def test_write_tell_tracks_position(streaming_rig):
+    """tell() on streaming write streams must report total bytes written, not just
+    the bytes pending in the buffer (write() previously never advanced the raw position)."""
+    path = streaming_rig.create_cloud_path("test_write_tell.bin")
+
+    try:
+        # small buffer so most bytes reach the raw layer instead of sitting in the buffer
+        with path.open("wb", buffer_size=64 * 1024) as f:
+            assert f.tell() == 0
+            f.write(b"x" * 200_000)  # larger than the buffer
+            assert f.tell() == 200_000
+            f.write(b"y" * 100)  # small write held in the buffer
+            assert f.tell() == 200_100
+        assert path.read_bytes() == b"x" * 200_000 + b"y" * 100
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_streaming_zipfile_write_roundtrip(streaming_rig):
+    """Position-dependent writers like zipfile rely on tell(); a streaming write
+    stream must produce a valid archive."""
+    path = streaming_rig.create_cloud_path("test_streaming_archive.zip")
+    big_member = b"data" * 50_000  # > the 64 KiB buffer below so bytes reach the raw layer
+
+    try:
+        with path.open("wb", buffer_size=64 * 1024) as f:
+            with zipfile.ZipFile(f, "w") as zf:
+                zf.writestr("a.txt", b"hello world")
+                zf.writestr("b.bin", big_member)
+
+        with zipfile.ZipFile(io.BytesIO(path.read_bytes())) as zf:
+            assert zf.testzip() is None
+            assert zf.read("a.txt") == b"hello world"
+            assert zf.read("b.bin") == big_member
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_raw_write_stream_rejects_seek(streaming_rig):
+    """seek() on a write-only raw stream must raise io.UnsupportedOperation instead of
+    silently succeeding while writes keep appending."""
+    path = streaming_rig.create_cloud_path("test_raw_seek_write.bin")
+
+    try:
+        with path.open("wb", buffering=0) as f:
+            assert not f.seekable()
+            f.write(b"data")
+            with pytest.raises(io.UnsupportedOperation):
+                f.seek(0)
+        assert path.read_bytes() == b"data"
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_streaming_full_read_uses_single_range_request(streaming_rig, monkeypatch):
+    """read() to EOF must fetch the remaining bytes in one ranged request (readall),
+    not fall back to one request per 8 KiB default chunk."""
+    rig = streaming_rig
+    content = bytes(range(256)) * 2048  # 512 KiB
+
+    # write in cached mode, then stream the read
+    client = rig.client_class._default_client
+    client.file_cache_mode = FileCacheMode.tmp_dir
+    path = rig.create_cloud_path("test_readall.bin")
+    path.write_bytes(content)
+    client.file_cache_mode = FileCacheMode.streaming
+
+    calls = []
+    original_range_download = type(client)._range_download
+
+    def counting_range_download(self, cloud_path, start, end):
+        calls.append((start, end))
+        return original_range_download(self, cloud_path, start, end)
+
+    monkeypatch.setattr(type(client), "_range_download", counting_range_download)
+
+    try:
+        with path.open("rb") as f:
+            data = f.read()
+        assert data == content
+        assert len(calls) <= 2, f"expected a single ranged request, got {calls}"
+    finally:
+        monkeypatch.undo()
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_streaming_size_fetch_failure_is_memoized(streaming_rig, monkeypatch):
+    """A failing content-length lookup must be attempted at most once per stream,
+    not re-issued before every chunk read."""
+    rig = streaming_rig
+    content = b"z" * (200 * 1024)
+
+    client = rig.client_class._default_client
+    client.file_cache_mode = FileCacheMode.tmp_dir
+    path = rig.create_cloud_path("test_size_memo.bin")
+    path.write_bytes(content)
+    client.file_cache_mode = FileCacheMode.streaming
+
+    calls = {"n": 0}
+
+    def failing_get_content_length(self, cloud_path):
+        calls["n"] += 1
+        raise OSError("no size available")
+
+    monkeypatch.setattr(type(client), "_get_content_length", failing_get_content_length)
+
+    try:
+        with path.open("rb", buffer_size=16 * 1024) as f:
+            data = f.read()
+        assert data == content
+        assert calls["n"] == 1
+    finally:
+        monkeypatch.undo()
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_gs_range_download_transient_error_not_treated_as_eof(gs_rig, monkeypatch):
+    """Errors that merely contain '416' in their message (request IDs, generation
+    numbers) must propagate; only true 416 range errors read as EOF."""
+    path = gs_rig.create_cloud_path("test_416_matching.bin")
+
+    class FakeServiceUnavailable(Exception):
+        code = 503
+
+    class FakeRangeError(Exception):
+        code = 416
+
+    def make_stub(error):
+        class StubBlob:
+            def download_as_bytes(self, start=None, end=None, **kwargs):
+                raise error
+
+        class StubBucket:
+            def blob(self, name):
+                return StubBlob()
+
+        return lambda name: StubBucket()
+
+    # transient error whose message contains "416" must raise, not return EOF
+    monkeypatch.setattr(
+        path.client.client,
+        "bucket",
+        make_stub(FakeServiceUnavailable("503 GET /o/file?generation=1234164 backend error")),
+    )
+    with pytest.raises(FakeServiceUnavailable):
+        path.client._range_download(path, 0, 9)
+
+    # structured 416 still reads as EOF
+    monkeypatch.setattr(
+        path.client.client, "bucket", make_stub(FakeRangeError("range not satisfiable"))
+    )
+    assert path.client._range_download(path, 0, 9) == b""
+
+    # exact reason phrase still reads as EOF (some layers do not expose a code)
+    monkeypatch.setattr(
+        path.client.client, "bucket", make_stub(Exception("Requested Range Not Satisfiable"))
+    )
+    assert path.client._range_download(path, 0, 9) == b""
+
+
+def test_azure_block_ids_namespaced_per_upload(azure_rig):
+    """Concurrent streaming writers to the same blob must stage blocks under distinct
+    IDs so they cannot clobber each other's uncommitted blocks."""
+    path = azure_rig.create_cloud_path("test_block_ids.bin")
+
+    upload_a = path.client._initiate_multipart_upload(path)
+    upload_b = path.client._initiate_multipart_upload(path)
+    assert upload_a and upload_b and upload_a != upload_b
+
+    try:
+        part_a = path.client._upload_part(path, upload_a, 1, b"A" * 16)
+        part_b = path.client._upload_part(path, upload_b, 1, b"B" * 16)
+        assert part_a["block_id"] != part_b["block_id"]
+
+        # committing B yields exactly B's data even though A staged the same part number
+        path.client._complete_multipart_upload(path, upload_b, [part_b])
+        assert path.read_bytes() == b"B" * 16
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_streaming_cross_client_copy(streaming_rig):
+    """copy() between paths on different client instances must work in streaming mode
+    (the cached implementation round-trips through fspath, which streaming forbids)."""
+    rig = streaming_rig
+    content = b"copy me" * 100
+
+    client = rig.client_class._default_client
+    client.file_cache_mode = FileCacheMode.tmp_dir
+    src = rig.create_cloud_path("test_copy_src.bin")
+    src.write_bytes(content)
+    client.file_cache_mode = FileCacheMode.streaming
+
+    other_client = rig.client_class(**rig.required_client_kwargs)
+    dst = other_client.CloudPath(str(rig.create_cloud_path("test_copy_dst.bin")))
+    assert src.client is not dst.client
+
+    try:
+        result = src.copy(dst)
+        assert result.read_bytes() == content
+    finally:
+        for p in (src, dst):
+            try:
+                p.unlink()
+            except Exception:
+                pass
+
+
+def test_http_rename_in_streaming_mode(rig):
+    """rename()/replace() on HTTP paths must work in streaming mode without fspath."""
+    if rig.path_class.cloud_prefix not in ("http://", "https://"):
+        pytest.skip("HTTP/HTTPS-specific test")
+
+    path = rig.create_cloud_path("test_rename_src.bin")
+    path.write_bytes(b"move me")
+    target = rig.create_cloud_path("test_rename_dst.bin")
+
+    original_mode = path.client.file_cache_mode
+    path.client.file_cache_mode = FileCacheMode.streaming
+    try:
+        result = path.rename(target)
+        assert result.read_bytes() == b"move me"
+        assert not path.exists()
+    finally:
+        path.client.file_cache_mode = original_mode
+        for p in (path, target):
+            try:
+                p.unlink()
+            except Exception:
+                pass
+
+
+def test_streaming_write_conflict_raises(streaming_rig):
+    """A streaming write with force_overwrite_to_cloud=False must not clobber a
+    version uploaded while the stream was open."""
+    rig = streaming_rig
+    path = rig.create_cloud_path("test_stream_conflict.bin")
+    path.write_bytes(b"original")
+
+    try:
+        f = path.open("wb", force_overwrite_to_cloud=False)
+        f.write(b"mine")
+
+        # a concurrent writer replaces the object with a strictly newer version
+        time.sleep(1.1)  # some providers report modification times in whole seconds
+        path.write_bytes(b"concurrent")
+
+        with pytest.raises(OverwriteNewerCloudError):
+            f.close()
+
+        assert path.read_bytes() == b"concurrent"
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_streaming_write_conflict_force_overwrites(streaming_rig):
+    """force_overwrite_to_cloud=True skips the conflict check and wins."""
+    rig = streaming_rig
+    path = rig.create_cloud_path("test_stream_conflict_force.bin")
+    path.write_bytes(b"original")
+
+    try:
+        f = path.open("wb", force_overwrite_to_cloud=True)
+        f.write(b"mine")
+        path.write_bytes(b"concurrent")
+        f.close()
+
+        assert path.read_bytes() == b"mine"
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_streaming_write_overwrite_unchanged_cloud_succeeds(streaming_rig):
+    """Overwriting an object that did not change while the stream was open is a
+    normal write and must not raise."""
+    rig = streaming_rig
+    path = rig.create_cloud_path("test_stream_overwrite_ok.bin")
+    path.write_bytes(b"v1")
+
+    try:
+        with path.open("wb", force_overwrite_to_cloud=False) as f:
+            f.write(b"v2")
+        assert path.read_bytes() == b"v2"
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_negative_buffering_accepted(rig):
+    """Any negative buffering value means 'use the default', matching builtins.open."""
+    path = rig.create_cloud_path("test_neg_buffering.txt")
+
+    try:
+        # cached mode passes buffering through to the local filesystem open
+        with path.open("w", buffering=-2) as f:
+            f.write("cached")
+        assert path.read_text() == "cached"
+
+        if rig.path_class.cloud_prefix in _STREAMING_PREFIXES:
+            original_mode = path.client.file_cache_mode
+            path.client.file_cache_mode = FileCacheMode.streaming
+            try:
+                with path.open("rb", buffering=-2) as f:
+                    assert f.read() == b"cached"
+            finally:
+                path.client.file_cache_mode = original_mode
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_streaming_not_found_errors_are_cloudpathlib_exceptions(rig):
+    """Streaming hooks must raise cloudpathlib's exception types so callers catching
+    CloudPathException (or CloudPathFileNotFoundError) see streaming errors too."""
+    _skip_if_no_streaming(rig)
+    missing = rig.create_cloud_path("definitely_missing_for_streaming.bin")
+
+    with pytest.raises(CloudPathFileNotFoundError):
+        missing.client._range_download(missing, 0, 9)
+
+    with pytest.raises(CloudPathFileNotFoundError):
+        missing.client._get_content_length(missing)
+
+
+# ============================================================================
+# Coverage-gap tests — raw-stream edge semantics, provider EOF mapping, guards
+# ============================================================================
+
+
+def test_raw_stream_edge_semantics(local_s3_rig):
+    """Raw adapter edge cases follow file-object semantics."""
+    path = local_s3_rig.create_cloud_path("raw-edges.bin")
+    path.write_bytes(b"0123456789")
+    raw = path._cloud_meta.raw_io_class(path.client, path, "rb")
+
+    # empty destination buffer reads zero bytes
+    assert raw.readinto(bytearray(0)) == 0
+
+    # relative seek and whence validation at the raw layer
+    raw.seek(4)
+    assert raw.seek(2, io.SEEK_CUR) == 6
+    with pytest.raises(ValueError, match="invalid whence"):
+        raw.seek(0, 42)
+
+    # readall from a mid-stream position, then again at EOF
+    assert raw.readall() == b"6789"
+    assert raw.readall() == b""
+    raw.close()
+
+    # write-only streams cannot readall; closed streams cannot readall
+    writer = path._cloud_meta.raw_io_class(path.client, path, "wb")
+    with pytest.raises(io.UnsupportedOperation):
+        writer.readall()
+    writer.write(b"replaced")
+    writer.close()
+    writer.close()  # double close is a no-op
+    with pytest.raises(ValueError, match="closed file"):
+        writer.readall()
+    assert path.read_bytes() == b"replaced"
+
+
+def test_multipart_part_limit_enforced(local_s3_rig):
+    """Exceeding the provider's maximum part count raises a clear OSError."""
+    path = local_s3_rig.create_cloud_path("part-limit.bin")
+
+    class TinyParts(path._cloud_meta.raw_io_class):
+        _INITIAL_PART_SIZE = 4
+        _MAX_PART_SIZE = 4
+        _MAX_PARTS = 2
+        _PARTS_PER_SIZE_TIER = 1_000
+
+    raw = TinyParts(path.client, path, "wb")
+    raw.write(b"x" * 8)  # exactly two full parts — at the limit
+    with pytest.raises(OSError, match="part limit"):
+        raw.write(b"x" * 4)
+    with pytest.raises(OSError, match="part limit"):
+        raw.close()  # the write failure is sticky and aborts the upload
+
+
+def test_buffered_io_direct_construction_guards(local_s3_rig):
+    """Direct construction validates modes that the open() path never forwards."""
+    path = local_s3_rig.create_cloud_path("direct-construction.bin")
+    path.write_bytes(b"0123456789")
+    raw_cls = path._cloud_meta.raw_io_class
+
+    with pytest.raises(io.UnsupportedOperation, match="append and update"):
+        CloudBufferedIO(raw_cls, path.client, path, mode="ab")
+    with pytest.raises(io.UnsupportedOperation, match="append and update"):
+        CloudTextIO(raw_cls, path.client, path, mode="a")
+
+    # readinto1 delegates to the buffered reader
+    with CloudBufferedIO(raw_cls, path.client, path, mode="rb") as f:
+        buf = bytearray(4)
+        assert f.readinto1(buf) == 4
+        assert bytes(buf) == b"0123"
+
+
+def test_streaming_text_exclusive_create(streaming_rig):
+    """mode='x' in text form creates a new object via streaming and rejects existing ones."""
+    from cloudpathlib.exceptions import CloudPathFileExistsError
+
+    path = streaming_rig.create_cloud_path("test_x_create.txt")
+    try:
+        with path.open(mode="x") as f:
+            f.write("created")
+        assert path.read_text() == "created"
+        with pytest.raises(CloudPathFileExistsError):
+            path.open(mode="x")
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_range_download_past_eof_returns_empty(streaming_rig):
+    """A range starting past EOF maps to EOF (empty bytes) on every provider."""
+    path = streaming_rig.create_cloud_path("past_eof.bin")
+    path.write_bytes(b"0123456789")
+    try:
+        assert path.client._range_download(path, 100, 199) == b""
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_raw_empty_write_is_noop(streaming_rig):
+    """Writing b'' at the raw layer uploads nothing but still finalizes correctly."""
+    path = streaming_rig.create_cloud_path("empty_chunk.bin")
+    try:
+        with path.open("wb", buffering=0) as f:
+            assert f.write(b"") == 0
+            f.write(b"payload")
+            assert f.write(b"") == 0
+        assert path.read_bytes() == b"payload"
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_s3_streaming_extra_args_uses_service_model(s3_rig):
+    """When the boto3 client exposes a service model, allowed params come from it,
+    and unknown params are dropped."""
+    from types import SimpleNamespace
+
+    client = s3_rig.client_class(**s3_rig.required_client_kwargs)
+    client.boto3_ul_extra_args = {"StorageClass": "STANDARD_IA", "NotARealParam": "x"}
+
+    shape = SimpleNamespace(members={"StorageClass": None})
+    operation_model = SimpleNamespace(input_shape=shape)
+    service_model = SimpleNamespace(operation_model=lambda name: operation_model)
+    client.client = SimpleNamespace(meta=SimpleNamespace(service_model=service_model))
+
+    assert client._streaming_extra_args("CreateMultipartUpload") == {"StorageClass": "STANDARD_IA"}
+
+
+def test_s3_streaming_extra_args_fallback_matches_botocore(s3_rig):
+    """The hard-coded fallback table must filter identically to botocore's real
+    service model, so it cannot silently drop newly added parameters."""
+    from types import SimpleNamespace
+
+    botocore_session = pytest.importorskip("botocore.session")
+    service_model = botocore_session.get_session().get_service_model("s3")
+
+    for operation in (
+        "CreateMultipartUpload",
+        "UploadPart",
+        "CompleteMultipartUpload",
+        "PutObject",
+    ):
+        members = set(service_model.operation_model(operation).input_shape.members)
+        extra_args = {name: "value" for name in sorted(members)}
+
+        fallback_client = s3_rig.client_class(**s3_rig.required_client_kwargs)
+        fallback_client.boto3_ul_extra_args = extra_args
+        fallback_client.client = SimpleNamespace()  # no .meta -> fallback table
+
+        real_client = s3_rig.client_class(**s3_rig.required_client_kwargs)
+        real_client.boto3_ul_extra_args = extra_args
+        real_client.client = SimpleNamespace(meta=SimpleNamespace(service_model=service_model))
+
+        assert fallback_client._streaming_extra_args(
+            operation
+        ) == real_client._streaming_extra_args(
+            operation
+        ), f"fallback table diverges from botocore for {operation}"
+
+
+def test_s3_streaming_content_encoding_threaded(s3_rig):
+    """Encodings from content_type_method are added to streaming upload args."""
+    import mimetypes
+
+    client = s3_rig.client_class(
+        content_type_method=mimetypes.guess_type, **s3_rig.required_client_kwargs
+    )
+    path = s3_rig.create_cloud_path("encoded.txt.gz", client=client)
+
+    args = client._streaming_object_args("CreateMultipartUpload", path)
+    assert args.get("ContentType") == "text/plain"
+    assert args.get("ContentEncoding") == "gzip"
+
+
+def test_azure_streaming_content_settings_branches(azure_rig):
+    """Content settings resolve for absent, empty, and populated content type methods."""
+    client_none = azure_rig.client_class(
+        content_type_method=None, **azure_rig.required_client_kwargs
+    )
+    path = azure_rig.create_cloud_path("content-settings.bin", client=client_none)
+    assert client_none._streaming_content_settings(path) is None
+
+    client_empty = azure_rig.client_class(
+        content_type_method=lambda name: (None, None), **azure_rig.required_client_kwargs
+    )
+    assert client_empty._streaming_content_settings(path) is None
+
+    client_full = azure_rig.client_class(
+        content_type_method=lambda name: ("text/plain", "gzip"),
+        **azure_rig.required_client_kwargs,
+    )
+    settings = client_full._streaming_content_settings(path)
+    assert settings.content_type == "text/plain"
+    assert settings.content_encoding == "gzip"
+
+    # abort is a documented no-op: uncommitted blocks simply expire server-side
+    client_none._abort_multipart_upload(path, "upload-id")
+
+
+def test_gs_multipart_upload_hooks(gs_rig):
+    """GS streaming writes use the XML multipart API: unique upload IDs, ordered
+    assembly of size-compliant parts, and cancellable uploads."""
+    client = gs_rig.client_class(**gs_rig.required_client_kwargs)
+    path = gs_rig.create_cloud_path("mpu-hooks.bin", client=client)
+
+    upload_a = client._initiate_multipart_upload(path)
+    upload_b = client._initiate_multipart_upload(path)
+    assert upload_a and upload_b and upload_a != upload_b
+
+    head = b"A" * (5 * 1024 * 1024)  # non-final parts must be at least 5 MiB
+    tail = b"B" * 16
+    part_1 = client._upload_part(path, upload_a, 1, head)
+    part_2 = client._upload_part(path, upload_a, 2, tail)
+    client._complete_multipart_upload(path, upload_a, [part_1, part_2])
+    client._abort_multipart_upload(path, upload_b)
+
+    try:
+        assert path.read_bytes() == head + tail
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_gs_mpu_initiate_threads_content_type_and_encoding(gs_rig):
+    """Initiate carries the content type and encoding from content_type_method."""
+    from types import SimpleNamespace
+
+    client = gs_rig.client_class(
+        content_type_method=lambda name: ("text/plain", "gzip"),
+        **gs_rig.required_client_kwargs,
+    )
+    path = gs_rig.create_cloud_path("mpu-headers.txt.gz", client=client)
+
+    captured = {}
+
+    class StubTransport:
+        def request(self, method, url, data=None, headers=None, **kwargs):
+            import requests
+
+            captured["method"] = method
+            captured["url"] = url
+            captured["headers"] = {key.lower(): value for key, value in (headers or {}).items()}
+            response = requests.Response()
+            response.status_code = 200
+            response._content = (
+                b'<InitiateMultipartUploadResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">'
+                b"<UploadId>stub-upload</UploadId></InitiateMultipartUploadResult>"
+            )
+            return response
+
+    client.client = SimpleNamespace(
+        _connection=SimpleNamespace(API_BASE_URL="https://storage.googleapis.com"),
+        _http=StubTransport(),
+    )
+
+    upload_id = client._initiate_multipart_upload(path)
+    assert upload_id == "stub-upload"
+    assert captured["method"] == "POST"
+    assert captured["url"].endswith("?uploads")
+    assert captured["headers"]["content-type"] == "text/plain"
+    assert captured["headers"]["content-encoding"] == "gzip"
+
+
+def test_http_streaming_error_paths(http_rig, monkeypatch):
+    """HTTP: unexpected range status, missing Content-Length, failing PUT status,
+    and unsupported PUT method all map to clear errors."""
+    import urllib.error
+
+    path = http_rig.create_cloud_path("http_errors.bin")
+    path.write_bytes(b"0123456789")
+
+    class FakeResponse:
+        def __init__(self, status, headers=None):
+            self.status = status
+            self.headers = headers if headers is not None else {}
+            self.reason = "stub"
+
+        def read(self, *args):
+            return b""
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    # a non-206/200 success status for a range request is unexpected
+    monkeypatch.setattr(path.client.opener, "open", lambda req: FakeResponse(204))
+    with pytest.raises(OSError, match="Unexpected status"):
+        path.client._range_download(path, 0, 3)
+
+    # HEAD without Content-Length cannot size the stream
+    monkeypatch.setattr(path.client.opener, "open", lambda req: FakeResponse(200))
+    with pytest.raises(ValueError, match="Content-Length"):
+        path.client._get_content_length(path)
+
+    # a failing PUT status raises OSError
+    monkeypatch.setattr(path.client.opener, "open", lambda req: FakeResponse(500))
+    with pytest.raises(OSError, match="HTTP PUT failed"):
+        path.client._put_data(path, io.BytesIO(b"x"), 1)
+
+    # non-404 HTTP errors propagate from reads and size checks
+    def raise_403(req):
+        raise urllib.error.HTTPError("url", 403, "Forbidden", {}, None)
+
+    monkeypatch.setattr(path.client.opener, "open", raise_403)
+    with pytest.raises(urllib.error.HTTPError):
+        path.client._range_download(path, 0, 3)
+    with pytest.raises(urllib.error.HTTPError):
+        path.client._get_content_length(path)
+
+    # servers that reject the write method surface CloudPathNotImplementedError
+    def raise_405(req):
+        raise urllib.error.HTTPError("url", 405, "Method Not Allowed", {}, None)
+
+    monkeypatch.setattr(path.client.opener, "open", raise_405)
+    with pytest.raises(CloudPathNotImplementedError):
+        path.client._put_data(path, io.BytesIO(b"x"), 1)
+
+    monkeypatch.undo()
+    try:
+        path.unlink()
+    except Exception:
+        pass
+
+
+def test_open_buffer_size_must_be_positive(streaming_rig):
+    """buffer_size=0 is rejected up front."""
+    path = streaming_rig.create_cloud_path("bad_buffer.bin")
+    with pytest.raises(ValueError, match="buffer_size"):
+        path.open("wb", buffer_size=0)
+
+
+def test_open_directory_raises(local_s3_rig):
+    """Opening a directory raises CloudPathIsADirectoryError in any cache mode."""
+    from cloudpathlib.exceptions import CloudPathIsADirectoryError
+
+    file_path = local_s3_rig.create_cloud_path("adir/inner.txt")
+    file_path.write_text("x")
+    dir_path = local_s3_rig.create_cloud_path("adir")
+
+    with pytest.raises(CloudPathIsADirectoryError):
+        dir_path.open("rb")
+
+
+def test_streaming_parquet_metadata_and_column_read(streaming_rig):
+    """Parquet readers work over a seekable streaming stream: the footer and a
+    single column can be read without downloading the whole object."""
+    pa = pytest.importorskip("pyarrow")
+    pq = pytest.importorskip("pyarrow.parquet")
+
+    rig = streaming_rig
+    client = rig.client_class._default_client
+    client.file_cache_mode = FileCacheMode.tmp_dir
+    path = rig.create_cloud_path("test_columns.parquet")
+    table = pa.table({"a": list(range(10_000)), "b": ["x" * 20] * 10_000})
+    sink = io.BytesIO()
+    pq.write_table(table, sink)
+    path.write_bytes(sink.getvalue())
+    client.file_cache_mode = FileCacheMode.streaming
+
+    try:
+        with path.open("rb", buffer_size=64 * 1024) as f:
+            parquet_file = pq.ParquetFile(f)
+            assert parquet_file.metadata.num_rows == 10_000
+            column = parquet_file.read(columns=["a"])
+            assert column.column("a").to_pylist()[:3] == [0, 1, 2]
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+# ============================================================================
+# streaming_max_concurrency — concurrent part uploads and read prefetch
+# ============================================================================
+
+
+def test_streaming_max_concurrency_validation(local_s3_rig):
+    """The concurrency knob must be a positive integer."""
+    with pytest.raises(ValueError, match="streaming_max_concurrency"):
+        local_s3_rig.client_class(
+            streaming_max_concurrency=0, **local_s3_rig.required_client_kwargs
+        )
+
+
+def test_concurrent_multipart_write_correctness(streaming_rig):
+    """A multi-part streaming write with concurrency > 1 produces identical content,
+    even when an early part finishes after later ones."""
+    from cloudpathlib.cloud_io import _CloudMultipartStorageRaw
+
+    rig = streaming_rig
+    if not issubclass(rig.raw_io_class, _CloudMultipartStorageRaw):
+        pytest.skip("provider does not use multipart streaming writes")
+
+    client = rig.client_class(
+        file_cache_mode=FileCacheMode.streaming,
+        streaming_max_concurrency=4,
+        **rig.required_client_kwargs,
+    )
+    path = rig.create_cloud_path("test_concurrent_parts.bin", client=client)
+    data = bytes(range(256)) * (48 * 1024)  # 12 MiB -> two 5 MiB parts + final part
+
+    part_numbers = []
+    real_upload_part = client._upload_part
+
+    def delaying_upload_part(cloud_path, upload_id, part_number, part_data):
+        if part_number == 1:
+            time.sleep(0.2)  # force part 1 to finish after later parts
+        part_numbers.append(part_number)
+        return real_upload_part(cloud_path, upload_id, part_number, part_data)
+
+    client._upload_part = delaying_upload_part
+
+    try:
+        with path.open("wb") as f:
+            f.write(data)
+        assert sorted(part_numbers) == list(range(1, len(part_numbers) + 1))
+        assert len(part_numbers) >= 2
+        assert path.read_bytes() == data
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_concurrent_multipart_write_parallelism_observed(local_s3_rig):
+    """With concurrency 2, two part uploads genuinely run at the same time."""
+    path = local_s3_rig.create_cloud_path("test_parallel_parts.bin")
+    client = local_s3_rig.client_class(
+        file_cache_mode=FileCacheMode.streaming,
+        streaming_max_concurrency=2,
+        **local_s3_rig.required_client_kwargs,
+    )
+    path = local_s3_rig.create_cloud_path("test_parallel_parts.bin", client=client)
+
+    barrier = threading.Barrier(2, timeout=30)
+    overlapped = []
+    real_upload_part = client._upload_part
+
+    def rendezvous_upload_part(cloud_path, upload_id, part_number, part_data):
+        if part_number <= 2:
+            barrier.wait()  # only passes if both uploads are in flight simultaneously
+            overlapped.append(part_number)
+        return real_upload_part(cloud_path, upload_id, part_number, part_data)
+
+    client._upload_part = rendezvous_upload_part
+
+    data = b"Z" * (12 * 1024 * 1024)  # two 5 MiB parts + final part
+    try:
+        with path.open("wb") as f:
+            f.write(data)
+        assert sorted(overlapped) == [1, 2]
+        assert path.read_bytes() == data
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass
+
+
+def test_concurrent_multipart_write_failure_is_sticky_and_aborts(local_s3_rig):
+    """A failing background part upload surfaces on a later write/close and aborts."""
+    client = local_s3_rig.client_class(
+        file_cache_mode=FileCacheMode.streaming,
+        streaming_max_concurrency=2,
+        **local_s3_rig.required_client_kwargs,
+    )
+    path = local_s3_rig.create_cloud_path("test_failing_part.bin", client=client)
+
+    aborted = []
+    real_abort = client._abort_multipart_upload
+
+    def spy_abort(cloud_path, upload_id):
+        aborted.append(upload_id)
+        return real_abort(cloud_path, upload_id)
+
+    def failing_upload_part(cloud_path, upload_id, part_number, part_data):
+        raise OSError("part upload failed")
+
+    client._upload_part = failing_upload_part
+    client._abort_multipart_upload = spy_abort
+
+    f = path.open("wb")
+    with pytest.raises(OSError, match="part upload failed"):
+        # keep writing until the background failure is harvested
+        for _ in range(10):
+            f.write(b"Q" * (6 * 1024 * 1024))
+        f.close()
+    with pytest.raises(OSError, match="part upload failed"):
+        f.close()
+
+    assert aborted, "failed upload was not aborted"
+    assert not path.exists()
+
+
+def test_read_prefetch_correctness_and_no_wasted_requests(streaming_rig):
+    """Sequential reads with prefetch fetch each byte range exactly once and
+    return identical data; seeking invalidates the prefetch window correctly."""
+    rig = streaming_rig
+    client = rig.client_class(
+        file_cache_mode=FileCacheMode.streaming,
+        streaming_max_concurrency=3,
+        **rig.required_client_kwargs,
+    )
+    path = rig.create_cloud_path("test_prefetch.bin", client=client)
+    chunk = 128 * 1024
+    data = bytes(range(256)) * (4 * 1024)  # 1 MiB -> 8 chunks
+
+    path.write_bytes(data)
+
+    calls = []
+    real_range_download = client._range_download
+
+    def counting_range_download(cloud_path, start, end):
+        calls.append((start, end))
+        return real_range_download(cloud_path, start, end)
+
+    client._range_download = counting_range_download
+
+    try:
+        with path.open("rb", buffer_size=chunk) as f:
+            read_back = b""
+            while True:
+                piece = f.read1(chunk)
+                if not piece:
+                    break
+                read_back = read_back + piece
+        assert read_back == data
+        starts = sorted(start for start, _ in calls)
+        assert starts == list(range(0, len(data), chunk)), f"unexpected requests: {calls}"
+
+        # seeking back re-reads correctly even though prefetched chunks are discarded
+        with path.open("rb", buffer_size=chunk) as f:
+            f.read1(chunk)
+            f.seek(3 * chunk)
+            assert f.read1(chunk) == data[3 * chunk : 4 * chunk]
+            f.seek(0)
+            assert f.read1(chunk) == data[:chunk]
+    finally:
+        try:
+            path.unlink()
+        except Exception:
+            pass

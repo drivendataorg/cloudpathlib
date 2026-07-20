@@ -5,6 +5,7 @@ from http import HTTPStatus
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Tuple, Union
 from itertools import islice
+from uuid import uuid4
 
 try:
     from typing import cast
@@ -14,7 +15,7 @@ except ImportError:
 from ..client import Client, _UploadPart, register_client_class
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
-from ..exceptions import MissingCredentialsError
+from ..exceptions import CloudPathFileNotFoundError, MissingCredentialsError
 from .azblobpath import AzureBlobPath
 
 try:
@@ -61,6 +62,7 @@ class AzureBlobClient(Client):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
+        streaming_max_concurrency: int = 1,
     ):
         """Class constructor. Sets up a [`BlobServiceClient`](
         https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
@@ -108,11 +110,15 @@ class AzureBlobClient(Client):
                 the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
+            streaming_max_concurrency (int): Maximum concurrent requests per open streaming
+                stream (background part uploads and read prefetch) when using
+                `FileCacheMode.streaming`; defaults to 1 (sequential).
         """
         super().__init__(
             local_cache_dir=local_cache_dir,
             content_type_method=content_type_method,
             file_cache_mode=file_cache_mode,
+            streaming_max_concurrency=streaming_max_concurrency,
         )
 
         if connection_string is None:
@@ -507,7 +513,7 @@ class AzureBlobClient(Client):
             downloader = blob_client.download_blob(offset=start, length=length)
             return downloader.readall()
         except ResourceNotFoundError:
-            raise FileNotFoundError(f"Azure blob not found: {cloud_path}")
+            raise CloudPathFileNotFoundError(f"Azure blob not found: {cloud_path}")
         except HttpResponseError as e:
             if (e.error and e.error.code == "InvalidRange") or e.status_code == 416:
                 return b""
@@ -522,11 +528,16 @@ class AzureBlobClient(Client):
             properties = blob_client.get_blob_properties()
             return properties.size
         except ResourceNotFoundError:
-            raise FileNotFoundError(f"Azure blob not found: {cloud_path}")
+            raise CloudPathFileNotFoundError(f"Azure blob not found: {cloud_path}")
 
     def _initiate_multipart_upload(self, cloud_path: AzureBlobPath) -> str:
-        """Return the stateless Azure upload ID."""
-        return ""
+        """Return a unique session ID that namespaces this upload's block IDs.
+
+        Azure's uncommitted-block namespace is per-blob, so deterministic block IDs
+        would let concurrent writers to the same blob overwrite each other's staged
+        blocks and commit interleaved data.
+        """
+        return uuid4().hex
 
     def _upload_part(
         self, cloud_path: AzureBlobPath, upload_id: str, part_number: int, data: bytes
@@ -537,7 +548,9 @@ class AzureBlobClient(Client):
         blob_client = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
-        block_id = base64.b64encode(f"block-{part_number:06d}".encode()).decode()
+        # Azure requires all block IDs for a blob to be the same length; uuid4().hex (32)
+        # plus a fixed-width part number keeps them uniform.
+        block_id = base64.b64encode(f"{upload_id}-{part_number:06d}".encode()).decode()
         blob_client.stage_block(block_id=block_id, data=data, length=len(data))
         return {"block_id": block_id}
 

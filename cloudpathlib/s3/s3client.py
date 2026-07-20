@@ -1,3 +1,4 @@
+from functools import lru_cache
 import mimetypes
 import os
 from pathlib import Path, PurePosixPath
@@ -6,7 +7,7 @@ from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Tuple, Uni
 from ..client import Client, _UploadPart, register_client_class
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
-from ..exceptions import CloudPathException
+from ..exceptions import CloudPathException, CloudPathFileNotFoundError
 from .s3path import S3Path
 
 try:
@@ -17,6 +18,12 @@ try:
     import botocore.session
 except ModuleNotFoundError:
     implementation_registry["s3"].dependencies_loaded = False
+
+
+@lru_cache(maxsize=None)
+def _botocore_s3_operation_model(operation_name: str):
+    """Operation model from the installed botocore's bundled S3 service data (no network)."""
+    return botocore.session.get_session().get_service_model("s3").operation_model(operation_name)
 
 
 @register_client_class("s3")
@@ -40,6 +47,7 @@ class S3Client(Client):
         addressing_style: Optional[str] = None,
         boto3_transfer_config: Optional["TransferConfig"] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
+        streaming_max_concurrency: int = 1,
         extra_args: Optional[dict] = None,
     ):
         """Class constructor. Sets up a boto3 [`Session`](
@@ -77,6 +85,9 @@ class S3Client(Client):
                 [s3 transfers](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
+            streaming_max_concurrency (int): Maximum concurrent requests per open streaming
+                stream (background part uploads and read prefetch) when using
+                `FileCacheMode.streaming`; defaults to 1 (sequential).
             extra_args (Optional[dict]): A dictionary of extra args passed to download, upload, copy,
                 and list functions as relevant. You can include any keys supported by upload,
                 download, or copy operations, and we will pass on only the relevant args. To see the
@@ -132,6 +143,7 @@ class S3Client(Client):
             local_cache_dir=local_cache_dir,
             content_type_method=content_type_method,
             file_cache_mode=file_cache_mode,
+            streaming_max_concurrency=streaming_max_concurrency,
         )
 
     def _get_boto3_config(self, signature_version: Optional[str] = None):
@@ -416,7 +428,7 @@ class S3Client(Client):
         except ClientError as e:
             code = e.response["Error"]["Code"]
             if code in ("404", "NoSuchKey"):
-                raise FileNotFoundError(f"S3 object not found: {cloud_path}")
+                raise CloudPathFileNotFoundError(f"S3 object not found: {cloud_path}")
             if code in ("InvalidRange", "416"):
                 return b""
             raise
@@ -440,64 +452,19 @@ class S3Client(Client):
         except ClientError as e:
             code = e.response["Error"]["Code"]
             if code in ("404", "NoSuchKey"):
-                raise FileNotFoundError(f"S3 object not found: {cloud_path}")
+                raise CloudPathFileNotFoundError(f"S3 object not found: {cloud_path}")
             raise
 
     def _streaming_extra_args(self, operation_name: str) -> Dict[str, Any]:
         """Return upload extras accepted by a specific low-level S3 operation."""
         try:
             operation = self.client.meta.service_model.operation_model(operation_name)
-            allowed = set(operation.input_shape.members)
         except AttributeError:
-            # The test client intentionally implements only a small boto3 surface.
-            fallback_allowed = {
-                "CreateMultipartUpload": {
-                    "ACL",
-                    "CacheControl",
-                    "ChecksumAlgorithm",
-                    "ContentDisposition",
-                    "ContentEncoding",
-                    "ContentLanguage",
-                    "ContentType",
-                    "ExpectedBucketOwner",
-                    "Expires",
-                    "Metadata",
-                    "ObjectLockLegalHoldStatus",
-                    "ObjectLockMode",
-                    "ObjectLockRetainUntilDate",
-                    "RequestPayer",
-                    "SSECustomerAlgorithm",
-                    "SSECustomerKey",
-                    "SSECustomerKeyMD5",
-                    "SSEKMSEncryptionContext",
-                    "SSEKMSKeyId",
-                    "ServerSideEncryption",
-                    "StorageClass",
-                    "Tagging",
-                    "WebsiteRedirectLocation",
-                },
-                "UploadPart": {
-                    "ChecksumAlgorithm",
-                    "ExpectedBucketOwner",
-                    "RequestPayer",
-                    "SSECustomerAlgorithm",
-                    "SSECustomerKey",
-                    "SSECustomerKeyMD5",
-                },
-                "CompleteMultipartUpload": {
-                    "ChecksumCRC32",
-                    "ChecksumCRC32C",
-                    "ChecksumCRC64NVME",
-                    "ChecksumSHA1",
-                    "ChecksumSHA256",
-                    "ChecksumType",
-                    "ExpectedBucketOwner",
-                    "MpuObjectSize",
-                    "RequestPayer",
-                },
-                "PutObject": set(self.boto3_ul_extra_args),
-            }
-            allowed = fallback_allowed[operation_name]
+            # client objects that do not expose botocore's meta (e.g. test doubles):
+            # consult the installed botocore service model directly so filtering
+            # behaves identically to a real boto3 client
+            operation = _botocore_s3_operation_model(operation_name)
+        allowed = set(operation.input_shape.members)
         return {key: value for key, value in self.boto3_ul_extra_args.items() if key in allowed}
 
     def _streaming_object_args(self, operation_name: str, cloud_path: S3Path) -> Dict[str, Any]:

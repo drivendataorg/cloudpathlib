@@ -13,6 +13,7 @@ import warnings
 
 from cloudpathlib.client import Client, register_client_class
 from cloudpathlib.enums import FileCacheMode
+from cloudpathlib.exceptions import CloudPathFileNotFoundError, CloudPathNotImplementedError
 
 from .httppath import HttpPath
 
@@ -24,6 +25,7 @@ class HttpClient(Client):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
+        streaming_max_concurrency: int = 1,
         auth: Optional[urllib.request.BaseHandler] = None,
         custom_list_page_parser: Optional[Callable[[str], Iterable[str]]] = None,
         custom_dir_matcher: Optional[Callable[[str], bool]] = None,
@@ -41,12 +43,20 @@ class HttpClient(Client):
                 the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 uploading files. Defaults to `mimetypes.guess_type`.
+            streaming_max_concurrency (int): Maximum concurrent requests per open streaming
+                stream (background part uploads and read prefetch) when using
+                `FileCacheMode.streaming`; defaults to 1 (sequential).
             auth (Optional[urllib.request.BaseHandler]): Authentication handler to use for the client. Defaults to None, which will use the default handler.
             custom_list_page_parser (Optional[Callable[[str], Iterable[str]]]): Function to call to parse pages that list directories. Defaults to looking for `<a>` tags with `href`.
             custom_dir_matcher (Optional[Callable[[str], bool]]): Function to call to identify a url that is a directory. Defaults to a lambda that checks if the path ends with a `/`.
             write_file_http_method (Optional[str]): HTTP method to use when writing files. Defaults to "PUT", but some servers may want "POST".
         """
-        super().__init__(file_cache_mode, local_cache_dir, content_type_method)
+        super().__init__(
+            file_cache_mode,
+            local_cache_dir,
+            content_type_method,
+            streaming_max_concurrency=streaming_max_concurrency,
+        )
         self.auth = auth
 
         if self.auth is None:
@@ -105,8 +115,14 @@ class HttpClient(Client):
             raise
 
     def _move_file(self, src: HttpPath, dst: HttpPath, remove_src: bool = True) -> HttpPath:
-        # .fspath will download the file so the local version can be uploaded
-        self._upload_file(src.fspath, dst)
+        if self.file_cache_mode == FileCacheMode.streaming:
+            # streaming mode has no local cache to round-trip through (fspath is
+            # unavailable), so stream between the two paths directly
+            with src.open("rb") as src_file, dst.open("wb") as dst_file:
+                shutil.copyfileobj(src_file, dst_file)
+        else:
+            # .fspath will download the file so the local version can be uploaded
+            self._upload_file(src.fspath, dst)
         if remove_src:
             try:
                 self._remove(src)
@@ -221,7 +237,7 @@ class HttpClient(Client):
                     raise OSError(f"Unexpected status {status} for range request on {cloud_path}")
         except urllib.error.HTTPError as e:
             if e.code == 404:
-                raise FileNotFoundError(f"HTTP resource not found: {cloud_path}")
+                raise CloudPathFileNotFoundError(f"HTTP resource not found: {cloud_path}")
             elif e.code == 416:
                 return b""
             raise
@@ -237,7 +253,7 @@ class HttpClient(Client):
                 raise ValueError(f"HTTP resource does not provide Content-Length: {cloud_path}")
         except urllib.error.HTTPError as e:
             if e.code == 404:
-                raise FileNotFoundError(f"HTTP resource not found: {cloud_path}")
+                raise CloudPathFileNotFoundError(f"HTTP resource not found: {cloud_path}")
             raise
 
     def _put_data(self, cloud_path: "HttpPath", data: BinaryIO, content_length: int) -> None:
@@ -258,7 +274,7 @@ class HttpClient(Client):
                     )
         except urllib.error.HTTPError as e:
             if e.code == 405:
-                raise NotImplementedError(
+                raise CloudPathNotImplementedError(
                     f"HTTP server does not support {self.write_file_http_method} requests for {url}"
                 )
             raise OSError(f"HTTP upload failed: {e}")

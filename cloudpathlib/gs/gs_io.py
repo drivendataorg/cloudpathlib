@@ -1,39 +1,16 @@
 """Google Cloud Storage streaming I/O."""
 
-from __future__ import annotations
-
-from typing import Optional
-
-from ..client import Client, _CloudWriteStream
-from ..cloud_io import _CloudStorageRaw
-from ..cloudpath import CloudPath, register_raw_io_class
+from ..cloud_io import _CloudMultipartStorageRaw
+from ..cloudpath import register_raw_io_class
 
 
 @register_raw_io_class("gs")
-class _GSStorageRaw(_CloudStorageRaw):
-    """GCS range reads and resumable writes."""
+class _GSStorageRaw(_CloudMultipartStorageRaw):
+    """GCS range reads and XML multipart-upload writes."""
 
-    def __init__(self, client: Client, cloud_path: CloudPath, mode: str = "rb") -> None:
-        super().__init__(client, cloud_path, mode)
-        self._writer: Optional[_CloudWriteStream] = None
-
-    def _upload_chunk(self, data: bytes) -> None:
-        if not data:
-            return
-        if self._writer is None:
-            self._writer = self._client._open_write_stream(self._cloud_path)
-        self._client._write_stream(self._writer, data)
-
-    def _finalize_upload(self) -> None:
-        if self._writer is None:
-            self._client._put_empty_object(self._cloud_path)
-            return
-        self._client._close_write_stream(self._writer)
-        self._writer = None
-
-    def _abort_upload(self) -> None:
-        if self._writer is not None:
-            try:
-                self._client._abort_write_stream(self._writer)
-            finally:
-                self._writer = None
+    # GCS XML multipart uploads require non-final parts of at least 5 MiB.
+    _INITIAL_PART_SIZE = 5 * 1024 * 1024
+    _MAX_PART_SIZE = 5 * 1024 * 1024 * 1024
+    _MAX_PARTS = 10_000
+    _PARTS_PER_SIZE_TIER = 1_000
+    _PROVIDER_NAME = "GCS multipart"

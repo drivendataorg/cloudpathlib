@@ -7,7 +7,6 @@ import shutil
 import sys
 from tempfile import TemporaryDirectory
 from time import sleep
-from types import TracebackType
 from typing import (
     Any,
     Callable,
@@ -18,13 +17,13 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    Type,
     Union,
 )
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from ..client import Client, _CloudWriteStream, _UploadPart
+from ..client import Client, _UploadPart
 from ..enums import FileCacheMode
+from ..exceptions import CloudPathFileNotFoundError
 from .localpath import LocalPath
 
 
@@ -46,6 +45,7 @@ class LocalClient(Client):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
+        streaming_max_concurrency: int = 1,
         **kwargs: Any,
     ) -> None:
         self._local_storage_dir = local_storage_dir
@@ -55,6 +55,7 @@ class LocalClient(Client):
             local_cache_dir=local_cache_dir,
             content_type_method=content_type_method,
             file_cache_mode=file_cache_mode,
+            streaming_max_concurrency=streaming_max_concurrency,
         )
 
     @classmethod
@@ -233,7 +234,7 @@ class LocalClient(Client):
         """Download a byte range from local storage."""
         local_path = self._cloud_path_to_local(cloud_path)
         if not local_path.exists():
-            raise FileNotFoundError(f"File not found: {cloud_path}")
+            raise CloudPathFileNotFoundError(f"File not found: {cloud_path}")
 
         with open(local_path, "rb") as f:
             f.seek(start)
@@ -244,7 +245,7 @@ class LocalClient(Client):
         """Get the size of a local file."""
         local_path = self._cloud_path_to_local(cloud_path)
         if not local_path.exists():
-            raise FileNotFoundError(f"File not found: {cloud_path}")
+            raise CloudPathFileNotFoundError(f"File not found: {cloud_path}")
         return local_path.stat().st_size
 
     def _initiate_multipart_upload(self, cloud_path: LocalPath) -> str:
@@ -279,51 +280,11 @@ class LocalClient(Client):
     def _abort_multipart_upload(self, cloud_path: LocalPath, upload_id: str) -> None:
         self._local_upload_buffers.pop(upload_id, None)
 
-    def _open_write_stream(self, cloud_path: LocalPath) -> _CloudWriteStream:
-        local_path = self._cloud_path_to_local(cloud_path)
-        return _LocalWriteStream(local_path)
-
     def _put_empty_object(self, cloud_path: LocalPath) -> None:
         """Create a zero-byte local file."""
         local_path = self._cloud_path_to_local(cloud_path)
         local_path.parent.mkdir(parents=True, exist_ok=True)
         local_path.write_bytes(b"")
-
-
-class _LocalWriteStream:
-    """Buffered local write stream."""
-
-    def __init__(self, local_path: Path) -> None:
-        self._local_path = local_path
-        self._buf: bytearray = bytearray()
-        self._closed: bool = False
-
-    def write(self, data: bytes) -> int:
-        if self._closed:
-            raise ValueError("I/O operation on closed stream")
-        self._buf.extend(data)
-        return len(data)
-
-    def close(self) -> None:
-        if not self._closed:
-            self._closed = True
-            self._local_path.parent.mkdir(parents=True, exist_ok=True)
-            self._local_path.write_bytes(bytes(self._buf))
-
-    def terminate(self) -> None:
-        self._closed = True
-        self._buf.clear()
-
-    def __enter__(self) -> "_LocalWriteStream":
-        return self
-
-    def __exit__(
-        self,
-        exc_type: Optional[Type[BaseException]],
-        exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType],
-    ) -> None:
-        self.close()
 
 
 _temp_dirs_to_clean: List[TemporaryDirectory] = []

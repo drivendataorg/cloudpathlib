@@ -278,6 +278,17 @@ class MockBoto3Client:
             match = re.match(r"bytes=(\d+)-(\d+)", Range)
             if match:
                 start, end = int(match.group(1)), int(match.group(2))
+                if start >= len(data):
+                    # real S3 rejects ranges starting past EOF (an end past EOF is clamped)
+                    raise ClientError(
+                        {
+                            "Error": {
+                                "Code": "InvalidRange",
+                                "Message": "The requested range is not satisfiable",
+                            }
+                        },
+                        {},
+                    )
                 data = data[start : end + 1]
             else:
                 raise ClientError(
