@@ -105,12 +105,14 @@ class TestHTTPRequestHandler(SimpleHTTPRequestHandler):
             else:
                 end = file_size - 1
 
-            # Validate range
-            if start < 0 or end >= file_size or start > end:
+            # Validate range (RFC 7233: a range is unsatisfiable only when start is past
+            # EOF; an end past EOF is clamped to the final byte, as real servers do)
+            if start < 0 or start >= file_size or start > end:
                 self.send_error(416, "Requested Range Not Satisfiable")
                 self.send_header("Content-Range", f"bytes */{file_size}")
                 self.end_headers()
                 return
+            end = min(end, file_size - 1)
 
             # Read the requested range
             with path.open("rb") as f:

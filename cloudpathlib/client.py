@@ -12,7 +12,6 @@ from typing import (
     Generic,
     Iterable,
     Optional,
-    Protocol,
     Sequence,
     Tuple,
     TypeVar,
@@ -25,14 +24,6 @@ from .exceptions import InvalidConfigurationException
 
 BoundedCloudPath = TypeVar("BoundedCloudPath", bound=CloudPath)
 _UploadPart = Dict[str, Any]
-
-
-class _CloudWriteStream(Protocol):
-    def write(self, data: bytes) -> int: ...
-
-    def close(self) -> None: ...
-
-    def terminate(self) -> None: ...
 
 
 def register_client_class(key: str) -> Callable:
@@ -56,10 +47,17 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
+        streaming_max_concurrency: int = 1,
     ) -> None:
         self.file_cache_mode = None
         self._cache_tmp_dir = None
         self._cloud_meta.validate_completeness()
+
+        if streaming_max_concurrency < 1:
+            raise ValueError("streaming_max_concurrency must be at least 1")
+        # concurrent requests per open streaming stream (part uploads / read prefetch);
+        # 1 means fully sequential I/O
+        self.streaming_max_concurrency = streaming_max_concurrency
 
         # convert strings passed to enum
         if isinstance(file_cache_mode, str):
@@ -110,6 +108,9 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
             FileCacheMode.tmp_dir,
             FileCacheMode.close_file,
             FileCacheMode.cloudpath_object,
+            # streaming avoids the cache except for append/update fallbacks, which
+            # should not outlive the client
+            FileCacheMode.streaming,
         ]:
             self.clear_cache()
 
@@ -247,21 +248,6 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         raise NotImplementedError(
             f"{type(self).__name__} does not support streaming I/O (_abort_multipart_upload)."
         )
-
-    def _open_write_stream(self, cloud_path: BoundedCloudPath) -> _CloudWriteStream:
-        """Open a provider write stream."""
-        raise NotImplementedError(
-            f"{type(self).__name__} does not support streaming I/O (_open_write_stream)."
-        )
-
-    def _write_stream(self, stream: _CloudWriteStream, data: bytes) -> int:
-        return stream.write(data)
-
-    def _close_write_stream(self, stream: _CloudWriteStream) -> None:
-        stream.close()
-
-    def _abort_write_stream(self, stream: _CloudWriteStream) -> None:
-        stream.terminate()
 
     def _put_empty_object(self, cloud_path: BoundedCloudPath) -> None:
         """Create an empty object."""

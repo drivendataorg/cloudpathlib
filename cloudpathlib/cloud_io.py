@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import io
 from abc import abstractmethod
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Optional, Type, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Type, Union
 
 if TYPE_CHECKING:
     from _typeshed import ReadableBuffer as _ReadableBuffer
@@ -16,6 +17,12 @@ else:
 
 from .client import Client
 from .cloudpath import CloudPath
+
+# Bytes fetched/buffered per request for buffered streaming I/O. Sized to match the
+# multi-MiB block sizes used by comparable tools (fsspec/s3fs/gcsfs) so per-request
+# latency does not dominate sequential throughput; reads never fetch past EOF, so
+# small objects only pay for their actual size.
+DEFAULT_BUFFER_SIZE = 5 * 1024 * 1024
 
 
 def _validate_file_mode(mode: str) -> None:
@@ -47,8 +54,15 @@ class _CloudStorageRaw(io.RawIOBase):
         self._mode = mode
         self._pos = 0
         self._size: Optional[int] = None
+        self._size_fetch_failed = False
         self._closed = False
         self._upload_error: Optional[BaseException] = None
+        # Optional conflict check run just before a write is finalized (set by CloudPath.open)
+        self._pre_finalize: Optional[Callable[[], None]] = None
+        # concurrent requests for this stream (read prefetch / background part uploads)
+        self._max_concurrency = max(1, int(getattr(client, "streaming_max_concurrency", 1)))
+        self._executor: Optional[ThreadPoolExecutor] = None
+        self._prefetch: Dict[int, Future] = {}
 
     def readable(self) -> bool:
         """Return whether object was opened for reading."""
@@ -77,19 +91,14 @@ class _CloudStorageRaw(io.RawIOBase):
         start = self._pos
         end = start + len(view) - 1
 
-        if self._size is None:
-            try:
-                self._size = self._get_size()
-            except Exception:
-                pass
-
-        if self._size is not None and end >= self._size:
-            end = self._size - 1
-            if start >= self._size:
+        size = self._known_size()
+        if size is not None and end >= size:
+            end = size - 1
+            if start >= size:
                 return 0
 
         try:
-            data = self._range_get(start, end)
+            data = self._fetch_range(start, end)
         except Exception as e:
             if self._is_eof_error(e):
                 return 0
@@ -105,6 +114,25 @@ class _CloudStorageRaw(io.RawIOBase):
         self._pos += n
         return n
 
+    def readall(self) -> bytes:
+        """Read from the current position to EOF in a single ranged request when possible."""
+        if self._closed:
+            raise ValueError("I/O operation on closed file")
+        if not self.readable():
+            raise io.UnsupportedOperation("not readable")
+
+        self._discard_prefetch()
+        size = self._known_size()
+        if size is None:
+            # Size unknown: fall back to the default chunked read loop.
+            return super().readall()
+        if self._pos >= size:
+            return b""
+
+        data = self._range_get(self._pos, size - 1)
+        self._pos += len(data)
+        return data
+
     def seek(self, offset: int, whence: int = io.SEEK_SET) -> int:
         """
         Change stream position.
@@ -118,17 +146,18 @@ class _CloudStorageRaw(io.RawIOBase):
         """
         if self._closed:
             raise ValueError("I/O operation on closed file")
+        if not self.seekable():
+            raise io.UnsupportedOperation("seek")
 
         if whence == io.SEEK_SET:
             new_pos = offset
         elif whence == io.SEEK_CUR:
             new_pos = self._pos + offset
         elif whence == io.SEEK_END:
-            if self._size is None:
-                self._size = self._get_size()
-            if self._size is None:
+            size = self._known_size()
+            if size is None:
                 raise OSError("Unable to determine file size for SEEK_END")
-            new_pos = self._size + offset
+            new_pos = size + offset
         else:
             raise ValueError(
                 f"invalid whence ({whence}, should be {io.SEEK_SET}, "
@@ -138,6 +167,8 @@ class _CloudStorageRaw(io.RawIOBase):
         if new_pos < 0:
             raise ValueError("negative seek position")
 
+        if new_pos != self._pos:
+            self._discard_prefetch()
         self._pos = new_pos
         return self._pos
 
@@ -161,6 +192,7 @@ class _CloudStorageRaw(io.RawIOBase):
         except BaseException as error:
             self._upload_error = error
             raise
+        self._pos += len(data)
         return len(data)
 
     def close(self) -> None:
@@ -180,6 +212,8 @@ class _CloudStorageRaw(io.RawIOBase):
                     raise self._upload_error
             if self.writable():
                 try:
+                    if self._pre_finalize is not None:
+                        self._pre_finalize()
                     self._finalize_upload()
                 except BaseException:
                     try:
@@ -188,6 +222,7 @@ class _CloudStorageRaw(io.RawIOBase):
                         pass
                     raise
         finally:
+            self._shutdown_executor()
             super().close()
 
     def _abort_upload(self) -> None:
@@ -202,11 +237,75 @@ class _CloudStorageRaw(io.RawIOBase):
     def _finalize_upload(self) -> None:
         pass
 
+    def _ensure_executor(self) -> Optional[ThreadPoolExecutor]:
+        """Thread pool for this stream's background requests; None when sequential."""
+        if self._max_concurrency <= 1:
+            return None
+        if self._executor is None:
+            self._executor = ThreadPoolExecutor(
+                max_workers=self._max_concurrency, thread_name_prefix="cloudpathlib-stream"
+            )
+        return self._executor
+
+    def _shutdown_executor(self) -> None:
+        self._discard_prefetch()
+        if self._executor is not None:
+            self._executor.shutdown(wait=True, cancel_futures=True)
+            self._executor = None
+
+    def _discard_prefetch(self) -> None:
+        for future in self._prefetch.values():
+            future.cancel()
+        self._prefetch.clear()
+
+    def _fetch_range(self, start: int, end: int) -> bytes:
+        """Fetch [start, end], serving from and topping up background prefetch when enabled."""
+        executor = self._ensure_executor()
+        if executor is None:
+            return self._range_get(start, end)
+
+        chunk_len = end - start + 1
+        future = self._prefetch.pop(start, None)
+        if future is not None:
+            # a short prefetched chunk is a legal short read for RawIOBase consumers
+            data = future.result()
+            self._schedule_prefetch(start + max(len(data), 1), chunk_len)
+            return data
+
+        # position changed or first read: pending prefetches no longer line up
+        self._discard_prefetch()
+        data = self._range_get(start, end)
+        self._schedule_prefetch(end + 1, chunk_len)
+        return data
+
+    def _schedule_prefetch(self, next_start: int, chunk_len: int) -> None:
+        """Queue reads ahead of the current position, up to the concurrency window."""
+        size = self._known_size()
+        executor = self._ensure_executor()
+        if size is None or chunk_len <= 0 or executor is None:
+            return
+        start = next_start
+        while len(self._prefetch) < self._max_concurrency and start < size:
+            if start not in self._prefetch:
+                self._prefetch[start] = executor.submit(
+                    self._range_get, start, min(start + chunk_len, size) - 1
+                )
+            start += chunk_len
+
     def _range_get(self, start: int, end: int) -> bytes:
         return self._client._range_download(self._cloud_path, start, end)
 
     def _get_size(self) -> int:
         return self._client._get_content_length(self._cloud_path)
+
+    def _known_size(self) -> Optional[int]:
+        """Fetch and memoize the object size, attempting the lookup at most once."""
+        if self._size is None and not self._size_fetch_failed:
+            try:
+                self._size = self._get_size()
+            except Exception:
+                self._size_fetch_failed = True
+        return self._size
 
     def _is_eof_error(self, error: Exception) -> bool:
         """
@@ -229,7 +328,8 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
     def __init__(self, client: Client, cloud_path: CloudPath, mode: str = "rb") -> None:
         super().__init__(client, cloud_path, mode)
         self._upload_id: Optional[str] = None
-        self._parts: list[dict[str, Any]] = []
+        self._parts: Dict[int, dict[str, Any]] = {}
+        self._part_futures: Dict[int, Future] = {}
         self._part_number = 1
         self._write_buffer = bytearray()
 
@@ -252,12 +352,42 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
         if self._upload_id is None:
             self._upload_id = self._client._initiate_multipart_upload(self._cloud_path)
         data = bytes(self._write_buffer[:size])
-        part = self._client._upload_part(
-            self._cloud_path, self._upload_id, self._part_number, data
-        )
         del self._write_buffer[:size]
-        self._parts.append(part)
+        part_number = self._part_number
         self._part_number += 1
+
+        executor = self._ensure_executor()
+        if executor is None:
+            self._parts[part_number] = self._client._upload_part(
+                self._cloud_path, self._upload_id, part_number, data
+            )
+            return
+
+        # bound in-flight parts (and their buffered bytes) to the concurrency window
+        self._harvest_part_futures(block=len(self._part_futures) >= self._max_concurrency)
+        self._part_futures[part_number] = executor.submit(
+            self._client._upload_part, self._cloud_path, self._upload_id, part_number, data
+        )
+
+    def _harvest_part_futures(self, block: bool = False, drain: bool = False) -> None:
+        """Collect finished background part uploads, re-raising the first failure."""
+        if not self._part_futures:
+            return
+        if drain:
+            wait(list(self._part_futures.values()))
+        elif block:
+            wait(list(self._part_futures.values()), return_when=FIRST_COMPLETED)
+
+        error: Optional[BaseException] = None
+        for part_number in [n for n, f in self._part_futures.items() if f.done()]:
+            future = self._part_futures.pop(part_number)
+            try:
+                self._parts[part_number] = future.result()
+            except BaseException as e:
+                if error is None:
+                    error = e
+        if error is not None:
+            raise error
 
     def _upload_chunk(self, data: bytes) -> None:
         if not data:
@@ -271,14 +401,19 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
     def _finalize_upload(self) -> None:
         if self._write_buffer:
             self._upload_buffered_part(len(self._write_buffer))
+        self._harvest_part_futures(drain=True)
         if self._upload_id is None:
             self._client._put_empty_object(self._cloud_path)
             return
-        self._client._complete_multipart_upload(self._cloud_path, self._upload_id, self._parts)
+        ordered_parts = [self._parts[number] for number in sorted(self._parts)]
+        self._client._complete_multipart_upload(self._cloud_path, self._upload_id, ordered_parts)
         self._reset_upload()
 
     def _abort_upload(self) -> None:
         try:
+            for future in self._part_futures.values():
+                future.cancel()
+            wait(list(self._part_futures.values()))
             if self._upload_id is not None:
                 self._client._abort_multipart_upload(self._cloud_path, self._upload_id)
         finally:
@@ -287,6 +422,7 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
     def _reset_upload(self) -> None:
         self._upload_id = None
         self._parts.clear()
+        self._part_futures.clear()
         self._part_number = 1
         self._write_buffer.clear()
 
@@ -300,7 +436,8 @@ class CloudBufferedIO(io.BufferedIOBase):
         client: Client,
         cloud_path: CloudPath,
         mode: str = "rb",
-        buffer_size: int = 64 * 1024,
+        buffer_size: int = DEFAULT_BUFFER_SIZE,
+        pre_finalize: Optional[Callable[[], None]] = None,
     ) -> None:
         _validate_file_mode(mode)
         if "b" not in mode:
@@ -311,6 +448,8 @@ class CloudBufferedIO(io.BufferedIOBase):
             )
 
         raw = raw_io_class(client, cloud_path, mode)
+        if pre_finalize is not None:
+            raw._pre_finalize = pre_finalize
 
         if "r" in mode:
             self._buffer: Union[io.BufferedReader, io.BufferedWriter]
@@ -403,8 +542,9 @@ class CloudTextIO(io.TextIOWrapper):
         encoding: Optional[str] = None,
         errors: Optional[str] = None,
         newline: Optional[str] = None,
-        buffer_size: int = 64 * 1024,
+        buffer_size: int = DEFAULT_BUFFER_SIZE,
         line_buffering: bool = False,
+        pre_finalize: Optional[Callable[[], None]] = None,
     ) -> None:
         _validate_file_mode(mode)
         if "b" in mode:
@@ -414,19 +554,23 @@ class CloudTextIO(io.TextIOWrapper):
                 "append and update modes require the local-cache implementation"
             )
 
+        # only r/w/x can reach here: 'b' was rejected above and 'a'/'+' raised earlier
         if "t" not in mode and "r" in mode:
             binary_mode = mode.replace("r", "rb", 1)
         elif "t" not in mode and "w" in mode:
             binary_mode = mode.replace("w", "wb", 1)
-        elif "t" not in mode and "a" in mode:
-            binary_mode = mode.replace("a", "ab", 1)
         elif "t" not in mode and "x" in mode:
             binary_mode = mode.replace("x", "xb", 1)
         else:
             binary_mode = mode.replace("t", "b")
 
         buffered = CloudBufferedIO(
-            raw_io_class, client, cloud_path, mode=binary_mode, buffer_size=buffer_size
+            raw_io_class,
+            client,
+            cloud_path,
+            mode=binary_mode,
+            buffer_size=buffer_size,
+            pre_finalize=pre_finalize,
         )
 
         super().__init__(

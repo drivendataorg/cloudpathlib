@@ -39,7 +39,15 @@
   - Added `CloudTextIO` class implementing `io.TextIOBase` for text streaming operations.
   - Added provider-specific raw I/O implementations: `_S3StorageRaw`, `_AzureBlobStorageRaw`, `_GSStorageRaw`, `_HttpStorageRaw`.
   - Added `register_raw_io_class` decorator for registering streaming I/O implementations.
-  - Added `buffer_size` parameter to `CloudPath.open()` for controlling streaming buffer size.
+  - Added `buffer_size` parameter to `CloudPath.open()` for controlling streaming buffer size; the default is 5 MiB, matching the block sizes of comparable tools (a full-object `read()` always uses a single ranged request regardless of buffer size).
+  - Streaming upload extra args for S3 are filtered against botocore's bundled service model (also when the client object does not expose `meta`), so newly added S3 parameters are never silently dropped.
+  - Added a `streaming_max_concurrency` client parameter (default 1): each open streaming stream may issue up to that many requests in parallel — background part uploads while writing (in-flight memory bounded to concurrency × part size) and read-ahead prefetch of upcoming byte ranges while reading sequentially.
+  - Google Cloud Storage streaming writes use the XML API multipart upload (via the SDK's transfer-manager machinery) instead of a resumable-upload stream, matching the S3/Azure part mechanism and enabling concurrent part uploads.
+  - Streaming writes honor `force_overwrite_to_cloud` (and `CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD`), raising `OverwriteNewerCloudError` on close instead of overwriting an object that changed while the stream was open.
+  - `copy`/`rename`/`replace` work in streaming mode by streaming between clients instead of round-tripping through the local cache (`fspath`).
+  - Cache files created by the append/update fallback in streaming mode are cleaned up when the client is garbage collected.
+  - Streaming error paths raise `cloudpathlib.exceptions` types (`CloudPathFileNotFoundError`, `CloudPathNotImplementedError`), which subclass the corresponding builtins.
+- Changed `CloudPath.open(mode="a")` on a nonexistent cloud file to create it (matching the stdlib `open` and `pathlib`) instead of raising `CloudPathFileNotFoundError`. **Breaking change for users that relied on the previous error.** (PR [#535](https://github.com/drivendataorg/cloudpathlib/pull/535))
 
 ## v0.24.0 (2026-04-29)
 

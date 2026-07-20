@@ -20,6 +20,7 @@ nbautoexport
 pandas
 pillow
 psutil
+pyarrow
 pydantic
 pytest<9.1
 pytest-cases>=3.9.1
