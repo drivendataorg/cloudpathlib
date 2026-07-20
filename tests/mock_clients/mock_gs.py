@@ -4,7 +4,12 @@ from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
 
-from google.api_core.exceptions import NotFound
+import urllib.parse
+from uuid import uuid4
+from xml.etree import ElementTree
+
+from google.api_core.exceptions import NotFound, RequestRangeNotSatisfiable
+import requests
 
 from .utils import delete_empty_parents_up_to_root
 
@@ -21,6 +26,8 @@ def mocked_client_class_factory(test_dir: str):
             shutil.copytree(TEST_ASSETS, self.tmp_path / test_dir)
 
             self.metadata_cache = {}
+            self._connection = _MockConnection()
+            self._http = MockMPUTransport(self)
 
         @classmethod
         def create_anonymous_client(cls):
@@ -72,6 +79,33 @@ class MockBlob:
         to_path.parent.mkdir(exist_ok=True, parents=True)
         to_path.write_bytes(from_path.read_bytes())
 
+    def download_as_bytes(self, start=None, end=None, timeout=None, retry=None):
+        """Download blob content as bytes with optional byte range."""
+        # if timeout is not None, assume that the test wants a timeout and throw it
+        if timeout is not None:
+            raise TimeoutError("Download timed out")
+
+        # indicate that retry object made it through to the GS lib
+        if retry is not None:
+            retry.mocked_retries = 1
+
+        from_path = self.bucket / self.name
+        if not (from_path.exists() and from_path.is_file()):
+            raise NotFound(f"blob not found: {self.name}")
+        data = from_path.read_bytes()
+
+        # real GCS rejects ranges starting past EOF (an end past EOF is clamped)
+        if start is not None and start >= len(data):
+            raise RequestRangeNotSatisfiable("The requested range is not satisfiable")
+
+        # Handle byte range if specified
+        if start is not None:
+            if end is not None:
+                return data[start : end + 1]
+            else:
+                return data[start:]
+        return data
+
     def patch(self):
         if "updated" in self.metadata:
             (self.bucket / self.name).touch()
@@ -89,7 +123,9 @@ class MockBlob:
         timeout=None,
         retry=None,
     ):
-        pass
+        path = self.bucket / self.name
+        if not (path.exists() and path.is_file()):
+            raise NotFound(f"blob not found: {self.name}")
 
     def upload_from_filename(self, filename, content_type=None, timeout=None, retry=None):
         # if timeout is not None, assume that the test wants a timeout and throw it
@@ -104,6 +140,25 @@ class MockBlob:
         path = self.bucket / self.name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
+
+        self.client.metadata_cache[self.bucket / self.name] = content_type
+
+    def upload_from_string(self, data, content_type=None, timeout=None, retry=None):
+        """Upload from bytes/string data."""
+        # if timeout is not None, assume that the test wants a timeout and throw it
+        if timeout is not None:
+            raise TimeoutError("Upload timed out")
+
+        # indicate that retry object made it through to the GS lib
+        if retry is not None:
+            retry.mocked_retries = 1
+
+        path = self.bucket / self.name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(data, str):
+            path.write_text(data)
+        else:
+            path.write_bytes(data)
 
         self.client.metadata_cache[self.bucket / self.name] = content_type
 
@@ -232,3 +287,86 @@ class MockTransferManager:
 
 def mock_default_auth():
     return "fake-credentials", "fake-default-project"
+
+
+class _MockConnection:
+    """Just enough of google.cloud.storage._http.Connection for the XML MPU URL."""
+
+    API_BASE_URL = "https://storage.googleapis.com"
+
+
+def _mpu_response(status, headers=None, body=b""):
+    response = requests.Response()
+    response.status_code = status
+    response.headers.update(headers or {})
+    response._content = body if isinstance(body, bytes) else body.encode()
+    return response
+
+
+class MockMPUTransport:
+    """Fake authorized session implementing the GCS XML multipart-upload API."""
+
+    _XMLNS = "http://s3.amazonaws.com/doc/2006-03-01/"
+
+    def __init__(self, client):
+        self.client = client
+        self.uploads = {}
+
+    def request(self, method, url, data=None, headers=None, **kwargs):
+        parsed = urllib.parse.urlsplit(url)
+        query = dict(urllib.parse.parse_qsl(parsed.query, keep_blank_values=True))
+        # url path is /{bucket}/{blob}; the mock stores blobs under tmp_path directly
+        _, _, blob = parsed.path.lstrip("/").partition("/")
+        blob = urllib.parse.unquote(blob)
+
+        if method == "POST" and "uploads" in query:
+            upload_id = uuid4().hex
+            self.uploads[upload_id] = {
+                "blob": blob,
+                "parts": {},
+                "content_type": (headers or {}).get("content-type"),
+            }
+            body = (
+                f'<InitiateMultipartUploadResult xmlns="{self._XMLNS}">'
+                f"<UploadId>{upload_id}</UploadId></InitiateMultipartUploadResult>"
+            )
+            return _mpu_response(200, body=body)
+
+        upload_id = query.get("uploadId")
+        if upload_id not in self.uploads:
+            return _mpu_response(404, body="NoSuchUpload")
+
+        if method == "PUT" and "partNumber" in query:
+            part_number = int(query["partNumber"])
+            etag = f'"mock-etag-{part_number}"'
+            self.uploads[upload_id]["parts"][part_number] = (etag, bytes(data))
+            return _mpu_response(200, headers={"etag": etag})
+
+        if method == "POST":
+            upload = self.uploads.pop(upload_id)
+            root = ElementTree.fromstring(data)
+            parts = []
+            for part_element in root.findall("Part"):
+                part_number = int(part_element.find("PartNumber").text)
+                etag = part_element.find("ETag").text
+                stored_etag, part_data = upload["parts"][part_number]
+                assert etag == stored_etag, "ETag mismatch in CompleteMultipartUpload"
+                parts.append(part_data)
+            # real GCS enforces a 5 MiB minimum for all non-final parts at finalize
+            if any(len(part_data) < 5 * 1024 * 1024 for part_data in parts[:-1]):
+                return _mpu_response(400, body="<Error><Code>EntityTooSmall</Code></Error>")
+            content = b"".join(parts)
+            target = self.client.tmp_path / upload["blob"]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(content)
+            if upload["content_type"] is not None:
+                self.client.metadata_cache[self.client.tmp_path / upload["blob"]] = upload[
+                    "content_type"
+                ]
+            return _mpu_response(200, body="<CompleteMultipartUploadResult/>")
+
+        if method == "DELETE":
+            self.uploads.pop(upload_id, None)
+            return _mpu_response(204)
+
+        return _mpu_response(400, body="Unsupported mock MPU request")

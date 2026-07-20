@@ -7,11 +7,16 @@ from pathlib import Path
 import pytest
 
 from cloudpathlib import CloudPath
-from cloudpathlib.client import register_client_class
-from cloudpathlib.cloudpath import implementation_registry, register_path_class
+from cloudpathlib.client import Client, register_client_class
+from cloudpathlib.cloudpath import (
+    implementation_registry,
+    register_path_class,
+    register_raw_io_class,
+)
 from cloudpathlib.http.httpclient import HttpClient, HttpsClient
 from cloudpathlib.s3.s3client import S3Client
 from cloudpathlib.s3.s3path import S3Path
+from cloudpathlib.s3.s3_io import _S3StorageRaw
 
 
 def test_default_client_instantiation(rig):
@@ -140,6 +145,10 @@ def custom_s3_path():
     class MyS3Client(S3Client):
         pass
 
+    @register_raw_io_class("mys3")
+    class MyS3StorageRaw(_S3StorageRaw):
+        pass
+
     yield (MyS3Path, MyS3Client)
 
     # cleanup after use
@@ -172,3 +181,22 @@ def test_custom_mys3client_default_client(custom_s3_path):
     path = CloudPath("mys3://bucket/dir/file.txt")
     assert isinstance(path.client, CustomClient)
     assert path.cloud_prefix == "mys3://"
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda client, path: Client._range_download(client, path, 0, 0),
+        lambda client, path: Client._get_content_length(client, path),
+        lambda client, path: Client._initiate_multipart_upload(client, path),
+        lambda client, path: Client._upload_part(client, path, "upload", 1, b"data"),
+        lambda client, path: Client._complete_multipart_upload(client, path, "upload", []),
+        lambda client, path: Client._abort_multipart_upload(client, path, "upload"),
+        lambda client, path: Client._put_empty_object(client, path),
+    ],
+)
+def test_default_streaming_hooks_raise_not_implemented(local_s3_rig, call):
+    path = local_s3_rig.create_cloud_path("unsupported-stream.bin")
+
+    with pytest.raises(NotImplementedError, match="streaming I/O"):
+        call(path.client, path)

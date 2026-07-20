@@ -4,13 +4,26 @@ import os
 from pathlib import Path
 import shutil
 from tempfile import TemporaryDirectory
-from typing import ClassVar, Generic, Callable, Iterable, Optional, Tuple, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    Generic,
+    Iterable,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 from .enums import FileCacheMode
 from .exceptions import InvalidConfigurationException
 
 BoundedCloudPath = TypeVar("BoundedCloudPath", bound=CloudPath)
+_UploadPart = Dict[str, Any]
 
 
 def register_client_class(key: str) -> Callable:
@@ -34,10 +47,17 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
-    ):
+        streaming_max_concurrency: int = 1,
+    ) -> None:
         self.file_cache_mode = None
         self._cache_tmp_dir = None
         self._cloud_meta.validate_completeness()
+
+        if streaming_max_concurrency < 1:
+            raise ValueError("streaming_max_concurrency must be at least 1")
+        # concurrent requests per open streaming stream (part uploads / read prefetch);
+        # 1 means fully sequential I/O
+        self.streaming_max_concurrency = streaming_max_concurrency
 
         # convert strings passed to enum
         if isinstance(file_cache_mode, str):
@@ -88,6 +108,9 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
             FileCacheMode.tmp_dir,
             FileCacheMode.close_file,
             FileCacheMode.cloudpath_object,
+            # streaming avoids the cache except for append/update fallbacks, which
+            # should not outlive the client
+            FileCacheMode.streaming,
         ]:
             self.clear_cache()
 
@@ -184,3 +207,50 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         self, cloud_path: BoundedCloudPath, expire_seconds: int = 60 * 60
     ) -> str:
         pass
+
+    def _range_download(self, cloud_path: BoundedCloudPath, start: int, end: int) -> bytes:
+        """Download an inclusive byte range."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_range_download). "
+            "Implement this method or use a non-streaming file_cache_mode."
+        )
+
+    def _get_content_length(self, cloud_path: BoundedCloudPath) -> int:
+        """Return object size without downloading it."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_get_content_length)."
+        )
+
+    def _initiate_multipart_upload(self, cloud_path: BoundedCloudPath) -> str:
+        """Start a multipart upload."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_initiate_multipart_upload)."
+        )
+
+    def _upload_part(
+        self, cloud_path: BoundedCloudPath, upload_id: str, part_number: int, data: bytes
+    ) -> _UploadPart:
+        """Upload one part."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_upload_part)."
+        )
+
+    def _complete_multipart_upload(
+        self, cloud_path: BoundedCloudPath, upload_id: str, parts: Sequence[_UploadPart]
+    ) -> None:
+        """Complete a multipart upload."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_complete_multipart_upload)."
+        )
+
+    def _abort_multipart_upload(self, cloud_path: BoundedCloudPath, upload_id: str) -> None:
+        """Abort a multipart upload."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_abort_multipart_upload)."
+        )
+
+    def _put_empty_object(self, cloud_path: BoundedCloudPath) -> None:
+        """Create an empty object."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_put_empty_object)."
+        )

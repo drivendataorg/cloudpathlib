@@ -540,3 +540,54 @@ def test_reuse_cache_after_manual_cache_clear(rig: CloudProviderTestRig):
         _ = f.read()
 
     assert cp._local.exists()
+
+
+def test_write_mtime_tie_does_not_raise(rig: CloudProviderTestRig):
+    """A save that leaves the cache file's mtime exactly equal to the cloud version's
+    (coarse-resolution filesystems, no-op writes) must bump the mtime and upload rather
+    than raise OverwriteNewerCloudError."""
+    client = rig.client_class(**rig.required_client_kwargs)
+    cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
+
+    cp.write_text("v1")
+    _sync_filesystem()
+
+    # re-sync the cache from the cloud so the cache file's mtime equals the cloud mtime
+    cp.clear_cache()
+    cp.read_text()
+    cloud_mtime = cp.stat().st_mtime
+
+    with cp.open("w") as f:
+        f.write("v2")
+        f.flush()
+        # simulate a write that leaves the mtime unchanged (e.g. same-second write on a
+        # coarse-resolution filesystem)
+        os.utime(cp._local, times=(cloud_mtime, cloud_mtime))
+
+    assert cp.read_text() == "v2"
+
+
+def test_streaming_append_fallback_cache_cleaned_up(rig: CloudProviderTestRig):
+    """Append/update modes fall back to the cache in streaming mode; those cache files
+    must be cleaned up when the client is garbage collected, like other cache modes."""
+    client = rig.client_class(
+        file_cache_mode=FileCacheMode.streaming, **rig.required_client_kwargs
+    )
+    cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
+
+    with cp.open("a") as f:
+        f.write("appended")
+
+    # the fallback created a real cache file
+    assert cp._local.exists()
+
+    cache_path = cp._local
+    client_cache_dir = client._local_cache_dir
+    del f  # the with-statement target outlives the block and holds the path
+    del cp
+    del client
+    # the patched close handle forms a reference cycle, so collection is not immediate
+    gc.collect()
+
+    assert not cache_path.exists()
+    assert not client_cache_dir.exists()

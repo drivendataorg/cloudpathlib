@@ -21,20 +21,14 @@ from pytest_cases import fixture, fixture_union
 from shortuuid import uuid
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
-from cloudpathlib.cloudpath import implementation_registry
-from cloudpathlib.http.httpclient import HttpClient, HttpsClient
-from cloudpathlib.http.httppath import HttpPath, HttpsPath
+from cloudpathlib.cloudpath import implementation_registry, CloudImplementation
 from cloudpathlib.local import (
     local_azure_blob_implementation,
     LocalAzureBlobClient,
-    LocalAzureBlobPath,
     local_gs_implementation,
     LocalGSClient,
-    LocalGSPath,
     local_s3_implementation,
     LocalS3Client,
-    LocalS3Path,
 )
 import cloudpathlib.azure.azblobclient
 from cloudpathlib.azure.azblobclient import _hns_rmtree
@@ -80,8 +74,7 @@ class CloudProviderTestRig:
 
     def __init__(
         self,
-        path_class: type,
-        client_class: type,
+        cloud_implementation: CloudImplementation,
         drive: str = "drive",
         test_dir: str = "",
         live_server: bool = False,
@@ -92,14 +85,25 @@ class CloudProviderTestRig:
             path_class (type): CloudPath subclass
             client_class (type): Client subclass
         """
-        self.path_class = path_class
-        self.client_class = client_class
+        self.cloud_implementation = cloud_implementation
         self.drive = drive
         self.test_dir = test_dir
         self.live_server = live_server  # if the server is a live server
         self.required_client_kwargs = (
             required_client_kwargs if required_client_kwargs is not None else {}
         )
+
+    @property
+    def path_class(self):
+        return self.cloud_implementation.path_class
+
+    @property
+    def client_class(self):
+        return self.cloud_implementation.client_class
+
+    @property
+    def raw_io_class(self):
+        return self.cloud_implementation.raw_io_class
 
     @property
     def cloud_prefix(self):
@@ -201,8 +205,7 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
         )
 
     rig = CloudProviderTestRig(
-        path_class=AzureBlobPath,
-        client_class=AzureBlobClient,
+        cloud_implementation=implementation_registry["azure"],
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
@@ -285,8 +288,7 @@ def gs_rig(request, monkeypatch, assets_dir, live_server):
         monkeypatch.setattr(cloudpathlib.gs.gsclient, "google_default_auth", mock_default_auth)
 
     rig = CloudProviderTestRig(
-        path_class=GSPath,
-        client_class=GSClient,
+        cloud_implementation=implementation_registry["gs"],
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
@@ -335,8 +337,7 @@ def s3_rig(request, monkeypatch, assets_dir, live_server):
         )
 
     rig = CloudProviderTestRig(
-        path_class=S3Path,
-        client_class=S3Client,
+        cloud_implementation=implementation_registry["s3"],
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
@@ -419,8 +420,7 @@ def custom_s3_rig(request, monkeypatch, assets_dir, live_server):
         )
 
     rig = CloudProviderTestRig(
-        path_class=S3Path,
-        client_class=S3Client,
+        cloud_implementation=implementation_registry["s3"],
         drive=drive,
         test_dir=test_dir,
         live_server=live_server,
@@ -458,8 +458,7 @@ def local_azure_rig(request, monkeypatch, assets_dir, live_server):
     monkeypatch.setitem(implementation_registry, "azure", local_azure_blob_implementation)
 
     rig = CloudProviderTestRig(
-        path_class=LocalAzureBlobPath,
-        client_class=LocalAzureBlobClient,
+        cloud_implementation=local_azure_blob_implementation,
         drive=drive,
         test_dir=test_dir,
     )
@@ -489,8 +488,7 @@ def local_gs_rig(request, monkeypatch, assets_dir, live_server):
     monkeypatch.setitem(implementation_registry, "gs", local_gs_implementation)
 
     rig = CloudProviderTestRig(
-        path_class=LocalGSPath,
-        client_class=LocalGSClient,
+        cloud_implementation=local_gs_implementation,
         drive=drive,
         test_dir=test_dir,
     )
@@ -519,8 +517,7 @@ def local_s3_rig(request, monkeypatch, assets_dir, live_server):
     monkeypatch.setitem(implementation_registry, "s3", local_s3_implementation)
 
     rig = CloudProviderTestRig(
-        path_class=LocalS3Path,
-        client_class=LocalS3Client,
+        cloud_implementation=local_s3_implementation,
         drive=drive,
         test_dir=test_dir,
     )
@@ -558,8 +555,7 @@ def http_rig(request, assets_dir, http_server):  # noqa: F811
     _sync_filesystem()
 
     rig = CloudProviderTestRig(
-        path_class=HttpPath,
-        client_class=HttpClient,
+        cloud_implementation=implementation_registry["http"],
         drive=drive,
         test_dir=test_dir,
     )
@@ -590,8 +586,7 @@ def https_rig(request, assets_dir, https_server):  # noqa: F811
     skip_verify_ctx.load_verify_locations(utilities_dir / "insecure-test.pem")
 
     rig = CloudProviderTestRig(
-        path_class=HttpsPath,
-        client_class=HttpsClient,
+        cloud_implementation=implementation_registry["https"],
         drive=drive,
         test_dir=test_dir,
         required_client_kwargs=dict(
