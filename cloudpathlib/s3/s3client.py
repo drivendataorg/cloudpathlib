@@ -154,7 +154,7 @@ class S3Client(Client):
         return {
             "last_modified": data["LastModified"],
             "size": data["ContentLength"],
-            "etag": data["ETag"],
+            "etag": data.get("ETag", None),
             "content_type": data.get("ContentType", None),
             "extra": data["Metadata"],
         }
