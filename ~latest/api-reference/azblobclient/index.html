@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -2043,30 +2043,30 @@ authentication options.</p>
 <span class="normal">495</span>
 <span class="normal">496</span>
 <span class="normal">497</span>
-<span class="normal">498</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">&quot;azure&quot;</span><span class="p">)</span>
+<span class="normal">498</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">"azure"</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AzureBlobClient</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Client class for Azure Blob Storage which handles authentication with Azure for</span>
+<span class="w">    </span><span class="sd">"""Client class for Azure Blob Storage which handles authentication with Azure for</span>
 <span class="sd">    [`AzureBlobPath`](../azblobpath/) instances. See documentation for the</span>
 <span class="sd">    [`__init__` method][cloudpathlib.azure.azblobclient.AzureBlobClient.__init__] for detailed</span>
 <span class="sd">    authentication options.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">account_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">credential</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">connection_string</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">blob_service_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;BlobServiceClient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">data_lake_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;DataLakeServiceClient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">blob_service_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"BlobServiceClient"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">data_lake_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"DataLakeServiceClient"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FileCacheMode</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Class constructor. Sets up a [`BlobServiceClient`](</span>
+<span class="w">        </span><span class="sd">"""Class constructor. Sets up a [`BlobServiceClient`](</span>
 <span class="sd">        https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).</span>
 <span class="sd">        Supports the following authentication methods of `BlobServiceClient`.</span>
 
-<span class="sd">        - Environment variable `&quot;&quot;AZURE_STORAGE_CONNECTION_STRING&quot;` containing connecting string</span>
+<span class="sd">        - Environment variable `""AZURE_STORAGE_CONNECTION_STRING"` containing connecting string</span>
 <span class="sd">        with account credentials. See [Azure Storage SDK documentation](</span>
 <span class="sd">        https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).</span>
 <span class="sd">        - Connection string via `connection_string`, authenticated either with an embedded SAS</span>
@@ -2108,7 +2108,7 @@ authentication options.</p>
 <span class="sd">                the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.</span>
 <span class="sd">            content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when</span>
 <span class="sd">                writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span>
             <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">,</span>
@@ -2116,7 +2116,7 @@ authentication options.</p>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">connection_string</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">connection_string</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;AZURE_STORAGE_CONNECTION_STRING&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">connection_string</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"AZURE_STORAGE_CONNECTION_STRING"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DataLakeServiceClient</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
             <span class="kc">None</span>  <span class="c1"># only needs to end up being set if HNS is enabled</span>
@@ -2139,7 +2139,7 @@ authentication options.</p>
                 <span class="p">)</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span> <span class="o">=</span> <span class="n">DataLakeServiceClient</span><span class="p">(</span>
-                    <span class="n">account_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.blob.&quot;</span><span class="p">,</span> <span class="s2">&quot;.dfs.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                    <span class="n">account_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">".blob."</span><span class="p">,</span> <span class="s2">".dfs."</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                     <span class="n">credential</span><span class="o">=</span><span class="n">credential</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -2162,7 +2162,7 @@ authentication options.</p>
                 <span class="p">)</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span> <span class="o">=</span> <span class="n">BlobServiceClient</span><span class="p">(</span>
-                    <span class="n">account_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.dfs.&quot;</span><span class="p">,</span> <span class="s2">&quot;.blob.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                    <span class="n">account_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">".dfs."</span><span class="p">,</span> <span class="s2">".blob."</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                     <span class="n">credential</span><span class="o">=</span><span class="n">credential</span><span class="p">,</span>
                 <span class="p">)</span>
 
@@ -2174,19 +2174,19 @@ authentication options.</p>
                 <span class="n">conn_str</span><span class="o">=</span><span class="n">connection_string</span><span class="p">,</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="n">account_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s2">&quot;.dfs.&quot;</span> <span class="ow">in</span> <span class="n">account_url</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">".dfs."</span> <span class="ow">in</span> <span class="n">account_url</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span> <span class="o">=</span> <span class="n">BlobServiceClient</span><span class="p">(</span>
-                    <span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.dfs.&quot;</span><span class="p">,</span> <span class="s2">&quot;.blob.&quot;</span><span class="p">),</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
+                    <span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">".dfs."</span><span class="p">,</span> <span class="s2">".blob."</span><span class="p">),</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
                 <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span> <span class="o">=</span> <span class="n">DataLakeServiceClient</span><span class="p">(</span>
                     <span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="p">,</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
                 <span class="p">)</span>
-            <span class="k">elif</span> <span class="s2">&quot;.blob.&quot;</span> <span class="ow">in</span> <span class="n">account_url</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="s2">".blob."</span> <span class="ow">in</span> <span class="n">account_url</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span> <span class="o">=</span> <span class="n">BlobServiceClient</span><span class="p">(</span>
                     <span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="p">,</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
                 <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span> <span class="o">=</span> <span class="n">DataLakeServiceClient</span><span class="p">(</span>
-                    <span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.blob.&quot;</span><span class="p">,</span> <span class="s2">&quot;.dfs.&quot;</span><span class="p">),</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
+                    <span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">".blob."</span><span class="p">,</span> <span class="s2">".dfs."</span><span class="p">),</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># assume default to blob; HNS not supported</span>
@@ -2196,8 +2196,8 @@ authentication options.</p>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MissingCredentialsError</span><span class="p">(</span>
-                <span class="s2">&quot;AzureBlobClient does not support anonymous instantiation. &quot;</span>
-                <span class="s2">&quot;Credentials are required; see docs for options.&quot;</span>
+                <span class="s2">"AzureBlobClient does not support anonymous instantiation. "</span>
+                <span class="s2">"Credentials are required; see docs for options."</span>
             <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_hns_enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -2206,10 +2206,10 @@ authentication options.</p>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hns_enabled</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">account_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_account_information</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_hns_enabled</span> <span class="o">=</span> <span class="n">account_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;is_hns_enabled&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_hns_enabled</span> <span class="o">=</span> <span class="n">account_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"is_hns_enabled"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 
             <span class="c1"># get_account_information() not supported with this credential; we have to fallback to</span>
-            <span class="c1"># checking if the root directory exists and is a has &#39;metadata&#39;: {&#39;hdi_isfolder&#39;: &#39;true&#39;}</span>
+            <span class="c1"># checking if the root directory exists and is a has 'metadata': {'hdi_isfolder': 'true'}</span>
             <span class="k">except</span> <span class="n">ResourceNotFoundError</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_hns_root_metadata</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
             <span class="k">except</span> <span class="n">HttpResponseError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
@@ -2221,18 +2221,18 @@ authentication options.</p>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hns_enabled</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_check_hns_root_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="n">root_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span><span class="n">container</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">blob</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">root_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span><span class="n">container</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">blob</span><span class="o">=</span><span class="s2">"/"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_hns_enabled</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">root_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
-            <span class="ow">and</span> <span class="n">root_dir</span><span class="o">.</span><span class="n">get_blob_properties</span><span class="p">()</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hdi_isfolder&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span>
+            <span class="ow">and</span> <span class="n">root_dir</span><span class="o">.</span><span class="n">get_blob_properties</span><span class="p">()</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"hdi_isfolder"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"true"</span>
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">bool</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hns_enabled</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_metadata</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">&quot;BlobProperties&quot;</span><span class="p">,</span> <span class="s2">&quot;FileProperties&quot;</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="s2">"BlobProperties"</span><span class="p">,</span> <span class="s2">"FileProperties"</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_hns</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">):</span>
 
             <span class="c1"># works on both files and directories</span>
@@ -2242,9 +2242,9 @@ authentication options.</p>
                 <span class="n">properties</span> <span class="o">=</span> <span class="n">fsc</span><span class="o">.</span><span class="n">get_file_client</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span><span class="o">.</span><span class="n">get_file_properties</span><span class="p">()</span>
 
             <span class="c1"># no content settings on directory</span>
-            <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;content_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                <span class="s2">&quot;content_settings&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;content_type&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;content_type&quot;</span><span class="p">)</span>
+            <span class="n">properties</span><span class="p">[</span><span class="s2">"content_type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">"content_settings"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"content_type"</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"content_type"</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">blob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span>
@@ -2252,13 +2252,13 @@ authentication options.</p>
             <span class="p">)</span>
             <span class="n">properties</span> <span class="o">=</span> <span class="n">blob</span><span class="o">.</span><span class="n">get_blob_properties</span><span class="p">()</span>
 
-            <span class="n">properties</span><span class="p">[</span><span class="s2">&quot;content_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">content_settings</span><span class="o">.</span><span class="n">content_type</span>
+            <span class="n">properties</span><span class="p">[</span><span class="s2">"content_type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">content_settings</span><span class="o">.</span><span class="n">content_type</span>
 
         <span class="k">return</span> <span class="n">properties</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_partial_filename</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.part&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span> <span class="o">+</span> <span class="s2">".part"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_download_file</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]</span>
@@ -2275,7 +2275,7 @@ authentication options.</p>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">partial_local_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_partial_filename</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
-            <span class="k">with</span> <span class="n">partial_local_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">partial_local_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">data</span><span class="p">:</span>
                 <span class="n">download_stream</span><span class="o">.</span><span class="n">readinto</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
             <span class="n">partial_local_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
@@ -2290,31 +2290,31 @@ authentication options.</p>
     <span class="k">def</span><span class="w"> </span><span class="nf">_is_file_or_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="c1"># short-circuit the root-level container</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;dir&quot;</span>
+            <span class="k">return</span> <span class="s2">"dir"</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_metadata</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
 
             <span class="c1"># if hns, has is_directory property; else if not hns, _get_metadata will raise if not a file</span>
             <span class="k">return</span> <span class="p">(</span>
-                <span class="s2">&quot;dir&quot;</span>
-                <span class="k">if</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;is_directory&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-                <span class="ow">or</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metadata&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hdi_isfolder&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-                <span class="k">else</span> <span class="s2">&quot;file&quot;</span>
+                <span class="s2">"dir"</span>
+                <span class="k">if</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"is_directory"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"metadata"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"hdi_isfolder"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="k">else</span> <span class="s2">"file"</span>
             <span class="p">)</span>
 
         <span class="c1"># thrown if not HNS and file does not exist _or_ is dir; check if is dir instead</span>
         <span class="k">except</span> <span class="n">ResourceNotFoundError</span><span class="p">:</span>
             <span class="n">prefix</span> <span class="o">=</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span>
-            <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
-                <span class="n">prefix</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
+            <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/"</span><span class="p">):</span>
+                <span class="n">prefix</span> <span class="o">+=</span> <span class="s2">"/"</span>
 
             <span class="c1"># not a file, see if it is a directory</span>
             <span class="n">container_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_container_client</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
 
             <span class="k">try</span><span class="p">:</span>
                 <span class="nb">next</span><span class="p">(</span><span class="n">container_client</span><span class="o">.</span><span class="n">list_blobs</span><span class="p">(</span><span class="n">name_starts_with</span><span class="o">=</span><span class="n">prefix</span><span class="p">))</span>
-                <span class="k">return</span> <span class="s2">&quot;dir&quot;</span>
+                <span class="k">return</span> <span class="s2">"dir"</span>
             <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">None</span>
 
@@ -2323,28 +2323,28 @@ authentication options.</p>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_container_client</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="s2">&quot;dir&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"file"</span><span class="p">,</span> <span class="s2">"dir"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_list_dir</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">AzureBlobPath</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">container</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">list_containers</span><span class="p">():</span>
-                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span> <span class="kc">True</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span> <span class="kc">True</span>
 
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">recursive</span><span class="p">:</span>
                     <span class="k">continue</span>
 
                 <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">container</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span>
                 <span class="p">)</span>
             <span class="k">return</span>
 
         <span class="n">container_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_container_client</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
 
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span>
-        <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
-            <span class="n">prefix</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
+        <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/"</span><span class="p">):</span>
+            <span class="n">prefix</span> <span class="o">+=</span> <span class="s2">"/"</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_hns</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">):</span>
             <span class="n">file_system_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span><span class="o">.</span><span class="n">get_file_system_client</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
@@ -2352,7 +2352,7 @@ authentication options.</p>
 
             <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
                 <span class="p">),</span> <span class="n">path</span><span class="o">.</span><span class="n">is_directory</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -2363,9 +2363,9 @@ authentication options.</p>
 
             <span class="k">for</span> <span class="n">blob</span> <span class="ow">in</span> <span class="n">blobs</span><span class="p">:</span>
                 <span class="c1"># walk_blobs returns folders with a trailing slash</span>
-                <span class="n">blob_path</span> <span class="o">=</span> <span class="n">blob</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+                <span class="n">blob_path</span> <span class="o">=</span> <span class="n">blob</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
                 <span class="n">blob_cloud_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">blob_path</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">blob_path</span><span class="si">}</span><span class="s2">"</span>
                 <span class="p">)</span>
 
                 <span class="k">yield</span> <span class="n">blob_cloud_path</span><span class="p">,</span> <span class="p">(</span>
@@ -2377,7 +2377,7 @@ authentication options.</p>
     <span class="k">def</span><span class="w"> </span><span class="nf">_move_file</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">,</span> <span class="n">remove_src</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AzureBlobPath</span><span class="p">:</span>
-        <span class="c1"># just a touch, so &quot;REPLACE&quot; metadata</span>
+        <span class="c1"># just a touch, so "REPLACE" metadata</span>
         <span class="k">if</span> <span class="n">src</span> <span class="o">==</span> <span class="n">dst</span><span class="p">:</span>
             <span class="n">blob_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span>
                 <span class="n">container</span><span class="o">=</span><span class="n">src</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">blob</span><span class="o">=</span><span class="n">src</span><span class="o">.</span><span class="n">blob</span>
@@ -2392,10 +2392,10 @@ authentication options.</p>
             <span class="n">fsc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span><span class="o">.</span><span class="n">get_file_system_client</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 
             <span class="k">if</span> <span class="n">src</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-                <span class="n">fsc</span><span class="o">.</span><span class="n">get_directory_client</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span><span class="o">.</span><span class="n">rename_directory</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dst</span><span class="o">.</span><span class="n">container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">dst</span><span class="o">.</span><span class="n">blob</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">fsc</span><span class="o">.</span><span class="n">get_directory_client</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span><span class="o">.</span><span class="n">rename_directory</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">dst</span><span class="o">.</span><span class="n">container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">dst</span><span class="o">.</span><span class="n">blob</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">dst</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">fsc</span><span class="o">.</span><span class="n">get_file_client</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span><span class="o">.</span><span class="n">rename_file</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dst</span><span class="o">.</span><span class="n">container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">dst</span><span class="o">.</span><span class="n">blob</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">fsc</span><span class="o">.</span><span class="n">get_file_client</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span><span class="o">.</span><span class="n">rename_file</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">dst</span><span class="o">.</span><span class="n">container</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">dst</span><span class="o">.</span><span class="n">blob</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span><span class="n">container</span><span class="o">=</span><span class="n">dst</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">blob</span><span class="o">=</span><span class="n">dst</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span>
@@ -2417,12 +2417,12 @@ authentication options.</p>
             <span class="n">directory_client</span> <span class="o">=</span> <span class="n">file_system_client</span><span class="o">.</span><span class="n">get_directory_client</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">exist_ok</span> <span class="ow">and</span> <span class="n">directory_client</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-                <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Directory already exists: </span><span class="si">{</span><span class="n">cloud_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Directory already exists: </span><span class="si">{</span><span class="n">cloud_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">parents</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exists</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">parent</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Parent directory does not exist (</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2">). To create parent directories, use `parents=True`.&quot;</span>
+                        <span class="sa">f</span><span class="s2">"Parent directory does not exist (</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2">). To create parent directories, use `parents=True`."</span>
                     <span class="p">)</span>
 
             <span class="n">directory_client</span><span class="o">.</span><span class="n">create_directory</span><span class="p">()</span>
@@ -2432,7 +2432,7 @@ authentication options.</p>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">file_or_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">file_or_dir</span> <span class="o">==</span> <span class="s2">&quot;dir&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">file_or_dir</span> <span class="o">==</span> <span class="s2">"dir"</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_hns</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">):</span>
                 <span class="n">_hns_rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span><span class="p">,</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span>
                 <span class="k">return</span>
@@ -2443,7 +2443,7 @@ authentication options.</p>
             <span class="n">container_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_container_client</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">)</span>
             <span class="k">while</span> <span class="n">batch</span> <span class="o">:=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">islice</span><span class="p">(</span><span class="n">blobs</span><span class="p">,</span> <span class="mi">256</span><span class="p">)):</span>
                 <span class="n">container_client</span><span class="o">.</span><span class="n">delete_blobs</span><span class="p">(</span><span class="o">*</span><span class="n">batch</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">file_or_dir</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">file_or_dir</span> <span class="o">==</span> <span class="s2">"file"</span><span class="p">:</span>
             <span class="n">blob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">get_blob_client</span><span class="p">(</span>
                 <span class="n">container</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">container</span><span class="p">,</span> <span class="n">blob</span><span class="o">=</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span>
             <span class="p">)</span>
@@ -2452,7 +2452,7 @@ authentication options.</p>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Does not exist</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_ok</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File does not exist: </span><span class="si">{</span><span class="n">cloud_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"File does not exist: </span><span class="si">{</span><span class="n">cloud_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_upload_file</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">AzureBlobPath</span>
@@ -2466,13 +2466,13 @@ authentication options.</p>
             <span class="n">content_type</span><span class="p">,</span> <span class="n">content_encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type_method</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">local_path</span><span class="p">))</span>
 
             <span class="k">if</span> <span class="n">content_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">extra_args</span><span class="p">[</span><span class="s2">&quot;content_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">content_type</span>
+                <span class="n">extra_args</span><span class="p">[</span><span class="s2">"content_type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">content_type</span>
             <span class="k">if</span> <span class="n">content_encoding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">extra_args</span><span class="p">[</span><span class="s2">&quot;content_encoding&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">content_encoding</span>
+                <span class="n">extra_args</span><span class="p">[</span><span class="s2">"content_encoding"</span><span class="p">]</span> <span class="o">=</span> <span class="n">content_encoding</span>
 
         <span class="n">content_settings</span> <span class="o">=</span> <span class="n">ContentSettings</span><span class="p">(</span><span class="o">**</span><span class="n">extra_args</span><span class="p">)</span>
 
-        <span class="k">with</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Path</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">data</span><span class="p">:</span>
             <span class="n">blob</span><span class="o">.</span><span class="n">upload_blob</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">content_settings</span><span class="o">=</span><span class="n">content_settings</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 
         <span class="k">return</span> <span class="n">cloud_path</span>
@@ -2494,7 +2494,7 @@ authentication options.</p>
             <span class="n">permission</span><span class="o">=</span><span class="n">BlobSasPermissions</span><span class="p">(</span><span class="n">read</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
             <span class="n">expiry</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">expire_seconds</span><span class="p">),</span>
         <span class="p">)</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_public_url</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="si">}</span><span class="s2">?</span><span class="si">{</span><span class="n">sas_token</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_public_url</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span><span class="si">}</span><span class="s2">?</span><span class="si">{</span><span class="n">sas_token</span><span class="si">}</span><span class="s2">"</span>
         <span class="k">return</span> <span class="n">url</span>
 </code></pre></div></td></tr></table></div>
               </details>
@@ -2954,17 +2954,17 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
     <span class="n">account_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">credential</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">connection_string</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">blob_service_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;BlobServiceClient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">data_lake_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;DataLakeServiceClient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">blob_service_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"BlobServiceClient"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">data_lake_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"DataLakeServiceClient"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FileCacheMode</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class constructor. Sets up a [`BlobServiceClient`](</span>
+<span class="w">    </span><span class="sd">"""Class constructor. Sets up a [`BlobServiceClient`](</span>
 <span class="sd">    https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).</span>
 <span class="sd">    Supports the following authentication methods of `BlobServiceClient`.</span>
 
-<span class="sd">    - Environment variable `&quot;&quot;AZURE_STORAGE_CONNECTION_STRING&quot;` containing connecting string</span>
+<span class="sd">    - Environment variable `""AZURE_STORAGE_CONNECTION_STRING"` containing connecting string</span>
 <span class="sd">    with account credentials. See [Azure Storage SDK documentation](</span>
 <span class="sd">    https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).</span>
 <span class="sd">    - Connection string via `connection_string`, authenticated either with an embedded SAS</span>
@@ -3006,7 +3006,7 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
 <span class="sd">            the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.</span>
 <span class="sd">        content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when</span>
 <span class="sd">            writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
         <span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span>
         <span class="n">content_type_method</span><span class="o">=</span><span class="n">content_type_method</span><span class="p">,</span>
@@ -3014,7 +3014,7 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">connection_string</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">connection_string</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;AZURE_STORAGE_CONNECTION_STRING&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">connection_string</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"AZURE_STORAGE_CONNECTION_STRING"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DataLakeServiceClient</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="kc">None</span>  <span class="c1"># only needs to end up being set if HNS is enabled</span>
@@ -3037,7 +3037,7 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
             <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span> <span class="o">=</span> <span class="n">DataLakeServiceClient</span><span class="p">(</span>
-                <span class="n">account_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.blob.&quot;</span><span class="p">,</span> <span class="s2">&quot;.dfs.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">account_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">service_client</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">".blob."</span><span class="p">,</span> <span class="s2">".dfs."</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                 <span class="n">credential</span><span class="o">=</span><span class="n">credential</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -3060,7 +3060,7 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
             <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span> <span class="o">=</span> <span class="n">BlobServiceClient</span><span class="p">(</span>
-                <span class="n">account_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.dfs.&quot;</span><span class="p">,</span> <span class="s2">&quot;.blob.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">account_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">".dfs."</span><span class="p">,</span> <span class="s2">".blob."</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                 <span class="n">credential</span><span class="o">=</span><span class="n">credential</span><span class="p">,</span>
             <span class="p">)</span>
 
@@ -3072,19 +3072,19 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
             <span class="n">conn_str</span><span class="o">=</span><span class="n">connection_string</span><span class="p">,</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">account_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s2">&quot;.dfs.&quot;</span> <span class="ow">in</span> <span class="n">account_url</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">".dfs."</span> <span class="ow">in</span> <span class="n">account_url</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span> <span class="o">=</span> <span class="n">BlobServiceClient</span><span class="p">(</span>
-                <span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.dfs.&quot;</span><span class="p">,</span> <span class="s2">&quot;.blob.&quot;</span><span class="p">),</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
+                <span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">".dfs."</span><span class="p">,</span> <span class="s2">".blob."</span><span class="p">),</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span> <span class="o">=</span> <span class="n">DataLakeServiceClient</span><span class="p">(</span>
                 <span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="p">,</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
             <span class="p">)</span>
-        <span class="k">elif</span> <span class="s2">&quot;.blob.&quot;</span> <span class="ow">in</span> <span class="n">account_url</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="s2">".blob."</span> <span class="ow">in</span> <span class="n">account_url</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">service_client</span> <span class="o">=</span> <span class="n">BlobServiceClient</span><span class="p">(</span>
                 <span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="p">,</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_lake_client</span> <span class="o">=</span> <span class="n">DataLakeServiceClient</span><span class="p">(</span>
-                <span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.blob.&quot;</span><span class="p">,</span> <span class="s2">&quot;.dfs.&quot;</span><span class="p">),</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
+                <span class="n">account_url</span><span class="o">=</span><span class="n">account_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">".blob."</span><span class="p">,</span> <span class="s2">".dfs."</span><span class="p">),</span> <span class="n">credential</span><span class="o">=</span><span class="n">credential</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># assume default to blob; HNS not supported</span>
@@ -3094,8 +3094,8 @@ writing a file to the cloud. Defaults to <code>mimetypes.guess_type</code>. Must
 
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">MissingCredentialsError</span><span class="p">(</span>
-            <span class="s2">&quot;AzureBlobClient does not support anonymous instantiation. &quot;</span>
-            <span class="s2">&quot;Credentials are required; see docs for options.&quot;</span>
+            <span class="s2">"AzureBlobClient does not support anonymous instantiation. "</span>
+            <span class="s2">"Credentials are required; see docs for options."</span>
         <span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_hns_enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -3132,9 +3132,9 @@ Does not remove folder so it can keep being written to.</p>
 <span class="normal">121</span>
 <span class="normal">122</span>
 <span class="normal">123</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Clears the contents of the cache folder.</span>
+<span class="w">    </span><span class="sd">"""Clears the contents of the cache folder.</span>
 <span class="sd">    Does not remove folder so it can keep being written to.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_cache_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_cache_dir</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
@@ -3176,10 +3176,10 @@ instance for this cloud without a client specified.</p>
 <span class="normal">102</span>
 <span class="normal">103</span>
 <span class="normal">104</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_default_client</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Client[BoundedCloudPath]&quot;</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the default client, which the one that is used when instantiating a cloud path</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_default_client</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Client[BoundedCloudPath]"</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Get the default client, which the one that is used when instantiating a cloud path</span>
 <span class="sd">    instance for this cloud without a client specified.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_default_client</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
     <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_client</span>
@@ -3210,8 +3210,8 @@ instances for this cloud without a client specified.</p>
 <span class="normal">107</span>
 <span class="normal">108</span>
 <span class="normal">109</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">set_as_default_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set this client instance as the default one used when instantiating cloud path</span>
-<span class="sd">    instances for this cloud without a client specified.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Set this client instance as the default one used when instantiating cloud path</span>
+<span class="sd">    instances for this cloud without a client specified."""</span>
     <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_default_client</span> <span class="o">=</span> <span class="bp">self</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -3278,7 +3278,7 @@ instances for this cloud without a client specified.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -1489,7 +1489,7 @@
 <p>A client object holds the authenticated connection with a cloud service, as well as the configuration for the <a href="../caching/">local cache</a>. When you create instantiate a cloud path instance for the first time, a default client object is created for the respective cloud service.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
 
-<span class="n">cloud_path</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://cloudpathlib-test-bucket/&quot;</span><span class="p">)</span>   <span class="c1"># same for S3Path(...)</span>
+<span class="n">cloud_path</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/"</span><span class="p">)</span>   <span class="c1"># same for S3Path(...)</span>
 <span class="n">cloud_path</span><span class="o">.</span><span class="n">client</span>
 <span class="c1">#&gt; &lt;cloudpathlib.s3.s3client.S3Client at 0x7feac3d1fb90&gt;</span>
 </code></pre></div>
@@ -1497,16 +1497,16 @@
 <p>You can also explicitly instantiate a client instance. You will need to do so if you want to authenticate using any option other than the environment variables from the table in the previous section. (To see what those options are, check out the API documentation pages linked to in the table above.) You can then use that client instance's cloud path factory method, or pass it into a cloud path instantiation.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Client</span>
 
-<span class="n">client</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;myaccesskey&quot;</span><span class="p">,</span> <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;mysecretkey&quot;</span><span class="p">)</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">"myaccesskey"</span><span class="p">,</span> <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">"mysecretkey"</span><span class="p">)</span>
 
 <span class="c1"># these next two commands are equivalent</span>
-<span class="c1"># use client&#39;s factory method</span>
-<span class="n">cp1</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://cloudpathlib-test-bucket/&quot;</span><span class="p">)</span>
+<span class="c1"># use client's factory method</span>
+<span class="n">cp1</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/"</span><span class="p">)</span>
 <span class="c1"># or pass client as keyword argument</span>
-<span class="n">cp2</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://cloudpathlib-test-bucket/&quot;</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
+<span class="n">cp2</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/"</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
 </code></pre></div>
 <p>If you have instantiated a client instance explicitly, you can also set it as the default client. Then, future cloud paths without a client specified will use that client instance.</p>
-<div class="highlight"><pre><span></span><code><span class="n">client</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;myaccesskey&quot;</span><span class="p">,</span> <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;mysecretkey&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">client</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">"myaccesskey"</span><span class="p">,</span> <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">"mysecretkey"</span><span class="p">)</span>
 <span class="n">client</span><span class="o">.</span><span class="n">set_as_default_client</span><span class="p">()</span>
 </code></pre></div>
 <p>If you need a reference to the default client:</p>
@@ -1518,7 +1518,7 @@
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
 
 <span class="c1"># this file deinitely exists, but credentials are not configured</span>
-<span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+<span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
 
 <span class="c1">#&gt; NoCredentialsError</span>
 </code></pre></div>
@@ -1528,7 +1528,7 @@
 <span class="n">c</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">no_sign_request</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># use this client object to create the CloudPath</span>
-<span class="n">c</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+<span class="n">c</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0001_5a63d42e-27c6-448a-84f1-bfc632125b8e.jpg"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
 <span class="c1">#&gt; True</span>
 </code></pre></div>
 <p><strong>Note:</strong> Many public buckets <em>do not</em> allow listing of the bucket contents by anonymous users. If this is the case, any listing operation on a directory will fail with an error like <code>ClientError: An error occurred (AccessDenied) when calling the ListObjectsV2 operation: Access Denied</code> when you try to do an operation, even with <code>no_sign_request=True</code>. In this case, you can generally only work with <code>CloudPath</code> objects that refer to the files themselves (instead of directories). You can contact the bucket owner to request that they allow listing, or write your code in a way that only references files you know will exist.</p>
@@ -1539,7 +1539,7 @@
 <p>For example, on the requester pays bucket <code>arxiv</code>, just trying to list the contents will result in a <code>ClientError</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
 
-<span class="n">tars</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://arxiv/src/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span>
+<span class="n">tars</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://arxiv/src/"</span><span class="p">)</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">tars</span><span class="p">)</span>
 
 <span class="c1">#&gt; ClientError: An error occurred (AccessDenied) ...</span>
@@ -1547,10 +1547,10 @@
 <p>To indicate that the request payer will be the "requester," pass the extra args to an <code>S3Client</code> and use that client to instantiate paths:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Client</span>
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">extra_args</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;RequestPayer&quot;</span><span class="p">:</span> <span class="s2">&quot;requester&quot;</span><span class="p">})</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">extra_args</span><span class="o">=</span><span class="p">{</span><span class="s2">"RequestPayer"</span><span class="p">:</span> <span class="s2">"requester"</span><span class="p">})</span>
 
 <span class="c1"># use the client we created to build the path</span>
-<span class="n">tars</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://arxiv/src/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span>
+<span class="n">tars</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://arxiv/src/"</span><span class="p">)</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">tars</span><span class="p">)</span>
 </code></pre></div>
 <p>As noted above, you can also call <code>.set_as_default_client()</code> on the client object that you create and then it will be used by default without your having to explicitly use the client object that you created.</p>
@@ -1601,8 +1601,8 @@
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Client</span>
 
 <span class="n">c</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">extra_args</span><span class="o">=</span><span class="p">{</span>
-    <span class="s2">&quot;ChecksumMode&quot;</span><span class="p">:</span> <span class="s2">&quot;ENABLED&quot;</span><span class="p">,</span>  <span class="c1"># download extra arg, only used when downloading</span>
-    <span class="s2">&quot;ACL&quot;</span><span class="p">:</span> <span class="s2">&quot;public-read&quot;</span><span class="p">,</span>       <span class="c1"># upload extra arg, only used when uploading</span>
+    <span class="s2">"ChecksumMode"</span><span class="p">:</span> <span class="s2">"ENABLED"</span><span class="p">,</span>  <span class="c1"># download extra arg, only used when downloading</span>
+    <span class="s2">"ACL"</span><span class="p">:</span> <span class="s2">"public-read"</span><span class="p">,</span>       <span class="c1"># upload extra arg, only used when uploading</span>
 <span class="p">})</span>
 
 <span class="c1"># use these extras for all CloudPaths</span>
@@ -1619,17 +1619,17 @@ provinding http/https URL including port.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Client</span><span class="p">,</span> <span class="n">CloudPath</span>
 
 <span class="c1"># create a client pointing to the endpoint</span>
-<span class="n">client</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">endpoint_url</span><span class="o">=</span><span class="s2">&quot;http://my.s3.server:1234&quot;</span><span class="p">)</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">endpoint_url</span><span class="o">=</span><span class="s2">"http://my.s3.server:1234"</span><span class="p">)</span>
 
 <span class="c1"># option 1: use the client to create paths</span>
-<span class="n">cp1</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://cloudpathlib-test-bucket/&quot;</span><span class="p">)</span>
+<span class="n">cp1</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/"</span><span class="p">)</span>
 
 <span class="c1"># option 2: pass the client as keyword argument</span>
-<span class="n">cp2</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://cloudpathlib-test-bucket/&quot;</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
+<span class="n">cp2</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/"</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
 
 <span class="c1"># option3: set this client as the default so it is used in any future paths</span>
 <span class="n">client</span><span class="o">.</span><span class="n">set_as_default_client</span><span class="p">()</span>
-<span class="n">cp3</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://cloudpathlib-test-bucket/&quot;</span><span class="p">)</span>
+<span class="n">cp3</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/"</span><span class="p">)</span>
 </code></pre></div>
 <p>If your endpoint needs virtual-hosted-style URLs, pass <code>addressing_style="virtual"</code> to <code>S3Client</code> (see the <a href="../api-reference/s3client/">S3Client API reference</a> for details).</p>
 <h2 id="accessing-azure-datalake-storage-gen2-adls-gen2-storage-with-hierarchical-namespace-enabled">Accessing Azure DataLake Storage Gen2 (ADLS Gen2) storage with hierarchical namespace enabled<a class="headerlink" href="#accessing-azure-datalake-storage-gen2-adls-gen2-storage-with-hierarchical-namespace-enabled" title="Permanent link">&para;</a></h2>
@@ -1643,13 +1643,13 @@ provinding http/https URL including port.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
 
 
-<span class="k">with</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;cloud_path.pkl&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://my-awesome-bucket/cool-file.txt&quot;</span><span class="p">),</span> <span class="n">f</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"cloud_path.pkl"</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://my-awesome-bucket/cool-file.txt"</span><span class="p">),</span> <span class="n">f</span><span class="p">)</span>
 
-<span class="k">with</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;cloud_path.pkl&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="k">with</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"cloud_path.pkl"</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">pickled</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
-<span class="k">assert</span> <span class="n">pickled</span><span class="o">.</span><span class="n">bucket</span> <span class="o">==</span> <span class="s2">&quot;my-awesome-bucket&quot;</span>
+<span class="k">assert</span> <span class="n">pickled</span><span class="o">.</span><span class="n">bucket</span> <span class="o">==</span> <span class="s2">"my-awesome-bucket"</span>
 </code></pre></div>
 <p>The associated <code>client</code>, however, is not pickled. When a <code>CloudPath</code> is 
 unpickled, the client on the unpickled object will be set to the default 
@@ -1662,16 +1662,16 @@ client for that class.</p>
 
 
 <span class="c1"># create a custom client pointing to the endpoint</span>
-<span class="n">client</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">endpoint_url</span><span class="o">=</span><span class="s2">&quot;http://my.s3.server:1234&quot;</span><span class="p">)</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">endpoint_url</span><span class="o">=</span><span class="s2">"http://my.s3.server:1234"</span><span class="p">)</span>
 
 <span class="c1"># use that client when creating a cloud path</span>
-<span class="n">p</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://cloudpathlib-test-bucket/cool_file.txt&quot;</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
-<span class="n">p</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">&quot;hello!&quot;</span><span class="p">)</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://cloudpathlib-test-bucket/cool_file.txt"</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
+<span class="n">p</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">"hello!"</span><span class="p">)</span>
 
-<span class="k">with</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;cloud_path.pkl&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="k">with</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"cloud_path.pkl"</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 
-<span class="k">with</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;cloud_path.pkl&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="k">with</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"cloud_path.pkl"</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">pickled</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
 <span class="c1"># this will be False, because it will use the default `S3Client`</span>
@@ -1682,7 +1682,7 @@ before unpickling:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># set the custom client as the default before unpickling</span>
 <span class="n">client</span><span class="o">.</span><span class="n">set_as_default_client</span><span class="p">()</span>
 
-<span class="k">with</span> <span class="p">(</span><span class="s2">&quot;cloud_path.pkl&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="k">with</span> <span class="p">(</span><span class="s2">"cloud_path.pkl"</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">pickled2</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
 <span class="k">assert</span> <span class="n">pickled2</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
@@ -1740,7 +1740,7 @@ before unpickling:</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

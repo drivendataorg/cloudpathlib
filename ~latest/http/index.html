@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -1584,7 +1584,7 @@
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
 
 <span class="c1"># Create a path object</span>
-<span class="n">path</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;https://example.com/data/file.txt&quot;</span><span class="p">)</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"https://example.com/data/file.txt"</span><span class="p">)</span>
 
 <span class="c1"># Read file contents</span>
 <span class="n">text</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
@@ -1594,18 +1594,18 @@
 <span class="n">parent</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">parent</span>  <span class="c1"># https://example.com/data/</span>
 
 <span class="c1"># Join paths</span>
-<span class="n">subpath</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;other.txt&quot;</span>  <span class="c1"># https://example.com/data/other.txt</span>
+<span class="n">subpath</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"other.txt"</span>  <span class="c1"># https://example.com/data/other.txt</span>
 
 <span class="c1"># Check if file exists</span>
 <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;File exists!&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"File exists!"</span><span class="p">)</span>
 
 <span class="c1"># Get file name and suffix</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>      <span class="c1"># &quot;file.txt&quot;</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>    <span class="c1"># &quot;.txt&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>      <span class="c1"># "file.txt"</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>    <span class="c1"># ".txt"</span>
 
 <span class="c1"># List directory contents (if server supports directory listings)</span>
-<span class="n">data_dir</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;https://example.com/data/&quot;</span><span class="p">)</span>
+<span class="n">data_dir</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"https://example.com/data/"</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">child_path</span> <span class="ow">in</span> <span class="n">data_dir</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">child_path</span><span class="p">)</span>
 </code></pre></div>
@@ -1639,19 +1639,19 @@
 
     A --&gt; B --&gt; C --&gt; D --&gt; E</code></pre>
 <p>To access the components of the URL, you can use the <code>HttpPath.parsed_url</code> property:</p>
-<div class="highlight"><pre><span></span><code><span class="n">my_path</span> <span class="o">=</span> <span class="n">HttpPath</span><span class="p">(</span><span class="s2">&quot;http://username:password@www.example.com:8080/path/to/resource?query=param#fragment&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">my_path</span> <span class="o">=</span> <span class="n">HttpPath</span><span class="p">(</span><span class="s2">"http://username:password@www.example.com:8080/path/to/resource?query=param#fragment"</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span><span class="p">)</span>  <span class="c1"># &quot;http&quot;</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">netloc</span><span class="p">)</span>  <span class="c1"># &quot;username:password@www.example.com:8080&quot;</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>    <span class="c1"># &quot;/path/to/resource&quot;</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>   <span class="c1"># &quot;query=param&quot;</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">fragment</span><span class="p">)</span>  <span class="c1"># &quot;fragment&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span><span class="p">)</span>  <span class="c1"># "http"</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">netloc</span><span class="p">)</span>  <span class="c1"># "username:password@www.example.com:8080"</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>    <span class="c1"># "/path/to/resource"</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>   <span class="c1"># "query=param"</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">fragment</span><span class="p">)</span>  <span class="c1"># "fragment"</span>
 
 <span class="c1"># extra properties that are subcomponents of `netloc`</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>  <span class="c1"># &quot;username&quot;</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>  <span class="c1"># &quot;password&quot;</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">hostname</span><span class="p">)</span>  <span class="c1"># &quot;www.example.com&quot;</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>      <span class="c1"># &quot;8080&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>  <span class="c1"># "username"</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>  <span class="c1"># "password"</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">hostname</span><span class="p">)</span>  <span class="c1"># "www.example.com"</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">my_path</span><span class="o">.</span><span class="n">parsed_url</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>      <span class="c1"># "8080"</span>
 </code></pre></div>
 <h3 id="preservation-and-joining-behavior">Preservation and Joining Behavior<a class="headerlink" href="#preservation-and-joining-behavior" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1683,14 +1683,14 @@
 
 <span class="n">auth_handler</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">HTTPBasicAuthHandler</span><span class="p">()</span>
 <span class="n">auth_handler</span><span class="o">.</span><span class="n">add_password</span><span class="p">(</span>
-    <span class="n">realm</span><span class="o">=</span><span class="s2">&quot;Some Realm&quot;</span><span class="p">,</span>
-    <span class="n">uri</span><span class="o">=</span><span class="s2">&quot;http://www.example.com&quot;</span><span class="p">,</span>
-    <span class="n">user</span><span class="o">=</span><span class="s2">&quot;username&quot;</span><span class="p">,</span>
-    <span class="n">passwd</span><span class="o">=</span><span class="s2">&quot;password&quot;</span>
+    <span class="n">realm</span><span class="o">=</span><span class="s2">"Some Realm"</span><span class="p">,</span>
+    <span class="n">uri</span><span class="o">=</span><span class="s2">"http://www.example.com"</span><span class="p">,</span>
+    <span class="n">user</span><span class="o">=</span><span class="s2">"username"</span><span class="p">,</span>
+    <span class="n">passwd</span><span class="o">=</span><span class="s2">"password"</span>
 <span class="p">)</span>
 
 <span class="n">client</span> <span class="o">=</span> <span class="n">HttpClient</span><span class="p">(</span><span class="n">auth</span><span class="o">=</span><span class="n">auth_handler</span><span class="p">)</span>
-<span class="n">my_path</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;http://www.example.com/secret/data.txt&quot;</span><span class="p">)</span>
+<span class="n">my_path</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">"http://www.example.com/secret/data.txt"</span><span class="p">)</span>
 
 <span class="c1"># Now GET requests will include basic auth headers</span>
 <span class="n">content</span> <span class="o">=</span> <span class="n">my_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
@@ -1705,31 +1705,31 @@
 <h3 id="listing-the-contents-of-a-directory">Listing the Contents of a Directory<a class="headerlink" href="#listing-the-contents-of-a-directory" title="Permanent link">&para;</a></h3>
 <p>We attempt to parse directory listings by calling <code>GET</code> on the directory URL (which presumably returns an HTML page that has a directory index). Our default parser looks for <code>&lt;a&gt;</code> tags and yields them, assuming they are children. You can override this logic with <code>custom_list_page_parser</code> if your server's HTML or API returns a different listing format. For example:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">my_parser</span><span class="p">(</span><span class="n">html_content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-    <span class="c1"># for example, just get a with href and class &quot;file-link&quot;</span>
+    <span class="c1"># for example, just get a with href and class "file-link"</span>
     <span class="c1"># using beautifulsoup</span>
-    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html_content</span><span class="p">,</span> <span class="s2">&quot;html.parser&quot;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="s2">&quot;file-link&quot;</span><span class="p">):</span>
-        <span class="k">yield</span> <span class="n">link</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;href&quot;</span><span class="p">)</span>
+    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html_content</span><span class="p">,</span> <span class="s2">"html.parser"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="s2">"file-link"</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">link</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"href"</span><span class="p">)</span>
 
 <span class="n">client</span> <span class="o">=</span> <span class="n">HttpClient</span><span class="p">(</span><span class="n">custom_list_page_parser</span><span class="o">=</span><span class="n">my_parser</span><span class="p">)</span>
-<span class="n">my_dir</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;http://example.com/public/&quot;</span><span class="p">)</span>
+<span class="n">my_dir</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="s2">"http://example.com/public/"</span><span class="p">)</span>
 
 <span class="k">for</span> <span class="n">subpath</span><span class="p">,</span> <span class="n">is_dir</span> <span class="ow">in</span> <span class="n">my_dir</span><span class="o">.</span><span class="n">list_dir</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">subpath</span><span class="p">,</span> <span class="s2">&quot;dir&quot;</span> <span class="k">if</span> <span class="n">is_dir</span> <span class="k">else</span> <span class="s2">&quot;file&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">subpath</span><span class="p">,</span> <span class="s2">"dir"</span> <span class="k">if</span> <span class="n">is_dir</span> <span class="k">else</span> <span class="s2">"file"</span><span class="p">)</span>
 </code></pre></div>
 <p><strong>Note</strong>: If your server doesn't provide an HTML index or a suitable listing format that we can parse, you will see:</p>
-<div class="highlight"><pre><span></span><code>NotImplementedError(&quot;Unable to parse response as a listing of files; please provide a custom parser as `custom_list_page_parser`.&quot;)
+<div class="highlight"><pre><span></span><code>NotImplementedError("Unable to parse response as a listing of files; please provide a custom parser as `custom_list_page_parser`.")
 </code></pre></div>
 <p>In that case, you must provide a custom parser or avoid directory-listing operations altogether.</p>
 <h2 id="http-or-https">HTTP or HTTPS<a class="headerlink" href="#http-or-https" title="Permanent link">&para;</a></h2>
 <p>There are separate classes for <code>HttpClient</code>/<code>HttpPath</code> for <code>http://</code> and <code>HttpsClient</code>/<code>HttpsPath</code> for <code>https://</code>. However, from a usage standpoint, you can use either <code>CloudPath</code> or <code>AnyPath</code> to dispatch to the right subclass.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnyPath</span><span class="p">,</span> <span class="n">CloudPath</span>
 
-<span class="c1"># AnyPath will automatically detect &quot;http://&quot; or &quot;https://&quot; (or local file paths)</span>
-<span class="n">my_path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;https://www.example.com/files/info.txt&quot;</span><span class="p">)</span>
+<span class="c1"># AnyPath will automatically detect "http://" or "https://" (or local file paths)</span>
+<span class="n">my_path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">"https://www.example.com/files/info.txt"</span><span class="p">)</span>
 
 <span class="c1"># CloudPath will dispatch to the correct subclass</span>
-<span class="n">my_path</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;https://www.example.com/files/info.txt&quot;</span><span class="p">)</span>
+<span class="n">my_path</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"https://www.example.com/files/info.txt"</span><span class="p">)</span>
 </code></pre></div>
 <p>If you explicitly instantiate a <code>HttpClient</code>, it will only handle <code>http://</code> paths. If you instantiate a <code>HttpsClient</code>, it will only handle <code>https://</code> paths. But <code>AnyPath</code> and <code>CloudPath</code> will route to the correct client class automatically.</p>
 <p>In general, you should use <code>HttpsClient</code> and work with <code>https://</code> urls wherever possible.</p>
@@ -1790,7 +1790,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

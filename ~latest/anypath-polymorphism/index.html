@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -1347,13 +1347,13 @@
 <h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnyPath</span>
 
-<span class="n">path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;mydir/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">"mydir/myfile.txt"</span><span class="p">)</span>
 <span class="n">path</span>
-<span class="c1">#&gt; PosixPath(&#39;mydir/myfile.txt&#39;)</span>
+<span class="c1">#&gt; PosixPath('mydir/myfile.txt')</span>
 
-<span class="n">cloud_path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;s3://mybucket/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">cloud_path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">"s3://mybucket/myfile.txt"</span><span class="p">)</span>
 <span class="n">cloud_path</span>
-<span class="c1">#&gt; S3Path(&#39;s3://mybucket/myfile.txt&#39;)</span>
+<span class="c1">#&gt; S3Path('s3://mybucket/myfile.txt')</span>
 
 <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">AnyPath</span><span class="p">)</span>
 <span class="c1">#&gt; True</span>
@@ -1366,19 +1366,19 @@
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnyPath</span>
 
 <span class="c1"># hostname omitted variant</span>
-<span class="n">path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;file:/root/mydir/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">"file:/root/mydir/myfile.txt"</span><span class="p">)</span>
 <span class="n">path</span>
-<span class="c1">#&gt; PosixPath(&#39;/root/mydir/myfile.txt&#39;)</span>
+<span class="c1">#&gt; PosixPath('/root/mydir/myfile.txt')</span>
 
 <span class="c1"># explicit local path variant</span>
-<span class="n">path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">&quot;file:///root/mydir/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">AnyPath</span><span class="p">(</span><span class="s2">"file:///root/mydir/myfile.txt"</span><span class="p">)</span>
 <span class="n">path</span>
-<span class="c1">#&gt; PosixPath(&#39;/root/mydir/myfile.txt&#39;)</span>
+<span class="c1">#&gt; PosixPath('/root/mydir/myfile.txt')</span>
 
 <span class="c1"># manipulate the path and return the file:// URI</span>
 <span class="n">parent_uri</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">as_uri</span><span class="p">()</span>
 <span class="n">parent_uri</span>
-<span class="c1">#&gt; &#39;file:///root/mydir&#39;</span>
+<span class="c1">#&gt; 'file:///root/mydir'</span>
 </code></pre></div>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
 <p>The constructor for <code>AnyPath</code> will first attempt to run the input through the <code>CloudPath</code> base class' constructor, which will validate the input against registered concrete <code>CloudPath</code> implementations. This will accept inputs that are already a cloud path class or a string with the appropriate URI scheme prefix (e.g., <code>s3://</code>). If no implementation validates successfully, it will then try to run the input through the <code>Path</code> constructor. If the <code>Path</code> constructor fails and raises a <code>TypeError</code>, then the <code>AnyPath</code> constructor will raise an <code>AnyPathTypeError</code> exception.</p>
@@ -1437,7 +1437,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

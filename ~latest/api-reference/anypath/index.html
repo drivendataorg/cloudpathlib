@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -1454,21 +1454,21 @@ constructor and dispatch to CloudPath or Path.</p>
 <span class="normal">79</span>
 <span class="normal">80</span>
 <span class="normal">81</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">AnyPath</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Polymorphic virtual superclass for CloudPath and pathlib.Path. Constructing an instance will</span>
+<span class="w">    </span><span class="sd">"""Polymorphic virtual superclass for CloudPath and pathlib.Path. Constructing an instance will</span>
 <span class="sd">    automatically dispatch to CloudPath or Path based on the input. It also supports both</span>
 <span class="sd">    isinstance and issubclass checks.</span>
 
 <span class="sd">    This class also integrates with Pydantic. When used as a type declaration for a Pydantic</span>
-<span class="sd">    BaseModel, the Pydantic validation process will appropriately run inputs through this class&#39;</span>
+<span class="sd">    BaseModel, the Pydantic validation process will appropriately run inputs through this class'</span>
 <span class="sd">    constructor and dispatch to CloudPath or Path.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">CloudPath</span><span class="p">,</span> <span class="n">Path</span><span class="p">]:</span>  <span class="c1"># type: ignore</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">CloudPath</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
         <span class="k">except</span> <span class="n">InvalidPrefixError</span> <span class="k">as</span> <span class="n">cloudpath_exception</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;file:&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"file:"</span><span class="p">):</span>
                     <span class="n">path</span> <span class="o">=</span> <span class="n">path_from_fileurl</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
                         <span class="n">path</span> <span class="o">/=</span> <span class="n">part</span>
@@ -1477,16 +1477,16 @@ constructor and dispatch to CloudPath or Path.</p>
                 <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">path_exception</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">AnyPathTypeError</span><span class="p">(</span>
-                    <span class="s2">&quot;Invalid input for both CloudPath and Path. &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;CloudPath exception: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">cloudpath_exception</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;Path exception: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">path_exception</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="s2">"Invalid input for both CloudPath and Path. "</span>
+                    <span class="sa">f</span><span class="s2">"CloudPath exception: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">cloudpath_exception</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
+                    <span class="sa">f</span><span class="s2">"Path exception: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">path_exception</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
                 <span class="p">)</span>
 
     <span class="c1"># ===========  pydantic integration special methods ===============</span>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">__get_pydantic_core_schema__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">_source_type</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">_handler</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic special method. See</span>
-<span class="sd">        https://docs.pydantic.dev/2.0/usage/types/custom/&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Pydantic special method. See</span>
+<span class="sd">        https://docs.pydantic.dev/2.0/usage/types/custom/"""</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic_core</span><span class="w"> </span><span class="kn">import</span> <span class="n">core_schema</span>
 
@@ -1503,8 +1503,8 @@ constructor and dispatch to CloudPath or Path.</p>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">CloudPath</span><span class="p">,</span> <span class="n">Path</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic special method. See</span>
-<span class="sd">        https://docs.pydantic.dev/2.0/usage/types/custom/&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Pydantic special method. See</span>
+<span class="sd">        https://docs.pydantic.dev/2.0/usage/types/custom/"""</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">AnyPathTypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1514,14 +1514,14 @@ constructor and dispatch to CloudPath or Path.</p>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">__get_validators__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pydantic special method. See</span>
-<span class="sd">        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Pydantic special method. See</span>
+<span class="sd">        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""</span>
         <span class="k">yield</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_validate</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">CloudPath</span><span class="p">,</span> <span class="n">Path</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Used as a Pydantic validator. See</span>
-<span class="sd">        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Used as a Pydantic validator. See</span>
+<span class="sd">        https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types"""</span>
         <span class="c1"># Note __new__ is static method and not a class method</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -1572,8 +1572,8 @@ https://docs.pydantic.dev/2.0/usage/types/custom/</p>
 <span class="normal">67</span>
 <span class="normal">68</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">CloudPath</span><span class="p">,</span> <span class="n">Path</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pydantic special method. See</span>
-<span class="sd">    https://docs.pydantic.dev/2.0/usage/types/custom/&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Pydantic special method. See</span>
+<span class="sd">    https://docs.pydantic.dev/2.0/usage/types/custom/"""</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">AnyPathTypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1645,7 +1645,7 @@ https://docs.pydantic.dev/2.0/usage/types/custom/</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -1306,11 +1306,11 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
     <span class="n">s3_file</span><span class="p">:</span> <span class="n">S3Path</span>
 
-<span class="n">inst</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">s3_file</span><span class="o">=</span><span class="s2">&quot;s3://mybucket/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">inst</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">s3_file</span><span class="o">=</span><span class="s2">"s3://mybucket/myfile.txt"</span><span class="p">)</span>
 <span class="n">inst</span><span class="o">.</span><span class="n">s3_file</span>
-<span class="c1">#&gt; S3Path(&#39;s3://mybucket/myfile.txt&#39;)</span>
+<span class="c1">#&gt; S3Path('s3://mybucket/myfile.txt')</span>
 <span class="n">inst</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()</span>
-<span class="c1">#&gt; &#39;{&quot;s3_file&quot;:&quot;s3://mybucket/myfile.txt&quot;}&#39;</span>
+<span class="c1">#&gt; '{"s3_file":"s3://mybucket/myfile.txt"}'</span>
 </code></pre></div>
 <p>This also works with the <code>AnyPath</code> polymorphic class. Inputs will get dispatched and instantiated as the appropriate class.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnyPath</span>
@@ -1319,15 +1319,15 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">FancyModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
     <span class="n">path</span><span class="p">:</span> <span class="n">AnyPath</span>
 
-<span class="n">fancy1</span> <span class="o">=</span> <span class="n">FancyModel</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;s3://mybucket/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">fancy1</span> <span class="o">=</span> <span class="n">FancyModel</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">"s3://mybucket/myfile.txt"</span><span class="p">)</span>
 <span class="n">fancy1</span><span class="o">.</span><span class="n">path</span>
-<span class="c1">#&gt; S3Path(&#39;s3://mybucket/myfile.txt&#39;)</span>
+<span class="c1">#&gt; S3Path('s3://mybucket/myfile.txt')</span>
 
-<span class="n">fancy2</span> <span class="o">=</span> <span class="n">FancyModel</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;mydir/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">fancy2</span> <span class="o">=</span> <span class="n">FancyModel</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">"mydir/myfile.txt"</span><span class="p">)</span>
 <span class="n">fancy2</span><span class="o">.</span><span class="n">path</span>
-<span class="c1">#&gt; PosixPath(&#39;mydir/myfile.txt&#39;)</span>
+<span class="c1">#&gt; PosixPath('mydir/myfile.txt')</span>
 <span class="n">fancy2</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()</span>
-<span class="c1">#&gt; &#39;{&quot;path&quot;:&quot;mydir/myfile.txt&quot;}&#39;</span>
+<span class="c1">#&gt; '{"path":"mydir/myfile.txt"}'</span>
 </code></pre></div>
 <p>As seen above, the default serialization uses the URI but Pydantic supports custom serializers.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span>
@@ -1337,9 +1337,9 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
     <span class="n">s3_file</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">S3Path</span><span class="p">,</span> <span class="n">PlainSerializer</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">as_url</span><span class="p">())]</span>
 
-<span class="n">inst</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">s3_file</span><span class="o">=</span><span class="s2">&quot;s3://mybucket/myfile.txt&quot;</span><span class="p">)</span>
+<span class="n">inst</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">s3_file</span><span class="o">=</span><span class="s2">"s3://mybucket/myfile.txt"</span><span class="p">)</span>
 <span class="n">inst</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()</span>
-<span class="c1">#&gt; &#39;{&quot;s3_file&quot;:&quot;https://mybucket.s3.amazonaws.com/myfile.txt&quot;}&#39;</span>
+<span class="c1">#&gt; '{"s3_file":"https://mybucket.s3.amazonaws.com/myfile.txt"}'</span>
 </code></pre></div>
 <hr />
 <p><sup>Examples created with <a href="https://github.com/jayqi/reprexlite">reprexlite</a></sup></p>
@@ -1395,7 +1395,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

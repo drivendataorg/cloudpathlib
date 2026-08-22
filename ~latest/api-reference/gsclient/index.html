@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -1936,28 +1936,28 @@ options.</p>
 <span class="normal">308</span>
 <span class="normal">309</span>
 <span class="normal">310</span>
-<span class="normal">311</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">&quot;gs&quot;</span><span class="p">)</span>
+<span class="normal">311</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">"gs"</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">GSClient</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Client class for Google Cloud Storage which handles authentication with GCP for</span>
+<span class="w">    </span><span class="sd">"""Client class for Google Cloud Storage which handles authentication with GCP for</span>
 <span class="sd">    [`GSPath`](../gspath/) instances. See documentation for the</span>
 <span class="sd">    [`__init__` method][cloudpathlib.gs.gsclient.GSClient.__init__] for detailed authentication</span>
 <span class="sd">    options.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">application_credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Credentials&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"Credentials"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">project</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">storage_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;StorageClient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">storage_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"StorageClient"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FileCacheMode</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">,</span>
         <span class="n">download_chunks_concurrently_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">retry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Retry&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">retry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"Retry"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Class constructor. Sets up a [`Storage</span>
+<span class="w">        </span><span class="sd">"""Class constructor. Sets up a [`Storage</span>
 <span class="sd">        Client`](https://googleapis.dev/python/storage/latest/client.html).</span>
 <span class="sd">        Supports, in this order, the following authentication methods of `Storage Client`.</span>
 
@@ -1994,8 +1994,8 @@ options.</p>
 <span class="sd">                for sliced parallel downloads; Only available in `google-cloud-storage` version 2.7.0 or later, otherwise ignored and a warning is emitted.</span>
 <span class="sd">            timeout (Optional[float]): Cloud Storage [timeout value](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout)</span>
 <span class="sd">            retry (Optional[google.api_core.retry.Retry]): Cloud Storage [retry configuration](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout#configuring-retries)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># don&#39;t check `GOOGLE_APPLICATION_CREDENTIALS` since `google_default_auth` already does that</span>
+<span class="sd">        """</span>
+        <span class="c1"># don't check `GOOGLE_APPLICATION_CREDENTIALS` since `google_default_auth` already does that</span>
         <span class="c1"># use explicit client</span>
         <span class="k">if</span> <span class="n">storage_client</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">storage_client</span>
@@ -2020,10 +2020,10 @@ options.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">blob_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">timeout</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">blob_kwargs</span><span class="p">[</span><span class="s2">&quot;timeout&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blob_kwargs</span><span class="p">[</span><span class="s2">"timeout"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span>
         <span class="k">if</span> <span class="n">retry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">retry</span><span class="p">:</span> <span class="n">Retry</span> <span class="o">=</span> <span class="n">retry</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">blob_kwargs</span><span class="p">[</span><span class="s2">&quot;retry&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retry</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">blob_kwargs</span><span class="p">[</span><span class="s2">"retry"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retry</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span>
@@ -2039,11 +2039,11 @@ options.</p>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{</span>
-                <span class="s2">&quot;etag&quot;</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">etag</span><span class="p">,</span>
-                <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
-                <span class="s2">&quot;updated&quot;</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">updated</span><span class="p">,</span>
-                <span class="s2">&quot;content_type&quot;</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">content_type</span><span class="p">,</span>
-                <span class="s2">&quot;md5_hash&quot;</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">md5_hash</span><span class="p">,</span>
+                <span class="s2">"etag"</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">etag</span><span class="p">,</span>
+                <span class="s2">"size"</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+                <span class="s2">"updated"</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">updated</span><span class="p">,</span>
+                <span class="s2">"content_type"</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">content_type</span><span class="p">,</span>
+                <span class="s2">"md5_hash"</span><span class="p">:</span> <span class="n">blob</span><span class="o">.</span><span class="n">md5_hash</span><span class="p">,</span>
             <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_download_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
@@ -2058,7 +2058,7 @@ options.</p>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">transfer_manager</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">download_chunks_concurrently_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                    <span class="s2">&quot;Ignoring `download_chunks_concurrently_kwargs` for version of google-cloud-storage that does not support them (&lt;2.7.0).&quot;</span>
+                    <span class="s2">"Ignoring `download_chunks_concurrently_kwargs` for version of google-cloud-storage that does not support them (&lt;2.7.0)."</span>
                 <span class="p">)</span>
 
             <span class="n">blob</span><span class="o">.</span><span class="n">download_to_filename</span><span class="p">(</span><span class="n">local_path</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">blob_kwargs</span><span class="p">)</span>
@@ -2068,24 +2068,24 @@ options.</p>
     <span class="k">def</span><span class="w"> </span><span class="nf">_is_file_or_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="c1"># short-circuit the root-level bucket</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;dir&quot;</span>
+            <span class="k">return</span> <span class="s2">"dir"</span>
 
         <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
         <span class="n">blob</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">get_blob</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">blob</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;file&quot;</span>
+            <span class="k">return</span> <span class="s2">"file"</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">prefix</span> <span class="o">=</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span>
-            <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
-                <span class="n">prefix</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
+            <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/"</span><span class="p">):</span>
+                <span class="n">prefix</span> <span class="o">+=</span> <span class="s2">"/"</span>
 
             <span class="c1"># not a file, see if it is a directory</span>
             <span class="n">f</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">list_blobs</span><span class="p">(</span><span class="n">max_results</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
 
             <span class="c1"># at least one key with the prefix of the directory</span>
             <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="p">)):</span>
-                <span class="k">return</span> <span class="s2">&quot;dir&quot;</span>
+                <span class="k">return</span> <span class="s2">"dir"</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">None</span>
 
@@ -2094,18 +2094,18 @@ options.</p>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="s2">&quot;dir&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"file"</span><span class="p">,</span> <span class="s2">"dir"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_list_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">GSPath</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
         <span class="c1"># shortcut if listing all available buckets</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
-                    <span class="s2">&quot;Cannot recursively list all buckets and contents; you can get all the buckets then recursively list each separately.&quot;</span>
+                    <span class="s2">"Cannot recursively list all buckets and contents; you can get all the buckets then recursively list each separately."</span>
                 <span class="p">)</span>
 
             <span class="k">yield from</span> <span class="p">(</span>
-                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="nb">str</span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="nb">str</span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span> <span class="kc">True</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">list_buckets</span><span class="p">()</span>
             <span class="p">)</span>
             <span class="k">return</span>
@@ -2113,54 +2113,54 @@ options.</p>
         <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
 
         <span class="n">prefix</span> <span class="o">=</span> <span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span>
-        <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
-            <span class="n">prefix</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
+        <span class="k">if</span> <span class="n">prefix</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">prefix</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/"</span><span class="p">):</span>
+            <span class="n">prefix</span> <span class="o">+=</span> <span class="s2">"/"</span>
         <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
             <span class="n">yielded_dirs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">bucket</span><span class="o">.</span><span class="n">list_blobs</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">):</span>
                 <span class="c1"># get directory from this path</span>
                 <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">PurePosixPath</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:])</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
-                    <span class="c1"># if we haven&#39;t surfaced this directory already</span>
-                    <span class="k">if</span> <span class="n">parent</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">yielded_dirs</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                    <span class="c1"># if we haven't surfaced this directory already</span>
+                    <span class="k">if</span> <span class="n">parent</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">yielded_dirs</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"."</span><span class="p">:</span>
                         <span class="k">yield</span> <span class="p">(</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span>
-                                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">parent</span><span class="si">}</span><span class="s2">&quot;</span>
+                                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">parent</span><span class="si">}</span><span class="s2">"</span>
                             <span class="p">),</span>
                             <span class="kc">True</span><span class="p">,</span>  <span class="c1"># is a directory</span>
                         <span class="p">)</span>
                         <span class="n">yielded_dirs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
                 <span class="k">yield</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span>
                     <span class="kc">False</span><span class="p">,</span>
                 <span class="p">)</span>  <span class="c1"># is a file</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">iterator</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">list_blobs</span><span class="p">(</span><span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+            <span class="n">iterator</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">list_blobs</span><span class="p">(</span><span class="n">delimiter</span><span class="o">=</span><span class="s2">"/"</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
 
             <span class="c1"># files must be iterated first for `.prefixes` to be populated:</span>
             <span class="c1">#   see: https://github.com/googleapis/python-storage/issues/863</span>
             <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span>
                     <span class="kc">False</span><span class="p">,</span>  <span class="c1"># is a file</span>
                 <span class="p">)</span>
 
             <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="n">iterator</span><span class="o">.</span><span class="n">prefixes</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">CloudPath</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">cloud_prefix</span><span class="si">}{</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span>
                     <span class="kc">True</span><span class="p">,</span>  <span class="c1"># is a directory</span>
                 <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_move_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">,</span> <span class="n">remove_src</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GSPath</span><span class="p">:</span>
-        <span class="c1"># just a touch, so &quot;REPLACE&quot; metadata</span>
+        <span class="c1"># just a touch, so "REPLACE" metadata</span>
         <span class="k">if</span> <span class="n">src</span> <span class="o">==</span> <span class="n">dst</span><span class="p">:</span>
             <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
             <span class="n">blob</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">get_blob</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span>
 
             <span class="c1"># See https://github.com/googleapis/google-cloud-python/issues/1185#issuecomment-431537214</span>
             <span class="k">if</span> <span class="n">blob</span><span class="o">.</span><span class="n">metadata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">blob</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;updated&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()}</span>
+                <span class="n">blob</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"updated"</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()}</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">blob</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;updated&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+                <span class="n">blob</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">"updated"</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
             <span class="n">blob</span><span class="o">.</span><span class="n">patch</span><span class="p">()</span>
 
         <span class="k">else</span><span class="p">:</span>
@@ -2177,20 +2177,20 @@ options.</p>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">file_or_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_file_or_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">file_or_dir</span> <span class="o">==</span> <span class="s2">&quot;dir&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">file_or_dir</span> <span class="o">==</span> <span class="s2">"dir"</span><span class="p">:</span>
             <span class="n">blobs</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">b</span><span class="o">.</span><span class="n">blob</span> <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">is_dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_dir</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">is_dir</span>
             <span class="p">]</span>
             <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">blob</span> <span class="ow">in</span> <span class="n">blobs</span><span class="p">:</span>
                 <span class="n">bucket</span><span class="o">.</span><span class="n">get_blob</span><span class="p">(</span><span class="n">blob</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="n">file_or_dir</span> <span class="o">==</span> <span class="s2">&quot;file&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">file_or_dir</span> <span class="o">==</span> <span class="s2">"file"</span><span class="p">:</span>
             <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
             <span class="n">bucket</span><span class="o">.</span><span class="n">get_blob</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Does not exist</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_ok</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File does not exist: </span><span class="si">{</span><span class="n">cloud_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"File does not exist: </span><span class="si">{</span><span class="n">cloud_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_upload_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">],</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">GSPath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GSPath</span><span class="p">:</span>
         <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
@@ -2199,7 +2199,7 @@ options.</p>
         <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type_method</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">content_type</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">content_type_method</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">local_path</span><span class="p">))</span>
-            <span class="n">extra_args</span><span class="p">[</span><span class="s2">&quot;content_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">content_type</span>
+            <span class="n">extra_args</span><span class="p">[</span><span class="s2">"content_type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">content_type</span>
 
         <span class="n">blob</span><span class="o">.</span><span class="n">upload_from_filename</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">local_path</span><span class="p">),</span> <span class="o">**</span><span class="n">extra_args</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">blob_kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cloud_path</span>
@@ -2213,7 +2213,7 @@ options.</p>
         <span class="n">bucket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
         <span class="n">blob</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">blob</span><span class="p">(</span><span class="n">cloud_path</span><span class="o">.</span><span class="n">blob</span><span class="p">)</span>
         <span class="n">url</span> <span class="o">=</span> <span class="n">blob</span><span class="o">.</span><span class="n">generate_signed_url</span><span class="p">(</span>
-            <span class="n">version</span><span class="o">=</span><span class="s2">&quot;v4&quot;</span><span class="p">,</span> <span class="n">expiration</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">expire_seconds</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;GET&quot;</span>
+            <span class="n">version</span><span class="o">=</span><span class="s2">"v4"</span><span class="p">,</span> <span class="n">expiration</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="n">expire_seconds</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s2">"GET"</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">url</span>
 </code></pre></div></td></tr></table></div>
@@ -2695,17 +2695,17 @@ for sliced parallel downloads; Only available in <code>google-cloud-storage</cod
 <span class="normal">125</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">application_credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Credentials&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"Credentials"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">project</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">storage_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;StorageClient&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">storage_client</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"StorageClient"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">file_cache_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">FileCacheMode</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">local_cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">content_type_method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">,</span>
     <span class="n">download_chunks_concurrently_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">retry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Retry&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">retry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"Retry"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class constructor. Sets up a [`Storage</span>
+<span class="w">    </span><span class="sd">"""Class constructor. Sets up a [`Storage</span>
 <span class="sd">    Client`](https://googleapis.dev/python/storage/latest/client.html).</span>
 <span class="sd">    Supports, in this order, the following authentication methods of `Storage Client`.</span>
 
@@ -2742,8 +2742,8 @@ for sliced parallel downloads; Only available in <code>google-cloud-storage</cod
 <span class="sd">            for sliced parallel downloads; Only available in `google-cloud-storage` version 2.7.0 or later, otherwise ignored and a warning is emitted.</span>
 <span class="sd">        timeout (Optional[float]): Cloud Storage [timeout value](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout)</span>
 <span class="sd">        retry (Optional[google.api_core.retry.Retry]): Cloud Storage [retry configuration](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout#configuring-retries)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># don&#39;t check `GOOGLE_APPLICATION_CREDENTIALS` since `google_default_auth` already does that</span>
+<span class="sd">    """</span>
+    <span class="c1"># don't check `GOOGLE_APPLICATION_CREDENTIALS` since `google_default_auth` already does that</span>
     <span class="c1"># use explicit client</span>
     <span class="k">if</span> <span class="n">storage_client</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">storage_client</span>
@@ -2768,10 +2768,10 @@ for sliced parallel downloads; Only available in <code>google-cloud-storage</cod
     <span class="bp">self</span><span class="o">.</span><span class="n">blob_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">timeout</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">blob_kwargs</span><span class="p">[</span><span class="s2">&quot;timeout&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blob_kwargs</span><span class="p">[</span><span class="s2">"timeout"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span>
     <span class="k">if</span> <span class="n">retry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">retry</span><span class="p">:</span> <span class="n">Retry</span> <span class="o">=</span> <span class="n">retry</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">blob_kwargs</span><span class="p">[</span><span class="s2">&quot;retry&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blob_kwargs</span><span class="p">[</span><span class="s2">"retry"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">retry</span>
 
     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
         <span class="n">local_cache_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span>
@@ -2811,9 +2811,9 @@ Does not remove folder so it can keep being written to.</p>
 <span class="normal">121</span>
 <span class="normal">122</span>
 <span class="normal">123</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Clears the contents of the cache folder.</span>
+<span class="w">    </span><span class="sd">"""Clears the contents of the cache folder.</span>
 <span class="sd">    Does not remove folder so it can keep being written to.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_cache_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_cache_dir</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
@@ -2855,10 +2855,10 @@ instance for this cloud without a client specified.</p>
 <span class="normal">102</span>
 <span class="normal">103</span>
 <span class="normal">104</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_default_client</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Client[BoundedCloudPath]&quot;</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the default client, which the one that is used when instantiating a cloud path</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_default_client</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Client[BoundedCloudPath]"</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Get the default client, which the one that is used when instantiating a cloud path</span>
 <span class="sd">    instance for this cloud without a client specified.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_default_client</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
     <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_client</span>
@@ -2889,8 +2889,8 @@ instances for this cloud without a client specified.</p>
 <span class="normal">107</span>
 <span class="normal">108</span>
 <span class="normal">109</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">set_as_default_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set this client instance as the default one used when instantiating cloud path</span>
-<span class="sd">    instances for this cloud without a client specified.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Set this client instance as the default one used when instantiating cloud path</span>
+<span class="sd">    instances for this cloud without a client specified."""</span>
     <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_default_client</span> <span class="o">=</span> <span class="bp">self</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -2957,7 +2957,7 @@ instances for this cloud without a client specified.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

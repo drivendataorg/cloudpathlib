@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -1961,7 +1961,7 @@ docs-setup           setup docs pages based on README.md and HISTORY.md
 docs                 build the static version of the docs
 docs-serve           serve documentation to livereload while you work
 format               run black to format codebase
-install              install the package to the active Python&#39;s site-packages
+install              install the package to the active Python's site-packages
 lint                 check style with black, flake8, and mypy
 release              package and upload a release
 reqs                 install development requirements
@@ -2094,10 +2094,10 @@ perf                 run performance measurement suite for s3 and save results t
 <p>When writing tests, use the rig's <code>create_cloud_path()</code> method to create cloud paths:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_file_operations</span><span class="p">(</span><span class="n">rig</span><span class="p">):</span>
     <span class="c1"># Create a path to an existing file in the test assets</span>
-    <span class="n">cp</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">create_cloud_path</span><span class="p">(</span><span class="s2">&quot;dir_0/file0_0.txt&quot;</span><span class="p">)</span>
+    <span class="n">cp</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">create_cloud_path</span><span class="p">(</span><span class="s2">"dir_0/file0_0.txt"</span><span class="p">)</span>
 
     <span class="c1"># Create a path to a non-existent file</span>
-    <span class="n">cp2</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">create_cloud_path</span><span class="p">(</span><span class="s2">&quot;path/that/does/not/exist.txt&quot;</span><span class="p">)</span>
+    <span class="n">cp2</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">create_cloud_path</span><span class="p">(</span><span class="s2">"path/that/does/not/exist.txt"</span><span class="p">)</span>
 
     <span class="c1"># Get a client instance</span>
     <span class="n">client</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">client_class</span><span class="p">()</span>
@@ -2117,10 +2117,10 @@ perf                 run performance measurement suite for s3 and save results t
 <p>Your best guide will be reading the existing test suite, and making sure you're using the rig when possible.</p>
 <p>For example, if you want a <code>CloudPath</code> referring to a file that actually exists, you may want to do something like this:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># note that dir_0/file0_0.txt is in tests/assets, so you can expect to exist on the provider</span>
-<span class="n">cp</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">create_cloud_path</span><span class="p">(</span><span class="s2">&quot;dir_0/file0_0.txt&quot;</span><span class="p">)</span>
+<span class="n">cp</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">create_cloud_path</span><span class="p">(</span><span class="s2">"dir_0/file0_0.txt"</span><span class="p">)</span>
 
-<span class="c1"># if you don&#39;t need the file to actually exist, you can use the same method</span>
-<span class="n">cp2</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">create_cloud_path</span><span class="p">(</span><span class="s2">&quot;path/that/does/not/exist.txt&quot;</span><span class="p">)</span>
+<span class="c1"># if you don't need the file to actually exist, you can use the same method</span>
+<span class="n">cp2</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">create_cloud_path</span><span class="p">(</span><span class="s2">"path/that/does/not/exist.txt"</span><span class="p">)</span>
 </code></pre></div>
 <p>If you are testing functionality on the <code>*Client</code> class, you can get an instance of the class for the rig with:</p>
 <div class="highlight"><pre><span></span><code><span class="n">new_client</span> <span class="o">=</span> <span class="n">rig</span><span class="o">.</span><span class="n">client_class</span><span class="p">()</span>
@@ -2195,7 +2195,7 @@ perf                 run performance measurement suite for s3 and save results t
 <p>Then you can import the library and work with the CloudPath class:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
 
-<span class="n">cp</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://my-test-bucket/&quot;</span><span class="p">)</span>
+<span class="n">cp</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://my-test-bucket/"</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="credentials-and-cloud-access">Credentials and cloud access<a class="headerlink" href="#credentials-and-cloud-access" title="Permanent link">&para;</a></h3>
 <p>For certain tests and development scenarios, you will need to have access to the relevant cloud provider. You can put the authentication credentials into a <code>.env</code> file in the root of the project. The <code>.env</code> file is ignored by git, so you can put your credentials there without worrying about them being committed. See the <a href="https://cloudpathlib.drivendata.org/stable/authentication/">authentication documentation</a> for information on what variables to set.</p>
@@ -2258,8 +2258,8 @@ perf                 run performance measurement suite for s3 and save results t
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib.cloudpath</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyPath</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">):</span>
-    <span class="n">cloud_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;my-prefix://&quot;</span>
-    <span class="n">client</span><span class="p">:</span> <span class="s2">&quot;MyClient&quot;</span>
+    <span class="n">cloud_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"my-prefix://"</span>
+    <span class="n">client</span><span class="p">:</span> <span class="s2">"MyClient"</span>
 
     <span class="c1"># implementation here...</span>
 </code></pre></div>
@@ -2276,14 +2276,14 @@ perf                 run performance measurement suite for s3 and save results t
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Client</span><span class="p">,</span> <span class="n">register_client_class</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib.cloudpath</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span><span class="p">,</span> <span class="n">register_path_class</span>
 
-<span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">&quot;my-prefix&quot;</span><span class="p">)</span>
+<span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">"my-prefix"</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">MyClient</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
     <span class="c1"># implementation here...</span>
 
-<span class="nd">@register_path_class</span><span class="p">(</span><span class="s2">&quot;my-prefix&quot;</span><span class="p">)</span>
+<span class="nd">@register_path_class</span><span class="p">(</span><span class="s2">"my-prefix"</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">MyPath</span><span class="p">(</span><span class="n">CloudPath</span><span class="p">):</span>
-    <span class="n">cloud_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;my-prefix://&quot;</span>
-    <span class="n">client</span><span class="p">:</span> <span class="s2">&quot;MyClient&quot;</span>
+    <span class="n">cloud_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"my-prefix://"</span>
+    <span class="n">client</span><span class="p">:</span> <span class="s2">"MyClient"</span>
 
     <span class="c1"># implementation here...</span>
 </code></pre></div>
@@ -2349,7 +2349,7 @@ perf                 run performance measurement suite for s3 and save results t
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

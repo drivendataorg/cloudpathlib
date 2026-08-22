@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -2136,6 +2136,18 @@
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
 <h2 id="unreleased">UNRELEASED<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <ul>
+<li><strong>Security fix (<a href="https://github.com/drivendataorg/cloudpathlib/security/advisories/GHSA-r4f8-3xc4-c8vw">GHSA-r4f8-3xc4-c8vw</a>): local path traversal via <code>..</code> in cloud object keys.</strong>
+  Cloud object keys are opaque strings and some backends (e.g. Google Cloud Storage) accept <code>..</code>
+  segments. cloudpathlib mapped keys onto local paths with plain path arithmetic and no containment
+  check, so a key such as <code>../../evil</code> could escape the local cache directory (on any
+  <code>read</code>/<code>write</code>/<code>open</code>/<code>os.fspath</code> of a <code>CloudPath</code>) or a download destination
+  (<code>download_to</code>/<code>copytree</code>/<code>copy</code>/<code>move</code> to a local path), writing attacker-controlled bytes
+  outside the intended directory. cloudpathlib now confirms each computed local target stays within
+  its base directory and raises <code>CloudPathLocalPathTraversalError</code> otherwise. This guards the cache
+  mapping (<code>CloudPath._local</code> and its S3/HTTP overrides), both branches of <code>CloudPath.download_to</code>
+  and <code>CloudPath.copytree</code> (including joins that can escape via <code>\</code> or drive letters in keys on
+  Windows), and the <code>cloudpathlib.local</code> mock's storage-side mapping. Reported by mohammad adnan
+  (cystack.ps redteam).</li>
 <li>Added <code>AGENTS.md</code> with repository-specific guidance for coding agents covering contributor
   workflow, compatibility expectations, test rig and mock usage, live backend validation, and PR
   hygiene.</li>
@@ -2459,7 +2471,7 @@ by reference through the `get_default_ rather than with an explicit.</li>
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

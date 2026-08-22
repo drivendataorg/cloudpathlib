@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -1497,7 +1497,7 @@
 
 
 <h3 id="cloudpathlib.client.BoundedCloudPath" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">BoundedCloudPath</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;BoundedCloudPath&#39;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">CloudPath</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">BoundedCloudPath</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">'BoundedCloudPath'</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">CloudPath</span><span class="p">)</span></code>
 
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
@@ -1704,7 +1704,7 @@
 <span class="normal">185</span>
 <span class="normal">186</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Client</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">,</span> <span class="n">Generic</span><span class="p">[</span><span class="n">BoundedCloudPath</span><span class="p">]):</span>
     <span class="n">_cloud_meta</span><span class="p">:</span> <span class="n">CloudImplementation</span>
-    <span class="n">_default_client</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Client[BoundedCloudPath]&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_default_client</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="s2">"Client[BoundedCloudPath]"</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1725,10 +1725,10 @@
             <span class="n">file_cache_mode</span> <span class="o">=</span> <span class="n">FileCacheMode</span><span class="o">.</span><span class="n">from_environment</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">local_cache_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">local_cache_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CLOUDPATHLIB_LOCAL_CACHE_DIR&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">local_cache_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CLOUDPATHLIB_LOCAL_CACHE_DIR"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-            <span class="c1"># treat empty string as None to avoid writing cache in cwd; set to &quot;.&quot; for cwd</span>
-            <span class="k">if</span> <span class="n">local_cache_dir</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="c1"># treat empty string as None to avoid writing cache in cwd; set to "." for cwd</span>
+            <span class="k">if</span> <span class="n">local_cache_dir</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
                 <span class="n">local_cache_dir</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># explicitly passing a cache dir, so we set to persistent</span>
@@ -1738,7 +1738,7 @@
 
         <span class="k">if</span> <span class="n">file_cache_mode</span> <span class="o">==</span> <span class="n">FileCacheMode</span><span class="o">.</span><span class="n">persistent</span> <span class="ow">and</span> <span class="n">local_cache_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">InvalidConfigurationException</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;If you use the &#39;</span><span class="si">{</span><span class="n">FileCacheMode</span><span class="o">.</span><span class="n">persistent</span><span class="si">}</span><span class="s2">&#39; cache mode, you must pass a `local_cache_dir` when you instantiate the client.&quot;</span>
+                <span class="sa">f</span><span class="s2">"If you use the '</span><span class="si">{</span><span class="n">FileCacheMode</span><span class="o">.</span><span class="n">persistent</span><span class="si">}</span><span class="s2">' cache mode, you must pass a `local_cache_dir` when you instantiate the client."</span>
             <span class="p">)</span>
 
         <span class="c1"># if no explicit local dir, setup caching in temporary dir</span>
@@ -1761,7 +1761,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># remove containing dir, even if a more aggressive strategy</span>
         <span class="c1"># removed the actual files</span>
-        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;file_cache_mode&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"file_cache_mode"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span>
             <span class="n">FileCacheMode</span><span class="o">.</span><span class="n">tmp_dir</span><span class="p">,</span>
             <span class="n">FileCacheMode</span><span class="o">.</span><span class="n">close_file</span><span class="p">,</span>
             <span class="n">FileCacheMode</span><span class="o">.</span><span class="n">cloudpath_object</span><span class="p">,</span>
@@ -1772,26 +1772,26 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_local_cache_dir</span><span class="o">.</span><span class="n">rmdir</span><span class="p">()</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_default_client</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Client[BoundedCloudPath]&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the default client, which the one that is used when instantiating a cloud path</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_default_client</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Client[BoundedCloudPath]"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Get the default client, which the one that is used when instantiating a cloud path</span>
 <span class="sd">        instance for this cloud without a client specified.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">_default_client</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_client</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">set_as_default_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set this client instance as the default one used when instantiating cloud path</span>
-<span class="sd">        instances for this cloud without a client specified.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Set this client instance as the default one used when instantiating cloud path</span>
+<span class="sd">        instances for this cloud without a client specified."""</span>
         <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_default_client</span> <span class="o">=</span> <span class="bp">self</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">CloudPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BoundedCloudPath</span><span class="p">],</span> <span class="o">*</span><span class="n">parts</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BoundedCloudPath</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">path_class</span><span class="p">(</span><span class="n">cloud_path</span><span class="p">,</span> <span class="o">*</span><span class="n">parts</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the contents of the cache folder.</span>
+<span class="w">        </span><span class="sd">"""Clears the contents of the cache folder.</span>
 <span class="sd">        Does not remove folder so it can keep being written to.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_cache_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_cache_dir</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
@@ -1813,7 +1813,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">_list_dir</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">cloud_path</span><span class="p">:</span> <span class="n">BoundedCloudPath</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">BoundedCloudPath</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;List all the files and folders in a directory.</span>
+<span class="w">        </span><span class="sd">"""List all the files and folders in a directory.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1826,7 +1826,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        contents : Iterable[Tuple]</span>
 <span class="sd">            Of the form [(CloudPath, is_dir), ...] for every child of the dir.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">pass</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
@@ -1837,13 +1837,13 @@
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">BoundedCloudPath</span><span class="p">,</span> <span class="n">missing_ok</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove a file or folder from the server.</span>
+<span class="w">        </span><span class="sd">"""Remove a file or folder from the server.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        path : CloudPath</span>
 <span class="sd">            The file or folder to remove.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">pass</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
@@ -2023,10 +2023,10 @@
         <span class="n">file_cache_mode</span> <span class="o">=</span> <span class="n">FileCacheMode</span><span class="o">.</span><span class="n">from_environment</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">local_cache_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">local_cache_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CLOUDPATHLIB_LOCAL_CACHE_DIR&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">local_cache_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CLOUDPATHLIB_LOCAL_CACHE_DIR"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-        <span class="c1"># treat empty string as None to avoid writing cache in cwd; set to &quot;.&quot; for cwd</span>
-        <span class="k">if</span> <span class="n">local_cache_dir</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="c1"># treat empty string as None to avoid writing cache in cwd; set to "." for cwd</span>
+        <span class="k">if</span> <span class="n">local_cache_dir</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
             <span class="n">local_cache_dir</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># explicitly passing a cache dir, so we set to persistent</span>
@@ -2036,7 +2036,7 @@
 
     <span class="k">if</span> <span class="n">file_cache_mode</span> <span class="o">==</span> <span class="n">FileCacheMode</span><span class="o">.</span><span class="n">persistent</span> <span class="ow">and</span> <span class="n">local_cache_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">InvalidConfigurationException</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;If you use the &#39;</span><span class="si">{</span><span class="n">FileCacheMode</span><span class="o">.</span><span class="n">persistent</span><span class="si">}</span><span class="s2">&#39; cache mode, you must pass a `local_cache_dir` when you instantiate the client.&quot;</span>
+            <span class="sa">f</span><span class="s2">"If you use the '</span><span class="si">{</span><span class="n">FileCacheMode</span><span class="o">.</span><span class="n">persistent</span><span class="si">}</span><span class="s2">' cache mode, you must pass a `local_cache_dir` when you instantiate the client."</span>
         <span class="p">)</span>
 
     <span class="c1"># if no explicit local dir, setup caching in temporary dir</span>
@@ -2088,9 +2088,9 @@ Does not remove folder so it can keep being written to.</p>
 <span class="normal">121</span>
 <span class="normal">122</span>
 <span class="normal">123</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Clears the contents of the cache folder.</span>
+<span class="w">    </span><span class="sd">"""Clears the contents of the cache folder.</span>
 <span class="sd">    Does not remove folder so it can keep being written to.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_cache_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_local_cache_dir</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
@@ -2132,10 +2132,10 @@ instance for this cloud without a client specified.</p>
 <span class="normal">102</span>
 <span class="normal">103</span>
 <span class="normal">104</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@classmethod</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_default_client</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Client[BoundedCloudPath]&quot;</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the default client, which the one that is used when instantiating a cloud path</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_default_client</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Client[BoundedCloudPath]"</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Get the default client, which the one that is used when instantiating a cloud path</span>
 <span class="sd">    instance for this cloud without a client specified.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_default_client</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
     <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_default_client</span>
@@ -2166,8 +2166,8 @@ instances for this cloud without a client specified.</p>
 <span class="normal">107</span>
 <span class="normal">108</span>
 <span class="normal">109</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">set_as_default_client</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set this client instance as the default one used when instantiating cloud path</span>
-<span class="sd">    instances for this cloud without a client specified.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Set this client instance as the default one used when instantiating cloud path</span>
+<span class="sd">    instances for this cloud without a client specified."""</span>
     <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">_default_client</span> <span class="o">=</span> <span class="bp">self</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -2210,7 +2210,7 @@ instances for this cloud without a client specified.</p>
 <span class="normal">25</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">register_client_class</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">decorator</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">Client</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Only subclasses of Client can be registered.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"Only subclasses of Client can be registered."</span><span class="p">)</span>
         <span class="n">implementation_registry</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">_client_class</span> <span class="o">=</span> <span class="bp">cls</span>
         <span class="n">implementation_registry</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">key</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_cloud_meta</span> <span class="o">=</span> <span class="n">implementation_registry</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
@@ -2282,7 +2282,7 @@ instances for this cloud without a client specified.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

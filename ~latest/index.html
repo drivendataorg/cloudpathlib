@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="favicon.svg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
       
       
 
@@ -1424,8 +1424,8 @@
 <p>Our goal is to be the meringue of file management libraries: the subtle sweetness of <code>pathlib</code> working in harmony with the ethereal lightness of the cloud.</p>
 </blockquote>
 <p>A Python library with classes that mimic <code>pathlib.Path</code>'s interface for URIs from different cloud storage services.</p>
-<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://bucket/filename.txt&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Send my changes to the cloud!&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://bucket/filename.txt"</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"w+"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"Send my changes to the cloud!"</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="why-use-cloudpathlib">Why use cloudpathlib?<a class="headerlink" href="#why-use-cloudpathlib" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1443,7 +1443,7 @@
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>cloudpathlib<span class="o">[</span>s3,gs,azure<span class="o">]</span>
 </code></pre></div>
 <p>With some shells, you may need to use quotes:</p>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;cloudpathlib[s3,gs,azure]&quot;</span>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"cloudpathlib[s3,gs,azure]"</span>
 </code></pre></div>
 <p>Currently supported cloud storage services are: <code>azure</code>, <code>gs</code>, <code>s3</code>. You can also use <code>all</code> to install all available services' dependencies.</p>
 <p>If you do not specify any extras or separately install any cloud SDKs, you will only be able to develop with the base classes for rolling your own cloud path class.</p>
@@ -1462,12 +1462,12 @@
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
 
 <span class="c1"># dispatches to S3Path based on prefix</span>
-<span class="n">root_dir</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">&quot;s3://drivendata-public-assets/&quot;</span><span class="p">)</span>
+<span class="n">root_dir</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://drivendata-public-assets/"</span><span class="p">)</span>
 <span class="n">root_dir</span>
-<span class="c1">#&gt; S3Path(&#39;s3://drivendata-public-assets/&#39;)</span>
+<span class="c1">#&gt; S3Path('s3://drivendata-public-assets/')</span>
 
-<span class="c1"># there&#39;s only one file, but globbing works in nested folder</span>
-<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">root_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;**/*.txt&#39;</span><span class="p">):</span>
+<span class="c1"># there's only one file, but globbing works in nested folder</span>
+<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">root_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">'**/*.txt'</span><span class="p">):</span>
     <span class="n">text_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">text_data</span><span class="p">)</span>
@@ -1480,9 +1480,9 @@
 <span class="c1">#&gt; ... (additional text output truncated)</span>
 
 <span class="c1"># use / to join paths (and, in this case, create a new file)</span>
-<span class="n">new_file_copy</span> <span class="o">=</span> <span class="n">root_dir</span> <span class="o">/</span> <span class="s2">&quot;nested_dir/copy_file.txt&quot;</span>
+<span class="n">new_file_copy</span> <span class="o">=</span> <span class="n">root_dir</span> <span class="o">/</span> <span class="s2">"nested_dir/copy_file.txt"</span>
 <span class="n">new_file_copy</span>
-<span class="c1">#&gt; S3Path(&#39;s3://drivendata-public-assets/nested_dir/copy_file.txt&#39;)</span>
+<span class="c1">#&gt; S3Path('s3://drivendata-public-assets/nested_dir/copy_file.txt')</span>
 
 <span class="c1"># show things work and the file does not exist yet</span>
 <span class="n">new_file_copy</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
@@ -1493,16 +1493,16 @@
 <span class="c1">#&gt; 6933</span>
 
 <span class="c1"># file now listed</span>
-<span class="nb">list</span><span class="p">(</span><span class="n">root_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;**/*.txt&#39;</span><span class="p">))</span>
-<span class="c1">#&gt; [S3Path(&#39;s3://drivendata-public-assets/nested_dir/copy_file.txt&#39;),</span>
-<span class="c1">#&gt;  S3Path(&#39;s3://drivendata-public-assets/odsc-west-2019/DATA_DICTIONARY.txt&#39;)]</span>
+<span class="nb">list</span><span class="p">(</span><span class="n">root_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">'**/*.txt'</span><span class="p">))</span>
+<span class="c1">#&gt; [S3Path('s3://drivendata-public-assets/nested_dir/copy_file.txt'),</span>
+<span class="c1">#&gt;  S3Path('s3://drivendata-public-assets/odsc-west-2019/DATA_DICTIONARY.txt')]</span>
 
 <span class="c1"># but, we can remove it</span>
 <span class="n">new_file_copy</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
 
 <span class="c1"># no longer there</span>
-<span class="nb">list</span><span class="p">(</span><span class="n">root_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;**/*.txt&#39;</span><span class="p">))</span>
-<span class="c1">#&gt; [S3Path(&#39;s3://drivendata-public-assets/odsc-west-2019/DATA_DICTIONARY.txt&#39;)]</span>
+<span class="nb">list</span><span class="p">(</span><span class="n">root_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">'**/*.txt'</span><span class="p">))</span>
+<span class="c1">#&gt; [S3Path('s3://drivendata-public-assets/odsc-west-2019/DATA_DICTIONARY.txt')]</span>
 </code></pre></div>
 <h2 id="supported-methods-and-properties">Supported methods and properties<a class="headerlink" href="#supported-methods-and-properties" title="Permanent link">&para;</a></h2>
 <p>Most methods and properties from <code>pathlib.Path</code> are supported except for the ones that don't make sense in a cloud context. There are a few additional methods or properties that relate to specific cloud services or specifically for cloud paths.</p>
@@ -2197,7 +2197,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.sections", "navigation.expand"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
