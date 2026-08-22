@@ -52,6 +52,12 @@ class InvalidPrefixError(CloudPathException, ValueError):
     pass
 
 
+class CloudPathLocalPathTraversalError(CloudPathException, ValueError):
+    """Raised when a cloud object key contains ``..`` (parent-directory) segments that would map
+    the cloud path to a local path outside its intended base directory — i.e. outside the local
+    cache directory or the download destination. Blocked to prevent path traversal."""
+
+
 class InvalidConfigurationException(CloudPathException, ValueError):
     pass
 
