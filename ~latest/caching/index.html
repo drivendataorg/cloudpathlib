@@ -493,6 +493,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#avoiding-unnecessary-listings-when-walking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Avoiding unnecessary listings when walking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#clearing-the-file-cache" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1486,6 +1497,17 @@
     <span class="md-ellipsis">
       
         Handling conflicts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#avoiding-unnecessary-listings-when-walking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Avoiding unnecessary listings when walking
       
     </span>
   </a>
@@ -3023,7 +3045,7 @@ with flood_image.open("rb") as f:
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="handling-conflicts">Handling conflicts<a class="anchor-link" href="#handling-conflicts">¶</a></h2><p>We try to be conservative in terms of not losing data—especially data stored on the cloud, which is likely to be the canonical version. Given this, we will raise exceptions in two scenarios:</p>
+<h2 id="handling-conflicts">Handling conflicts<a class="anchor-link" href="#handling-conflicts">¶</a></h2><p>We try to be conservative in terms of not losing data—especially data stored on the cloud, which is likely to be the canonical version. Given this, we will raise exceptions in the following scenarios:</p>
 <p><code>OverwriteNewerLocalError</code>
 This exception is raised if we are asked to download a file, but our local version in the cache is newer. This likely means that the cached version has been updated, but not pushed to the cloud. To work around this you could remove the cache version explicitly if you <em>know</em> you don't need that data. If you did write changes you need, make sure your code uses the <code>cloudpathlib</code> versions of the <code>open</code>, <code>write_text</code>, or <code>write_bytes</code> methods, which will upload your changes to the cloud automatically.</p>
 <p>The <code>CloudPath.open</code> method supports a <code>force_overwrite_from_cloud</code> kwarg to force overwriting your local version.</p>
@@ -3032,6 +3054,34 @@ This exception is raised if we are asked to download a file, but our local versi
 This exception is raised if we are asked to upload a file, but the one on the cloud is newer than our local version. This likely means that a separate process has updated the cloud version, and we don't want to overwrite and lose that new data in the cloud.</p>
 <p>The <code>CloudPath.open</code> method supports a <code>force_overwrite_to_cloud</code> kwarg to force overwriting the cloud version.</p>
 <p>You can make overwriting the cloud copy with the local one being uploaded by setting the environment variable <code>CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD=1</code> or <code>CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD=True</code>.</p>
+<p><code>CloudPathLocalPathTraversalError</code>
+Cloud object keys are opaque strings, and some backends will happily store a key that contains <code>..</code> segments. Since <code>cloudpathlib</code> mirrors keys onto local paths, such a key could otherwise resolve to a location outside of the cache directory (or outside of the destination directory you asked us to download into). We check every local path we compute and raise this exception instead of reading or writing outside the intended directory. This applies to anything that uses the cache (for example <code>open</code>, <code>read_text</code>, <code>read_bytes</code>, <code>write_text</code>, <code>write_bytes</code>, and <code>fspath</code>) as well as to <code>download_to</code>, <code>copy</code>, <code>move</code>, and <code>copytree</code> when the destination is a local path. If you hit this, the object key itself is unusual; use <code>CloudPath.read_bytes</code> or an explicit destination filename you control rather than mirroring the key onto disk.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="avoiding-unnecessary-listings-when-walking">Avoiding unnecessary listings when walking<a class="anchor-link" href="#avoiding-unnecessary-listings-when-walking">¶</a></h2><p>Caching saves you from re-downloading file <em>contents</em>, but simply listing a large tree can also cost a lot of API calls. <code>CloudPath.walk</code> gives you control over that tradeoff.</p>
+<p>By default (<code>lazy=False</code>), the whole subtree is fetched up front with a single recursive listing. That is the fastest option when you are going to visit the entire tree anyway.</p>
+<p>Passing <code>lazy=True</code> defers listing until each directory is visited (one non-recursive listing per directory). That is slower for a full walk, but—just like <code>os.walk</code> and <code>pathlib.Path.walk</code>—it lets you prune <code>dirnames</code> in place when <code>top_down=True</code>, so the contents of skipped subtrees are never fetched at all:</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudPath</span>
+
+<span class="n">root</span> <span class="o">=</span> <span class="n">CloudPath</span><span class="p">(</span><span class="s2">"s3://ladi/Images"</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dirnames</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">root</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">lazy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="c1"># we never list the contents of these subdirectories</span>
+    <span class="n">dirnames</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dirnames</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">d</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"FEMA_CAP"</span><span class="p">)]</span>
+
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">dirpath</span> <span class="o">/</span> <span class="n">filename</span><span class="p">)</span>
+</pre></div>
+<p>For large trees where you only need a few branches, pruning this way can reduce the number of API calls dramatically. If you are traversing everything, stick with the default.</p>
+<p>Note: <code>walk</code> also accepts <code>follow_symlinks</code> for signature parity with <code>pathlib</code>, but it has no effect—cloud object stores don't have symlinks.</p>
 </div>
 </div>
 </div>

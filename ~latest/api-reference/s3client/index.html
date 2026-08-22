@@ -2101,7 +2101,8 @@ for detailed authentication options.</p>
 <span class="normal">398</span>
 <span class="normal">399</span>
 <span class="normal">400</span>
-<span class="normal">401</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">"s3"</span><span class="p">)</span>
+<span class="normal">401</span>
+<span class="normal">402</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">"s3"</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">S3Client</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Client class for AWS S3 which handles authentication with AWS for [`S3Path`](../s3path/)</span>
 <span class="sd">    instances. See documentation for the [`__init__` method][cloudpathlib.s3.s3client.S3Client.__init__]</span>
@@ -2154,7 +2155,8 @@ for detailed authentication options.</p>
 <span class="sd">            endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.</span>
 <span class="sd">                Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.</span>
 <span class="sd">            addressing_style (Optional[str]): S3 addressing style to pass through to boto3's S3 config.</span>
-<span class="sd">                Use `"virtual"` for virtual-hosted style URLs.</span>
+<span class="sd">                Use `"virtual"` for virtual-hosted style URLs; boto3's other values (`"path"` and</span>
+<span class="sd">                `"auto"`) are accepted as well. If None, boto3's default behavior is used.</span>
 <span class="sd">            boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing</span>
 <span class="sd">                [s3 transfers](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)</span>
 <span class="sd">            content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when</span>
@@ -2928,7 +2930,8 @@ Parameterize it to access a customly deployed S3-compatible object store such as
             <td>
               <div class="doc-md-description">
                 <p>S3 addressing style to pass through to boto3's S3 config.
-Use <code>"virtual"</code> for virtual-hosted style URLs.</p>
+Use <code>"virtual"</code> for virtual-hosted style URLs; boto3's other values (<code>"path"</code> and
+<code>"auto"</code>) are accepted as well. If None, boto3's default behavior is used.</p>
               </div>
             </td>
             <td>
@@ -3102,7 +3105,8 @@ extra args that are supported look at the upload, download, and copy lists in th
 <span class="normal">132</span>
 <span class="normal">133</span>
 <span class="normal">134</span>
-<span class="normal">135</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">135</span>
+<span class="normal">136</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">aws_access_key_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">aws_secret_access_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -3149,7 +3153,8 @@ extra args that are supported look at the upload, download, and copy lists in th
 <span class="sd">        endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.</span>
 <span class="sd">            Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.</span>
 <span class="sd">        addressing_style (Optional[str]): S3 addressing style to pass through to boto3's S3 config.</span>
-<span class="sd">            Use `"virtual"` for virtual-hosted style URLs.</span>
+<span class="sd">            Use `"virtual"` for virtual-hosted style URLs; boto3's other values (`"path"` and</span>
+<span class="sd">            `"auto"`) are accepted as well. If None, boto3's default behavior is used.</span>
 <span class="sd">        boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing</span>
 <span class="sd">            [s3 transfers](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)</span>
 <span class="sd">        content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when</span>

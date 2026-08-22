@@ -1597,7 +1597,19 @@
 <li><code>ExpectedBucketOwner</code></li>
 </ul>
 <p>To use any of these extra args, pass them as a dict to <code>extra_args</code> when instantiating and <code>S3Client</code>.</p>
-<p>Copy operations use <code>boto3.s3.transfer.S3Transfer.ALLOWED_COPY_ARGS</code>, including the <code>CopySourceSSECustomer*</code> args used for SSE-C.</p>
+<p>Copy operations (used by <code>copy</code>, <code>copy_into</code>, <code>move</code>, and <code>move_into</code> when the source and destination share the same client, so the data is copied server-side rather than downloaded and re-uploaded) use <code>boto3.s3.transfer.S3Transfer.ALLOWED_COPY_ARGS</code>. That set includes most of the upload args above plus a handful of copy-specific args, which as of the time of writing are:</p>
+<ul>
+<li><code>CopySourceIfMatch</code></li>
+<li><code>CopySourceIfModifiedSince</code></li>
+<li><code>CopySourceIfNoneMatch</code></li>
+<li><code>CopySourceIfUnmodifiedSince</code></li>
+<li><code>CopySourceSSECustomerAlgorithm</code></li>
+<li><code>CopySourceSSECustomerKey</code></li>
+<li><code>CopySourceSSECustomerKeyMD5</code></li>
+<li><code>MetadataDirective</code></li>
+<li><code>TaggingDirective</code></li>
+</ul>
+<p>If you use SSE-C, note that the <code>CopySourceSSECustomer*</code> args describe the <em>source</em> object's key, while the plain <code>SSECustomer*</code> args describe the <em>destination</em>, so you generally need both sets in <code>extra_args</code> for copies and moves to work.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Client</span>
 
 <span class="n">c</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">extra_args</span><span class="o">=</span><span class="p">{</span>

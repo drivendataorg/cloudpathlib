@@ -589,10 +589,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#unreleased" class="md-nav__link">
+  <a href="#v0250-2026-08-22" class="md-nav__link">
     <span class="md-ellipsis">
       
-        UNRELEASED
+        v0.25.0 (2026-08-22)
       
     </span>
   </a>
@@ -1685,10 +1685,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#unreleased" class="md-nav__link">
+  <a href="#v0250-2026-08-22" class="md-nav__link">
     <span class="md-ellipsis">
       
-        UNRELEASED
+        v0.25.0 (2026-08-22)
       
     </span>
   </a>
@@ -2134,7 +2134,7 @@
 
 
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
-<h2 id="unreleased">UNRELEASED<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="v0250-2026-08-22">v0.25.0 (2026-08-22)<a class="headerlink" href="#v0250-2026-08-22" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Security fix (<a href="https://github.com/drivendataorg/cloudpathlib/security/advisories/GHSA-r4f8-3xc4-c8vw">GHSA-r4f8-3xc4-c8vw</a>): local path traversal via <code>..</code> in cloud object keys.</strong>
   Cloud object keys are opaque strings and some backends (e.g. Google Cloud Storage) accept <code>..</code>
@@ -2148,14 +2148,15 @@
   and <code>CloudPath.copytree</code> (including joins that can escape via <code>\</code> or drive letters in keys on
   Windows), and the <code>cloudpathlib.local</code> mock's storage-side mapping. Reported by mohammad adnan
   (cystack.ps redteam).</li>
+<li>Added a <code>lazy</code> keyword argument to <code>CloudPath.walk</code>. By default (<code>lazy=False</code>) the existing fast behavior is preserved: the whole subtree is fetched up front with a single recursive listing. Passing <code>lazy=True</code> lists each directory on demand so that, when <code>top_down=True</code>, callers can prune subdirectories by modifying <code>dirnames</code> in-place (à la <code>os.walk</code> / <code>Path.walk</code>) to skip fetching the contents of those subtrees entirely — dramatically reducing API calls for large, sparsely-traversed trees. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/518">#518</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/574">#574</a>)</li>
+<li>Added presigned URL support to the mock clients in <code>cloudpathlib.local</code>, so <code>as_url(presign=True)</code> on a <code>LocalS3Path</code>, <code>LocalGSPath</code>, or <code>LocalAzureBlobPath</code> returns a deterministic URL with <code>expires</code> and <code>signature</code> query parameters instead of raising <code>NotImplementedError</code>. This lets code that generates presigned URLs be exercised in tests that use the mock classes. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/572">#572</a>)</li>
+<li>Fixed S3 copy and move operations to forward copy-specific extra args such as <code>CopySourceSSECustomerKey</code>, and added <code>addressing_style="virtual"</code> support for <code>S3Client</code> (Issues <a href="https://github.com/drivendataorg/cloudpathlib/issues/500">#500</a>, <a href="https://github.com/drivendataorg/cloudpathlib/issues/527">#527</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/576">#576</a>)</li>
+<li>Changed <code>S3Client._get_metadata</code> to read object metadata with <code>HeadObject</code> instead of <code>GetObject</code>, so <code>stat</code>, <code>etag</code>, and <code>size</code> no longer open the object body. Also fixes a <code>KeyError</code> on <code>ContentLength</code> against S3-compatible gateways that drop <code>Content-Length</code> from <code>GetObject</code> responses. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/564">#564</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/565">#565</a>)</li>
+<li>Fixed <code>KeyError</code> on <code>ETag</code> against S3-compatible gateways that omit <code>ETag</code> from <code>HeadObject</code> responses. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/582">#582</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/583">#583</a>)</li>
+<li>Fixed mypy 2.x type errors in <code>Client</code> and <code>CloudPath</code> that caused CI lint failures (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/563">#563</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/566">#566</a>)</li>
 <li>Added <code>AGENTS.md</code> with repository-specific guidance for coding agents covering contributor
   workflow, compatibility expectations, test rig and mock usage, live backend validation, and PR
-  hygiene.</li>
-<li>Fixed mypy 2.x type errors in <code>Client</code> and <code>CloudPath</code> that caused CI lint failures (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/563">#563</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/566">#566</a>)</li>
-<li>Changed <code>S3Client._get_metadata</code> to read object metadata with <code>HeadObject</code> instead of <code>GetObject</code>, so <code>stat</code>, <code>etag</code>, and <code>size</code> no longer open the object body. Also fixes a <code>KeyError</code> on <code>ContentLength</code> against S3-compatible gateways that drop <code>Content-Length</code> from <code>GetObject</code> responses. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/564">#564</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/565">#565</a>)</li>
-<li>Added a <code>lazy</code> keyword argument to <code>CloudPath.walk</code>. By default (<code>lazy=False</code>) the existing fast behavior is preserved: the whole subtree is fetched up front with a single recursive listing. Passing <code>lazy=True</code> lists each directory on demand so that, when <code>top_down=True</code>, callers can prune subdirectories by modifying <code>dirnames</code> in-place (à la <code>os.walk</code> / <code>Path.walk</code>) to skip fetching the contents of those subtrees entirely — dramatically reducing API calls for large, sparsely-traversed trees. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/518">#518</a>)</li>
-<li>Fixed S3 copy and move operations to forward copy-specific extra args such as <code>CopySourceSSECustomerKey</code>, and added <code>addressing_style="virtual"</code> support for <code>S3Client</code> (Issues <a href="https://github.com/drivendataorg/cloudpathlib/issues/500">#500</a>, <a href="https://github.com/drivendataorg/cloudpathlib/issues/527">#527</a>)</li>
-<li>Fix <code>KeyError</code> on <code>ETag</code> against S3-compatible gateways that omit <code>ETag</code> from <code>HeadObject</code> responses. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/582">#582</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/583">#583</a>)</li>
+  hygiene. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/573">#573</a>)</li>
 </ul>
 <h2 id="v0240-2026-04-29">v0.24.0 (2026-04-29)<a class="headerlink" href="#v0240-2026-04-29" title="Permanent link">&para;</a></h2>
 <ul>

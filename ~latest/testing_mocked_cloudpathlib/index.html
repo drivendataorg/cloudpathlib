@@ -2235,6 +2235,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </tr>
 </tbody>
 </table>
+<p>The <code>Local*</code> path classes also support presigned URLs. Calling <code>as_url(presign=True)</code> returns a deterministic stand-in URL with <code>expires</code> and <code>signature</code> query parameters (for example, <code>s3://mybucket/myfile.txt?expires=3600&amp;signature=local</code>) instead of raising an error, so code that hands out presigned URLs can be exercised in your tests. The URL is not actually signed and can't be fetched; assert on its parts rather than trying to use it.</p>
 </div>
 </div>
 </div>
