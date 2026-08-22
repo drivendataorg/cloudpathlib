@@ -129,18 +129,50 @@ get_ipython().system('rm -rf data')
 
 # ## Handling conflicts
 # 
-# We try to be conservative in terms of not losing data—especially data stored on the cloud, which is likely to be the canonical version. Given this, we will raise exceptions in two scenarios:
+# We try to be conservative in terms of not losing data—especially data stored on the cloud, which is likely to be the canonical version. Given this, we will raise exceptions in the following scenarios:
 # 
 # `OverwriteNewerLocalError`
 # This exception is raised if we are asked to download a file, but our local version in the cache is newer. This likely means that the cached version has been updated, but not pushed to the cloud. To work around this you could remove the cache version explicitly if you _know_ you don't need that data. If you did write changes you need, make sure your code uses the `cloudpathlib` versions of the `open`, `write_text`, or `write_bytes` methods, which will upload your changes to the cloud automatically.
 # 
 # The `CloudPath.open` method supports a `force_overwrite_from_cloud` kwarg to force overwriting your local version.
 # 
+# You can make overwriting the cache with the cloud copy the default by setting the environment variable `CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD=1` or `CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD=True`.
+# 
 # `OverwriteNewerCloudError`
 # This exception is raised if we are asked to upload a file, but the one on the cloud is newer than our local version. This likely means that a separate process has updated the cloud version, and we don't want to overwrite and lose that new data in the cloud.
 # 
 # The `CloudPath.open` method supports a `force_overwrite_to_cloud` kwarg to force overwriting the cloud version.
 # 
+# You can make overwriting the cloud copy with the local one being uploaded by setting the environment variable `CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD=1` or `CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD=True`.
+# 
+# `CloudPathLocalPathTraversalError`
+# Cloud object keys are opaque strings, and some backends will happily store a key that contains `..` segments. Since `cloudpathlib` mirrors keys onto local paths, such a key could otherwise resolve to a location outside of the cache directory (or outside of the destination directory you asked us to download into). We check every local path we compute and raise this exception instead of reading or writing outside the intended directory. This applies to anything that uses the cache (for example `open`, `read_text`, `read_bytes`, `write_text`, `write_bytes`, and `fspath`) as well as to `download_to`, `copy`, `move`, and `copytree` when the destination is a local path. If you hit this, the object key itself is unusual; use `CloudPath.read_bytes` or an explicit destination filename you control rather than mirroring the key onto disk.
+# 
+
+# ## Avoiding unnecessary listings when walking
+# 
+# Caching saves you from re-downloading file _contents_, but simply listing a large tree can also cost a lot of API calls. `CloudPath.walk` gives you control over that tradeoff.
+# 
+# By default (`lazy=False`), the whole subtree is fetched up front with a single recursive listing. That is the fastest option when you are going to visit the entire tree anyway.
+# 
+# Passing `lazy=True` defers listing until each directory is visited (one non-recursive listing per directory). That is slower for a full walk, but—just like `os.walk` and `pathlib.Path.walk`—it lets you prune `dirnames` in place when `top_down=True`, so the contents of skipped subtrees are never fetched at all:
+# 
+# ```python
+# from cloudpathlib import CloudPath
+# 
+# root = CloudPath("s3://ladi/Images")
+# 
+# for dirpath, dirnames, filenames in root.walk(lazy=True):
+#     # we never list the contents of these subdirectories
+#     dirnames[:] = [d for d in dirnames if not d.startswith("FEMA_CAP")]
+# 
+#     for filename in filenames:
+#         print(dirpath / filename)
+# ```
+# 
+# For large trees where you only need a few branches, pruning this way can reduce the number of API calls dramatically. If you are traversing everything, stick with the default.
+# 
+# Note: `walk` also accepts `follow_symlinks` for signature parity with `pathlib`, but it has no effect—cloud object stores don't have symlinks.
 # 
 
 # ## Clearing the file cache

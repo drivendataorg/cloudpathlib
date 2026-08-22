@@ -3,6 +3,11 @@
 
 # # Compatibility
 
+# <div class="admonition warning">
+# <p class="admonition-title">Experimental</p>
+# <p>Patching <code>open</code>, <code>os</code>, <code>os.path</code>, and <code>glob</code> to work with <code>CloudPath</code> objects is experimental. It is off by default, and it may change or be removed in the future.</p>
+# </div>
+
 # ## Patching Python builtins (third-party library compatibility)
 # 
 # Not every Python library in the broad universe of Python libraries is implemented to accept pathlib-compatible objects like those implemented by cloudpathlib. Many libraries will only accept strings as filepaths. These libraries internally use `open`, functions from `os` and `os.path`, or other core library modules like `glob` to navigate paths and manipulate them.
@@ -187,7 +192,6 @@ with patch_glob():
 
 from cloudpathlib import CloudPath, patch_all_builtins
 from PIL import Image
-
 
 base = CloudPath("s3://cloudpathlib-test-bucket/patching_builtins/third_party/")
 

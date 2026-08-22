@@ -169,7 +169,19 @@ The args supported for downloads are the same as `boto3.s3.transfer.S3Transfer.A
 
 To use any of these extra args, pass them as a dict to `extra_args` when instantiating and `S3Client`.
 
-Copy operations use `boto3.s3.transfer.S3Transfer.ALLOWED_COPY_ARGS`, including the `CopySourceSSECustomer*` args used for SSE-C.
+Copy operations (used by `copy`, `copy_into`, `move`, and `move_into` when the source and destination share the same client, so the data is copied server-side rather than downloaded and re-uploaded) use `boto3.s3.transfer.S3Transfer.ALLOWED_COPY_ARGS`. That set includes most of the upload args above plus a handful of copy-specific args, which as of the time of writing are:
+
+ - `CopySourceIfMatch`
+ - `CopySourceIfModifiedSince`
+ - `CopySourceIfNoneMatch`
+ - `CopySourceIfUnmodifiedSince`
+ - `CopySourceSSECustomerAlgorithm`
+ - `CopySourceSSECustomerKey`
+ - `CopySourceSSECustomerKeyMD5`
+ - `MetadataDirective`
+ - `TaggingDirective`
+
+If you use SSE-C, note that the `CopySourceSSECustomer*` args describe the _source_ object's key, while the plain `SSECustomer*` args describe the _destination_, so you generally need both sets in `extra_args` for copies and moves to work.
 
 ```python
 from cloudpathlib import S3Client

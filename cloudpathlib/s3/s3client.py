@@ -72,7 +72,8 @@ class S3Client(Client):
             endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.
                 Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.
             addressing_style (Optional[str]): S3 addressing style to pass through to boto3's S3 config.
-                Use `"virtual"` for virtual-hosted style URLs.
+                Use `"virtual"` for virtual-hosted style URLs; boto3's other values (`"path"` and
+                `"auto"`) are accepted as well. If None, boto3's default behavior is used.
             boto3_transfer_config (Optional[dict]): Instantiated TransferConfig for managing
                 [s3 transfers](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
