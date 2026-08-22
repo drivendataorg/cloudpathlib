@@ -11,6 +11,7 @@ from typing import Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, Un
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from ..client import Client
+from ..cloudpath import _ensure_local_path_within_base
 from ..enums import FileCacheMode
 from .localpath import LocalPath
 
@@ -77,7 +78,14 @@ class LocalClient(Client):
         return Path(self._local_storage_dir)
 
     def _cloud_path_to_local(self, cloud_path: "LocalPath") -> Path:
-        return self.local_storage_dir / cloud_path._no_prefix
+        # unlike real backends, this mock's "cloud" is the local filesystem, so a key with ".."
+        # segments could otherwise read/write/delete outside the simulated storage directory
+        return _ensure_local_path_within_base(
+            self.local_storage_dir / cloud_path._no_prefix,
+            self.local_storage_dir,
+            cloud_path,
+            resolve=False,
+        )
 
     def _local_to_cloud_path(self, local_path: Union[str, os.PathLike]) -> "LocalPath":
         local_path = Path(local_path)

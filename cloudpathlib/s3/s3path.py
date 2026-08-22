@@ -5,7 +5,12 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Optional, TYPE_CHECKING
 
-from ..cloudpath import CloudPath, NoStatError, register_path_class
+from ..cloudpath import (
+    CloudPath,
+    NoStatError,
+    _ensure_local_path_within_base,
+    register_path_class,
+)
 
 if TYPE_CHECKING:
     from .s3client import S3Client
@@ -122,5 +127,10 @@ class S3Path(CloudPath):
         # `:` is invalid in Windows paths; percent-encode it for MRAP ARNs
         if sys.platform == "win32":
             no_prefix = no_prefix.replace(":", "%3A")
-        self._local_path = self.client._local_cache_dir / no_prefix
+        self._local_path = _ensure_local_path_within_base(
+            self.client._local_cache_dir / no_prefix,
+            self.client._local_cache_dir,
+            self,
+            resolve=False,
+        )
         return self._local_path

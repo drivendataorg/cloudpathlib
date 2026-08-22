@@ -2,6 +2,18 @@
 
 ## UNRELEASED
 
+- **Security fix ([GHSA-r4f8-3xc4-c8vw](https://github.com/drivendataorg/cloudpathlib/security/advisories/GHSA-r4f8-3xc4-c8vw)): local path traversal via `..` in cloud object keys.**
+  Cloud object keys are opaque strings and some backends (e.g. Google Cloud Storage) accept `..`
+  segments. cloudpathlib mapped keys onto local paths with plain path arithmetic and no containment
+  check, so a key such as `../../evil` could escape the local cache directory (on any
+  `read`/`write`/`open`/`os.fspath` of a `CloudPath`) or a download destination
+  (`download_to`/`copytree`/`copy`/`move` to a local path), writing attacker-controlled bytes
+  outside the intended directory. cloudpathlib now confirms each computed local target stays within
+  its base directory and raises `CloudPathLocalPathTraversalError` otherwise. This guards the cache
+  mapping (`CloudPath._local` and its S3/HTTP overrides), both branches of `CloudPath.download_to`
+  and `CloudPath.copytree` (including joins that can escape via `\` or drive letters in keys on
+  Windows), and the `cloudpathlib.local` mock's storage-side mapping. Reported by mohammad adnan
+  (cystack.ps redteam).
 - Added `AGENTS.md` with repository-specific guidance for coding agents covering contributor
   workflow, compatibility expectations, test rig and mock usage, live backend validation, and PR
   hygiene.

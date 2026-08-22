@@ -88,6 +88,7 @@ from .exceptions import (
     CloudPathFileExistsError,
     CloudPathFileNotFoundError,
     CloudPathIsADirectoryError,
+    CloudPathLocalPathTraversalError,
     CloudPathNotADirectoryError,
     CloudPathNotExistsError,
     CloudPathNotImplementedError,
@@ -105,6 +106,36 @@ if TYPE_CHECKING:
     from .client import Client
 
 from .cloudpath_info import CloudPathInfo
+
+
+def _ensure_local_path_within_base(
+    candidate: Path, base: Path, cloud_path: "CloudPath", resolve: bool = True
+) -> Path:
+    """Guard against path traversal: cloud object keys are opaque strings and may contain ``..``
+    segments (or, on Windows, ``\\`` separators and drive letters), but cloudpathlib maps them onto
+    local paths (the cache directory or a download destination) with plain path arithmetic. Confirm
+    ``candidate`` stays within ``base``; raise :class:`CloudPathLocalPathTraversalError` if it
+    escapes. Returns ``candidate`` unchanged when it is contained.
+
+    When ``resolve`` is True (the default), both paths are resolved on the filesystem, which also
+    follows symlinks — appropriate for user-supplied download destinations. When False, a purely
+    lexical check (``os.path.normpath``) is used with no filesystem syscalls; this is used for the
+    cache mapping, where cloudpathlib only ever writes file content and object keys therefore
+    cannot introduce symlinks inside the base directory.
+    """
+    if resolve:
+        candidate_cmp = Path(candidate).resolve()
+        base_cmp = Path(base).resolve()
+    else:
+        candidate_cmp = Path(os.path.normpath(candidate))
+        base_cmp = Path(os.path.normpath(base))
+    if not candidate_cmp.is_relative_to(base_cmp):
+        raise CloudPathLocalPathTraversalError(
+            f"Refusing to map cloud path '{cloud_path}' to a local path outside its base directory "
+            f"'{base}' (it would resolve to '{candidate_cmp}'). The object key contains path "
+            f"segments that escape the local cache directory or download destination."
+        )
+    return candidate
 
 
 class CloudImplementation:
@@ -1159,7 +1190,9 @@ class CloudPath(metaclass=CloudPathMeta):
 
         if self.is_file():
             if destination.is_dir():
-                destination = destination / self.name
+                destination = _ensure_local_path_within_base(
+                    destination / self.name, destination, self
+                )
             return self.client._download_file(self, destination)
         else:
             destination.mkdir(exist_ok=True)
@@ -1169,7 +1202,8 @@ class CloudPath(metaclass=CloudPathMeta):
                     rel = rel + "/"
 
                 rel_dest = str(f)[len(rel) :]
-                f.download_to(destination / rel_dest)
+                target = _ensure_local_path_within_base(destination / rel_dest, destination, f)
+                f.download_to(target)
 
             return destination
 
@@ -1403,16 +1437,28 @@ class CloudPath(metaclass=CloudPathMeta):
 
         destination.mkdir(parents=True, exist_ok=True)
 
+        # when copying to a local destination, a listing may surface a key's ".." segment as a
+        # directory entry named "..", so each child destination must be confirmed within the
+        # destination before recursing (otherwise the recursion walks outside it); cloud-to-cloud
+        # copytree is not a local-filesystem traversal concern
+        destination_is_local = isinstance(destination, Path)
+
         for subpath in contents:
             if subpath.name in ignored_names:
                 continue
             if subpath.is_file():
-                subpath.copy(
-                    destination / subpath.name, force_overwrite_to_cloud=force_overwrite_to_cloud
-                )
+                file_destination = destination / subpath.name
+                if destination_is_local:
+                    _ensure_local_path_within_base(file_destination, destination, subpath)
+                subpath.copy(file_destination, force_overwrite_to_cloud=force_overwrite_to_cloud)
             elif subpath.is_dir():
+                dir_destination = destination / (
+                    subpath.name + ("" if subpath.name.endswith("/") else "/")
+                )
+                if destination_is_local:
+                    _ensure_local_path_within_base(dir_destination, destination, subpath)
                 subpath.copytree(
-                    destination / (subpath.name + ("" if subpath.name.endswith("/") else "/")),
+                    dir_destination,
                     force_overwrite_to_cloud=force_overwrite_to_cloud,
                     ignore=ignore,
                 )
@@ -1510,17 +1556,28 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def clear_cache(self):
         """Removes cache if it exists"""
-        if self._local.exists():
-            if self._local.is_file():
-                self._local.unlink()
+        try:
+            local = self._local
+        except CloudPathLocalPathTraversalError:
+            # a key that cannot be safely mapped to a local path can never have been cached,
+            # so there is nothing to clear (and __del__ must not raise on such paths)
+            return
+        if local.exists():
+            if local.is_file():
+                local.unlink()
             else:
-                shutil.rmtree(self._local)
+                shutil.rmtree(local)
 
     # ===========  private cloud methods ===============
     @property
     def _local(self) -> Path:
         """Cached local version of the file."""
-        return self.client._local_cache_dir / self._no_prefix
+        return _ensure_local_path_within_base(
+            self.client._local_cache_dir / self._no_prefix,
+            self.client._local_cache_dir,
+            self,
+            resolve=False,
+        )
 
     def _new_cloudpath(self, path: Union[str, os.PathLike], *parts: str) -> Self:
         """Use the scheme, client, cache dir of this cloudpath to instantiate
