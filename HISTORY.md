@@ -1,6 +1,6 @@
 # cloudpathlib Changelog
 
-## UNRELEASED
+## v0.25.0 (2026-08-22)
 
 - **Security fix ([GHSA-r4f8-3xc4-c8vw](https://github.com/drivendataorg/cloudpathlib/security/advisories/GHSA-r4f8-3xc4-c8vw)): local path traversal via `..` in cloud object keys.**
   Cloud object keys are opaque strings and some backends (e.g. Google Cloud Storage) accept `..`
@@ -14,16 +14,18 @@
   and `CloudPath.copytree` (including joins that can escape via `\` or drive letters in keys on
   Windows), and the `cloudpathlib.local` mock's storage-side mapping. Reported by mohammad adnan
   (cystack.ps redteam).
+- Added a `lazy` keyword argument to `CloudPath.walk`. By default (`lazy=False`) the existing fast behavior is preserved: the whole subtree is fetched up front with a single recursive listing. Passing `lazy=True` lists each directory on demand so that, when `top_down=True`, callers can prune subdirectories by modifying `dirnames` in-place (à la `os.walk` / `Path.walk`) to skip fetching the contents of those subtrees entirely — dramatically reducing API calls for large, sparsely-traversed trees. (Issue [#518](https://github.com/drivendataorg/cloudpathlib/issues/518), PR [#574](https://github.com/drivendataorg/cloudpathlib/pull/574))
+- Added presigned URL support to the mock clients in `cloudpathlib.local`, so `as_url(presign=True)` on a `LocalS3Path`, `LocalGSPath`, or `LocalAzureBlobPath` returns a deterministic URL with `expires` and `signature` query parameters instead of raising `NotImplementedError`. This lets code that generates presigned URLs be exercised in tests that use the mock classes. (PR [#572](https://github.com/drivendataorg/cloudpathlib/pull/572))
+- Fixed S3 copy and move operations to forward copy-specific extra args such as `CopySourceSSECustomerKey`, and added `addressing_style="virtual"` support for `S3Client` (Issues [#500](https://github.com/drivendataorg/cloudpathlib/issues/500), [#527](https://github.com/drivendataorg/cloudpathlib/issues/527), PR [#576](https://github.com/drivendataorg/cloudpathlib/pull/576))
+- Changed `S3Client._get_metadata` to read object metadata with `HeadObject` instead of `GetObject`, so `stat`, `etag`, and `size` no longer open the object body. Also fixes a `KeyError` on `ContentLength` against S3-compatible gateways that drop `Content-Length` from `GetObject` responses. (Issue [#564](https://github.com/drivendataorg/cloudpathlib/issues/564), PR [#565](https://github.com/drivendataorg/cloudpathlib/pull/565))
+- Fixed `KeyError` on `ETag` against S3-compatible gateways that omit `ETag` from `HeadObject` responses. (Issue [#582](https://github.com/drivendataorg/cloudpathlib/issues/582), PR [#583](https://github.com/drivendataorg/cloudpathlib/pull/583))
+- Fixed mypy 2.x type errors in `Client` and `CloudPath` that caused CI lint failures (Issue [#563](https://github.com/drivendataorg/cloudpathlib/issues/563), PR [#566](https://github.com/drivendataorg/cloudpathlib/pull/566))
 - Added `AGENTS.md` with repository-specific guidance for coding agents covering contributor
   workflow, compatibility expectations, test rig and mock usage, live backend validation, and PR
-  hygiene.
-- Fixed mypy 2.x type errors in `Client` and `CloudPath` that caused CI lint failures (Issue [#563](https://github.com/drivendataorg/cloudpathlib/issues/563), PR [#566](https://github.com/drivendataorg/cloudpathlib/pull/566))
-- Changed `S3Client._get_metadata` to read object metadata with `HeadObject` instead of `GetObject`, so `stat`, `etag`, and `size` no longer open the object body. Also fixes a `KeyError` on `ContentLength` against S3-compatible gateways that drop `Content-Length` from `GetObject` responses. (Issue [#564](https://github.com/drivendataorg/cloudpathlib/issues/564), PR [#565](https://github.com/drivendataorg/cloudpathlib/pull/565))
-- Added a `lazy` keyword argument to `CloudPath.walk`. By default (`lazy=False`) the existing fast behavior is preserved: the whole subtree is fetched up front with a single recursive listing. Passing `lazy=True` lists each directory on demand so that, when `top_down=True`, callers can prune subdirectories by modifying `dirnames` in-place (à la `os.walk` / `Path.walk`) to skip fetching the contents of those subtrees entirely — dramatically reducing API calls for large, sparsely-traversed trees. (Issue [#518](https://github.com/drivendataorg/cloudpathlib/issues/518))
-- Fixed S3 copy and move operations to forward copy-specific extra args such as `CopySourceSSECustomerKey`, and added `addressing_style="virtual"` support for `S3Client` (Issues [#500](https://github.com/drivendataorg/cloudpathlib/issues/500), [#527](https://github.com/drivendataorg/cloudpathlib/issues/527))
-- Fix `KeyError` on `ETag` against S3-compatible gateways that omit `ETag` from `HeadObject` responses. (Issue [#582](https://github.com/drivendataorg/cloudpathlib/issues/582), PR [#583](https://github.com/drivendataorg/cloudpathlib/pull/583))
+  hygiene. (PR [#573](https://github.com/drivendataorg/cloudpathlib/pull/573))
 
 ## v0.24.0 (2026-04-29)
+
 - Added support for S3 Multi-Region Access Point (MRAP) URLs in `S3Path` (Issue [#556](https://github.com/drivendataorg/cloudpathlib/issues/556), PR [#557](https://github.com/drivendataorg/cloudpathlib/pull/557))
 - Added support for Pydantic serialization (Issue [#537](https://github.com/drivendataorg/cloudpathlib/issues/537), PR [#538](https://github.com/drivendataorg/cloudpathlib/pull/538))
 
