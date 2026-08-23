@@ -39,6 +39,8 @@ try:
         SharedKeyCredentialPolicy as DataLakeSharedKeyCredentialPolicy,
     )
 
+    from azure.identity import DefaultAzureCredential
+
 except ModuleNotFoundError:
     implementation_registry["azure"].dependencies_loaded = False
 
@@ -66,20 +68,23 @@ class AzureBlobClient(Client):
         https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
         Supports the following authentication methods of `BlobServiceClient`.
 
-        - Environment variable `""AZURE_STORAGE_CONNECTION_STRING"` containing connecting string
+        - Environment variable `AZURE_STORAGE_CONNECTION_STRING` containing connecting string
         with account credentials. See [Azure Storage SDK documentation](
         https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python#copy-your-credentials-from-the-azure-portal).
+        - Environment variable `AZURE_STORAGE_ACCOUNT_URL` containing the account URL.
+        `DefaultAzureCredential` will be used automatically.
         - Connection string via `connection_string`, authenticated either with an embedded SAS
         token or with credentials passed to `credentials`.
         - Account URL via `account_url`, authenticated either with an embedded SAS token, or with
-        credentials passed to `credentials`.
+        credentials passed to `credentials`. If `credential` is not provided,
+        `DefaultAzureCredential` will be used automatically.
         - Instantiated and already authenticated [`BlobServiceClient`](
         https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python) or
         [`DataLakeServiceClient`](https://learn.microsoft.com/en-us/python/api/azure-storage-file-datalake/azure.storage.filedatalake.datalakeserviceclient).
 
         If multiple methods are used, priority order is reverse of list above (later in list takes
         priority). If no methods are used, a [`MissingCredentialsError`][cloudpathlib.exceptions.MissingCredentialsError]
-        exception will be raised raised.
+        exception will be raised.
 
         Args:
             account_url (Optional[str]): The URL to the blob storage account, optionally
@@ -117,6 +122,8 @@ class AzureBlobClient(Client):
 
         if connection_string is None:
             connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING", None)
+        if account_url is None:
+            account_url = os.getenv("AZURE_STORAGE_ACCOUNT_URL", None)
 
         self.data_lake_client: Optional[DataLakeServiceClient] = (
             None  # only needs to end up being set if HNS is enabled
@@ -174,6 +181,8 @@ class AzureBlobClient(Client):
                 conn_str=connection_string, credential=credential
             )
         elif account_url is not None:
+            if credential is None:
+                credential = DefaultAzureCredential()
             if ".dfs." in account_url:
                 self.service_client = BlobServiceClient(
                     account_url=account_url.replace(".dfs.", ".blob."), credential=credential
