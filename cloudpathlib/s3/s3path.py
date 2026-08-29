@@ -40,6 +40,10 @@ class S3Path(CloudPath):
     _bucket: str
     _local_path: Path
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._etag = None
+
     @property
     def drive(self) -> str:
         return self.bucket
@@ -117,7 +121,10 @@ class S3Path(CloudPath):
 
     @property
     def etag(self):
-        return self.client._get_metadata(self).get("etag")
+        if self._etag is None:
+            # Only make the API call if we don't have it cached yet
+            self._etag = self.client._get_metadata(self).get("etag")
+        return self._etag
 
     @property
     def _local(self) -> Path:
