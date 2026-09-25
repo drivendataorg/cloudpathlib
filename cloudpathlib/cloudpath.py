@@ -845,9 +845,11 @@ class CloudPath(metaclass=CloudPathMeta):
                     return
 
                 # original mtime should match what was in the cloud; because of system clocks or rounding
-                # by the cloud provider, the new version in our cache is "older" than the original version;
-                # explicitly set the new modified time to be after the original modified time.
-                if self._local.stat().st_mtime < original_mtime:
+                # by the cloud provider, the new version in our cache is not newer than the original
+                # version; explicitly set the new modified time to be after the original modified
+                # time. Equal mtimes need the same treatment as older ones: we know this file was
+                # written, and the upload requires the local file to be strictly newer.
+                if self._local.stat().st_mtime <= original_mtime:
                     new_mtime = original_mtime + 1
                     os.utime(self._local, times=(new_mtime, new_mtime))
 

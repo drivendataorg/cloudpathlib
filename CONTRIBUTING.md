@@ -122,6 +122,8 @@ The test suite uses a comprehensive set of fixtures and test rigs to ensure cons
 
 **`wait_for_mkdir`** - Fixture that patches `os.mkdir` to wait for directory creation, useful for tests that are sometimes flaky due to filesystem timing.
 
+Tests that depend on the ordering of modified times should avoid fixed sleeps. Set local file times explicitly with `make_local_older` / `make_local_newer`, or use `rewrite_until_newer` when a cloud timestamp must advance (all in [`tests/utils.py`](tests/utils.py)).
+
 #### Cloud Provider Test Rigs
 
 The `CloudProviderTestRig` class is the foundation for all cloud provider testing. Each rig provides:
