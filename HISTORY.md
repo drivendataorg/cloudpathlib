@@ -2,6 +2,7 @@
 
 ## UNRELEASED
 
+- Split cache cleanup test assertions so they first confirm objects were garbage collected via weak references, then poll only for file removal. Failures now distinguish a still-referenced object from a lagging filesystem.
 - Fixed a spurious `OverwriteNewerCloudError` when a file opened for writing is uploaded on close
   and the cache's modified time comes out exactly equal to the modified time it had when it was
   opened (possible on filesystems with coarse timestamps): the modified time is now bumped past the
