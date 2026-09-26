@@ -92,7 +92,26 @@ AZURE_STORAGE_GEN2_CONNECTION_STRING=your_connection_string
 
 You can copy `.env.example` to `.env` and fill in the credentials and bucket/container names for the providers you want to test against.  **Note that the live tests will create and delete files on the cloud provider.**
 
-You can also skip providers you do not have accounts for by commenting them out in the `rig` and `s3_like_rig` variables defined at the end of `tests/conftest.py`. 
+#### Choosing which rigs to run
+
+Set the `CLOUDPATHLIB_TEST_RIGS` environment variable to a comma-separated list of rig names to run only some of the rigs. This is how you skip providers you do not have accounts for, and it is a quick way to speed up your development loop:
+
+```bash
+CLOUDPATHLIB_TEST_RIGS=s3,gs make test-live-cloud
+```
+
+The rig names are `azure`, `azure_gen2`, `gs`, `s3`, `custom_s3`, `local_azure`, `local_s3`, `local_gs`, `http`, and `https`. Tests that ask for a rig that isn't selected are skipped.
+
+When `CLOUDPATHLIB_TEST_RIGS` is not set, mocked runs (`make test`) use all of the rigs, and live runs (`make test-live-cloud`) use only the rigs that talk to a network backend (`azure`, `azure_gen2`, `gs`, `s3`, `custom_s3`). The other rigs are backed by the local filesystem or a local test server, so running them against "live" servers just repeats the mocked run.
+
+CI runs the live tests as one job per network rig, so a failure in one provider can be re-run on its own. Which rigs those are, and how much concurrency each one gets, is defined in [`tests/rigs.py`](tests/rigs.py) — CI builds its job matrix from it (`make live-rigs`), so you can reproduce a single CI job exactly:
+
+```bash
+make test-live-cloud-rig RIG=custom_s3   # one rig, with the concurrency CI uses
+make test-live-cloud-rigs                # every rig locally in sequence; CI runs jobs in parallel
+```
+
+Each CI job is given only the credentials for the rig it runs, so the other providers' environment variables arrive empty. The test suite treats an empty variable the same as an unset one (see `getenv` in [`tests/utils.py`](tests/utils.py)); keep that in mind when adding new configuration.
 
 
 ### Test rigs
@@ -108,7 +127,7 @@ When a test suite runs against the rig, the rig does the following steps on setu
 
 When the tests finish, if it is using a live server, the test files will be deleted from the provider.
 
-If you want to speed up your testing during development, you may comment out some of the rigs in [`conftest.py`](tests/conftest.py). Don't commit this change, and make sure you run against all the rigs before submitting a PR.
+If you want to speed up your testing during development, you can run a subset of the rigs with the `CLOUDPATHLIB_TEST_RIGS` environment variable (see above). Make sure you run against all the rigs before submitting a PR.
 
 ### Test Fixtures and Rigs
 
@@ -131,7 +150,7 @@ The `CloudProviderTestRig` class is the foundation for all cloud provider testin
 - **`path_class`**: The CloudPath subclass for the provider (e.g., `S3Path`, `AzureBlobPath`)
 - **`client_class`**: The Client subclass for the provider (e.g., `S3Client`, `AzureBlobClient`)
 - **`drive`**: The bucket/container name for the provider
-- **`test_dir`**: Unique test directory name generated from session UUID, module name, and function name
+- **`test_dir`**: Unique test directory name generated from session UUID, module name, function name, and a short digest of the test's parameters
 - **`live_server`**: Whether the rig uses live cloud servers
 - **`required_client_kwargs`**: Additional client configuration parameters
 - **`cloud_prefix`**: The cloud prefix for the provider (e.g., `s3://`, `az://`)
@@ -175,6 +194,14 @@ The test suite uses `pytest-cases` fixture unions to run tests against multiple 
 - **`azure_rigs`**: Runs tests against both Azure Blob and Azure ADLS Gen2
 - **`s3_like_rig`**: Runs tests against AWS S3 and Custom S3 (for S3-compatible services)
 - **`http_like_rig`**: Runs tests against HTTP and HTTPS endpoints
+
+Each union only includes the rigs selected for the run (see `CLOUDPATHLIB_TEST_RIGS` above), and a union with no selected rigs skips.
+
+Tests that create all of their own cloud data can use `@pytest.mark.no_seed_assets` (or a module-level `pytestmark`) to skip copying the five baseline asset files into their isolated test directory. Only use it when the test does not read or list the fixture assets.
+
+#### Provider Fixtures
+
+The live rigs share session-scoped fixtures (`azure_service_clients`, `gs_bucket`, `s3_bucket`, `custom_s3_bucket`) that build each provider's SDK client once per test session instead of once per test, and that cache the setup requests that go with them (the Azure hierarchical-namespace probe, and waking up/creating the custom S3 bucket). The rigs themselves stay function-scoped: each test still gets its own test directory, its own copy of the test assets, and its own default client.
 
 #### HTTP Server Fixtures
 

@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import os
 from pathlib import Path, PurePosixPath
 from shutil import rmtree
@@ -95,12 +96,22 @@ def glob_test_dirs(rig, tmp_path):
 
     def _make_glob_directory(root):
         (root / "dirB").mkdir()
-        (root / "dirB" / "fileB.txt").write_text("fileB")
         (root / "dirC").mkdir()
         (root / "dirC" / "dirD").mkdir()
-        (root / "dirC" / "dirD" / "fileD.txt").write_text("fileD")
-        (root / "dirC" / "fileC.txt").write_text("fileC")
-        (root / "fileA.txt").write_text("fileA")
+
+        files = [
+            (root / "dirB" / "fileB.txt", "fileB"),
+            (root / "dirC" / "dirD" / "fileD.txt", "fileD"),
+            (root / "dirC" / "fileC.txt", "fileC"),
+            (root / "fileA.txt", "fileA"),
+        ]
+        if rig.live_server and root is cloud_root:
+            with ThreadPoolExecutor(max_workers=len(files)) as executor:
+                for _ in executor.map(lambda f: f[0].write_text(f[1]), files):
+                    pass
+        else:
+            for path, content in files:
+                path.write_text(content)
 
     cloud_root = rig.create_cloud_path("glob-tests/")
     cloud_root.mkdir()
@@ -455,19 +466,21 @@ def test_glob_buckets(rig):
     assert len(first_result.parts) == len(set(first_result.parts))
 
 
+@pytest.mark.no_seed_assets
 def test_glob_many_open_files(rig):
     # test_glob_many_open_files
     #  Adapted from: https://github.com/python/cpython/blob/7ffe7ba30fc051014977c6f393c51e57e71a6648/Lib/test/test_pathlib.py#L1697-L1712
     depth = 30
+    n_iters = 10  # enough concurrently open iterators to catch the regression
     base = rig.create_cloud_path("deep")
     p = base / "/".join(["d"] * depth)
     (p / "file.txt").write_text("hello")  # create file so parent dirs exist
     pattern = "/".join(["*"] * depth)
-    iters = [base.glob(pattern) for j in range(100)]
+    iters = [base.glob(pattern) for j in range(n_iters)]
     for it in iters:
         print(it)
         assert next(it) == p
-    iters = [base.rglob("d") for j in range(100)]
+    iters = [base.rglob("d") for j in range(n_iters)]
     p = base
     for i in range(depth):
         p = p / "d"

@@ -1,4 +1,6 @@
-from functools import wraps
+from concurrent.futures import ThreadPoolExecutor
+from functools import lru_cache, wraps
+import hashlib
 import os
 from pathlib import Path, PurePosixPath
 import shutil
@@ -10,6 +12,7 @@ from urllib.parse import urlparse
 from urllib.request import HTTPSHandler
 
 from azure.storage.blob import BlobServiceClient
+from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.filedatalake import (
     DataLakeServiceClient,
 )
@@ -17,6 +20,7 @@ import boto3
 import botocore
 from dotenv import find_dotenv, load_dotenv
 from google.cloud import storage as google_storage
+import pytest
 from pytest_cases import fixture, fixture_union
 from shortuuid import uuid
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
@@ -49,9 +53,12 @@ from .mock_clients.mock_gs import (
     mock_default_auth,
 )
 from .mock_clients.mock_s3 import mocked_session_class_factory, DEFAULT_S3_BUCKET_NAME
-from .utils import _sync_filesystem
+from .rigs import ALL_RIGS, custom_s3_endpoint, NETWORK_RIGS
+from .utils import _sync_filesystem, getenv
 
-if os.getenv("USE_LIVE_CLOUD") == "1":
+USE_LIVE_CLOUD = getenv("USE_LIVE_CLOUD") == "1"
+
+if USE_LIVE_CLOUD:
     load_dotenv(find_dotenv())
 
 
@@ -61,6 +68,105 @@ SESSION_UUID = uuid()
 UPLOAD_IGNORE_LIST = [
     ".DS_Store",  # macOS cruft
 ]
+
+# threads used by fixtures for independent requests (asset uploads, cleanup)
+FIXTURE_IO_THREADS = 8
+
+
+def _parse_selected_rigs():
+    """Rig names to run, from the `CLOUDPATHLIB_TEST_RIGS` environment variable.
+
+    `CLOUDPATHLIB_TEST_RIGS` is a comma-separated list of rig names (e.g., `s3,gs`). When it
+    is not set, live runs use the network-backed rigs only and mocked runs use every rig.
+    """
+    selection = getenv("CLOUDPATHLIB_TEST_RIGS", "").strip()
+
+    if not selection:
+        return list(NETWORK_RIGS if USE_LIVE_CLOUD else ALL_RIGS)
+
+    requested = [name.strip() for name in selection.split(",") if name.strip()]
+    unknown = [name for name in requested if name not in ALL_RIGS]
+
+    if unknown:
+        raise pytest.UsageError(
+            f"CLOUDPATHLIB_TEST_RIGS contains unknown rig name(s): {', '.join(unknown)}. "
+            f"Valid rig names are: {', '.join(ALL_RIGS)}."
+        )
+
+    # keep the canonical ordering so test ids don't depend on how the variable was written
+    return [name for name in ALL_RIGS if name in requested]
+
+
+SELECTED_RIGS = _parse_selected_rigs()
+
+# Credentials for the session-scoped provider fixtures are read once, at import time, so that
+# the per-test AWS environment variable patching done by `custom_s3_rig` cannot change which
+# account the AWS S3 fixtures point at.
+AWS_S3_SESSION_KWARGS = {
+    key: value
+    for key, value in (
+        ("aws_access_key_id", getenv("AWS_ACCESS_KEY_ID")),
+        ("aws_secret_access_key", getenv("AWS_SECRET_ACCESS_KEY")),
+        ("aws_session_token", getenv("AWS_SESSION_TOKEN")),
+        ("profile_name", getenv("AWS_PROFILE")),
+    )
+    if value
+}
+
+CUSTOM_S3_SESSION_KWARGS = {
+    key: value
+    for key, value in (
+        ("aws_access_key_id", getenv("CUSTOM_S3_KEY_ID")),
+        ("aws_secret_access_key", getenv("CUSTOM_S3_SECRET_KEY")),
+    )
+    if value
+}
+
+
+def _require_rig(rig_name: str) -> None:
+    """Skip a test that asks for a rig directly if that rig was not selected."""
+    if rig_name not in SELECTED_RIGS:
+        pytest.skip(f"Rig '{rig_name}' not selected by CLOUDPATHLIB_TEST_RIGS.")
+
+
+def _seed_assets_for(request) -> bool:
+    """Whether this test needs the five baseline files copied into its isolated directory."""
+    return request.node.get_closest_marker("no_seed_assets") is None
+
+
+def _chunked(items, size):
+    """Yield lists of up to `size` items."""
+    items = list(items)
+    for start in range(0, len(items), size):
+        yield items[start : start + size]
+
+
+def _map_in_parallel(fn, items):
+    """Call `fn` on each item in a thread pool, raising the first exception it raises."""
+    items = list(items)
+
+    if not items:
+        return
+
+    with ThreadPoolExecutor(max_workers=min(FIXTURE_IO_THREADS, len(items))) as executor:
+        for _ in executor.map(fn, items):
+            pass
+
+
+def _upload_test_assets(assets_dir, test_dir, upload_file) -> None:
+    """Upload the test assets into `test_dir` on a live backend.
+
+    `upload_file` is called with the local file `Path` and the destination key. Each call
+    writes a distinct key, so they are made in parallel.
+    """
+    test_files = [
+        f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
+    ]
+
+    def _upload(test_file):
+        upload_file(test_file, f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}")
+
+    _map_in_parallel(_upload, test_files)
 
 
 @fixture()
@@ -72,7 +178,93 @@ def assets_dir() -> Path:
 @fixture()
 def live_server() -> bool:
     """Whether to use a live server."""
-    return os.getenv("USE_LIVE_CLOUD") == "1"
+    return USE_LIVE_CLOUD
+
+
+@pytest.fixture(scope="session")
+def azure_service_clients():
+    """Getter for the live Azure service clients, built at most once per session.
+
+    (Session-scoped fixtures are per-worker when running under pytest-xdist.) The returned
+    getter takes a connection string and also reports whether that storage account has a
+    hierarchical namespace, which rig teardown needs; probing it costs a request, so the
+    result is cached rather than looked up for every test.
+    """
+
+    @lru_cache(maxsize=None)
+    def _get(connection_string):
+        blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+        data_lake_service_client = DataLakeServiceClient.from_connection_string(connection_string)
+        is_hns_enabled = blob_service_client.get_account_information().get("is_hns_enabled", False)
+        return blob_service_client, data_lake_service_client, is_hns_enabled
+
+    return _get
+
+
+@pytest.fixture(scope="session")
+def gs_bucket():
+    """Getter for a live Google Cloud Storage bucket handle, built at most once per session."""
+
+    @lru_cache(maxsize=None)
+    def _get(drive):
+        return google_storage.Client().bucket(drive)
+
+    return _get
+
+
+@pytest.fixture(scope="session")
+def s3_bucket():
+    """Getter for a live AWS S3 bucket handle, built at most once per session."""
+
+    @lru_cache(maxsize=None)
+    def _get(drive):
+        # explicit credentials (see AWS_S3_SESSION_KWARGS) rather than ambient environment
+        session = boto3.Session(**AWS_S3_SESSION_KWARGS)
+        return session.resource("s3").Bucket(drive)
+
+    return _get
+
+
+@pytest.fixture(scope="session")
+def custom_s3_bucket():
+    """Getter for a live custom S3 bucket handle, built at most once per session.
+
+    Our custom S3 test server only has ephemeral storage and may need to wake up, so this
+    also does the retrying head_bucket/create_bucket dance—once per session instead of once
+    per test.
+    """
+
+    @lru_cache(maxsize=None)
+    def _get(drive, endpoint_url):
+        # explicit credentials (see CUSTOM_S3_SESSION_KWARGS) rather than ambient environment
+        session = boto3.Session(**CUSTOM_S3_SESSION_KWARGS)
+        s3 = session.resource("s3", endpoint_url=endpoint_url)
+
+        # idempotent and our test server on heroku only has ephemeral storage
+        # so we need to try to create each time
+        try:
+            #  try a few times to spin up the bucket since the heroku worker needs some time to wake up
+            @retry(
+                stop=stop_after_attempt(5),
+                wait=wait_fixed(2),
+                retry=retry_if_exception_type(botocore.exceptions.ClientError),
+                reraise=True,
+            )
+            def _spin_up_bucket():
+                s3.meta.client.head_bucket(Bucket=drive)
+
+            _spin_up_bucket()
+        except botocore.exceptions.ClientError:
+            try:
+                s3.create_bucket(Bucket=drive)
+            except botocore.exceptions.ClientError as e:
+                # ok if bucket already exists
+                if e.response["Error"]["Code"] != "BucketAlreadyOwnedByYou":
+                    raise
+
+        return s3.Bucket(drive)
+
+    return _get
 
 
 class CloudProviderTestRig:
@@ -125,7 +317,17 @@ def create_test_dir_name(request) -> str:
     """Generates unique test directory name using test module and test function names."""
     module_name = request.module.__name__.rpartition(".")[-1]
     function_name = request.function.__name__
-    test_dir = f"{SESSION_UUID}-{module_name}-{function_name}"
+
+    # parametrized tests share a function name, so add a short digest of the full node name
+    # to keep each test's directory unique (they may run concurrently under pytest-xdist)
+    node_name = request.node.name
+    suffix = (
+        ""
+        if node_name == function_name
+        else "-" + hashlib.sha1(node_name.encode("utf-8")).hexdigest()[:6]
+    )
+
+    test_dir = f"{SESSION_UUID}-{module_name}-{function_name}{suffix}"
     print("Test directory name is:", test_dir)
     return test_dir
 
@@ -152,9 +354,17 @@ def wait_for_mkdir(monkeypatch):
     monkeypatch.setattr(os, "mkdir", wrapped_mkdir)
 
 
-def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir, live_server):
+def _azure_fixture(
+    conn_str_env_var,
+    adls_gen2,
+    request,
+    monkeypatch,
+    assets_dir,
+    live_server,
+    azure_service_clients,
+):
     drive = (
-        os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
+        getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
         if live_server
         else DEFAULT_CONTAINER_NAME
     )
@@ -165,22 +375,22 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
     tmpdir = TemporaryDirectory()
 
     if live_server:
-        # Set up test assets
-        blob_service_client = BlobServiceClient.from_connection_string(os.getenv(conn_str_env_var))
-        data_lake_service_client = DataLakeServiceClient.from_connection_string(
-            os.getenv(conn_str_env_var)
-        )
-        test_files = [
-            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
-        ]
-        for test_file in test_files:
-            blob_client = blob_service_client.get_blob_client(
-                container=drive,
-                blob=str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
-            )
-            blob_client.upload_blob(test_file.read_bytes(), overwrite=True)
+        connection_string = getenv(conn_str_env_var)
 
-        connection_kwargs["connection_string"] = os.getenv(conn_str_env_var)
+        blob_service_client, data_lake_service_client, is_hns_enabled = azure_service_clients(
+            connection_string
+        )
+
+        # Set up test assets
+        def _upload(test_file, key):
+            blob_service_client.get_blob_client(container=drive, blob=key).upload_blob(
+                test_file.read_bytes(), overwrite=True
+            )
+
+        if _seed_assets_for(request):
+            _upload_test_assets(assets_dir, test_dir, _upload)
+
+        connection_kwargs["connection_string"] = connection_string
     else:
         # pass key mocked params to clients via connection string
         monkeypatch.setenv(
@@ -213,15 +423,19 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
 
     # add flag for adls gen2 rig to skip some tests
     rig.is_adls_gen2 = adls_gen2
-    rig.connection_string = os.getenv(conn_str_env_var)  # used for client instantiation tests
+    rig.connection_string = getenv(conn_str_env_var)  # used for client instantiation tests
 
     yield rig
 
     rig.client_class._default_client = None  # reset default client
 
     if live_server:
-        if blob_service_client.get_account_information().get("is_hns_enabled", False):
-            _hns_rmtree(data_lake_service_client, drive, test_dir)
+        if is_hns_enabled:
+            try:
+                _hns_rmtree(data_lake_service_client, drive, test_dir)
+            except ResourceNotFoundError:
+                # A test without seed assets may leave no directory to remove.
+                pass
 
         else:
             # Clean up test dir
@@ -229,47 +443,60 @@ def _azure_fixture(conn_str_env_var, adls_gen2, request, monkeypatch, assets_dir
             to_delete = container_client.list_blobs(name_starts_with=test_dir)
             to_delete = sorted(to_delete, key=lambda b: len(b.name.split("/")), reverse=True)
 
-            container_client.delete_blobs(*to_delete)
+            # delete_blobs is a batch request, and the service caps a batch at 256 blobs
+            for chunk in _chunked(to_delete, 256):
+                container_client.delete_blobs(*chunk)
 
     else:
         tmpdir.cleanup()
 
 
 @fixture()
-def azure_rig(request, monkeypatch, assets_dir, live_server):
+def azure_rig(request, monkeypatch, assets_dir, live_server, azure_service_clients):
+    _require_rig("azure")
     yield from _azure_fixture(
-        "AZURE_STORAGE_CONNECTION_STRING", False, request, monkeypatch, assets_dir, live_server
+        "AZURE_STORAGE_CONNECTION_STRING",
+        False,
+        request,
+        monkeypatch,
+        assets_dir,
+        live_server,
+        azure_service_clients,
     )
 
 
 @fixture()
-def azure_gen2_rig(request, monkeypatch, assets_dir, live_server):
+def azure_gen2_rig(request, monkeypatch, assets_dir, live_server, azure_service_clients):
+    _require_rig("azure_gen2")
     yield from _azure_fixture(
-        "AZURE_STORAGE_GEN2_CONNECTION_STRING", True, request, monkeypatch, assets_dir, live_server
+        "AZURE_STORAGE_GEN2_CONNECTION_STRING",
+        True,
+        request,
+        monkeypatch,
+        assets_dir,
+        live_server,
+        azure_service_clients,
     )
 
 
 @fixture()
-def gs_rig(request, monkeypatch, assets_dir, live_server):
+def gs_rig(request, monkeypatch, assets_dir, live_server, gs_bucket):
+    _require_rig("gs")
+
     drive = (
-        os.getenv("LIVE_GS_BUCKET", DEFAULT_GS_BUCKET_NAME)
-        if live_server
-        else DEFAULT_GS_BUCKET_NAME
+        getenv("LIVE_GS_BUCKET", DEFAULT_GS_BUCKET_NAME) if live_server else DEFAULT_GS_BUCKET_NAME
     )
     test_dir = create_test_dir_name(request)
 
     if live_server:
+        bucket = gs_bucket(drive)
+
         # Set up test assets
-        bucket = google_storage.Client().bucket(drive)
-        test_files = [
-            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
-        ]
-        for test_file in test_files:
-            blob = google_storage.Blob(
-                str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
-                bucket,
-            )
-            blob.upload_from_filename(str(test_file))
+        def _upload(test_file, key):
+            google_storage.Blob(key, bucket).upload_from_filename(str(test_file))
+
+        if _seed_assets_for(request):
+            _upload_test_assets(assets_dir, test_dir, _upload)
     else:
         # Mock cloud SDK
         monkeypatch.setattr(
@@ -299,33 +526,33 @@ def gs_rig(request, monkeypatch, assets_dir, live_server):
     rig.client_class._default_client = None  # reset default client
 
     if live_server:
-        # Clean up test dir
-        for blob in bucket.list_blobs(prefix=test_dir):
-            blob.delete()
+        # Clean up test dir; batch the deletes (the API allows 100 subrequests per batch)
+        # instead of issuing a request per blob
+        for chunk in _chunked(bucket.list_blobs(prefix=test_dir), 100):
+            with bucket.client.batch():
+                for blob in chunk:
+                    blob.delete()
 
 
 @fixture()
-def s3_rig(request, monkeypatch, assets_dir, live_server):
+def s3_rig(request, monkeypatch, assets_dir, live_server, s3_bucket):
+    _require_rig("s3")
+
     drive = (
-        os.getenv("LIVE_S3_BUCKET", DEFAULT_S3_BUCKET_NAME)
-        if live_server
-        else DEFAULT_S3_BUCKET_NAME
+        getenv("LIVE_S3_BUCKET", DEFAULT_S3_BUCKET_NAME) if live_server else DEFAULT_S3_BUCKET_NAME
     )
 
     test_dir = create_test_dir_name(request)
 
     if live_server:
-        # Set up test assets
-        session = boto3.Session()  # Fresh session to ensure isolation
-        bucket = session.resource("s3").Bucket(drive)
-        test_files = [
-            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
-        ]
-        for test_file in test_files:
-            bucket.upload_file(
-                str(test_file),
-                str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
-            )
+        bucket = s3_bucket(drive)
+
+        # Set up test assets; upload via the (thread-safe) client rather than the resource
+        def _upload(test_file, key):
+            bucket.meta.client.upload_file(str(test_file), drive, key)
+
+        if _seed_assets_for(request):
+            _upload_test_assets(assets_dir, test_dir, _upload)
     else:
         # Mock cloud SDK
         monkeypatch.setattr(
@@ -354,62 +581,37 @@ def s3_rig(request, monkeypatch, assets_dir, live_server):
 
 
 @fixture()
-def custom_s3_rig(request, monkeypatch, assets_dir, live_server):
+def custom_s3_rig(request, monkeypatch, assets_dir, live_server, custom_s3_bucket):
     """
     Custom S3 rig used to test the integrations with non-AWS S3-compatible object storages like
         - MinIO (https://min.io/)
         - CEPH  (https://ceph.io/ceph-storage/object-storage/)
         - others
     """
+    _require_rig("custom_s3")
+
     drive = (
-        os.getenv("CUSTOM_S3_BUCKET", DEFAULT_S3_BUCKET_NAME)
+        getenv("CUSTOM_S3_BUCKET", DEFAULT_S3_BUCKET_NAME)
         if live_server
         else DEFAULT_S3_BUCKET_NAME
     )
 
     test_dir = create_test_dir_name(request)
-    custom_endpoint_url = os.getenv("CUSTOM_S3_ENDPOINT", "https://s3.us-west-1.drivendatabws.com")
+    custom_endpoint_url = custom_s3_endpoint()
 
     if live_server:
-        monkeypatch.setenv("AWS_ACCESS_KEY_ID", os.getenv("CUSTOM_S3_KEY_ID"))
-        monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", os.getenv("CUSTOM_S3_SECRET_KEY"))
+        # the client under test picks these up from the environment
+        monkeypatch.setenv("AWS_ACCESS_KEY_ID", getenv("CUSTOM_S3_KEY_ID"))
+        monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", getenv("CUSTOM_S3_SECRET_KEY"))
 
-        # Upload test assets
-        session = boto3.Session()  # Fresh session to ensure isolation from AWS S3 auth
-        s3 = session.resource("s3", endpoint_url=custom_endpoint_url)
+        bucket = custom_s3_bucket(drive, custom_endpoint_url)
 
-        # idempotent and our test server on heroku only has ephemeral storage
-        # so we need to try to create each time
-        try:
-            #  try a few times to spin up the bucket since the heroku worker needs some time to wake up
-            @retry(
-                stop=stop_after_attempt(5),
-                wait=wait_fixed(2),
-                retry=retry_if_exception_type(botocore.exceptions.ClientError),
-                reraise=True,
-            )
-            def _spin_up_bucket():
-                s3.meta.client.head_bucket(Bucket=drive)
+        # Upload test assets; upload via the (thread-safe) client rather than the resource
+        def _upload(test_file, key):
+            bucket.meta.client.upload_file(str(test_file), drive, key)
 
-            _spin_up_bucket()
-        except botocore.exceptions.ClientError:
-            try:
-                s3.create_bucket(Bucket=drive)
-            except botocore.exceptions.ClientError as e:
-                # ok if bucket already exists
-                if e.response["Error"]["Code"] != "BucketAlreadyOwnedByYou":
-                    raise
-
-        bucket = s3.Bucket(drive)
-
-        test_files = [
-            f for f in assets_dir.glob("**/*") if f.is_file() and f.name not in UPLOAD_IGNORE_LIST
-        ]
-        for test_file in test_files:
-            bucket.upload_file(
-                str(test_file),
-                str(f"{test_dir}/{PurePosixPath(test_file.relative_to(assets_dir))}"),
-            )
+        if _seed_assets_for(request):
+            _upload_test_assets(assets_dir, test_dir, _upload)
     else:
         # Mock cloud SDK
         monkeypatch.setattr(
@@ -444,8 +646,10 @@ def custom_s3_rig(request, monkeypatch, assets_dir, live_server):
 
 @fixture()
 def local_azure_rig(request, monkeypatch, assets_dir, live_server):
+    _require_rig("local_azure")
+
     drive = (
-        os.getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
+        getenv("LIVE_AZURE_CONTAINER", DEFAULT_CONTAINER_NAME)
         if live_server
         else DEFAULT_CONTAINER_NAME
     )
@@ -453,7 +657,10 @@ def local_azure_rig(request, monkeypatch, assets_dir, live_server):
     test_dir = create_test_dir_name(request)
 
     # copy test assets
-    shutil.copytree(assets_dir, LocalAzureBlobClient.get_default_storage_dir() / drive / test_dir)
+    if _seed_assets_for(request):
+        shutil.copytree(
+            assets_dir, LocalAzureBlobClient.get_default_storage_dir() / drive / test_dir
+        )
 
     monkeypatch.setitem(implementation_registry, "azure", local_azure_blob_implementation)
 
@@ -475,16 +682,17 @@ def local_azure_rig(request, monkeypatch, assets_dir, live_server):
 
 @fixture()
 def local_gs_rig(request, monkeypatch, assets_dir, live_server):
+    _require_rig("local_gs")
+
     drive = (
-        os.getenv("LIVE_GS_BUCKET", DEFAULT_GS_BUCKET_NAME)
-        if live_server
-        else DEFAULT_GS_BUCKET_NAME
+        getenv("LIVE_GS_BUCKET", DEFAULT_GS_BUCKET_NAME) if live_server else DEFAULT_GS_BUCKET_NAME
     )
 
     test_dir = create_test_dir_name(request)
 
     # copy test assets
-    shutil.copytree(assets_dir, LocalGSClient.get_default_storage_dir() / drive / test_dir)
+    if _seed_assets_for(request):
+        shutil.copytree(assets_dir, LocalGSClient.get_default_storage_dir() / drive / test_dir)
 
     monkeypatch.setitem(implementation_registry, "gs", local_gs_implementation)
 
@@ -505,16 +713,17 @@ def local_gs_rig(request, monkeypatch, assets_dir, live_server):
 
 @fixture()
 def local_s3_rig(request, monkeypatch, assets_dir, live_server):
+    _require_rig("local_s3")
+
     drive = (
-        os.getenv("LIVE_S3_BUCKET", DEFAULT_S3_BUCKET_NAME)
-        if live_server
-        else DEFAULT_S3_BUCKET_NAME
+        getenv("LIVE_S3_BUCKET", DEFAULT_S3_BUCKET_NAME) if live_server else DEFAULT_S3_BUCKET_NAME
     )
 
     test_dir = create_test_dir_name(request)
 
     # copy test assets
-    shutil.copytree(assets_dir, LocalS3Client.get_default_storage_dir() / drive / test_dir)
+    if _seed_assets_for(request):
+        shutil.copytree(assets_dir, LocalS3Client.get_default_storage_dir() / drive / test_dir)
 
     monkeypatch.setitem(implementation_registry, "s3", local_s3_implementation)
 
@@ -548,14 +757,17 @@ class HttpProviderTestRig(CloudProviderTestRig):
 
 @fixture()
 def http_rig(request, assets_dir, http_server):  # noqa: F811
+    _require_rig("http")
+
     test_dir = create_test_dir_name(request)
 
     host, server_dir = http_server
     drive = urlparse(host).netloc
 
     # copy test assets
-    shutil.copytree(assets_dir, server_dir / test_dir)
-    _sync_filesystem()
+    if _seed_assets_for(request):
+        shutil.copytree(assets_dir, server_dir / test_dir)
+        _sync_filesystem()
 
     rig = CloudProviderTestRig(
         path_class=HttpPath,
@@ -576,14 +788,17 @@ def http_rig(request, assets_dir, http_server):  # noqa: F811
 
 @fixture()
 def https_rig(request, assets_dir, https_server):  # noqa: F811
+    _require_rig("https")
+
     test_dir = create_test_dir_name(request)
 
     host, server_dir = https_server
     drive = urlparse(host).netloc
 
     # copy test assets
-    shutil.copytree(assets_dir, server_dir / test_dir)
-    _sync_filesystem()
+    if _seed_assets_for(request):
+        shutil.copytree(assets_dir, server_dir / test_dir)
+        _sync_filesystem()
 
     skip_verify_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     skip_verify_ctx.check_hostname = False
@@ -609,46 +824,48 @@ def https_rig(request, assets_dir, https_server):  # noqa: F811
     _sync_filesystem()
 
 
+RIG_FIXTURES = {
+    "azure": azure_rig,
+    "azure_gen2": azure_gen2_rig,
+    "gs": gs_rig,
+    "s3": s3_rig,
+    "custom_s3": custom_s3_rig,
+    "local_azure": local_azure_rig,
+    "local_s3": local_s3_rig,
+    "local_gs": local_gs_rig,
+    "http": http_rig,
+    "https": https_rig,
+}
+
+
+def _rig_union(union_name, rig_names):
+    """Fixture union over the rigs in `rig_names` that were selected for this run.
+
+    pytest_cases cannot build an empty union, so if the selection leaves no rigs for this
+    union, register a fixture that skips instead. Assign the result to a module-level name
+    matching `union_name`, as with `fixture_union`.
+    """
+    selected = [RIG_FIXTURES[name] for name in rig_names if name in SELECTED_RIGS]
+
+    if not selected:
+
+        @pytest.fixture(name=union_name)
+        def _no_selected_rigs():
+            pytest.skip(f"No rigs for '{union_name}' selected by CLOUDPATHLIB_TEST_RIGS.")
+
+        return _no_selected_rigs
+
+    return fixture_union(union_name, selected)
+
+
 # create azure fixtures for both blob and gen2 storage
-azure_rigs = fixture_union(
-    "azure_rigs",
-    [
-        azure_rig,  # azure_rig0
-        azure_gen2_rig,  # azure_rig1
-    ],
-)
+azure_rigs = _rig_union("azure_rigs", ["azure", "azure_gen2"])
 
 
-rig = fixture_union(
-    "rig",
-    [
-        azure_rig,  # azure_rig0
-        azure_gen2_rig,  # azure_rig1
-        gs_rig,
-        s3_rig,
-        custom_s3_rig,
-        local_azure_rig,
-        local_s3_rig,
-        local_gs_rig,
-        http_rig,
-        https_rig,
-    ],
-)
+rig = _rig_union("rig", ALL_RIGS)
 
 # run some s3-specific tests on custom s3 (ceph, minio, etc.) and aws s3
-s3_like_rig = fixture_union(
-    "s3_like_rig",
-    [
-        s3_rig,
-        custom_s3_rig,
-    ],
-)
+s3_like_rig = _rig_union("s3_like_rig", ["s3", "custom_s3"])
 
 # run some http-specific tests on http and https
-http_like_rig = fixture_union(
-    "http_like_rig",
-    [
-        http_rig,
-        https_rig,
-    ],
-)
+http_like_rig = _rig_union("http_like_rig", ["http", "https"])

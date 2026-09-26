@@ -194,6 +194,10 @@ def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
     assert client_cache_dir.exists()
 
 
+# downloads into the cache dir under tmpdir occasionally fail with a FileNotFoundError
+# against live backends (see the `wait_for_mkdir` fixture and #382); retry like the other
+# live-flaky tests in this module
+@pytest.mark.flaky(reruns=3, reruns_delay=1, condition=os.getenv("USE_LIVE_CLOUD") == "1")
 def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
     """Tests that local cache dir is used when specified and works'
     with the different cache modes.
