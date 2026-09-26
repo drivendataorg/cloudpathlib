@@ -2008,6 +2008,7 @@ perf                 run performance measurement suite for s3 and save results t
 <p><strong><code>assets_dir</code></strong> - Path to the test assets directory containing sample files and directories used across all tests.</p>
 <p><strong><code>live_server</code></strong> - Boolean indicating whether to use live cloud servers (controlled by <code>USE_LIVE_CLOUD=1</code> environment variable).</p>
 <p><strong><code>wait_for_mkdir</code></strong> - Fixture that patches <code>os.mkdir</code> to wait for directory creation, useful for tests that are sometimes flaky due to filesystem timing.</p>
+<p>Tests that depend on the ordering of modified times should avoid fixed sleeps. Set local file times explicitly with <code>make_local_older</code> / <code>make_local_newer</code>, or use <code>rewrite_until_newer</code> when a cloud timestamp must advance (all in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/utils.py"><code>tests/utils.py</code></a>).</p>
 <h4 id="cloud-provider-test-rigs">Cloud Provider Test Rigs<a class="headerlink" href="#cloud-provider-test-rigs" title="Permanent link">&para;</a></h4>
 <p>The <code>CloudProviderTestRig</code> class is the foundation for all cloud provider testing. Each rig provides:</p>
 <ul>
