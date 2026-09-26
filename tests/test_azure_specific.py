@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import os
 
 from azure.core.credentials import AzureNamedKeyCredential
@@ -208,11 +209,20 @@ def test_adls_gen2_rename(azure_gen2_rig):
     assert p2.exists()
 
 
+@pytest.mark.no_seed_assets
 def test_batched_rmtree_no_hns(azure_rig):
     p = azure_rig.create_cloud_path("new_dir")
 
     p.mkdir()
-    for i in range(400):
-        (p / f"{i}.txt").write_text("content")
+
+    # more files than fit in a single delete batch (256), so rmtree has to page
+    if azure_rig.live_server:
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            for _ in executor.map(lambda i: (p / f"{i}.txt").write_text("content"), range(300)):
+                pass
+    else:
+        for i in range(300):
+            (p / f"{i}.txt").write_text("content")
+
     p.rmtree()
     assert not p.exists()

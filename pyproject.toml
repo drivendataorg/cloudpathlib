@@ -68,6 +68,7 @@ ignore_missing_imports = true
 minversion = "6.0"
 addopts = "--cov=cloudpathlib --cov-report=term --cov-report=html --cov-report=xml -n=auto --report-log reportlog.jsonl"
 testpaths = ["tests"]
+markers = ["no_seed_assets: test creates all of its own cloud data and needs no fixture assets"]
 
 [tool.coverage.run]
 source = ["cloudpathlib"]

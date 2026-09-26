@@ -2,6 +2,7 @@
 
 ## UNRELEASED
 
+- Sped up the live-backend test suite while retaining full provider coverage on PRs. Test rigs reuse provider clients, upload independent assets concurrently, batch cleanup, and skip seed uploads for tests that create their own data. CI runs one job per network provider using the rig definitions in `tests/rigs.py`; `CLOUDPATHLIB_TEST_RIGS` selects rigs locally. (Issue [#589](https://github.com/drivendataorg/cloudpathlib/issues/589), PR [#590](https://github.com/drivendataorg/cloudpathlib/pull/590))
 - Tightened `LocalClient._download_file` retries for a destination-directory filesystem race: fail immediately if the source is missing, and retry after 0.05/0.1/0.2s instead of sleeping 2 seconds. (PR [#588](https://github.com/drivendataorg/cloudpathlib/pull/588))
 - Split cache cleanup test assertions so they first confirm objects were garbage collected via weak references, then poll only for file removal. Failures now distinguish a still-referenced object from a lagging filesystem. (PR [#587](https://github.com/drivendataorg/cloudpathlib/pull/587))
 - Fixed a spurious `OverwriteNewerCloudError` when a file opened for writing is uploaded on close

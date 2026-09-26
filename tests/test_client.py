@@ -1,5 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
 import mimetypes
-import os
 import random
 import string
 from pathlib import Path
@@ -12,6 +12,7 @@ from cloudpathlib.cloudpath import implementation_registry, register_path_class
 from cloudpathlib.http.httpclient import HttpClient, HttpsClient
 from cloudpathlib.s3.s3client import S3Client
 from cloudpathlib.s3.s3path import S3Path
+from tests.rigs import custom_s3_endpoint
 
 
 def test_default_client_instantiation(rig):
@@ -56,6 +57,7 @@ def test_different_clients(rig):
     assert p._local is not p2._local
 
 
+@pytest.mark.no_seed_assets
 def test_content_type_setting(rig, tmpdir):
     random.seed(1337)  # reproducible file names
 
@@ -72,8 +74,7 @@ def test_content_type_setting(rig, tmpdir):
         (".png", "image/png"),
     ]
 
-    def _test_write_content_type(suffix, expected, rig_ref, check=True):
-        filename = "".join(random.choices(string.ascii_letters, k=8)) + suffix
+    def _test_write_content_type(filename, expected, rig_ref, check=True):
         filepath = Path(tmpdir / filename)
         filepath.write_text("testing")
 
@@ -88,14 +89,31 @@ def test_content_type_setting(rig, tmpdir):
             else:
                 assert meta["content_type"] == expected
 
+    def _test_write_all_content_types(rig_ref, check=True):
+        # file names are generated up front so they stay reproducible; each upload is
+        # independent, so they run at once rather than serially
+        cases = [
+            ("".join(random.choices(string.ascii_letters, k=8)) + suffix, content_type)
+            for suffix, content_type in mimes
+        ]
+
+        if rig_ref.live_server:
+            with ThreadPoolExecutor(max_workers=len(cases)) as executor:
+                for _ in executor.map(
+                    lambda case: _test_write_content_type(case[0], case[1], rig_ref, check=check),
+                    cases,
+                ):
+                    pass
+        else:
+            for filename, content_type in cases:
+                _test_write_content_type(filename, content_type, rig_ref, check=check)
+
     # should guess by default
-    for suffix, content_type in mimes:
-        _test_write_content_type(suffix, content_type, rig)
+    _test_write_all_content_types(rig)
 
     # None does whatever library default is; not checked, just ensure
     # we don't throw an error
-    for suffix, content_type in mimes:
-        _test_write_content_type(suffix, content_type, rig, check=False)
+    _test_write_all_content_types(rig, check=False)
 
     if rig.client_class in [HttpClient, HttpsClient]:
         # HTTP client doesn't support custom content types
@@ -113,7 +131,7 @@ def test_content_type_setting(rig, tmpdir):
 
     # see if testing custom s3 endpoint, make sure to pass the url to the constructor
     kwargs = rig.required_client_kwargs.copy()
-    custom_endpoint = os.getenv("CUSTOM_S3_ENDPOINT", "https://s3.us-west-1.drivendatabws.com")
+    custom_endpoint = custom_s3_endpoint()
     if (
         rig.client_class is S3Client
         and rig.live_server
@@ -124,8 +142,7 @@ def test_content_type_setting(rig, tmpdir):
     # set up default client to use content_type_method
     rig.client_class(content_type_method=my_content_type, **kwargs).set_as_default_client()
 
-    for suffix, content_type in mimes:
-        _test_write_content_type(suffix, content_type, rig)
+    _test_write_all_content_types(rig)
 
 
 @pytest.fixture

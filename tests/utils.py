@@ -7,6 +7,11 @@ from typing import Any, Callable, Iterable, List, Sequence, Tuple
 import weakref
 
 
+def getenv(name: str, default=None):
+    """Treat an empty environment value as unset (as in per-provider CI jobs)."""
+    return os.getenv(name) or default
+
+
 def _sync_filesystem():
     """Try to force sync of the filesystem to stabilize tests.
 

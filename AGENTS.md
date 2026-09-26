@@ -55,7 +55,7 @@ Notes:
   - `make format`
   - `make lint`
   - `make test`
-  - `make test-live-cloud`
+  - `make test-live-cloud` (one rig at a time: `make test-live-cloud-rig RIG=s3`)
   - `make docs`
   - `make dist`
   - `make perf`
@@ -74,8 +74,12 @@ Notes:
   specifically about dispatch, direct instantiation, or client construction.
 - If a change adds or alters SDK calls, update the corresponding mock implementation in
   `tests/mock_clients/`.
-- Temporary local shortcuts like commenting out rigs in `tests/conftest.py` are fine during
-  development, but must not be committed.
+- To run a subset of the rigs during development, set `CLOUDPATHLIB_TEST_RIGS` (e.g.
+  `CLOUDPATHLIB_TEST_RIGS=s3,gs`) instead of editing `tests/conftest.py`.
+- `tests/rigs.py` defines which rigs exist, which ones live tests use, and their concurrency;
+  CI builds its live-test matrix from it, so update it there rather than in the workflow.
+- Tests treat an empty environment variable as unset (`getenv` in `tests/utils.py`), because CI
+  gives each live-test job only its own provider's secrets.
 - Validate affected providers, not just one backend.
 - For performance-sensitive changes (`_list_dir`, `glob`, `rglob`, `walk`), run `make perf` and
   include before/after results in PR notes.
@@ -94,6 +98,8 @@ Notes:
   - Custom S3: `CUSTOM_S3_BUCKET`, `CUSTOM_S3_ENDPOINT`, `CUSTOM_S3_KEY_ID`,
     `CUSTOM_S3_SECRET_KEY`
 - Run live tests with `USE_LIVE_CLOUD=1 make test-live-cloud`.
+- Live runs default to the network-backed rigs only (`azure`, `azure_gen2`, `gs`, `s3`,
+  `custom_s3`); narrow further with `CLOUDPATHLIB_TEST_RIGS`.
 - Live tests create and delete cloud files.
 - If live backend access is unavailable, run mocked tests locally and document the live-test gap
   clearly for maintainers.
