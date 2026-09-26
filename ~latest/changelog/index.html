@@ -2158,13 +2158,14 @@
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
 <h2 id="unreleased">UNRELEASED<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <ul>
+<li>Split cache cleanup test assertions so they first confirm objects were garbage collected via weak references, then poll only for file removal. Failures now distinguish a still-referenced object from a lagging filesystem. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/587">#587</a>)</li>
 <li>Fixed a spurious <code>OverwriteNewerCloudError</code> when a file opened for writing is uploaded on close
   and the cache's modified time comes out exactly equal to the modified time it had when it was
   opened (possible on filesystems with coarse timestamps): the modified time is now bumped past the
-  original for equal times, not only for older ones.</li>
+  original for equal times, not only for older ones. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/586">#586</a>)</li>
 <li>Replaced fixed sleeps in timestamp-sensitive tests with explicit local modified times or bounded
   retries for cloud timestamps. The live S3 transfer test now synchronizes its worker and monitor
-  instead of waiting a fixed second before downloading.</li>
+  instead of waiting a fixed second before downloading. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/586">#586</a>)</li>
 </ul>
 <h2 id="v0250-2026-08-22">v0.25.0 (2026-08-22)<a class="headerlink" href="#v0250-2026-08-22" title="Permanent link">&para;</a></h2>
 <ul>
