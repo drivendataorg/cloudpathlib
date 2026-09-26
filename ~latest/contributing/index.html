@@ -1992,7 +1992,17 @@ perf                 run performance measurement suite for s3 and save results t
 <span class="nv">AZURE_STORAGE_GEN2_CONNECTION_STRING</span><span class="o">=</span>your_connection_string
 </code></pre></div>
 <p>You can copy <code>.env.example</code> to <code>.env</code> and fill in the credentials and bucket/container names for the providers you want to test against.  <strong>Note that the live tests will create and delete files on the cloud provider.</strong></p>
-<p>You can also skip providers you do not have accounts for by commenting them out in the <code>rig</code> and <code>s3_like_rig</code> variables defined at the end of <code>tests/conftest.py</code>. </p>
+<h4 id="choosing-which-rigs-to-run">Choosing which rigs to run<a class="headerlink" href="#choosing-which-rigs-to-run" title="Permanent link">&para;</a></h4>
+<p>Set the <code>CLOUDPATHLIB_TEST_RIGS</code> environment variable to a comma-separated list of rig names to run only some of the rigs. This is how you skip providers you do not have accounts for, and it is a quick way to speed up your development loop:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">CLOUDPATHLIB_TEST_RIGS</span><span class="o">=</span>s3,gs<span class="w"> </span>make<span class="w"> </span>test-live-cloud
+</code></pre></div>
+<p>The rig names are <code>azure</code>, <code>azure_gen2</code>, <code>gs</code>, <code>s3</code>, <code>custom_s3</code>, <code>local_azure</code>, <code>local_s3</code>, <code>local_gs</code>, <code>http</code>, and <code>https</code>. Tests that ask for a rig that isn't selected are skipped.</p>
+<p>When <code>CLOUDPATHLIB_TEST_RIGS</code> is not set, mocked runs (<code>make test</code>) use all of the rigs, and live runs (<code>make test-live-cloud</code>) use only the rigs that talk to a network backend (<code>azure</code>, <code>azure_gen2</code>, <code>gs</code>, <code>s3</code>, <code>custom_s3</code>). The other rigs are backed by the local filesystem or a local test server, so running them against "live" servers just repeats the mocked run.</p>
+<p>CI runs the live tests as one job per network rig, so a failure in one provider can be re-run on its own. Which rigs those are, and how much concurrency each one gets, is defined in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/rigs.py"><code>tests/rigs.py</code></a> — CI builds its job matrix from it (<code>make live-rigs</code>), so you can reproduce a single CI job exactly:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>test-live-cloud-rig<span class="w"> </span><span class="nv">RIG</span><span class="o">=</span>custom_s3<span class="w">   </span><span class="c1"># one rig, with the concurrency CI uses</span>
+make<span class="w"> </span>test-live-cloud-rigs<span class="w">                </span><span class="c1"># every rig locally in sequence; CI runs jobs in parallel</span>
+</code></pre></div>
+<p>Each CI job is given only the credentials for the rig it runs, so the other providers' environment variables arrive empty. The test suite treats an empty variable the same as an unset one (see <code>getenv</code> in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/utils.py"><code>tests/utils.py</code></a>); keep that in mind when adding new configuration.</p>
 <h3 id="test-rigs">Test rigs<a class="headerlink" href="#test-rigs" title="Permanent link">&para;</a></h3>
 <p>Since we want behavior parity across providers, nearly all of the tests are written in a provider-agnostic way. Each test is passed a test rig as a fixture, and the rig provides the correct way for generating cloudpaths for testing. The test rigs are defined in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/conftest.py"><code>conftest.py</code></a>.</p>
 <p><strong>Almost none of the tests instantiate <code>CloudPath</code> or a <code>*Client</code> class directly.</strong></p>
@@ -2001,7 +2011,7 @@ perf                 run performance measurement suite for s3 and save results t
  - Copies the contents of <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/assets/"><code>tests/assets/</code></a> into that folder.
  - Sets the rigs <code>client_class</code> using <code>set_as_default_client</code> so that any <code>CloudPath</code> with the right prefix created in the test will use the rig's client.</p>
 <p>When the tests finish, if it is using a live server, the test files will be deleted from the provider.</p>
-<p>If you want to speed up your testing during development, you may comment out some of the rigs in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/conftest.py"><code>conftest.py</code></a>. Don't commit this change, and make sure you run against all the rigs before submitting a PR.</p>
+<p>If you want to speed up your testing during development, you can run a subset of the rigs with the <code>CLOUDPATHLIB_TEST_RIGS</code> environment variable (see above). Make sure you run against all the rigs before submitting a PR.</p>
 <h3 id="test-fixtures-and-rigs">Test Fixtures and Rigs<a class="headerlink" href="#test-fixtures-and-rigs" title="Permanent link">&para;</a></h3>
 <p>The test suite uses a comprehensive set of fixtures and test rigs to ensure consistent behavior across all cloud providers. Here's a detailed overview of the available fixtures and their properties:</p>
 <h4 id="core-fixtures">Core Fixtures<a class="headerlink" href="#core-fixtures" title="Permanent link">&para;</a></h4>
@@ -2015,7 +2025,7 @@ perf                 run performance measurement suite for s3 and save results t
 <li><strong><code>path_class</code></strong>: The CloudPath subclass for the provider (e.g., <code>S3Path</code>, <code>AzureBlobPath</code>)</li>
 <li><strong><code>client_class</code></strong>: The Client subclass for the provider (e.g., <code>S3Client</code>, <code>AzureBlobClient</code>)</li>
 <li><strong><code>drive</code></strong>: The bucket/container name for the provider</li>
-<li><strong><code>test_dir</code></strong>: Unique test directory name generated from session UUID, module name, and function name</li>
+<li><strong><code>test_dir</code></strong>: Unique test directory name generated from session UUID, module name, function name, and a short digest of the test's parameters</li>
 <li><strong><code>live_server</code></strong>: Whether the rig uses live cloud servers</li>
 <li><strong><code>required_client_kwargs</code></strong>: Additional client configuration parameters</li>
 <li><strong><code>cloud_prefix</code></strong>: The cloud prefix for the provider (e.g., <code>s3://</code>, <code>az://</code>)</li>
@@ -2052,6 +2062,10 @@ perf                 run performance measurement suite for s3 and save results t
 <li><strong><code>s3_like_rig</code></strong>: Runs tests against AWS S3 and Custom S3 (for S3-compatible services)</li>
 <li><strong><code>http_like_rig</code></strong>: Runs tests against HTTP and HTTPS endpoints</li>
 </ul>
+<p>Each union only includes the rigs selected for the run (see <code>CLOUDPATHLIB_TEST_RIGS</code> above), and a union with no selected rigs skips.</p>
+<p>Tests that create all of their own cloud data can use <code>@pytest.mark.no_seed_assets</code> (or a module-level <code>pytestmark</code>) to skip copying the five baseline asset files into their isolated test directory. Only use it when the test does not read or list the fixture assets.</p>
+<h4 id="provider-fixtures">Provider Fixtures<a class="headerlink" href="#provider-fixtures" title="Permanent link">&para;</a></h4>
+<p>The live rigs share session-scoped fixtures (<code>azure_service_clients</code>, <code>gs_bucket</code>, <code>s3_bucket</code>, <code>custom_s3_bucket</code>) that build each provider's SDK client once per test session instead of once per test, and that cache the setup requests that go with them (the Azure hierarchical-namespace probe, and waking up/creating the custom S3 bucket). The rigs themselves stay function-scoped: each test still gets its own test directory, its own copy of the test assets, and its own default client.</p>
 <h4 id="http-server-fixtures">HTTP Server Fixtures<a class="headerlink" href="#http-server-fixtures" title="Permanent link">&para;</a></h4>
 <p><strong><code>http_server</code></strong> and <strong><code>https_server</code></strong> (from <code>tests/http_fixtures.py</code>):
 - Start local HTTP/HTTPS test servers with custom request handlers
