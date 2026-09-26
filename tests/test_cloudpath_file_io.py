@@ -1,9 +1,7 @@
-from datetime import datetime
 import os
 from pathlib import Path, PurePosixPath
 from shutil import rmtree
 import sys
-from time import sleep
 
 import pytest
 from cloudpathlib import CloudPath
@@ -21,6 +19,7 @@ from cloudpathlib.enums import FileCacheMode
 from cloudpathlib.local import LocalS3Client, LocalS3Path
 from cloudpathlib.http.httpclient import HttpClient, HttpsClient
 from cloudpathlib.http.httppath import HttpPath, HttpsPath
+from tests.utils import rewrite_until_newer
 
 
 def test_file_discovery(rig):
@@ -548,22 +547,21 @@ def test_file_read_writes(rig, tmp_path):
     assert p.read_text() == text
     p2.write_text(text)
 
-    # sleep between writes to p to ensure different
-    # modified times
-    sleep(1)
-
     p.write_bytes(p2.read_bytes())
     assert p.read_text() == p2.read_text()
 
-    before_touch = datetime.now()
-    sleep(1)
+    # baseline from the cloud's own clock rather than wall clock, so the comparison below does not
+    # depend on the test machine and the backend agreeing on the time
+    before_touch = p.stat().st_mtime
 
     if rig.path_class not in [HttpPath, HttpsPath]:  # not supported to touch existing
-        p.touch()
-
-        if not getattr(rig, "is_custom_s3", False):
+        if getattr(rig, "is_custom_s3", False):
             # Our S3Path.touch implementation does not update mod time for MinIO
-            assert datetime.fromtimestamp(p.stat().st_mtime) > before_touch
+            p.touch()
+        else:
+            # backends that truncate mtimes to whole seconds may need more than one touch before
+            # the modified time actually advances
+            rewrite_until_newer(p, before_touch, action=p.touch)
 
     # no-op
     if not getattr(rig, "is_adls_gen2", False):
@@ -633,7 +631,7 @@ def test_dispatch_to_local_cache(rig):
     assert stat
 
 
-def test_close_file_idempotent(rig):
+def test_close_file_idempotent(rig, tmp_path):
     p = rig.create_cloud_path("dir_0/file0_1.txt")
 
     assert p.read_text() != "hello!"
@@ -641,24 +639,32 @@ def test_close_file_idempotent(rig):
     f = p.open("w")
     f.write("hello!")
     f.close()
-    first_modified = p.stat().st_mtime
-
     # remove cache so we can be sure it can't be re-uploaded
     p._local.unlink()
 
     # would raise trying to upload missing cache if we weren't idempotent
     f.close()
 
-    # re-open and ensure things work
-    sleep(1)
+    # re-open and check the uploaded content without requiring a later cloud timestamp
     f = p.open("w")
     f.write("hello again!")
     f.close()
+    assert p.download_to(tmp_path / "rewritten.txt").read_text() == "hello again!"
 
-    # remove cache so we are sure stat is coming from the server
-    p._local.unlink()
 
-    assert p.stat().st_mtime > first_modified
+def test_write_uploads_with_equal_cache_mtime(rig, tmp_path):
+    p = rig.create_cloud_path("dir_0/file0_1.txt")
+    original_mtime = p.stat().st_mtime
+
+    with p.open("w") as f:
+        f.write("written with the same cache mtime")
+        f.flush()
+        os.utime(p._local, times=(original_mtime, original_mtime))
+        assert p._local.stat().st_mtime == original_mtime
+
+    assert p.download_to(tmp_path / "equal-mtime.txt").read_text() == (
+        "written with the same cache mtime"
+    )
 
 
 def test_cloud_path_download_to(rig, tmp_path):

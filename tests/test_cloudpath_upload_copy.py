@@ -1,6 +1,5 @@
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from shutil import ignore_patterns
-from time import sleep
 
 import pytest
 
@@ -11,7 +10,7 @@ from cloudpathlib.exceptions import (
     CloudPathNotADirectoryError,
     OverwriteNewerCloudError,
 )
-from tests.utils import _sync_filesystem
+from tests.utils import _sync_filesystem, make_local_newer, make_local_older
 
 
 @pytest.fixture
@@ -46,7 +45,7 @@ def assert_mirrored(cloud_path, local_path, check_no_extra=True):
     return True
 
 
-def test_upload_from_file(rig, upload_assets_dir):
+def test_upload_from_file(rig, upload_assets_dir, tmp_path):
     to_upload = upload_assets_dir / "upload_1.txt"
 
     # to file, file does not exists
@@ -59,25 +58,22 @@ def test_upload_from_file(rig, upload_assets_dir):
 
     # to file, file exists
     to_upload_2 = upload_assets_dir / "upload_2.txt"
-    sleep(1.1)
-    to_upload_2.touch()  # make sure local is newer
+    make_local_newer(to_upload_2, than=p)  # make sure local is newer
     p.upload_from(to_upload_2)
     assert p.exists()
-    assert p.read_text() == "Hello from 2"
+    assert p.download_to(tmp_path / "uploaded.txt").read_text() == "Hello from 2"
 
     # to file, file exists and is newer
-    sleep(1.1)
     p.write_text("newer")
+    make_local_older(upload_assets_dir / "upload_1.txt", than=p)
     with pytest.raises(OverwriteNewerCloudError):
         p.upload_from(upload_assets_dir / "upload_1.txt")
 
     # to file, file exists and is newer; overwrite
-    sleep(1.1)
     p.write_text("even newer")
-    sleep(1.1)
     p.upload_from(upload_assets_dir / "upload_1.txt", force_overwrite_to_cloud=True)
     assert p.exists()
-    assert p.read_text() == "Hello from 1"
+    assert p.download_to(tmp_path / "uploaded.txt").read_text() == "Hello from 1"
 
     # to dir, dir exists
     p = rig.create_cloud_path("dir_0/")  # created by fixtures
@@ -103,15 +99,21 @@ def test_upload_from_dir(rig, upload_assets_dir):
     assert assert_mirrored(p2, upload_assets_dir, check_no_extra=False)
 
     # a newer file exists on cloud
-    sleep(1)
     (p / "upload_1.txt").write_text("newer")
+
+    # age every local file below its cloud counterpart so the raise does not depend on which
+    # file `upload_from` happens to visit first
+    for local_file in upload_assets_dir.glob("**/*"):
+        if local_file.is_file():
+            rel = PurePosixPath(local_file.relative_to(upload_assets_dir))
+            make_local_older(local_file, than=p / str(rel))
+
     with pytest.raises(OverwriteNewerCloudError):
         p.upload_from(upload_assets_dir)
 
     _sync_filesystem()
 
     # force overwrite
-    sleep(1)
     (p / "upload_1.txt").write_text("even newer")
     (p / "upload_2.txt").unlink()
     p.upload_from(upload_assets_dir, force_overwrite_to_cloud=True)
@@ -161,8 +163,8 @@ def test_copy(rig, upload_assets_dir, tmpdir):
     assert p_new.exists()
     assert p_new.read_text() == "Hello from 1"
 
-    # cloud to cloud overwrite
-    sleep(1.1)
+    # cloud to cloud overwrite; no need to force the mtimes apart because cloud-to-cloud copy
+    # compares with `>=` (see `CloudPath._copy`), so a same-second destination still raises
     p_new.write_text("p_new")
     with pytest.raises(OverwriteNewerCloudError):
         p_new = p.copy(p_new)

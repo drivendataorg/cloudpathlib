@@ -1,5 +1,15 @@
 # cloudpathlib Changelog
 
+## UNRELEASED
+
+- Fixed a spurious `OverwriteNewerCloudError` when a file opened for writing is uploaded on close
+  and the cache's modified time comes out exactly equal to the modified time it had when it was
+  opened (possible on filesystems with coarse timestamps): the modified time is now bumped past the
+  original for equal times, not only for older ones.
+- Replaced fixed sleeps in timestamp-sensitive tests with explicit local modified times or bounded
+  retries for cloud timestamps. The live S3 transfer test now synchronizes its worker and monitor
+  instead of waiting a fixed second before downloading.
+
 ## v0.25.0 (2026-08-22)
 
 - **Security fix ([GHSA-r4f8-3xc4-c8vw](https://github.com/drivendataorg/cloudpathlib/security/advisories/GHSA-r4f8-3xc4-c8vw)): local path traversal via `..` in cloud object keys.**

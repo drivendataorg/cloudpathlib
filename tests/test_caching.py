@@ -1,6 +1,5 @@
 import gc
 import os
-from time import sleep
 from pathlib import Path
 
 from google.api_core.exceptions import TooManyRequests
@@ -89,8 +88,6 @@ def test_close_file_mode(rig: CloudProviderTestRig):
         # file cache does not exist, but client folder may still be around
         assert not cp._local.exists()
         assert cp.client._local_cache_dir.exists()
-
-        sleep(0.1)  # writing twice in a row too quickly can trigger `OverwriteNewerCloudError`
 
 
 def test_cloudpath_object_mode(rig: CloudProviderTestRig):
@@ -384,9 +381,8 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
         with pytest.raises(OverwriteNewerCloudError):
             # copy short-circuits upload if same client, so we test separately
 
-            # raises if destination is newer
+            # equal timestamps also raise for cloud-to-cloud copy
             new_also_cloud.write_text("newest")
-            sleep(0.01)
             p.copy(new_also_cloud)
 
         for val in ["1", "True", "TRUE"]:
@@ -419,8 +415,6 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
             _wait_for_cloud_newer()
 
             new_also_cloud = rig.create_cloud_path("dir_0/another_cloud_file.txt")
-
-            sleep(0.1)  # at least a little different
 
             @retry(
                 retry=retry_if_exception_type(

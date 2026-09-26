@@ -1,5 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
 from itertools import islice
+from multiprocessing import Manager
 import os
 from time import sleep
 import time
@@ -73,11 +74,13 @@ def test_get_metadata_uses_head_object(s3_rig):
     assert set(meta) == {"last_modified", "size", "etag", "content_type", "extra"}
 
 
-def _download_with_threads(s3_rig, tmp_path, use_threads):
+def _download_with_threads(s3_rig, tmp_path, use_threads, pid_queue, start_event):
     """Job used by tests to ensure Transfer config changes are
     actually passed through to boto3 and respected.
     """
-    sleep(1)  # give test monitoring process time to start watching
+    # Let the parent identify this worker and start monitoring before the transfer begins.
+    pid_queue.put(os.getpid())
+    assert start_event.wait(timeout=30), "parent process never started monitoring"
 
     transfer_config = TransferConfig(
         max_concurrency=100,
@@ -114,35 +117,39 @@ def test_transfer_config_live(s3_rig, tmp_path):
         pytest.skip("This test only runs against live servers.")
 
     def _execute_on_subprocess_and_observe(use_threads):
-        main_test_process = psutil.Process().pid
+        with Manager() as manager:
+            pid_queue = manager.Queue()
+            start_event = manager.Event()
 
-        with ProcessPoolExecutor(max_workers=1) as executor:
-            job = executor.submit(
-                _download_with_threads,
-                s3_rig=s3_rig,
-                tmp_path=tmp_path,
-                use_threads=use_threads,
-            )
+            with ProcessPoolExecutor(max_workers=1) as executor:
+                job = executor.submit(
+                    _download_with_threads,
+                    s3_rig=s3_rig,
+                    tmp_path=tmp_path,
+                    use_threads=use_threads,
+                    pid_queue=pid_queue,
+                    start_event=start_event,
+                )
+                worker_process_id = pid_queue.get(timeout=30)
+                worker = psutil.Process(worker_process_id)
+                start_event.set()
 
-            max_threads = 0
+                max_threads = 0
 
-            # timeout after 100 seconds
-            for _ in range(1000):
-                worker_process_id = (
-                    psutil.Process(main_test_process).children()[-1].pid
-                )  # most recently started child
-                n_thread = psutil.Process(worker_process_id).num_threads()
+                # timeout after 100 seconds
+                for _ in range(1000):
+                    n_thread = worker.num_threads()
 
-                # observe number of threads used
-                max_threads = max(max_threads, n_thread)
+                    # observe number of threads used
+                    max_threads = max(max_threads, n_thread)
 
-                sleep(0.1)
+                    sleep(0.1)
 
-                if job.done():
-                    _ = job.result()  # raises if job raised
-                    break
+                    if job.done():
+                        _ = job.result()  # raises if job raised
+                        break
 
-            return max_threads
+                return max_threads
 
     # usually ~3 threads are spun up when use_threads is False
     assert _execute_on_subprocess_and_observe(use_threads=False) < 5
