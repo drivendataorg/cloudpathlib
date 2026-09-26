@@ -15,6 +15,10 @@ from ..cloudpath import _ensure_local_path_within_base
 from ..enums import FileCacheMode
 from .localpath import LocalPath
 
+# Destination-parent FileNotFoundError retries after the first copy attempt.
+# Worst case is 0.35s versus the previous fixed 2s wait.
+_DOWNLOAD_RETRY_DELAYS: Tuple[float, ...] = (0.05, 0.1, 0.2)
+
 
 class LocalClient(Client):
     """Abstract client for accessing objects the local filesystem. Subclasses are as a monkeypatch
@@ -96,19 +100,25 @@ class LocalClient(Client):
 
     def _download_file(self, cloud_path: "LocalPath", local_path: Union[str, os.PathLike]) -> Path:
         local_path = Path(local_path)
-        local_path.parent.mkdir(exist_ok=True, parents=True)
+        source = self._cloud_path_to_local(cloud_path)
+        last_exc: Optional[FileNotFoundError] = None
 
-        try:
-            shutil.copyfile(self._cloud_path_to_local(cloud_path), local_path)
-        except FileNotFoundError:
-            # erroneous FileNotFoundError appears in tests sometimes; patiently insist on the parent directory existing
-            sleep(1.0)
+        for delay in (0.0,) + _DOWNLOAD_RETRY_DELAYS:
+            if delay:
+                sleep(delay)
             local_path.parent.mkdir(exist_ok=True, parents=True)
-            sleep(1.0)
+            try:
+                shutil.copyfile(source, local_path)
+                return local_path
+            except FileNotFoundError as exc:
+                # A missing source is a real error; only a vanished destination
+                # parent (a test-only filesystem race) is worth retrying.
+                if not source.exists():
+                    raise
+                last_exc = exc
 
-            shutil.copyfile(self._cloud_path_to_local(cloud_path), local_path)
-
-        return local_path
+        assert last_exc is not None
+        raise last_exc
 
     def _exists(self, cloud_path: "LocalPath") -> bool:
         return self._cloud_path_to_local(cloud_path).exists()
