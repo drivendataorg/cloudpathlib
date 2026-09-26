@@ -2,13 +2,14 @@
 
 ## UNRELEASED
 
+- Split cache cleanup test assertions so they first confirm objects were garbage collected via weak references, then poll only for file removal. Failures now distinguish a still-referenced object from a lagging filesystem. (PR [#587](https://github.com/drivendataorg/cloudpathlib/pull/587))
 - Fixed a spurious `OverwriteNewerCloudError` when a file opened for writing is uploaded on close
   and the cache's modified time comes out exactly equal to the modified time it had when it was
   opened (possible on filesystems with coarse timestamps): the modified time is now bumped past the
-  original for equal times, not only for older ones.
+  original for equal times, not only for older ones. (PR [#586](https://github.com/drivendataorg/cloudpathlib/pull/586))
 - Replaced fixed sleeps in timestamp-sensitive tests with explicit local modified times or bounded
   retries for cloud timestamps. The live S3 transfer test now synchronizes its worker and monitor
-  instead of waiting a fixed second before downloading.
+  instead of waiting a fixed second before downloading. (PR [#586](https://github.com/drivendataorg/cloudpathlib/pull/586))
 
 ## v0.25.0 (2026-08-22)
 

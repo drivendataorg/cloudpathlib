@@ -1,4 +1,3 @@
-import gc
 import os
 from pathlib import Path
 
@@ -18,7 +17,11 @@ from cloudpathlib.exceptions import (
     OverwriteNewerLocalError,
 )
 from tests.conftest import CloudProviderTestRig
-from tests.utils import _sync_filesystem
+from tests.utils import (
+    _sync_filesystem,
+    assert_collected_and_cleaned,
+    weakrefs_to,
+)
 
 
 def test_defaults_work_as_expected(rig: CloudProviderTestRig):
@@ -40,17 +43,18 @@ def test_defaults_work_as_expected(rig: CloudProviderTestRig):
 
     cache_path = cp._local
     client_cache_dir = cp.client._local_cache_dir
+
+    refs = weakrefs_to(cp, client)
     del cp
 
-    # both exist
+    # both exist; in tmp_dir mode cleanup happens when the client goes away, not the path
     assert cache_path.exists()
     assert client_cache_dir.exists()
 
     del client
 
     # cleaned up because client out of scope
-    assert not cache_path.exists()
-    assert not client_cache_dir.exists()
+    assert_collected_and_cleaned(refs, gone=[cache_path, client_cache_dir])
 
 
 def test_close_file_mode(rig: CloudProviderTestRig):
@@ -110,15 +114,19 @@ def test_cloudpath_object_mode(rig: CloudProviderTestRig):
 
     cache_path = cp._local
     client_cache_dir = cp.client._local_cache_dir
+
+    cp_refs = weakrefs_to(cp)
     del cp
 
-    assert not cache_path.exists()
+    # cloudpath_object mode clears the cached file when the path object is collected
+    assert_collected_and_cleaned(cp_refs, gone=[cache_path])
     assert client_cache_dir.exists()
 
+    client_refs = weakrefs_to(client)
     del client
 
+    assert_collected_and_cleaned(client_refs, gone=[client_cache_dir])
     assert not cache_path.exists()
-    assert not client_cache_dir.exists()
 
 
 def test_tmp_dir_mode(rig: CloudProviderTestRig):
@@ -140,6 +148,8 @@ def test_tmp_dir_mode(rig: CloudProviderTestRig):
 
     cache_path = cp._local
     client_cache_dir = cp.client._local_cache_dir
+
+    refs = weakrefs_to(cp, client)
     del cp
 
     # both exist
@@ -149,8 +159,7 @@ def test_tmp_dir_mode(rig: CloudProviderTestRig):
     del client
 
     # cleaned up because client out of scope
-    assert not cache_path.exists()
-    assert not client_cache_dir.exists()
+    assert_collected_and_cleaned(refs, gone=[cache_path, client_cache_dir])
 
 
 def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
@@ -174,15 +183,13 @@ def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
 
     cache_path = cp._local
     client_cache_dir = cp.client._local_cache_dir
+
+    refs = weakrefs_to(cp, client)
     del cp
-
-    # both exist
-    assert cache_path.exists()
-    assert client_cache_dir.exists()
-
     del client
 
-    # both exist
+    # nothing is cleaned up in persistent mode, even once both objects are collected
+    assert_collected_and_cleaned(refs)
     assert cache_path.exists()
     assert client_cache_dir.exists()
 
@@ -236,9 +243,10 @@ def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
     assert cp._local.exists()
 
     cache_path = cp._local
+    cp_refs = weakrefs_to(cp)
     del cp
 
-    assert not cache_path.exists()
+    assert_collected_and_cleaned(cp_refs, gone=[cache_path])
 
     # setting tmp_dir still works
     client = rig.client_class(
@@ -258,6 +266,8 @@ def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
 
     cache_path = cp._local
     client_cache_dir = cp.client._local_cache_dir
+
+    refs = weakrefs_to(cp, client)
     del cp
 
     # both exist
@@ -267,8 +277,7 @@ def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
     del client
 
     # cleaned up because client out of scope
-    assert not cache_path.exists()
-    assert not client_cache_dir.exists()
+    assert_collected_and_cleaned(refs, gone=[cache_path, client_cache_dir])
 
 
 def test_string_instantiation(rig: CloudProviderTestRig, tmpdir):
@@ -487,23 +496,12 @@ def test_manual_cache_clearing(rig: CloudProviderTestRig):
     # also removes containing folder on client cleanted up
     local_cache_path = cp._local
     client_cache_folder = client._local_cache_dir
+
+    refs = weakrefs_to(cp, client)
     del cp
     del client
 
-    # in CI there can be a lag before the cleanup actually happens
-    @retry(
-        retry=retry_if_exception_type(AssertionError),
-        wait=wait_random_exponential(multiplier=0.5, max=5),
-        stop=stop_after_attempt(10),
-        reraise=True,
-    )
-    def _resilient_assert():
-        gc.collect()  # force gc before asserting
-
-        assert not local_cache_path.exists()
-        assert not client_cache_folder.exists()
-
-    _resilient_assert()
+    assert_collected_and_cleaned(refs, gone=[local_cache_path, client_cache_folder])
 
 
 def test_reuse_cache_after_manual_cache_clear(rig: CloudProviderTestRig):
