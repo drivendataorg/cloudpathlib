@@ -1,5 +1,5 @@
 name: live-tests
-run-name: ${{ github.event_name == 'pull_request_target' && format('Live tests for PR #{0} @ {1}', github.event.number, github.event.pull_request.head.sha) || 'Live tests' }}
+run-name: "${{ github.event_name == 'pull_request_target' && format('Live tests for PR #{0} @ {1}', github.event.number, github.event.pull_request.head.sha) || 'Live tests' }}"
 
 on:
   push:
