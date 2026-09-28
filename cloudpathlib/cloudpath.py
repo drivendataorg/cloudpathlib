@@ -337,10 +337,14 @@ class CloudPath(metaclass=CloudPathMeta):
         if "_client" in state:
             del state["_client"]
 
+        # urllib.parse.ParseResult can be rebuilt from the cloud path string.
+        state.pop("_url", None)
+
         return state
 
     def __setstate__(self, state: Dict[str, Any]) -> None:
         self.__dict__.update(state)
+        self._url = urlparse(self._str)
 
     @property
     def _no_prefix(self) -> str:
@@ -444,9 +448,14 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @abc.abstractmethod
     def mkdir(
-        self, parents: bool = False, exist_ok: bool = False, mode: Optional[Any] = None
+        self,
+        parents: bool = False,
+        exist_ok: bool = False,
+        mode: Optional[Any] = None,
+        *,
+        parent_mode: Optional[Any] = None,
     ) -> None:
-        """Should be implemented using the client API without requiring a dir is downloaded"""
+        """Each provider must decide whether directories can be created."""
         pass
 
     @abc.abstractmethod
@@ -1129,11 +1138,7 @@ class CloudPath(metaclass=CloudPathMeta):
         return self._dispatch_to_path("suffixes")
 
     def with_stem(self, stem: str) -> Self:
-        try:
-            return self._dispatch_to_path("with_stem", stem)
-        except AttributeError:
-            # with_stem was only added in python 3.9, so we fallback for compatibility
-            return self.with_name(stem + self.suffix)
+        return self._dispatch_to_path("with_stem", stem)
 
     def with_name(self, name: str) -> Self:
         return self._dispatch_to_path("with_name", name)

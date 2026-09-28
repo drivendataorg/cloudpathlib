@@ -38,7 +38,9 @@ class AzureBlobPath(CloudPath):
     def drive(self) -> str:
         return self.container
 
-    def mkdir(self, parents=False, exist_ok=False, mode: Optional[Any] = None):
+    def mkdir(
+        self, parents=False, exist_ok=False, mode: Optional[Any] = None, *, parent_mode=None
+    ):
         self.client._mkdir(self, parents=parents, exist_ok=exist_ok)
 
     def touch(self, exist_ok: bool = True, mode: Optional[Any] = None):

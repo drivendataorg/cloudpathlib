@@ -3,6 +3,7 @@
 ## UNRELEASED
 
 - Fixed a spurious `OverwriteNewerCloudError` when a write leaves the local cache file with the same modified time as the cloud file. Previously, writing the same path twice in quick succession (e.g., two `path.write_text(...)` calls) on a filesystem with coarse modified-time resolution (such as FAT/exFAT or some network mounts) could raise this error on the second close and skip the upload; these writes now upload. (PR [#586](https://github.com/drivendataorg/cloudpathlib/pull/586))
+- Fixed Python 3.15 compatibility: `CloudPath.mkdir(parent_mode=...)` no longer raises `TypeError`, and cloud paths can be pickled repeatedly without a `ParseResult` error. (Issue [#593](https://github.com/drivendataorg/cloudpathlib/issues/593))
 - Fixed test suite reliability issues and sped up live-backend test runs in CI. (Issue [#589](https://github.com/drivendataorg/cloudpathlib/issues/589), PRs [#586](https://github.com/drivendataorg/cloudpathlib/pull/586), [#587](https://github.com/drivendataorg/cloudpathlib/pull/587), [#588](https://github.com/drivendataorg/cloudpathlib/pull/588), [#590](https://github.com/drivendataorg/cloudpathlib/pull/590))
 - Changed CI so pull requests from forks no longer show failing live-test and install jobs: live cloud tests now run after a maintainer approves the run, and the Azure install check no longer needs repository secrets. (Issue [#306](https://github.com/drivendataorg/cloudpathlib/issues/306), PR [#592](https://github.com/drivendataorg/cloudpathlib/pull/592))
 

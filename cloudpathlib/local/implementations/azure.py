@@ -49,7 +49,9 @@ class LocalAzureBlobPath(LocalPath):
     def drive(self) -> str:
         return self.container
 
-    def mkdir(self, parents=False, exist_ok=False, mode: Optional[Any] = None):
+    def mkdir(
+        self, parents=False, exist_ok=False, mode: Optional[Any] = None, *, parent_mode=None
+    ):
         # not possible to make empty directory on blob storage
         pass
 

@@ -29,4 +29,5 @@ def test_pickle_roundtrip():
     pkl2 = pickle.dumps(path2)
 
     assert path1 == path2
+    assert path1._url == path2._url
     assert pkl1 == pkl2

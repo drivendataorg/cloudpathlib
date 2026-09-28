@@ -179,3 +179,8 @@ def test_public_interface_is_superset(rig):
                         assert (
                             param_details.default is not inspect.Parameter.empty
                         ), f"CloudPath.{name} added parameter {parameter} without a default"
+
+
+def test_mkdir_accepts_parent_mode(rig):
+    path = rig.create_cloud_path("new_dir/nested")
+    path.mkdir(parents=True, parent_mode=0o700)
