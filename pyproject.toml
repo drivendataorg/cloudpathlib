@@ -27,6 +27,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
 ]
 requires-python = ">=3.9"
 dependencies = [
@@ -49,7 +50,7 @@ all = ["cloudpathlib[azure]", "cloudpathlib[gs]", "cloudpathlib[s3]"]
 
 [tool.black]
 line-length = 99
-target-version = ['py39', 'py310', 'py311', 'py312', 'py313', 'py314']
+target-version = ['py39', 'py310', 'py311', 'py312', 'py313', 'py314', 'py315']
 include = '\.pyi?$|\.ipynb$'
 extend-exclude = '''
 /(
