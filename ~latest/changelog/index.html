@@ -2158,16 +2158,8 @@
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
 <h2 id="unreleased">UNRELEASED<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Sped up the live-backend test suite while retaining full provider coverage on PRs. Test rigs reuse provider clients, upload independent assets concurrently, batch cleanup, and skip seed uploads for tests that create their own data. CI runs one job per network provider using the rig definitions in <code>tests/rigs.py</code>; <code>CLOUDPATHLIB_TEST_RIGS</code> selects rigs locally. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/589">#589</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/590">#590</a>)</li>
-<li>Tightened <code>LocalClient._download_file</code> retries for a destination-directory filesystem race: fail immediately if the source is missing, and retry after 0.05/0.1/0.2s instead of sleeping 2 seconds. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/588">#588</a>)</li>
-<li>Split cache cleanup test assertions so they first confirm objects were garbage collected via weak references, then poll only for file removal. Failures now distinguish a still-referenced object from a lagging filesystem. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/587">#587</a>)</li>
-<li>Fixed a spurious <code>OverwriteNewerCloudError</code> when a file opened for writing is uploaded on close
-  and the cache's modified time comes out exactly equal to the modified time it had when it was
-  opened (possible on filesystems with coarse timestamps): the modified time is now bumped past the
-  original for equal times, not only for older ones. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/586">#586</a>)</li>
-<li>Replaced fixed sleeps in timestamp-sensitive tests with explicit local modified times or bounded
-  retries for cloud timestamps. The live S3 transfer test now synchronizes its worker and monitor
-  instead of waiting a fixed second before downloading. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/586">#586</a>)</li>
+<li>Fixed a spurious <code>OverwriteNewerCloudError</code> when a write leaves the local cache file with the same modified time as the cloud file. Previously, writing the same path twice in quick succession (e.g., two <code>path.write_text(...)</code> calls) on a filesystem with coarse modified-time resolution (such as FAT/exFAT or some network mounts) could raise this error on the second close and skip the upload; these writes now upload. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/586">#586</a>)</li>
+<li>Fixed test suite reliability issues and sped up live-backend test runs in CI. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/589">#589</a>, PRs <a href="https://github.com/drivendataorg/cloudpathlib/pull/586">#586</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/587">#587</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/588">#588</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/590">#590</a>)</li>
 </ul>
 <h2 id="v0250-2026-08-22">v0.25.0 (2026-08-22)<a class="headerlink" href="#v0250-2026-08-22" title="Permanent link">&para;</a></h2>
 <ul>
