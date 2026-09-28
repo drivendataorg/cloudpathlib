@@ -113,6 +113,12 @@ make test-live-cloud-rigs                # every rig locally in sequence; CI run
 
 Each CI job is given only the credentials for the rig it runs, so the other providers' environment variables arrive empty. The test suite treats an empty variable the same as an unset one (see `getenv` in [`tests/utils.py`](tests/utils.py)); keep that in mind when adding new configuration.
 
+#### Live tests on pull requests
+
+Live cloud tests run from [`.github/workflows/live-tests.yml`](.github/workflows/live-tests.yml) on the `pull_request_target` event, so the workflow definition always comes from `master` and the PR head commit to test is fixed when the run is created. The single `live-cloud-tests` check summarizes all rigs and is required on `master`.
+
+- **Internal PRs** run live tests automatically in the `live-cloud-ci` environment.
+- **Fork PRs** wait for a maintainer to approve the `reviewed-live-cloud` environment, which has required reviewers. Until then the PR shows `live-cloud-tests` as pending. Before approving, review the PR's executable changes (test code, `Makefile`, dependency files, install scripts) at the head SHA in the run name; that is the exact commit the run tests. Each push to the PR creates a new run that needs its own approval, and approving an older run only tests the commit it was created with.
 
 ### Test rigs
 
@@ -366,17 +372,11 @@ Here's a checklist from the PR template to make sure that you did all the requir
 
 ### PR CI/CD test run
 
-If you are not a maintainer, a maintainer will have to approve your PR to run the test suite in GitHub Actions. No need to ping a maintainer, it will be seen as part of our regular review.
+GitHub may require a maintainer to approve the regular test workflow for a PR from a fork. The mocked tests and independent install checks do not require live backend credentials and should pass for fork PRs.
 
-Even once the tests run, two jobs will fail. This is expected. The failures are: (1) The live tests, and (2) the install tests. Both of these require access to the live backends, which are not available to outside contributors. If everything else passes, you can ignore these failures. A mainter will take the following steps:
+Live tests run automatically for internal PRs in the `live-cloud-ci` environment. For fork PRs, a maintainer reviews the commit shown in the run name and approves the `reviewed-live-cloud` environment before any PR code is checked out or executed. Each new push requires a new approval. See [Live tests on pull requests](#live-tests-on-pull-requests) for details.
 
- - Create a branch off the main repo for your PR's changes
- - Merge your PR into that new branch
- - Run CI/CD on the repo-local branch which has access to the live backends
- - Confirm the live tests pass as expected. (If not, you will need to fix the issue and create another PR into this reopo-local branch.)
- - Once they pass, merge the repo-local branch into the main branch.
-
-For example, see a [repo-local branch running the live tests in this PR](https://github.com/drivendataorg/cloudpathlib/pull/354).
+The `live-cloud-tests` check must pass on the current PR head before merging. If a live test fails after approval, investigate the failure and rerun it as appropriate. No need to ping a maintainer for approval; it will be seen as part of our regular review.
 
 ## Code standards and tips
 

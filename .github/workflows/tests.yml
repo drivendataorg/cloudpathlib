@@ -9,6 +9,9 @@ on:
     - cron: "0 0 * * 0"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   code-quality:
     name: Code Quality
@@ -77,93 +80,6 @@ jobs:
           file: ./coverage.xml
           fail_ci_if_error: true
 
-  live-rigs:
-    name: Enumerate live test rigs
-    runs-on: ubuntu-latest
-    outputs:
-      rigs: ${{ steps.rigs.outputs.rigs }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      # the rigs and their concurrency are defined in tests/rigs.py so that a local
-      # `make test-live-cloud-rig RIG=<rig>` runs exactly what the matching job below runs
-      - id: rigs
-        run: echo "rigs=$(make live-rigs PYTHON=python3)" >> "$GITHUB_OUTPUT"
-
-  live-tests:
-    name: Live Tests (${{ matrix.rig }})
-    # only needs linting to pass; the mocked matrix covers the same code paths in parallel
-    needs: [code-quality, live-rigs]
-    runs-on: ubuntu-latest
-    strategy:
-      # one provider being down or throttling shouldn't hide the other providers' results
-      fail-fast: false
-      matrix:
-        rig: ${{ fromJSON(needs.live-rigs.outputs.rigs) }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python and uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          python-version: "3.12"
-          activate-environment: true
-          enable-cache: true
-
-      - name: Install dependencies
-        run: |
-          uv pip install -r requirements-dev.txt
-
-      - name: Authenticate to Google Cloud
-        if: matrix.rig == 'gs'
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Set up Cloud SDK
-        if: matrix.rig == 'gs'
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-
-      - name: Run live tests
-        run: |
-          make test-live-cloud-rig RIG=${{ matrix.rig }}
-        env:
-          # each job only runs the rig it is named for, so it only gets that rig's secrets; the
-          # other providers' variables arrive empty, which the test suite treats as unset
-          LIVE_AZURE_CONTAINER: ${{ startsWith(matrix.rig, 'azure') && secrets.LIVE_AZURE_CONTAINER || '' }}
-          AZURE_STORAGE_CONNECTION_STRING: ${{ matrix.rig == 'azure' && secrets.AZURE_STORAGE_CONNECTION_STRING || '' }}
-          AZURE_STORAGE_GEN2_CONNECTION_STRING: ${{ matrix.rig == 'azure_gen2' && secrets.AZURE_STORAGE_GEN2_CONNECTION_STRING || '' }}
-          AZURE_CLIENT_ID: ${{ startsWith(matrix.rig, 'azure') && secrets.AZURE_CLIENT_ID || '' }}
-          AZURE_TENANT_ID: ${{ startsWith(matrix.rig, 'azure') && secrets.AZURE_TENANT_ID || '' }}
-          AZURE_CLIENT_SECRET: ${{ startsWith(matrix.rig, 'azure') && secrets.AZURE_CLIENT_SECRET || '' }}
-          LIVE_GS_BUCKET: ${{ matrix.rig == 'gs' && secrets.LIVE_GS_BUCKET || '' }}
-          LIVE_S3_BUCKET: ${{ matrix.rig == 's3' && secrets.LIVE_S3_BUCKET || '' }}
-          AWS_ACCESS_KEY_ID: ${{ matrix.rig == 's3' && secrets.AWS_ACCESS_KEY_ID || '' }}
-          AWS_SECRET_ACCESS_KEY: ${{ matrix.rig == 's3' && secrets.AWS_SECRET_ACCESS_KEY || '' }}
-          CUSTOM_S3_BUCKET: ${{ matrix.rig == 'custom_s3' && secrets.CUSTOM_S3_BUCKET || '' }}
-          CUSTOM_S3_KEY_ID: ${{ matrix.rig == 'custom_s3' && secrets.CUSTOM_S3_KEY_ID || '' }}
-          CUSTOM_S3_SECRET_KEY: ${{ matrix.rig == 'custom_s3' && secrets.CUSTOM_S3_SECRET_KEY || '' }}
-          CUSTOM_S3_ENDPOINT: ${{ matrix.rig == 'custom_s3' && secrets.CUSTOM_S3_ENDPOINT || '' }}
-
-      - name: Upload coverage to codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
-          fail_ci_if_error: ${{ github.event_name != 'schedule' }}
-
-      - name: Upload test report log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: reportlog-live-${{ matrix.rig }}
-          path: reportlog.jsonl
-          if-no-files-found: warn
-
   extras-test:
     name: Test independent installs of clients
     needs: tests
@@ -207,13 +123,17 @@ jobs:
           source ${{ matrix.extra }}-env/bin/activate
           python -c 'from cloudpathlib import CloudPath; CloudPath("${{ matrix.prefix }}://bucket/test")'
         env:
-          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          # Path construction makes no network request. Azure only needs a parseable
+          # connection string, so this independent-install check uses a dummy value.
+          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=https;AccountName=fake;AccountKey=ZmFrZQ==;EndpointSuffix=core.windows.net"
 
   notify:
     name: Notify failed build
-    needs: [code-quality, tests, live-tests, extras-test]
+    needs: [code-quality, tests, extras-test]
     if: failure() && github.event.pull_request == null
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - uses: jayqi/failed-build-issue-action@v1
         with:
