@@ -455,7 +455,7 @@ class CloudPath(metaclass=CloudPathMeta):
         *,
         parent_mode: Optional[Any] = None,
     ) -> None:
-        """Each provider must decide whether directories can be created."""
+        """Should be implemented using the client API without requiring a dir is downloaded"""
         pass
 
     @abc.abstractmethod
