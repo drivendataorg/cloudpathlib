@@ -2160,6 +2160,7 @@
 <ul>
 <li>Fixed a spurious <code>OverwriteNewerCloudError</code> when a write leaves the local cache file with the same modified time as the cloud file. Previously, writing the same path twice in quick succession (e.g., two <code>path.write_text(...)</code> calls) on a filesystem with coarse modified-time resolution (such as FAT/exFAT or some network mounts) could raise this error on the second close and skip the upload; these writes now upload. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/586">#586</a>)</li>
 <li>Fixed test suite reliability issues and sped up live-backend test runs in CI. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/589">#589</a>, PRs <a href="https://github.com/drivendataorg/cloudpathlib/pull/586">#586</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/587">#587</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/588">#588</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/590">#590</a>)</li>
+<li>Changed CI so pull requests from forks no longer show failing live-test and install jobs: live cloud tests now run after a maintainer approves the run, and the Azure install check no longer needs repository secrets. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/306">#306</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/592">#592</a>)</li>
 </ul>
 <h2 id="v0250-2026-08-22">v0.25.0 (2026-08-22)<a class="headerlink" href="#v0250-2026-08-22" title="Permanent link">&para;</a></h2>
 <ul>

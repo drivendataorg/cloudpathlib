@@ -2003,6 +2003,12 @@ perf                 run performance measurement suite for s3 and save results t
 make<span class="w"> </span>test-live-cloud-rigs<span class="w">                </span><span class="c1"># every rig locally in sequence; CI runs jobs in parallel</span>
 </code></pre></div>
 <p>Each CI job is given only the credentials for the rig it runs, so the other providers' environment variables arrive empty. The test suite treats an empty variable the same as an unset one (see <code>getenv</code> in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/utils.py"><code>tests/utils.py</code></a>); keep that in mind when adding new configuration.</p>
+<h4 id="live-tests-on-pull-requests">Live tests on pull requests<a class="headerlink" href="#live-tests-on-pull-requests" title="Permanent link">&para;</a></h4>
+<p>Live cloud tests run from <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/.github/workflows/live-tests.yml"><code>.github/workflows/live-tests.yml</code></a> on the <code>pull_request_target</code> event, so the workflow definition always comes from <code>master</code> and the PR head commit to test is fixed when the run is created. The single <code>live-cloud-tests</code> check summarizes all rigs and is required on <code>master</code>.</p>
+<ul>
+<li><strong>Internal PRs</strong> run live tests automatically in the <code>live-cloud-ci</code> environment.</li>
+<li><strong>Fork PRs</strong> wait for a maintainer to approve the <code>reviewed-live-cloud</code> environment, which has required reviewers. Until then the PR shows <code>live-cloud-tests</code> as pending. Before approving, review the PR's executable changes (test code, <code>Makefile</code>, dependency files, install scripts) at the head SHA in the run name; that is the exact commit the run tests. Each push to the PR creates a new run that needs its own approval, and approving an older run only tests the commit it was created with.</li>
+</ul>
 <h3 id="test-rigs">Test rigs<a class="headerlink" href="#test-rigs" title="Permanent link">&para;</a></h3>
 <p>Since we want behavior parity across providers, nearly all of the tests are written in a provider-agnostic way. Each test is passed a test rig as a fixture, and the rig provides the correct way for generating cloudpaths for testing. The test rigs are defined in <a href="https://github.com/drivendataorg/cloudpathlib/blob/master/tests/conftest.py"><code>conftest.py</code></a>.</p>
 <p><strong>Almost none of the tests instantiate <code>CloudPath</code> or a <code>*Client</code> class directly.</strong></p>
@@ -2174,16 +2180,9 @@ make<span class="w"> </span>test-live-cloud-rigs<span class="w">                
  - [ ] Updated `HISTORY.md` with the issue that is addressed and the PR you are submitting. If the top section is not `## UNRELEASED``, then you need to add a new section to the top of the document for your change.
 </code></pre></div>
 <h3 id="pr-cicd-test-run">PR CI/CD test run<a class="headerlink" href="#pr-cicd-test-run" title="Permanent link">&para;</a></h3>
-<p>If you are not a maintainer, a maintainer will have to approve your PR to run the test suite in GitHub Actions. No need to ping a maintainer, it will be seen as part of our regular review.</p>
-<p>Even once the tests run, two jobs will fail. This is expected. The failures are: (1) The live tests, and (2) the install tests. Both of these require access to the live backends, which are not available to outside contributors. If everything else passes, you can ignore these failures. A mainter will take the following steps:</p>
-<ul>
-<li>Create a branch off the main repo for your PR's changes</li>
-<li>Merge your PR into that new branch</li>
-<li>Run CI/CD on the repo-local branch which has access to the live backends</li>
-<li>Confirm the live tests pass as expected. (If not, you will need to fix the issue and create another PR into this reopo-local branch.)</li>
-<li>Once they pass, merge the repo-local branch into the main branch.</li>
-</ul>
-<p>For example, see a <a href="https://github.com/drivendataorg/cloudpathlib/pull/354">repo-local branch running the live tests in this PR</a>.</p>
+<p>GitHub may require a maintainer to approve the regular test workflow for a PR from a fork. The mocked tests and independent install checks do not require live backend credentials and should pass for fork PRs.</p>
+<p>Live tests run automatically for internal PRs in the <code>live-cloud-ci</code> environment. For fork PRs, a maintainer reviews the commit shown in the run name and approves the <code>reviewed-live-cloud</code> environment before any PR code is checked out or executed. Each new push requires a new approval. See <a href="#live-tests-on-pull-requests">Live tests on pull requests</a> for details.</p>
+<p>The <code>live-cloud-tests</code> check must pass on the current PR head before merging. If a live test fails after approval, investigate the failure and rerun it as appropriate. No need to ping a maintainer for approval; it will be seen as part of our regular review.</p>
 <h2 id="code-standards-and-tips">Code standards and tips<a class="headerlink" href="#code-standards-and-tips" title="Permanent link">&para;</a></h2>
 <h3 id="adding-dependencies">Adding dependencies<a class="headerlink" href="#adding-dependencies" title="Permanent link">&para;</a></h3>
 <p>We want <code>cloudpathlib</code> to be as lightweight as possible. Our strong preference is to not take any external dependencies for the library outside of the official software development kit (SDK) for the cloud provider. If you want to add a dependency, please open an issue to discuss it first. Library dependencies are tracked in <code>pyproject.toml</code>.</p>
