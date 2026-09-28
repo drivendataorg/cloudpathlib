@@ -2,16 +2,8 @@
 
 ## UNRELEASED
 
-- Sped up the live-backend test suite while retaining full provider coverage on PRs. Test rigs reuse provider clients, upload independent assets concurrently, batch cleanup, and skip seed uploads for tests that create their own data. CI runs one job per network provider using the rig definitions in `tests/rigs.py`; `CLOUDPATHLIB_TEST_RIGS` selects rigs locally. (Issue [#589](https://github.com/drivendataorg/cloudpathlib/issues/589), PR [#590](https://github.com/drivendataorg/cloudpathlib/pull/590))
-- Tightened `LocalClient._download_file` retries for a destination-directory filesystem race: fail immediately if the source is missing, and retry after 0.05/0.1/0.2s instead of sleeping 2 seconds. (PR [#588](https://github.com/drivendataorg/cloudpathlib/pull/588))
-- Split cache cleanup test assertions so they first confirm objects were garbage collected via weak references, then poll only for file removal. Failures now distinguish a still-referenced object from a lagging filesystem. (PR [#587](https://github.com/drivendataorg/cloudpathlib/pull/587))
-- Fixed a spurious `OverwriteNewerCloudError` when a file opened for writing is uploaded on close
-  and the cache's modified time comes out exactly equal to the modified time it had when it was
-  opened (possible on filesystems with coarse timestamps): the modified time is now bumped past the
-  original for equal times, not only for older ones. (PR [#586](https://github.com/drivendataorg/cloudpathlib/pull/586))
-- Replaced fixed sleeps in timestamp-sensitive tests with explicit local modified times or bounded
-  retries for cloud timestamps. The live S3 transfer test now synchronizes its worker and monitor
-  instead of waiting a fixed second before downloading. (PR [#586](https://github.com/drivendataorg/cloudpathlib/pull/586))
+- Fixed a spurious `OverwriteNewerCloudError` when a write leaves the local cache file with the same modified time as the cloud file. Previously, writing the same path twice in quick succession (e.g., two `path.write_text(...)` calls) on a filesystem with coarse modified-time resolution (such as FAT/exFAT or some network mounts) could raise this error on the second close and skip the upload; these writes now upload. (PR [#586](https://github.com/drivendataorg/cloudpathlib/pull/586))
+- Fixed test suite reliability issues and sped up live-backend test runs in CI. (Issue [#589](https://github.com/drivendataorg/cloudpathlib/issues/589), PRs [#586](https://github.com/drivendataorg/cloudpathlib/pull/586), [#587](https://github.com/drivendataorg/cloudpathlib/pull/587), [#588](https://github.com/drivendataorg/cloudpathlib/pull/588), [#590](https://github.com/drivendataorg/cloudpathlib/pull/590))
 
 ## v0.25.0 (2026-08-22)
 
