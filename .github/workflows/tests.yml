@@ -127,6 +127,17 @@ jobs:
           # connection string, so this independent-install check uses a dummy value.
           AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=https;AccountName=fake;AccountKey=ZmFrZQ==;EndpointSuffix=core.windows.net"
 
+  mocked-tests:
+    # single stable check name to require on master, whatever the matrix contains
+    name: mocked-tests
+    needs: [tests, extras-test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          test "${{ needs.tests.result }}" = success
+          test "${{ needs.extras-test.result }}" = success
+
   notify:
     name: Notify failed build
     needs: [code-quality, tests, extras-test]
