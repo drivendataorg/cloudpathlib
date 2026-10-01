@@ -1,4 +1,3 @@
-import gc
 import os
 from pathlib import Path
 
@@ -565,26 +564,17 @@ def test_write_mtime_tie_does_not_raise(rig: CloudProviderTestRig):
 
 
 def test_streaming_append_fallback_cache_cleaned_up(rig: CloudProviderTestRig):
-    """Append/update modes fall back to the cache in streaming mode; those cache files
-    must be cleaned up when the client is garbage collected, like other cache modes."""
+    """Append/update modes fall back to the cache in streaming mode; like `close_file`,
+    the cache file is removed as soon as the handle is closed and uploaded."""
     client = rig.client_class(
         file_cache_mode=FileCacheMode.streaming, **rig.required_client_kwargs
     )
     cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
+    original = cp.read_text()
 
     with cp.open("a") as f:
         f.write("appended")
+        assert cp._local.exists()  # the fallback works on a real cache file
 
-    # the fallback created a real cache file
-    assert cp._local.exists()
-
-    cache_path = cp._local
-    client_cache_dir = client._local_cache_dir
-    del f  # the with-statement target outlives the block and holds the path
-    del cp
-    del client
-    # the patched close handle forms a reference cycle, so collection is not immediate
-    gc.collect()
-
-    assert not cache_path.exists()
-    assert not client_cache_dir.exists()
+    assert not cp._local.exists()
+    assert cp.read_text() == original + "appended"

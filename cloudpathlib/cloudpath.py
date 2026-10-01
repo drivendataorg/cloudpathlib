@@ -924,9 +924,10 @@ class CloudPath(metaclass=CloudPathMeta):
             # opened for write, so mark dirty
             self._dirty = True
 
-        # if we don't want any cache around, remove the cache
-        # as soon as the file is closed
-        if self.client.file_cache_mode == FileCacheMode.close_file:
+        # if we don't want any cache around, remove the cache as soon as the file is
+        # closed; streaming mode only reaches the cache through the append/update
+        # fallback and should not leave anything behind either
+        if self.client.file_cache_mode in (FileCacheMode.close_file, FileCacheMode.streaming):
             # this may be _patched_close_upload, in which case we need to
             # make sure to call that first so the file gets uploaded
             wrapped_close_for_cache = buffer.close
