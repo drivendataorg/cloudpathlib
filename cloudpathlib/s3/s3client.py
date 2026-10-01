@@ -45,7 +45,7 @@ class S3Client(Client):
         content_type_method: Optional[Callable] = mimetypes.guess_type,
         extra_args: Optional[dict] = None,
         *,
-        streaming_max_concurrency: int = 1,
+        streaming_max_concurrency: int = 4,
     ):
         """Class constructor. Sets up a boto3 [`Session`](
         https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html).
@@ -89,8 +89,9 @@ class S3Client(Client):
                 extra args that are supported look at the upload, download, and copy lists in the
                 [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer).
             streaming_max_concurrency (int): Maximum concurrent requests per open streaming
-                stream (background part uploads and read prefetch) when using
-                `FileCacheMode.streaming`; defaults to 1 (sequential).
+                file (background part uploads while writing, read-ahead of the next byte
+                ranges during sequential reads) when using `FileCacheMode.streaming`.
+                Defaults to 4; 1 makes each stream fully sequential.
         """
         endpoint_url = endpoint_url or os.getenv("AWS_ENDPOINT_URL")
         if boto3_session is not None:

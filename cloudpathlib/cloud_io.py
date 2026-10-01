@@ -69,6 +69,8 @@ class _CloudStorageRaw(io.RawIOBase):
         self._max_concurrency = max(1, int(getattr(client, "streaming_max_concurrency", 1)))
         self._executor: Optional[ThreadPoolExecutor] = None
         self._prefetch: Dict[int, Future] = {}
+        # end of the previous foreground read; read-ahead starts once a read continues it
+        self._last_read_end: Optional[int] = None
 
     @property
     def name(self) -> str:
@@ -196,14 +198,16 @@ class _CloudStorageRaw(io.RawIOBase):
         if self._upload_error is not None:
             raise self._upload_error
 
-        data = bytes(b)
+        # hand the caller's buffer straight to the provider adapter; it appends to its own
+        # part buffer, so converting to bytes here would only add a copy
+        view = memoryview(b)
         try:
-            self._upload_chunk(data)
+            self._upload_chunk(view)
         except BaseException as error:
             self._upload_error = error
             raise
-        self._pos += len(data)
-        return len(data)
+        self._pos += view.nbytes
+        return view.nbytes
 
     def close(self) -> None:
         """Close the file."""
@@ -246,7 +250,7 @@ class _CloudStorageRaw(io.RawIOBase):
         pass
 
     @abstractmethod
-    def _upload_chunk(self, data: bytes) -> None:
+    def _upload_chunk(self, data: _ReadableBuffer) -> None:
         pass
 
     @abstractmethod
@@ -266,7 +270,9 @@ class _CloudStorageRaw(io.RawIOBase):
     def _shutdown_executor(self) -> None:
         self._discard_prefetch()
         if self._executor is not None:
-            self._executor.shutdown(wait=True, cancel_futures=True)
+            # writers have already drained their parts; readers need not wait for
+            # in-flight read-ahead that nobody will consume
+            self._executor.shutdown(wait=self.writable(), cancel_futures=True)
             self._executor = None
 
     def _discard_prefetch(self) -> None:
@@ -275,30 +281,37 @@ class _CloudStorageRaw(io.RawIOBase):
         self._prefetch.clear()
 
     def _fetch_range(self, start: int, end: int) -> bytes:
-        """Fetch [start, end], serving from and topping up background prefetch when enabled."""
-        executor = self._ensure_executor()
-        if executor is None:
+        """Fetch [start, end], serving from and topping up background read-ahead.
+
+        Read-ahead is only scheduled once a read continues the previous one, so reading a
+        header and seeking away (or reading a small object once) never fetches more than
+        was asked for.
+        """
+        if self._max_concurrency <= 1:
             return self._range_get(start, end)
 
         chunk_len = end - start + 1
+        sequential = self._last_read_end is not None and start == self._last_read_end + 1
         future = self._prefetch.pop(start, None)
         if future is not None:
             # a short prefetched chunk is a legal short read for RawIOBase consumers
             data = future.result()
-            self._schedule_prefetch(start + max(len(data), 1), chunk_len)
-            return data
-
-        # position changed or first read: pending prefetches no longer line up
-        self._discard_prefetch()
-        data = self._range_get(start, end)
-        self._schedule_prefetch(end + 1, chunk_len)
+        else:
+            # position changed or first read: pending prefetches no longer line up
+            self._discard_prefetch()
+            data = self._range_get(start, end)
+        self._last_read_end = start + max(len(data), 1) - 1
+        if sequential:
+            self._schedule_prefetch(self._last_read_end + 1, chunk_len)
         return data
 
     def _schedule_prefetch(self, next_start: int, chunk_len: int) -> None:
         """Queue reads ahead of the current position, up to the concurrency window."""
         size = self._known_size()
+        if size is None or chunk_len <= 0 or next_start >= size:
+            return
         executor = self._ensure_executor()
-        if size is None or chunk_len <= 0 or executor is None:
+        if executor is None:
             return
         start = next_start
         while len(self._prefetch) < self._max_concurrency and start < size:
@@ -376,7 +389,10 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
         self._check_part_limit()
         if self._upload_id is None:
             self._upload_id = self._client._initiate_multipart_upload(self._cloud_path)
-        data = bytes(self._write_buffer[:size])
+        # one copy out of the part buffer (slicing the bytearray first would make two);
+        # the view must be released before the bytearray can be resized
+        with memoryview(self._write_buffer) as view:
+            data = bytes(view[:size])
         del self._write_buffer[:size]
         part_number = self._part_number
         self._part_number += 1
@@ -414,10 +430,11 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
         if error is not None:
             raise error
 
-    def _upload_chunk(self, data: bytes) -> None:
-        if not data:
+    def _upload_chunk(self, data: _ReadableBuffer) -> None:
+        view = memoryview(data)
+        if view.nbytes == 0:
             return
-        self._write_buffer.extend(data)
+        self._write_buffer.extend(view)
         target_size = self._target_part_size()
         while len(self._write_buffer) >= target_size:
             self._upload_buffered_part(target_size)
@@ -470,7 +487,7 @@ class _CloudSpooledStorageRaw(_CloudStorageRaw):
         super().__init__(client, cloud_path, mode, pre_finalize)
         self._spool: Optional[tempfile.SpooledTemporaryFile] = None
 
-    def _upload_chunk(self, data: bytes) -> None:
+    def _upload_chunk(self, data: _ReadableBuffer) -> None:
         if self._spool is None:
             self._spool = tempfile.SpooledTemporaryFile(max_size=DEFAULT_BUFFER_SIZE)
         self._spool.write(data)
@@ -531,11 +548,14 @@ def open_stream(
         return raw  # type: ignore[return-value]
 
     line_buffering = buffering == 1
-    buffer_size = DEFAULT_BUFFER_SIZE if buffering < 2 else buffering
     buffered: Union[io.BufferedReader, io.BufferedWriter]
     if "r" in mode:
+        buffer_size = DEFAULT_BUFFER_SIZE if buffering < 2 else buffering
         buffered = io.BufferedReader(raw, buffer_size)
     else:
+        # the raw stream accumulates whole upload parts itself, so a large wrapper buffer
+        # would only hold a second copy of the same bytes; it just coalesces small writes
+        buffer_size = io.DEFAULT_BUFFER_SIZE if buffering < 2 else buffering
         buffered = io.BufferedWriter(raw, buffer_size)
     if binary:
         return buffered  # type: ignore[return-value]

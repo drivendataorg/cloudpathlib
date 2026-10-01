@@ -63,7 +63,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
         *,
-        streaming_max_concurrency: int = 1,
+        streaming_max_concurrency: int = 4,
     ) -> None:
         self.file_cache_mode = None
         self._cache_tmp_dir = None
@@ -71,7 +71,7 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
 
         if streaming_max_concurrency < 1:
             raise ValueError("streaming_max_concurrency must be at least 1")
-        # concurrent requests per open streaming stream (part uploads / read prefetch);
+        # concurrent requests per open streaming file (part uploads / read-ahead);
         # 1 means fully sequential I/O
         self.streaming_max_concurrency = streaming_max_concurrency
 

@@ -76,7 +76,7 @@ class AzureBlobClient(Client):
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
         *,
-        streaming_max_concurrency: int = 1,
+        streaming_max_concurrency: int = 4,
     ):
         """Class constructor. Sets up a [`BlobServiceClient`](
         https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
@@ -125,8 +125,9 @@ class AzureBlobClient(Client):
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
             streaming_max_concurrency (int): Maximum concurrent requests per open streaming
-                stream (background part uploads and read prefetch) when using
-                `FileCacheMode.streaming`; defaults to 1 (sequential).
+                file (background part uploads while writing, read-ahead of the next byte
+                ranges during sequential reads) when using `FileCacheMode.streaming`.
+                Defaults to 4; 1 makes each stream fully sequential.
         """
         super().__init__(
             local_cache_dir=local_cache_dir,

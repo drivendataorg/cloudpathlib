@@ -39,7 +39,7 @@ class HttpClient(Client):
         custom_dir_matcher: Optional[Callable[[str], bool]] = None,
         write_file_http_method: Optional[str] = "PUT",
         *,
-        streaming_max_concurrency: int = 1,
+        streaming_max_concurrency: int = 4,
     ):
         """Class constructor. Creates an HTTP client that can be used to interact with HTTP servers
             using the cloudpathlib library.
@@ -58,8 +58,9 @@ class HttpClient(Client):
             custom_dir_matcher (Optional[Callable[[str], bool]]): Function to call to identify a url that is a directory. Defaults to a lambda that checks if the path ends with a `/`.
             write_file_http_method (Optional[str]): HTTP method to use when writing files. Defaults to "PUT", but some servers may want "POST".
             streaming_max_concurrency (int): Maximum concurrent requests per open streaming
-                stream (background part uploads and read prefetch) when using
-                `FileCacheMode.streaming`; defaults to 1 (sequential).
+                file (background part uploads while writing, read-ahead of the next byte
+                ranges during sequential reads) when using `FileCacheMode.streaming`.
+                Defaults to 4; 1 makes each stream fully sequential.
         """
         super().__init__(
             file_cache_mode,

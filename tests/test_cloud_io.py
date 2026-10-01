@@ -1047,9 +1047,11 @@ def test_write_error_cleanup(rig):
 
         stream = path.open(mode="wb")
         with pytest.raises(RuntimeError, match="simulated part failure"):
+            # parts upload in the background, so the failure surfaces on a later write
+            # or on close; either way it must propagate, abort, and leave no object
             stream.write(b"x" * (11 * 1024 * 1024))
-        with pytest.raises(RuntimeError, match="simulated part failure"):
             stream.close()
+        stream.close()  # idempotent once the failure has been reported
 
         assert len(abort_calls) == 1
         assert not path.exists()
@@ -2781,6 +2783,12 @@ def test_read_prefetch_correctness_and_no_wasted_requests(streaming_rig):
         assert read_back == data
         starts = sorted(start for start, _ in calls)
         assert starts == list(range(0, len(data), chunk)), f"unexpected requests: {calls}"
+
+        # a lone read (e.g. a file header) must not trigger read-ahead of data nobody wants
+        calls.clear()
+        with path.open("rb", buffering=chunk) as f:
+            assert f.read1(chunk) == data[:chunk]
+        assert calls == [(0, chunk - 1)], f"unexpected read-ahead: {calls}"
 
         # seeking back re-reads correctly even though prefetched chunks are discarded
         with path.open("rb", buffering=chunk) as f:

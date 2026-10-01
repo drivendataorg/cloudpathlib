@@ -111,7 +111,7 @@ class GSClient(Client):
         timeout: Optional[float] = None,
         retry: Optional["Retry"] = None,
         *,
-        streaming_max_concurrency: int = 1,
+        streaming_max_concurrency: int = 4,
     ):
         """Class constructor. Sets up a [`Storage
         Client`](https://googleapis.dev/python/storage/latest/client.html).
@@ -151,8 +151,9 @@ class GSClient(Client):
             timeout (Optional[float]): Cloud Storage [timeout value](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout)
             retry (Optional[google.api_core.retry.Retry]): Cloud Storage [retry configuration](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout#configuring-retries)
             streaming_max_concurrency (int): Maximum concurrent requests per open streaming
-                stream (background part uploads and read prefetch) when using
-                `FileCacheMode.streaming`; defaults to 1 (sequential).
+                file (background part uploads while writing, read-ahead of the next byte
+                ranges during sequential reads) when using `FileCacheMode.streaming`.
+                Defaults to 4; 1 makes each stream fully sequential.
         """
         # don't check `GOOGLE_APPLICATION_CREDENTIALS` since `google_default_auth` already does that
         # use explicit client
