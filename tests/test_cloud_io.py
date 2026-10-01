@@ -10,7 +10,7 @@ import zipfile
 import pytest
 
 from cloudpathlib import S3Path, AzureBlobPath, GSPath
-from cloudpathlib.cloud_io import _CloudStorageRaw, open_stream
+from cloudpathlib.cloud_io import _CloudMultipartStorageRaw, _CloudStorageRaw, open_stream
 from cloudpathlib.enums import FileCacheMode
 from cloudpathlib.exceptions import (
     CloudPathFileNotFoundError,
@@ -18,6 +18,28 @@ from cloudpathlib.exceptions import (
     CloudPathStreamingError,
     OverwriteNewerCloudError,
 )
+
+
+def _skip_if_no_streaming(rig):
+    if rig.raw_io_class is None:
+        pytest.skip(f"Streaming I/O not implemented for {rig.client_class.__name__}")
+
+
+def _skip_unless_multipart(rig):
+    _skip_if_no_streaming(rig)
+    if not issubclass(rig.raw_io_class, _CloudMultipartStorageRaw):
+        pytest.skip(f"{rig.client_class.__name__} does not use multipart streaming writes")
+
+
+@pytest.fixture
+def streaming_rig(rig):
+    """The rig with its default client switched to streaming mode for the test."""
+    _skip_if_no_streaming(rig)
+    client = rig.client_class._default_client
+    original_mode = client.file_cache_mode
+    client.file_cache_mode = FileCacheMode.streaming
+    yield rig
+    client.file_cache_mode = original_mode
 
 
 def _is_streaming(f) -> bool:
@@ -37,70 +59,33 @@ Line 4 with special chars: éñ中文
 """
 
 
-@pytest.fixture
-def temp_cloud_file(rig):
-    """Create a temporary cloud file for testing."""
-    # Skip if streaming IO is not implemented for this provider
-    # HTTP/HTTPS support streaming reads and the test server supports writes
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://", "http://", "https://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
-
-    path = rig.create_cloud_path("test_streaming_io.txt")
-    path.write_text(TEXT_DATA)
-    # Set client to streaming mode
-    original_mode = path.client.file_cache_mode
-    path.client.file_cache_mode = FileCacheMode.streaming
+def _streaming_file(streaming_rig, name, content):
+    """A cloud file with `content`, created in cached mode, then yielded in streaming mode."""
+    client = streaming_rig.client_class._default_client
+    client.file_cache_mode = FileCacheMode.tmp_dir
+    path = streaming_rig.create_cloud_path(name)
+    if isinstance(content, bytes):
+        path.write_bytes(content)
+    else:
+        path.write_text(content, encoding="utf-8")
+    client.file_cache_mode = FileCacheMode.streaming
     yield path
-    # Restore original mode
-    path.client.file_cache_mode = original_mode
-    try:
-        path.unlink()
-    except Exception:
-        pass
+    path.unlink(missing_ok=True)
 
 
 @pytest.fixture
-def temp_cloud_binary_file(rig):
-    """Create a temporary cloud binary file for testing."""
-    # Skip if streaming IO is not implemented for this provider
-    # HTTP/HTTPS support streaming reads and the test server supports writes
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://", "http://", "https://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
-
-    path = rig.create_cloud_path("test_streaming_io.bin")
-    path.write_bytes(BINARY_DATA)
-    # Set client to streaming mode
-    original_mode = path.client.file_cache_mode
-    path.client.file_cache_mode = FileCacheMode.streaming
-    yield path
-    # Restore original mode
-    path.client.file_cache_mode = original_mode
-    try:
-        path.unlink()
-    except Exception:
-        pass
+def temp_cloud_file(streaming_rig):
+    yield from _streaming_file(streaming_rig, "test_streaming_io.txt", TEXT_DATA)
 
 
 @pytest.fixture
-def temp_cloud_multiline_file(rig):
-    """Create a temporary cloud file with multiple lines for testing."""
-    # Skip if streaming IO is not implemented for this provider
-    # HTTP/HTTPS support streaming reads and the test server supports writes
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://", "http://", "https://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+def temp_cloud_binary_file(streaming_rig):
+    yield from _streaming_file(streaming_rig, "test_streaming_io.bin", BINARY_DATA)
 
-    path = rig.create_cloud_path("test_streaming_multiline.txt")
-    path.write_text(MULTILINE_TEXT, encoding="utf-8")
-    # Set client to streaming mode
-    original_mode = path.client.file_cache_mode
-    path.client.file_cache_mode = FileCacheMode.streaming
-    yield path
-    # Restore original mode
-    path.client.file_cache_mode = original_mode
-    try:
-        path.unlink()
-    except Exception:
-        pass
+
+@pytest.fixture
+def temp_cloud_multiline_file(streaming_rig):
+    yield from _streaming_file(streaming_rig, "test_streaming_multiline.txt", MULTILINE_TEXT)
 
 
 # ============================================================================
@@ -209,9 +194,7 @@ def test_buffered_io_context_manager(temp_cloud_binary_file):
 
 def test_write_binary_stream(rig):
     """Test writing binary data via streaming."""
-    # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://", "http://", "https://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_write_binary.bin")
 
@@ -245,9 +228,7 @@ def test_write_binary_stream(rig):
 
 def test_write_chunks(rig):
     """Test writing data in chunks."""
-    # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://", "http://", "https://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_write_chunks.bin")
 
@@ -276,9 +257,7 @@ def test_write_chunks(rig):
 
 def test_flush(rig):
     """Test explicit flush."""
-    # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_flush.bin")
 
@@ -406,9 +385,7 @@ def test_text_properties(temp_cloud_file):
 
 def test_write_text_stream(rig):
     """Test writing text data via streaming."""
-    # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://", "http://", "https://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_write_text.txt")
 
@@ -437,9 +414,7 @@ def test_write_text_stream(rig):
 
 def test_writelines(rig):
     """Test writelines method."""
-    # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_writelines.txt")
     lines = ["Line 1\n", "Line 2\n", "Line 3\n"]
@@ -496,9 +471,7 @@ def test_cloudpath_stream_read(temp_cloud_file):
 
 def test_cloudpath_stream_write(rig):
     """Test CloudPath.open with streaming mode for writing."""
-    # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_stream_write.txt")
 
@@ -535,9 +508,7 @@ def test_cloudpath_stream_binary(temp_cloud_binary_file):
 
 def test_cloudpath_stream_false_uses_cache(rig):
     """Test that non-streaming mode uses traditional caching."""
-    # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_caching.txt")
     path.write_text(TEXT_DATA)
@@ -560,9 +531,7 @@ def test_cloudpath_stream_false_uses_cache(rig):
 
 def test_cloudpath_default_no_streaming(rig):
     """Test that default behavior uses caching, not streaming."""
-    # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_default.txt")
     path.write_text(TEXT_DATA)
@@ -712,9 +681,7 @@ def test_empty_file_read(rig):
 
 def test_empty_file_write(rig):
     """Test writing an empty file."""
-    # Skip if streaming IO is not implemented for this provider
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://", "http://", "https://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_empty_write.txt")
 
@@ -923,7 +890,7 @@ def test_random_seeks(temp_cloud_binary_file):
 
 
 # ============================================================================
-# Additional coverage tests for error paths and edge cases
+# Error paths and edge cases
 # ============================================================================
 
 
@@ -939,8 +906,7 @@ def test_readinto_on_closed_file(temp_cloud_binary_file):
 
 def test_read_on_write_only_file(rig):
     """Test reading from write-only file raises error."""
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_write_only.bin")
 
@@ -994,8 +960,7 @@ def test_seek_on_closed_file(temp_cloud_binary_file):
 
 def test_write_empty_chunks(rig):
     """Test that empty write chunks are handled correctly."""
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_empty_chunks.bin")
 
@@ -1068,11 +1033,8 @@ def test_write_error_cleanup(rig):
 def test_small_streaming_write_is_a_single_put(streaming_rig, monkeypatch):
     """Writes that fit in one part (the common case) are one PUT, not a three-request
     multipart upload; larger writes still go multipart."""
-    from cloudpathlib.cloud_io import _CloudMultipartStorageRaw
-
     rig = streaming_rig
-    if not issubclass(rig.raw_io_class, _CloudMultipartStorageRaw):
-        pytest.skip("provider does not use multipart streaming writes")
+    _skip_unless_multipart(rig)
     path = rig.create_cloud_path("single-put.bin")
     client = path.client
 
@@ -1129,8 +1091,7 @@ def test_http_write_empty_file(rig):
 
 def test_seek_from_end_without_size(rig, monkeypatch):
     """Test SEEK_END when size cannot be determined."""
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://", "http://", "https://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_no_size.bin")
     path.write_bytes(b"test data")
@@ -1183,8 +1144,7 @@ def test_readinto_at_eof_returns_zero(temp_cloud_binary_file):
 
 def test_fspath_raises_in_streaming_mode(rig):
     """Test that fspath raises an error in streaming mode."""
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_fspath.txt")
     path.write_text("test data")
@@ -1217,15 +1177,14 @@ def test_fspath_raises_in_streaming_mode(rig):
 
 
 # ============================================================================
-# Step 8 regression tests — one test per bug from the plan
+# Failure handling, exclusive create, and cache fallbacks
 # ============================================================================
 
 
 # H1 — finalize-error propagates (no silent data loss)
 def test_finalize_error_propagates(rig):
     """A failed upload must raise out of the with-block; silent data loss is not allowed."""
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_finalize_error.bin")
     raw_io_class = path.client._streaming_raw_class
@@ -1252,8 +1211,7 @@ def test_finalize_error_propagates(rig):
 # H2 — exclusive create raises for 'xb' and 'xt' when object already exists
 def test_exclusive_create_xb_raises_when_exists(rig):
     """open('xb') must raise CloudPathFileExistsError when the object already exists."""
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     from cloudpathlib.exceptions import CloudPathFileExistsError
 
@@ -1276,8 +1234,7 @@ def test_exclusive_create_xb_raises_when_exists(rig):
 
 def test_exclusive_create_xt_raises_when_exists(rig):
     """open('xt') must also raise CloudPathFileExistsError (mode='x' alone was not enough)."""
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     from cloudpathlib.exceptions import CloudPathFileExistsError
 
@@ -1301,8 +1258,7 @@ def test_exclusive_create_xt_raises_when_exists(rig):
 # H2 — append/r+ fall back to cache (correct semantics over streaming)
 def test_append_mode_uses_cache_fallback(rig):
     """Append mode with streaming file_cache_mode must fall back to the cached path."""
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_append_fallback.bin")
     path.write_bytes(b"hello ")
@@ -1338,8 +1294,7 @@ def test_append_mode_creates_missing_file(local_s3_rig):
 
 def test_rplus_mode_uses_cache_fallback(rig):
     """r+b mode with streaming file_cache_mode must fall back to the cached path."""
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     path = rig.create_cloud_path("test_rplus_fallback.bin")
     path.write_bytes(b"hello world")
@@ -1451,8 +1406,7 @@ def test_s3_abort_multipart_on_complete_failure(rig):
 # H4 — concurrent writes to two paths on one client don't cross buffers
 def test_concurrent_writes_dont_cross_buffers(rig):
     """Two simultaneous streaming writers must not share upload state."""
-    if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
+    _skip_if_no_streaming(rig)
 
     # a dedicated client: toggling the shared default client's mode from two threads
     # would race, which is not what this test is about
@@ -1755,10 +1709,7 @@ def test_http_streaming_upload_uses_client_configuration(http_rig, monkeypatch):
 def test_provider_part_sizes_grow_for_large_streams(rig):
     """Part sizes start at the client's minimum and double each tier, so S3/GCS and Azure
     (different minimums and part-count limits) both stay under their limits."""
-    from cloudpathlib.cloud_io import _CloudMultipartStorageRaw
-
-    if not issubclass(rig.raw_io_class, _CloudMultipartStorageRaw):
-        pytest.skip("provider does not use multipart streaming writes")
+    _skip_unless_multipart(rig)
 
     path = rig.create_cloud_path("part-sizes.bin")
     raw = rig.raw_io_class(path.client, path, "wb")
@@ -1889,26 +1840,8 @@ def test_raw_abort_failure_does_not_mask_original_error(local_s3_rig, fail_durin
 
 
 # ============================================================================
-# Regression tests — PR #535 review fixes
+# Write contract, conflicts, copies, and request accounting
 # ============================================================================
-
-_STREAMING_PREFIXES = ("s3://", "az://", "gs://", "http://", "https://")
-
-
-def _skip_if_no_streaming(rig):
-    if rig.path_class.cloud_prefix not in _STREAMING_PREFIXES:
-        pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
-
-
-@pytest.fixture
-def streaming_rig(rig):
-    """The rig with its default client switched to streaming mode for the test."""
-    _skip_if_no_streaming(rig)
-    client = rig.client_class._default_client
-    original_mode = client.file_cache_mode
-    client.file_cache_mode = FileCacheMode.streaming
-    yield rig
-    client.file_cache_mode = original_mode
 
 
 def test_write_tell_tracks_position(streaming_rig):
@@ -2243,7 +2176,7 @@ def test_negative_buffering_accepted(rig):
             f.write("cached")
         assert path.read_text() == "cached"
 
-        if rig.path_class.cloud_prefix in _STREAMING_PREFIXES:
+        if rig.raw_io_class is not None:
             original_mode = path.client.file_cache_mode
             path.client.file_cache_mode = FileCacheMode.streaming
             try:
@@ -2657,11 +2590,8 @@ def test_streaming_max_concurrency_validation(local_s3_rig):
 def test_concurrent_multipart_write_correctness(streaming_rig):
     """A multi-part streaming write with concurrency > 1 produces identical content,
     even when an early part finishes after later ones."""
-    from cloudpathlib.cloud_io import _CloudMultipartStorageRaw
-
     rig = streaming_rig
-    if not issubclass(rig.raw_io_class, _CloudMultipartStorageRaw):
-        pytest.skip("provider does not use multipart streaming writes")
+    _skip_unless_multipart(rig)
 
     client = rig.client_class(
         file_cache_mode=FileCacheMode.streaming,
