@@ -848,9 +848,9 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"Cannot open directory, only files. Tried to open ({self})"
             )
 
-        if not exists_on_cloud and "r" in mode:
+        if not exists_on_cloud and any(m in mode for m in ("r", "a")):
             raise CloudPathFileNotFoundError(
-                f"File opened for read, but it does not exist on cloud: {self}"
+                f"File opened for read or append, but it does not exist on cloud: {self}"
             )
 
         if "x" in mode and exists_on_cloud:

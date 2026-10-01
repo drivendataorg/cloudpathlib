@@ -1281,17 +1281,6 @@ def test_append_mode_uses_cache_fallback(rig):
             pass
 
 
-def test_append_mode_creates_missing_file(local_s3_rig):
-    path = local_s3_rig.create_cloud_path("new-append.txt")
-    path.client.file_cache_mode = FileCacheMode.streaming
-
-    with path.open("a") as stream:
-        stream.write("created")
-
-    path.client.file_cache_mode = FileCacheMode.cloudpath_object
-    assert path.read_text() == "created"
-
-
 def test_rplus_mode_uses_cache_fallback(rig):
     """r+b mode with streaming file_cache_mode must fall back to the cached path."""
     _skip_if_no_streaming(rig)

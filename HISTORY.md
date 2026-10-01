@@ -2,6 +2,7 @@
 
 ## UNRELEASED
 
+- Added streaming I/O via `FileCacheMode.streaming` for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS. In this mode `CloudPath.open()` returns the standard `io` file objects (`BufferedReader`/`BufferedWriter`/`TextIOWrapper`) backed by ranged reads and multipart uploads instead of the local cache, so only the bytes you read are downloaded and written data is uploaded as you write it. Read streams are seekable; append and update modes fall back to the cache and remove the cache file on close. `buffering` has its builtin `open()` meaning and sets the ranged-request size (default 5 MiB). A new `streaming_max_concurrency` client option (default 4) bounds background read-ahead and part uploads per stream. `copy`/`rename`/`replace` stream between clients, `fspath` raises `CloudPathNotImplementedError`, and failures raise `cloudpathlib.exceptions` types including the new `CloudPathStreamingError`. See the [Streaming I/O](https://cloudpathlib.drivendata.org/stable/streaming_io/) docs. (PR [#535](https://github.com/drivendataorg/cloudpathlib/pull/535))
 ## v0.26.0 (2026-10-01)
 
 - Added support for Python 3.15: `CloudPath.mkdir(parent_mode=...)` works across providers, and cloud paths can be pickled repeatedly without a `ParseResult` error. (Issue [#593](https://github.com/drivendataorg/cloudpathlib/issues/593), PR [#594](https://github.com/drivendataorg/cloudpathlib/pull/594))
@@ -33,8 +34,6 @@
 - Added `AGENTS.md` with repository-specific guidance for coding agents covering contributor
   workflow, compatibility expectations, test rig and mock usage, live backend validation, and PR
   hygiene. (PR [#573](https://github.com/drivendataorg/cloudpathlib/pull/573))
-- Added streaming I/O via `FileCacheMode.streaming` for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS. In this mode `CloudPath.open()` returns the standard `io` file objects (`BufferedReader`/`BufferedWriter`/`TextIOWrapper`) backed by ranged reads and multipart uploads instead of the local cache, so only the bytes you read are downloaded and written data is uploaded as you write it. Read streams are seekable; append and update modes fall back to the cache and remove the cache file on close. `buffering` has its builtin `open()` meaning and sets the ranged-request size (default 5 MiB). A new `streaming_max_concurrency` client option (default 4) bounds background read-ahead and part uploads per stream. `copy`/`rename`/`replace` stream between clients, `fspath` raises `CloudPathNotImplementedError`, and failures raise `cloudpathlib.exceptions` types including the new `CloudPathStreamingError`. See the [Streaming I/O](https://cloudpathlib.drivendata.org/stable/streaming_io/) docs. (PR [#535](https://github.com/drivendataorg/cloudpathlib/pull/535))
-- Changed `CloudPath.open(mode="a")` on a nonexistent cloud file to create it (matching the stdlib `open` and `pathlib`) instead of raising `CloudPathFileNotFoundError`. **Breaking change for users that relied on the previous error.** (PR [#535](https://github.com/drivendataorg/cloudpathlib/pull/535))
 
 ## v0.24.0 (2026-04-29)
 
