@@ -1181,7 +1181,7 @@ def test_finalize_error_propagates(rig):
         pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
 
     path = rig.create_cloud_path("test_finalize_error.bin")
-    raw_io_class = path._cloud_meta.raw_io_class
+    raw_io_class = path.client._streaming_raw_class
 
     class _FailingRaw(raw_io_class):
         def _finalize_upload(self) -> None:
@@ -1322,8 +1322,6 @@ def test_s3_no_small_non_final_parts(rig):
     if rig.path_class.cloud_prefix != "s3://":
         pytest.skip("S3-specific test")
 
-    from cloudpathlib.s3.s3_io import _S3StorageRaw
-
     path = rig.create_cloud_path("test_part_size.bin")
     data = b"X" * (12 * 1024 * 1024)  # 12 MiB → two 5 MiB parts + one 2 MiB final
 
@@ -1346,7 +1344,7 @@ def test_s3_no_small_non_final_parts(rig):
         path.client.file_cache_mode = original_mode
         assert path.read_bytes() == data
 
-        min_size = _S3StorageRaw._MIN_PART_SIZE
+        min_size = path.client._multipart_min_part_size
         for part_size in uploaded_parts[:-1]:  # all except last
             assert (
                 part_size >= min_size
@@ -1445,17 +1443,10 @@ def test_concurrent_writes_dont_cross_buffers(rig):
                 pass
 
 
-# M6/M7 — custom Client without raw_io_class still instantiates in cached mode
-def test_custom_client_without_raw_io_class_instantiates(local_s3_rig, monkeypatch):
-    """A cached custom provider need not implement the optional streaming hooks."""
-    from cloudpathlib.cloudpath import CloudImplementation
-
-    minimal = CloudImplementation()
-    minimal.name = "minimal"
-    minimal._client_class = local_s3_rig.client_class
-    minimal._path_class = local_s3_rig.path_class
-    minimal._raw_io_class = None
-    monkeypatch.setattr(local_s3_rig.path_class, "_cloud_meta", minimal)
+def test_client_without_streaming_support(local_s3_rig, monkeypatch):
+    """A provider whose client has no raw stream class works cached and fails clearly when
+    streaming is requested."""
+    monkeypatch.setattr(local_s3_rig.client_class, "_streaming_raw_class", None)
 
     path = local_s3_rig.create_cloud_path("no-raw-io.txt")
     path.write_text("cached")
@@ -1704,24 +1695,28 @@ def test_http_streaming_upload_uses_client_configuration(http_rig, monkeypatch):
     assert calls["body"] == b"abc"
 
 
-def test_provider_part_sizes_grow_for_large_streams():
-    from cloudpathlib.azure.azure_io import _AzureBlobStorageRaw
-    from cloudpathlib.s3.s3_io import _S3StorageRaw
+def test_provider_part_sizes_grow_for_large_streams(rig):
+    """Part sizes start at the client's minimum and double each tier, so S3/GCS and Azure
+    (different minimums and part-count limits) both stay under their limits."""
+    from cloudpathlib.cloud_io import _CloudMultipartStorageRaw
 
-    assert (
-        _S3StorageRaw._part_size_for_number(_S3StorageRaw._PARTS_PER_SIZE_TIER + 1)
-        == 2 * _S3StorageRaw._MIN_PART_SIZE
-    )
+    if not issubclass(rig.raw_io_class, _CloudMultipartStorageRaw):
+        pytest.skip("provider does not use multipart streaming writes")
 
-    assert (
-        _AzureBlobStorageRaw._block_size_for_number(_AzureBlobStorageRaw._BLOCKS_PER_SIZE_TIER + 1)
-        == 2 * _AzureBlobStorageRaw._BLOCK_SIZE
-    )
+    path = rig.create_cloud_path("part-sizes.bin")
+    raw = rig.raw_io_class(path.client, path, "wb")
+    tier = raw._PARTS_PER_SIZE_TIER
+    minimum = path.client._multipart_min_part_size
+    assert raw._part_size_for_number(1) == minimum
+    assert raw._part_size_for_number(tier) == minimum
+    assert raw._part_size_for_number(tier + 1) == 2 * minimum
+    assert raw._part_size_for_number(10**9) == path.client._multipart_max_part_size
+    raw.close()
 
 
 def test_s3_invalid_object_state_is_not_eof(s3_rig):
     path = s3_rig.create_cloud_path("archived.bin")
-    raw = path._cloud_meta.raw_io_class(path.client, path, "rb")
+    raw = path.client._streaming_raw_class(path.client, path, "rb")
     assert not raw._is_eof_error(Exception("InvalidObjectState"))
 
 
@@ -2232,7 +2227,7 @@ def test_raw_stream_edge_semantics(local_s3_rig):
     """Raw adapter edge cases follow file-object semantics."""
     path = local_s3_rig.create_cloud_path("raw-edges.bin")
     path.write_bytes(b"0123456789")
-    raw = path._cloud_meta.raw_io_class(path.client, path, "rb")
+    raw = path.client._streaming_raw_class(path.client, path, "rb")
 
     # empty destination buffer reads zero bytes
     assert raw.readinto(bytearray(0)) == 0
@@ -2249,7 +2244,7 @@ def test_raw_stream_edge_semantics(local_s3_rig):
     raw.close()
 
     # write-only streams cannot readall; closed streams cannot readall
-    writer = path._cloud_meta.raw_io_class(path.client, path, "wb")
+    writer = path.client._streaming_raw_class(path.client, path, "wb")
     with pytest.raises(io.UnsupportedOperation):
         writer.readall()
     writer.write(b"replaced")
@@ -2264,13 +2259,11 @@ def test_multipart_part_limit_enforced(local_s3_rig):
     """Exceeding the provider's maximum part count raises a clear OSError."""
     path = local_s3_rig.create_cloud_path("part-limit.bin")
 
-    class TinyParts(path._cloud_meta.raw_io_class):
-        _INITIAL_PART_SIZE = 4
-        _MAX_PART_SIZE = 4
-        _MAX_PARTS = 2
-        _PARTS_PER_SIZE_TIER = 1_000
+    path.client._multipart_min_part_size = 4
+    path.client._multipart_max_part_size = 4
+    path.client._multipart_max_parts = 2
 
-    raw = TinyParts(path.client, path, "wb")
+    raw = path.client._streaming_raw_class(path.client, path, "wb")
     raw.write(b"x" * 8)  # exactly two full parts — at the limit
     with pytest.raises(OSError, match="part limit"):
         raw.write(b"x" * 4)
@@ -2282,7 +2275,7 @@ def test_open_stream_direct_construction_guards(local_s3_rig):
     """`open_stream` validates modes that the open() path never forwards."""
     path = local_s3_rig.create_cloud_path("direct-construction.bin")
     path.write_bytes(b"0123456789")
-    raw_cls = path._cloud_meta.raw_io_class
+    raw_cls = path.client._streaming_raw_class
 
     with pytest.raises(io.UnsupportedOperation, match="append and update"):
         open_stream(raw_cls, path.client, path, "ab")

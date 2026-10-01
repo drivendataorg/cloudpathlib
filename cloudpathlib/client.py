@@ -14,10 +14,12 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    Type,
     TypeVar,
     Union,
 )
 
+from .cloud_io import _CloudStorageRaw
 from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 from .enums import FileCacheMode
 from .exceptions import InvalidConfigurationException
@@ -41,6 +43,14 @@ def register_client_class(key: str) -> Callable:
 class Client(abc.ABC, Generic[BoundedCloudPath]):
     _cloud_meta: CloudImplementation
     _default_client: ClassVar[Optional["Client[BoundedCloudPath]"]] = None
+
+    # Streaming I/O (`FileCacheMode.streaming`): the raw stream class `CloudPath.open` wraps,
+    # or None when the provider has no streaming support. Multipart providers use
+    # `_CloudMultipartStorageRaw` and the part limits below (S3's by default).
+    _streaming_raw_class: ClassVar[Optional[Type[_CloudStorageRaw]]] = None
+    _multipart_min_part_size: ClassVar[int] = 5 * 1024 * 1024
+    _multipart_max_part_size: ClassVar[int] = 5 * 1024 * 1024 * 1024
+    _multipart_max_parts: ClassVar[int] = 10_000
 
     def __init__(
         self,

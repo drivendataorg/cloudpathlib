@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple
 import warnings
 
 from ..client import Client, _UploadPart, register_client_class
+from ..cloud_io import _CloudMultipartStorageRaw
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
 from ..exceptions import CloudPathFileNotFoundError, CloudPathNotImplementedError
@@ -80,6 +81,8 @@ class GSClient(Client):
     [`__init__` method][cloudpathlib.gs.gsclient.GSClient.__init__] for detailed authentication
     options.
     """
+
+    _streaming_raw_class = _CloudMultipartStorageRaw
 
     def __init__(
         self,

@@ -295,7 +295,7 @@ class CloudProviderTestRig:
 
     @property
     def raw_io_class(self):
-        return self.cloud_implementation.raw_io_class
+        return self.client_class._streaming_raw_class
 
     @property
     def cloud_prefix(self):

@@ -5,6 +5,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Tuple, Union
 
 from ..client import Client, _UploadPart, register_client_class
+from ..cloud_io import _CloudMultipartStorageRaw
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
 from ..exceptions import CloudPathException, CloudPathFileNotFoundError
@@ -31,6 +32,8 @@ class S3Client(Client):
     """Client class for AWS S3 which handles authentication with AWS for [`S3Path`](../s3path/)
     instances. See documentation for the [`__init__` method][cloudpathlib.s3.s3client.S3Client.__init__]
     for detailed authentication options."""
+
+    _streaming_raw_class = _CloudMultipartStorageRaw
 
     def __init__(
         self,

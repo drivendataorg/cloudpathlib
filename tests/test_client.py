@@ -8,16 +8,11 @@ import pytest
 
 from cloudpathlib import CloudPath
 from cloudpathlib.client import Client, register_client_class
-from cloudpathlib.cloudpath import (
-    implementation_registry,
-    register_path_class,
-    register_raw_io_class,
-)
+from cloudpathlib.cloudpath import implementation_registry, register_path_class
 from cloudpathlib.http.httpclient import HttpClient, HttpsClient
 from cloudpathlib.s3.s3client import S3Client
 from cloudpathlib.s3.s3path import S3Path
 from tests.rigs import custom_s3_endpoint
-from cloudpathlib.s3.s3_io import _S3StorageRaw
 
 
 def test_default_client_instantiation(rig):
@@ -162,10 +157,6 @@ def custom_s3_path():
     class MyS3Client(S3Client):
         pass
 
-    @register_raw_io_class("mys3")
-    class MyS3StorageRaw(_S3StorageRaw):
-        pass
-
     yield (MyS3Path, MyS3Client)
 
     # cleanup after use
@@ -188,6 +179,8 @@ def test_custom_mys3client_instantiation(custom_s3_path):
     client = CustomClient()
     assert isinstance(client, CustomClient)
     assert client.CloudPath("mys3://bucket/dir/file.txt").cloud_prefix == "mys3://"
+    # streaming support is inherited from the parent client, nothing extra to register
+    assert CustomClient._streaming_raw_class is S3Client._streaming_raw_class
 
 
 def test_custom_mys3client_default_client(custom_s3_path):

@@ -6,21 +6,57 @@ import urllib.request
 import urllib.parse
 import urllib.error
 from pathlib import Path
+import tempfile
 from typing import BinaryIO, Iterable, Optional, Tuple, Union, Callable
 import shutil
 import mimetypes
 import warnings
 
 from cloudpathlib.client import Client, register_client_class
-from cloudpathlib.cloudpath import _STREAM_COPY_CHUNK_SIZE
+from cloudpathlib.cloud_io import _CloudStorageRaw
+from cloudpathlib.cloudpath import CloudPath, _STREAM_COPY_CHUNK_SIZE
 from cloudpathlib.enums import FileCacheMode
 from cloudpathlib.exceptions import CloudPathFileNotFoundError, CloudPathNotImplementedError
 
 from .httppath import HttpPath
 
 
+class _HttpStorageRaw(_CloudStorageRaw):
+    """HTTP range reads and single-request writes."""
+
+    def __init__(
+        self,
+        client: Client,
+        cloud_path: CloudPath,
+        mode: str = "rb",
+        pre_finalize: Optional[Callable[[], None]] = None,
+    ) -> None:
+        super().__init__(client, cloud_path, mode, pre_finalize)
+        self._upload_buffer = tempfile.SpooledTemporaryFile(max_size=8 * 1024 * 1024)
+
+    def _upload_chunk(self, data: bytes) -> None:
+        if data:
+            self._upload_buffer.write(data)
+
+    def _finalize_upload(self) -> None:
+        self._upload_buffer.seek(0, 2)
+        content_length = self._upload_buffer.tell()
+        self._upload_buffer.seek(0)
+        try:
+            self._client._put_data(  # type: ignore[attr-defined]
+                self._cloud_path, self._upload_buffer, content_length
+            )
+        finally:
+            self._upload_buffer.close()
+
+    def _abort_upload(self) -> None:
+        self._upload_buffer.close()
+
+
 @register_client_class("http")
 class HttpClient(Client):
+    _streaming_raw_class = _HttpStorageRaw
+
     def __init__(
         self,
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,

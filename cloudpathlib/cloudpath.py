@@ -150,14 +150,12 @@ def _force_overwrite_from_cloud(flag: Optional[bool]) -> bool:
 
 
 class CloudImplementation:
-    name: Optional[str] = None
+    name: str
     dependencies_loaded: bool = True
     _client_class: Type["Client"]
     _path_class: Type["CloudPath"]
-    _raw_io_class: Optional[Type] = None
 
     def validate_completeness(self) -> None:
-        # raw_io_class is optional; streaming raises NotImplementedError when absent
         expected = ["client_class", "path_class"]
         missing = [cls for cls in expected if getattr(self, f"_{cls}") is None]
         if missing:
@@ -165,11 +163,9 @@ class CloudImplementation:
                 f"Implementation is missing registered components: {missing}"
             )
         if not self.dependencies_loaded:
-            # Use name if available, otherwise fall back to client class name
-            pkg_name = self.name if self.name else self._client_class.__name__.lower()
             raise MissingDependenciesError(
                 f"Missing dependencies for {self._client_class.__name__}. You can install them "
-                f"with 'pip install cloudpathlib[{pkg_name}]'."
+                f"with 'pip install cloudpathlib[{self.name}]'."
             )
 
     @property
@@ -181,11 +177,6 @@ class CloudImplementation:
     def path_class(self) -> Type["CloudPath"]:
         self.validate_completeness()
         return self._path_class
-
-    @property
-    def raw_io_class(self) -> Optional[Type]:
-        self.validate_completeness()
-        return self._raw_io_class
 
 
 implementation_registry: Dict[str, CloudImplementation] = defaultdict(CloudImplementation)
@@ -205,23 +196,6 @@ def register_path_class(key: str) -> Callable[[Type[CloudPathT]], Type[CloudPath
             raise TypeError("Only subclasses of CloudPath can be registered.")
         implementation_registry[key]._path_class = cls
         cls._cloud_meta = implementation_registry[key]
-        return cls
-
-    return decorator
-
-
-def register_raw_io_class(key: str) -> Callable[[Type[T]], Type[T]]:
-    """Decorator to register a raw I/O class for a cloud provider.
-
-    Args:
-        key: The cloud provider key (e.g., 's3', 'azure', 'gs')
-
-    Returns:
-        Decorator function
-    """
-
-    def decorator(cls: Type[T]) -> Type[T]:
-        implementation_registry[key]._raw_io_class = cls
         return cls
 
     return decorator
@@ -980,10 +954,10 @@ class CloudPath(metaclass=CloudPathMeta):
         """`open` without the local cache: ranged reads and multipart writes."""
         from .cloud_io import open_stream
 
-        raw_io_class = self._cloud_meta.raw_io_class
+        raw_io_class = self.client._streaming_raw_class
         if raw_io_class is None:
             raise CloudPathNotImplementedError(
-                f"Streaming I/O is not implemented for {self._cloud_meta.name}"
+                f"Streaming I/O is not implemented for {type(self.client).__name__}"
             )
 
         # overwrite protection mirroring the cached path's upload conflict check

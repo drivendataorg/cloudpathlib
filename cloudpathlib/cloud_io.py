@@ -15,8 +15,9 @@ else:
     _ReadableBuffer = Union[bytes, bytearray, memoryview]
     _WriteableBuffer = Union[bytearray, memoryview]
 
-from .client import Client
-from .cloudpath import CloudPath
+if TYPE_CHECKING:
+    from .client import Client
+    from .cloudpath import CloudPath
 
 # Bytes fetched/buffered per request for buffered streaming I/O. Sized to match the
 # multi-MiB block sizes used by comparable tools (fsspec/s3fs/gcsfs) so per-request
@@ -327,13 +328,14 @@ class _CloudStorageRaw(io.RawIOBase):
 
 
 class _CloudMultipartStorageRaw(_CloudStorageRaw):
-    """Shared buffered multipart upload lifecycle."""
+    """Buffered multipart upload lifecycle shared by S3, Azure, and GCS.
 
-    _INITIAL_PART_SIZE: int
-    _MAX_PART_SIZE: int
-    _MAX_PARTS: int
-    _PARTS_PER_SIZE_TIER: int
-    _PROVIDER_NAME: str
+    Part sizes start at the client's minimum part size and double every
+    `_PARTS_PER_SIZE_TIER` parts (capped at the maximum part size) so that very large
+    streams stay within the provider's part-count limit.
+    """
+
+    _PARTS_PER_SIZE_TIER = 1_000
 
     def __init__(
         self,
@@ -343,24 +345,27 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
         pre_finalize: Optional[Callable[[], None]] = None,
     ) -> None:
         super().__init__(client, cloud_path, mode, pre_finalize)
+        self._min_part_size = client._multipart_min_part_size
+        self._max_part_size = client._multipart_max_part_size
+        self._max_parts = client._multipart_max_parts
         self._upload_id: Optional[str] = None
         self._parts: Dict[int, dict[str, Any]] = {}
         self._part_futures: Dict[int, Future] = {}
         self._part_number = 1
         self._write_buffer = bytearray()
 
-    @classmethod
-    def _part_size_for_number(cls, part_number: int) -> int:
-        tier = (part_number - 1) // cls._PARTS_PER_SIZE_TIER
-        return min(cls._INITIAL_PART_SIZE * (2**tier), cls._MAX_PART_SIZE)
+    def _part_size_for_number(self, part_number: int) -> int:
+        tier = (part_number - 1) // self._PARTS_PER_SIZE_TIER
+        return min(self._min_part_size * (2**tier), self._max_part_size)
 
     def _target_part_size(self) -> int:
         return self._part_size_for_number(self._part_number)
 
     def _check_part_limit(self) -> None:
-        if self._part_number > self._MAX_PARTS:
+        if self._part_number > self._max_parts:
             raise OSError(
-                f"{self._PROVIDER_NAME} upload exceeded the {self._MAX_PARTS:,}-part limit"
+                f"{type(self._client).__name__} multipart upload exceeded the "
+                f"{self._max_parts:,}-part limit"
             )
 
     def _upload_buffered_part(self, size: int) -> None:

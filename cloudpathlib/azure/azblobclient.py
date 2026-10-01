@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Tuple, Uni
 from uuid import uuid4
 
 from ..client import Client, _UploadPart, register_client_class
+from ..cloud_io import _CloudMultipartStorageRaw
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
 from ..exceptions import CloudPathFileNotFoundError, MissingCredentialsError
@@ -46,6 +47,12 @@ class AzureBlobClient(Client):
     [`__init__` method][cloudpathlib.azure.azblobclient.AzureBlobClient.__init__] for detailed
     authentication options.
     """
+
+    _streaming_raw_class = _CloudMultipartStorageRaw
+    # Azure block blobs: 4 MiB default blocks, 4000 MiB maximum, 50,000 committed blocks
+    _multipart_min_part_size = 4 * 1024 * 1024
+    _multipart_max_part_size = 4_000 * 1024 * 1024
+    _multipart_max_parts = 50_000
 
     def __init__(
         self,
