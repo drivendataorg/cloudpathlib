@@ -12,6 +12,7 @@ import mimetypes
 import warnings
 
 from cloudpathlib.client import Client, register_client_class
+from cloudpathlib.cloudpath import _STREAM_COPY_CHUNK_SIZE
 from cloudpathlib.enums import FileCacheMode
 from cloudpathlib.exceptions import CloudPathFileNotFoundError, CloudPathNotImplementedError
 
@@ -120,7 +121,7 @@ class HttpClient(Client):
             # streaming mode has no local cache to round-trip through (fspath is
             # unavailable), so stream between the two paths directly
             with src.open("rb") as src_file, dst.open("wb") as dst_file:
-                shutil.copyfileobj(src_file, dst_file)
+                shutil.copyfileobj(src_file, dst_file, _STREAM_COPY_CHUNK_SIZE)
         else:
             # .fspath will download the file so the local version can be uploaded
             self._upload_file(src.fspath, dst)
