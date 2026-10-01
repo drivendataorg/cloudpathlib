@@ -769,7 +769,6 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: Optional[str] = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
-        buffer_size: Optional[int] = None,
     ) -> "TextIOWrapper": ...
 
     @overload
@@ -782,7 +781,6 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: None = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
-        buffer_size: Optional[int] = None,
     ) -> "FileIO": ...
 
     @overload
@@ -795,7 +793,6 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: None = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
-        buffer_size: Optional[int] = None,
     ) -> "BufferedRandom": ...
 
     @overload
@@ -808,7 +805,6 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: None = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
-        buffer_size: Optional[int] = None,
     ) -> "BufferedWriter": ...
 
     @overload
@@ -821,7 +817,6 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: None = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
-        buffer_size: Optional[int] = None,
     ) -> "BufferedReader": ...
 
     @overload
@@ -834,7 +829,6 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: None = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
-        buffer_size: Optional[int] = None,
     ) -> "BinaryIO": ...
 
     @overload
@@ -847,7 +841,6 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: Optional[str] = None,
         force_overwrite_from_cloud: Optional[bool] = None,
         force_overwrite_to_cloud: Optional[bool] = None,
-        buffer_size: Optional[int] = None,
     ) -> "IO[Any]": ...
 
     def open(
@@ -859,7 +852,6 @@ class CloudPath(metaclass=CloudPathMeta):
         newline: Optional[str] = None,
         force_overwrite_from_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
         force_overwrite_to_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
-        buffer_size: Optional[int] = None,  # extra kwarg for streaming mode
     ) -> "IO[Any]":
         from .cloud_io import _validate_file_mode
 
@@ -873,8 +865,6 @@ class CloudPath(metaclass=CloudPathMeta):
             raise ValueError("binary mode doesn't take a newline argument")
         if not binary_mode and buffering == 0:
             raise ValueError("can't have unbuffered text I/O")
-        if buffer_size is not None and buffer_size <= 0:
-            raise ValueError("buffer_size must be greater than zero")
 
         # if trying to call open on a directory that exists
         exists_on_cloud = self.exists()
@@ -892,64 +882,20 @@ class CloudPath(metaclass=CloudPathMeta):
         if "x" in mode and exists_on_cloud:
             raise CloudPathFileExistsError(f"Cannot open existing file ({self}) for creation.")
 
-        # Use streaming I/O if file_cache_mode is streaming AND the mode is supported.
-        # Append (a) and update/random (+) modes cannot be done correctly as pure streaming
-        # over object storage; fall through to the cached path for correct semantics.
-        _streaming_unsupported = any(m in mode for m in ("a", "+"))
-        if self.client.file_cache_mode == FileCacheMode.streaming and not _streaming_unsupported:
-            # Import here to keep it localized to streaming functionality
-            from .cloud_io import DEFAULT_BUFFER_SIZE, CloudBufferedIO, CloudTextIO
-
-            # Get the raw IO class from the cloud implementation
-            raw_io_class = self._cloud_meta.raw_io_class
-            if raw_io_class is None:
-                raise CloudPathNotImplementedError(
-                    f"Streaming I/O is not implemented for {self._cloud_meta.name}"
-                )
-
-            # Overwrite protection mirroring the cached path's upload conflict check
-            pre_finalize = None
-            if "w" in mode or "x" in mode:
-                pre_finalize = self._streaming_overwrite_check(
-                    exists_on_cloud, force_overwrite_to_cloud
-                )
-
-            # Calculate buffer size from buffering or buffer_size parameter
-            if buffer_size is None:
-                if buffering == 0:
-                    # A raw provider adapter is the streaming equivalent of FileIO.
-                    raw = raw_io_class(self.client, self, mode)
-                    if pre_finalize is not None:
-                        raw._pre_finalize = pre_finalize
-                    return raw  # type: ignore[return-value]
-                elif buffering > 0:
-                    buffer_size = buffering
-                else:
-                    buffer_size = DEFAULT_BUFFER_SIZE
-
-            # Return appropriate streaming I/O object
-            if "b" in mode:
-                return CloudBufferedIO(  # type: ignore[return-value]
-                    raw_io_class=raw_io_class,
-                    client=self.client,
-                    cloud_path=self,
-                    mode=mode,
-                    buffer_size=buffer_size,
-                    pre_finalize=pre_finalize,
-                )
-            else:
-                return CloudTextIO(  # type: ignore[return-value]
-                    raw_io_class=raw_io_class,
-                    client=self.client,
-                    cloud_path=self,
-                    mode=mode,
-                    encoding=encoding,
-                    errors=errors,
-                    newline=newline,
-                    buffer_size=buffer_size,
-                    line_buffering=buffering == 1,
-                    pre_finalize=pre_finalize,
-                )
+        # Append (a) and update (+) modes cannot be done as pure streaming over object
+        # storage; they fall through to the cached path for correct semantics.
+        if self.client.file_cache_mode == FileCacheMode.streaming and not any(
+            m in mode for m in ("a", "+")
+        ):
+            return self._open_streaming(
+                mode,
+                buffering,
+                encoding,
+                errors,
+                newline,
+                exists_on_cloud=exists_on_cloud,
+                force_overwrite_to_cloud=force_overwrite_to_cloud,
+            )
 
         # Standard cached mode
         self._refresh_cache(force_overwrite_from_cloud=force_overwrite_from_cloud)
@@ -1020,6 +966,44 @@ class CloudPath(metaclass=CloudPathMeta):
             buffer.close = _patched_close_empty_cache  # type: ignore
 
         return buffer
+
+    def _open_streaming(
+        self,
+        mode: str,
+        buffering: int,
+        encoding: Optional[str],
+        errors: Optional[str],
+        newline: Optional[str],
+        exists_on_cloud: bool,
+        force_overwrite_to_cloud: Optional[bool],
+    ) -> "IO[Any]":
+        """`open` without the local cache: ranged reads and multipart writes."""
+        from .cloud_io import open_stream
+
+        raw_io_class = self._cloud_meta.raw_io_class
+        if raw_io_class is None:
+            raise CloudPathNotImplementedError(
+                f"Streaming I/O is not implemented for {self._cloud_meta.name}"
+            )
+
+        # overwrite protection mirroring the cached path's upload conflict check
+        pre_finalize = None
+        if "w" in mode or "x" in mode:
+            pre_finalize = self._streaming_overwrite_check(
+                exists_on_cloud, force_overwrite_to_cloud
+            )
+
+        return open_stream(
+            raw_io_class,
+            self.client,
+            self,
+            mode,
+            buffering=buffering,
+            encoding=encoding,
+            errors=errors,
+            newline=newline,
+            pre_finalize=pre_finalize,
+        )
 
     def _streaming_overwrite_check(
         self, exists_on_cloud: bool, force_overwrite_to_cloud: Optional[bool]

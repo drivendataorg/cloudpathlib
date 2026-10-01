@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import tempfile
-from typing import Protocol, cast
+from typing import Callable, Optional, Protocol, cast
 
 from ..client import Client
 from ..cloud_io import _CloudStorageRaw
@@ -24,8 +24,14 @@ class _HttpStreamingClient(Protocol):
 class _HttpStorageRaw(_CloudStorageRaw):
     """HTTP range reads and single-request writes."""
 
-    def __init__(self, client: Client, cloud_path: CloudPath, mode: str = "rb") -> None:
-        super().__init__(client, cloud_path, mode)
+    def __init__(
+        self,
+        client: Client,
+        cloud_path: CloudPath,
+        mode: str = "rb",
+        pre_finalize: Optional[Callable[[], None]] = None,
+    ) -> None:
+        super().__init__(client, cloud_path, mode, pre_finalize)
         self._upload_buffer = tempfile.SpooledTemporaryFile(max_size=8 * 1024 * 1024)
 
     def _upload_chunk(self, data: bytes) -> None:

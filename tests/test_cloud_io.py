@@ -1,8 +1,6 @@
 """
-Tests for cloud storage streaming I/O.
-
-Tests CloudBufferedIO, CloudTextIO, and streaming mode for direct
-streaming without local caching.
+Tests for cloud storage streaming I/O: `FileCacheMode.streaming` makes `CloudPath.open`
+return stdlib file objects over provider raw streams, without local caching.
 """
 
 import io
@@ -12,14 +10,21 @@ import zipfile
 import pytest
 
 from cloudpathlib import S3Path, AzureBlobPath, GSPath
-from cloudpathlib import CloudBufferedIO, CloudTextIO
-from cloudpathlib.cloud_io import _CloudStorageRaw
+from cloudpathlib.cloud_io import _CloudStorageRaw, open_stream
 from cloudpathlib.enums import FileCacheMode
 from cloudpathlib.exceptions import (
     CloudPathFileNotFoundError,
     CloudPathNotImplementedError,
     OverwriteNewerCloudError,
 )
+
+
+def _is_streaming(f) -> bool:
+    """Whether an open file object is backed by a provider raw stream (vs. a cache file)."""
+    if isinstance(f, io.TextIOBase):
+        f = f.buffer
+    return isinstance(getattr(f, "raw", f), _CloudStorageRaw)
+
 
 # Sample test data
 BINARY_DATA = b"Hello, World! This is binary data.\n" * 100
@@ -98,7 +103,7 @@ def temp_cloud_multiline_file(rig):
 
 
 # ============================================================================
-# CloudBufferedIO tests (binary streaming)
+# Binary streaming tests
 # ============================================================================
 
 
@@ -106,7 +111,8 @@ def test_read_binary_stream(temp_cloud_binary_file):
     """Test reading binary data via streaming."""
     with temp_cloud_binary_file.open(mode="rb") as f:
         # Verify it's the right type
-        assert isinstance(f, CloudBufferedIO)
+        assert isinstance(f, io.BufferedIOBase)
+        assert _is_streaming(f)
         assert isinstance(f, io.BufferedIOBase)
 
         # Read all data
@@ -215,7 +221,8 @@ def test_write_binary_stream(rig):
 
         # Write data
         with path.open(mode="wb") as f:
-            assert isinstance(f, CloudBufferedIO)
+            assert isinstance(f, io.BufferedIOBase)
+            assert _is_streaming(f)
             assert f.writable()
             assert not f.readable()
 
@@ -249,7 +256,7 @@ def test_write_chunks(rig):
         path.client.file_cache_mode = FileCacheMode.streaming
 
         chunk_size = 100
-        with path.open(mode="wb", buffer_size=chunk_size) as f:
+        with path.open(mode="wb", buffering=chunk_size) as f:
             for i in range(0, len(BINARY_DATA), chunk_size):
                 chunk = BINARY_DATA[i : i + chunk_size]
                 f.write(chunk)
@@ -313,7 +320,7 @@ def test_not_found_error(rig):
 
 
 # ============================================================================
-# CloudTextIO tests (text streaming)
+# Text streaming tests
 # ============================================================================
 
 
@@ -321,7 +328,8 @@ def test_read_text_stream(temp_cloud_file):
     """Test reading text data via streaming."""
     with temp_cloud_file.open(mode="rt") as f:
         # Verify it's the right type
-        assert isinstance(f, CloudTextIO)
+        assert isinstance(f, io.TextIOWrapper)
+        assert _is_streaming(f)
         assert isinstance(f, io.TextIOBase)
 
         # Read all data
@@ -332,7 +340,8 @@ def test_read_text_stream(temp_cloud_file):
 def test_read_text_mode_without_t(temp_cloud_file):
     """Test reading text with mode 'r' (without explicit 't')."""
     with temp_cloud_file.open(mode="r") as f:
-        assert isinstance(f, CloudTextIO)
+        assert isinstance(f, io.TextIOWrapper)
+        assert _is_streaming(f)
         data = f.read()
         assert data == TEXT_DATA
 
@@ -408,7 +417,8 @@ def test_write_text_stream(rig):
         path.client.file_cache_mode = FileCacheMode.streaming
 
         with path.open(mode="wt") as f:
-            assert isinstance(f, CloudTextIO)
+            assert isinstance(f, io.TextIOWrapper)
+            assert _is_streaming(f)
             n = f.write(TEXT_DATA)
             assert n == len(TEXT_DATA)
 
@@ -464,7 +474,8 @@ def test_buffer_property(temp_cloud_file):
     """Test access to underlying binary buffer."""
     with temp_cloud_file.open(mode="rt") as f:
         assert hasattr(f, "buffer")
-        assert isinstance(f.buffer, CloudBufferedIO)
+        assert isinstance(f.buffer, io.BufferedReader)
+        assert _is_streaming(f)
 
 
 # ============================================================================
@@ -476,7 +487,8 @@ def test_cloudpath_stream_read(temp_cloud_file):
     """Test CloudPath.open with streaming mode for reading."""
     # The temp_cloud_file fixture already sets streaming mode
     with temp_cloud_file.open(mode="r") as f:
-        assert isinstance(f, CloudTextIO)
+        assert isinstance(f, io.TextIOWrapper)
+        assert _is_streaming(f)
         data = f.read()
         assert data == TEXT_DATA
 
@@ -495,7 +507,8 @@ def test_cloudpath_stream_write(rig):
         path.client.file_cache_mode = FileCacheMode.streaming
 
         with path.open(mode="w") as f:
-            assert isinstance(f, CloudTextIO)
+            assert isinstance(f, io.TextIOWrapper)
+            assert _is_streaming(f)
             f.write(TEXT_DATA)
 
         # Restore original mode
@@ -513,7 +526,8 @@ def test_cloudpath_stream_binary(temp_cloud_binary_file):
     """Test CloudPath.open with streaming mode for binary."""
     # The temp_cloud_binary_file fixture already sets streaming mode
     with temp_cloud_binary_file.open(mode="rb") as f:
-        assert isinstance(f, CloudBufferedIO)
+        assert isinstance(f, io.BufferedIOBase)
+        assert _is_streaming(f)
         data = f.read()
         assert data == BINARY_DATA
 
@@ -532,8 +546,7 @@ def test_cloudpath_stream_false_uses_cache(rig):
         assert path.client.file_cache_mode != FileCacheMode.streaming
 
         with path.open(mode="r") as f:
-            # Should not be a CloudTextIO instance
-            assert not isinstance(f, CloudTextIO)
+            assert not _is_streaming(f)
             # Should still read correctly
             data = f.read()
             assert data == TEXT_DATA
@@ -559,7 +572,7 @@ def test_cloudpath_default_no_streaming(rig):
 
         with path.open(mode="r") as f:
             # Default should not use streaming
-            assert not isinstance(f, CloudTextIO)
+            assert not _is_streaming(f)
             data = f.read()
             assert data == TEXT_DATA
     finally:
@@ -611,11 +624,47 @@ def test_explicit_client(temp_cloud_file):
         assert len(data) > 0
 
 
-def test_buffer_size_parameter(temp_cloud_binary_file):
-    """Test custom buffer size."""
-    buffer_size = 1024
-    with temp_cloud_binary_file.open(mode="rb", buffer_size=buffer_size) as f:
-        assert f._buffer_size == buffer_size
+def test_buffering_controls_request_size(streaming_rig, monkeypatch):
+    """`buffering=N` is the size of each ranged request, in binary and text mode alike
+    (TextIOWrapper's 8 KiB read1 chunks must not leak through as request sizes)."""
+    path = streaming_rig.create_cloud_path("buffering.txt")
+    path.write_text("line\n" * 20_000)  # 100 KB
+    size = len(path.read_bytes())
+    client = path.client
+
+    requests = []
+    original = client._range_download
+
+    def spy(cloud_path, start, end):
+        requests.append(end - start + 1)
+        return original(cloud_path, start, end)
+
+    monkeypatch.setattr(client, "_range_download", spy)
+
+    for mode, kwargs in [("rb", {}), ("r", {}), ("r", {"buffering": 1})]:
+        requests.clear()
+        with path.open(mode, **kwargs) as f:
+            while f.read(4096):
+                pass
+        assert len(requests) == 1, (mode, kwargs, requests)
+
+    for mode in ("rb", "r"):
+        requests.clear()
+        with path.open(mode, buffering=16 * 1024) as f:
+            while f.read(4096):
+                pass
+        assert len(requests) == -(-size // (16 * 1024)), (mode, requests)
+        assert max(requests) == 16 * 1024
+
+    requests.clear()
+    with path.open("r", buffering=16 * 1024) as f:
+        for _ in f:
+            pass
+    assert len(requests) == -(-size // (16 * 1024))
+
+    with pytest.warns(RuntimeWarning, match="line buffering"):
+        with path.open("rb", buffering=1) as f:
+            assert isinstance(f, io.BufferedReader)
 
 
 def test_text_parameters(rig):
@@ -698,7 +747,7 @@ def test_large_file_streaming(rig):
         path.write_bytes(large_data)
 
         # Read in chunks
-        with path.open(mode="rb", buffer_size=8192) as f:
+        with path.open(mode="rb", buffering=8192) as f:
             chunks = []
             while True:
                 chunk = f.read(8192)
@@ -742,39 +791,6 @@ def test_closed_file_operations(temp_cloud_file):
         f.readline()
 
 
-def test_binary_mode_required_for_buffered(temp_cloud_file):
-    """Test that CloudBufferedIO requires binary mode."""
-    # Get the raw IO class
-    raw_io_class = temp_cloud_file._cloud_meta.raw_io_class
-    if raw_io_class is None:
-        pytest.skip("No raw IO class registered")
-
-    # This should raise an error
-    with pytest.raises(ValueError, match="binary mode"):
-        CloudBufferedIO(
-            raw_io_class=raw_io_class,
-            client=temp_cloud_file.client,
-            cloud_path=temp_cloud_file,
-            mode="r",
-        )
-
-
-def test_text_mode_required_for_text(temp_cloud_file):
-    """Test that CloudTextIO requires text mode."""
-    # Get the raw IO class
-    raw_io_class = temp_cloud_file._cloud_meta.raw_io_class
-    if raw_io_class is None:
-        pytest.skip("No raw IO class registered")
-
-    with pytest.raises(ValueError, match="text mode"):
-        CloudTextIO(
-            raw_io_class=raw_io_class,
-            client=temp_cloud_file.client,
-            cloud_path=temp_cloud_file,
-            mode="rb",
-        )
-
-
 def test_unsupported_operations(temp_cloud_file):
     """Test unsupported operations raise appropriate errors."""
     with temp_cloud_file.open(mode="rt") as f:
@@ -810,7 +826,7 @@ def test_s3_multipart_upload(rig):
     large_data = b"X" * (200 * 1024)  # 200 KB
 
     try:
-        with path.open(mode="wb", buffer_size=64 * 1024) as f:
+        with path.open(mode="wb", buffering=64 * 1024) as f:
             f.write(large_data)
 
         # Verify data was uploaded correctly
@@ -869,14 +885,14 @@ def test_gs_multipart_streaming_upload(rig):
 
 def test_small_buffer_many_reads(temp_cloud_binary_file):
     """Test reading with small buffer size."""
-    with temp_cloud_binary_file.open(mode="rb", buffer_size=128) as f:
+    with temp_cloud_binary_file.open(mode="rb", buffering=128) as f:
         data = f.read()
         assert data == BINARY_DATA
 
 
 def test_large_buffer_few_reads(temp_cloud_binary_file):
     """Test reading with large buffer size."""
-    with temp_cloud_binary_file.open(mode="rb", buffer_size=1024 * 1024) as f:
+    with temp_cloud_binary_file.open(mode="rb", buffering=1024 * 1024) as f:
         data = f.read()
         assert data == BINARY_DATA
 
@@ -1081,9 +1097,7 @@ def test_seek_from_end_without_size(rig, monkeypatch):
             raise OSError("Cannot determine size")
 
         with path.open(mode="rb") as f:
-            # CloudBufferedIO has a _buffer attribute that wraps the raw IO
-            # Access the raw IO object through _buffer
-            raw = f._buffer.raw if hasattr(f, "_buffer") else f.raw
+            raw = f.raw
             monkeypatch.setattr(raw, "_get_size", mock_get_size)
             monkeypatch.setattr(raw, "_size", None)
 
@@ -1178,12 +1192,7 @@ def test_finalize_error_propagates(rig):
 
     try:
         with pytest.raises(RuntimeError, match="simulated upload failure"):
-            with CloudBufferedIO(
-                raw_io_class=_FailingRaw,
-                client=path.client,
-                cloud_path=path,
-                mode="wb",
-            ) as f:
+            with open_stream(_FailingRaw, path.client, path, "wb") as f:
                 f.write(b"data that should not survive")
     finally:
         path.client.file_cache_mode = original_mode
@@ -1256,7 +1265,7 @@ def test_append_mode_uses_cache_fallback(rig):
 
     try:
         with path.open("ab") as f:
-            assert not isinstance(f, CloudBufferedIO), "append mode must use cache, not streaming"
+            assert not _is_streaming(f), "append mode must use cache, not streaming"
             f.write(b"world")
 
         path.client.file_cache_mode = original_mode
@@ -1293,7 +1302,7 @@ def test_rplus_mode_uses_cache_fallback(rig):
 
     try:
         with path.open("r+b") as f:
-            assert not isinstance(f, CloudBufferedIO), "r+b must use cache, not streaming"
+            assert not _is_streaming(f), "r+b must use cache, not streaming"
             f.seek(6)
             f.write(b"there")
 
@@ -1471,7 +1480,7 @@ def test_http_range_read_returns_correct_bytes(rig):
     path.client.file_cache_mode = FileCacheMode.streaming
 
     try:
-        with path.open("rb", buffer_size=4) as f:
+        with path.open("rb", buffering=4) as f:
             chunk = f.read(4)
             assert chunk == b"0123", f"Expected first 4 bytes, got {chunk!r}"
             chunk2 = f.read(4)
@@ -1869,7 +1878,7 @@ def test_write_tell_tracks_position(streaming_rig):
 
     try:
         # small buffer so most bytes reach the raw layer instead of sitting in the buffer
-        with path.open("wb", buffer_size=64 * 1024) as f:
+        with path.open("wb", buffering=64 * 1024) as f:
             assert f.tell() == 0
             f.write(b"x" * 200_000)  # larger than the buffer
             assert f.tell() == 200_000
@@ -1890,7 +1899,7 @@ def test_streaming_zipfile_write_roundtrip(streaming_rig):
     big_member = b"data" * 50_000  # > the 64 KiB buffer below so bytes reach the raw layer
 
     try:
-        with path.open("wb", buffer_size=64 * 1024) as f:
+        with path.open("wb", buffering=64 * 1024) as f:
             with zipfile.ZipFile(f, "w") as zf:
                 zf.writestr("a.txt", b"hello world")
                 zf.writestr("b.bin", big_member)
@@ -1981,7 +1990,7 @@ def test_streaming_size_fetch_failure_is_memoized(streaming_rig, monkeypatch):
     monkeypatch.setattr(type(client), "_get_content_length", failing_get_content_length)
 
     try:
-        with path.open("rb", buffer_size=16 * 1024) as f:
+        with path.open("rb", buffering=16 * 1024) as f:
             data = f.read()
         assert data == content
         assert calls["n"] == 1
@@ -2269,19 +2278,20 @@ def test_multipart_part_limit_enforced(local_s3_rig):
         raw.close()  # the write failure is sticky and aborts the upload
 
 
-def test_buffered_io_direct_construction_guards(local_s3_rig):
-    """Direct construction validates modes that the open() path never forwards."""
+def test_open_stream_direct_construction_guards(local_s3_rig):
+    """`open_stream` validates modes that the open() path never forwards."""
     path = local_s3_rig.create_cloud_path("direct-construction.bin")
     path.write_bytes(b"0123456789")
     raw_cls = path._cloud_meta.raw_io_class
 
     with pytest.raises(io.UnsupportedOperation, match="append and update"):
-        CloudBufferedIO(raw_cls, path.client, path, mode="ab")
+        open_stream(raw_cls, path.client, path, "ab")
     with pytest.raises(io.UnsupportedOperation, match="append and update"):
-        CloudTextIO(raw_cls, path.client, path, mode="a")
+        open_stream(raw_cls, path.client, path, "a")
+    with pytest.raises(ValueError, match="unbuffered text"):
+        open_stream(raw_cls, path.client, path, "r", buffering=0)
 
-    # readinto1 delegates to the buffered reader
-    with CloudBufferedIO(raw_cls, path.client, path, mode="rb") as f:
+    with open_stream(raw_cls, path.client, path, "rb") as f:
         buf = bytearray(4)
         assert f.readinto1(buf) == 4
         assert bytes(buf) == b"0123"
@@ -2551,11 +2561,13 @@ def test_http_streaming_error_paths(http_rig, monkeypatch):
         pass
 
 
-def test_open_buffer_size_must_be_positive(streaming_rig):
-    """buffer_size=0 is rejected up front."""
-    path = streaming_rig.create_cloud_path("bad_buffer.bin")
-    with pytest.raises(ValueError, match="buffer_size"):
-        path.open("wb", buffer_size=0)
+def test_open_unbuffered_write_returns_raw(streaming_rig):
+    """buffering=0 on a binary write returns the raw provider stream, like the builtin open."""
+    path = streaming_rig.create_cloud_path("unbuffered_write.bin")
+    with path.open("wb", buffering=0) as f:
+        assert isinstance(f, io.RawIOBase)
+        f.write(b"raw bytes")
+    assert path.read_bytes() == b"raw bytes"
 
 
 def test_open_directory_raises(local_s3_rig):
@@ -2587,7 +2599,7 @@ def test_streaming_parquet_metadata_and_column_read(streaming_rig):
     client.file_cache_mode = FileCacheMode.streaming
 
     try:
-        with path.open("rb", buffer_size=64 * 1024) as f:
+        with path.open("rb", buffering=64 * 1024) as f:
             parquet_file = pq.ParquetFile(f)
             assert parquet_file.metadata.num_rows == 10_000
             column = parquet_file.read(columns=["a"])
@@ -2748,7 +2760,7 @@ def test_read_prefetch_correctness_and_no_wasted_requests(streaming_rig):
     client._range_download = counting_range_download
 
     try:
-        with path.open("rb", buffer_size=chunk) as f:
+        with path.open("rb", buffering=chunk) as f:
             read_back = b""
             while True:
                 piece = f.read1(chunk)
@@ -2760,7 +2772,7 @@ def test_read_prefetch_correctness_and_no_wasted_requests(streaming_rig):
         assert starts == list(range(0, len(data), chunk)), f"unexpected requests: {calls}"
 
         # seeking back re-reads correctly even though prefetched chunks are discarded
-        with path.open("rb", buffer_size=chunk) as f:
+        with path.open("rb", buffering=chunk) as f:
             f.read1(chunk)
             f.seek(3 * chunk)
             assert f.read1(chunk) == data[3 * chunk : 4 * chunk]

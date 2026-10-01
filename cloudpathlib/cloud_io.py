@@ -5,8 +5,8 @@ from __future__ import annotations
 import io
 from abc import abstractmethod
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
-from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Type, Union
+from typing import IO, TYPE_CHECKING, Any, Callable, Dict, Optional, Type, Union
+import warnings
 
 if TYPE_CHECKING:
     from _typeshed import ReadableBuffer as _ReadableBuffer
@@ -47,6 +47,7 @@ class _CloudStorageRaw(io.RawIOBase):
         client: Client,
         cloud_path: CloudPath,
         mode: str = "rb",
+        pre_finalize: Optional[Callable[[], None]] = None,
     ) -> None:
         super().__init__()
         self._client = client
@@ -58,11 +59,20 @@ class _CloudStorageRaw(io.RawIOBase):
         self._closed = False
         self._upload_error: Optional[BaseException] = None
         # Optional conflict check run just before a write is finalized (set by CloudPath.open)
-        self._pre_finalize: Optional[Callable[[], None]] = None
+        self._pre_finalize = pre_finalize
         # concurrent requests for this stream (read prefetch / background part uploads)
         self._max_concurrency = max(1, int(getattr(client, "streaming_max_concurrency", 1)))
         self._executor: Optional[ThreadPoolExecutor] = None
         self._prefetch: Dict[int, Future] = {}
+
+    @property
+    def name(self) -> str:
+        """The cloud URL; surfaced as `.name` by the buffered and text wrappers too."""
+        return str(self._cloud_path)
+
+    @property
+    def mode(self) -> str:
+        return self._mode
 
     def readable(self) -> bool:
         """Return whether object was opened for reading."""
@@ -325,8 +335,14 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
     _PARTS_PER_SIZE_TIER: int
     _PROVIDER_NAME: str
 
-    def __init__(self, client: Client, cloud_path: CloudPath, mode: str = "rb") -> None:
-        super().__init__(client, cloud_path, mode)
+    def __init__(
+        self,
+        client: Client,
+        cloud_path: CloudPath,
+        mode: str = "rb",
+        pre_finalize: Optional[Callable[[], None]] = None,
+    ) -> None:
+        super().__init__(client, cloud_path, mode, pre_finalize)
         self._upload_id: Optional[str] = None
         self._parts: Dict[int, dict[str, Any]] = {}
         self._part_futures: Dict[int, Future] = {}
@@ -427,169 +443,67 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
         self._write_buffer.clear()
 
 
-class CloudBufferedIO(io.BufferedIOBase):
-    """Buffered binary I/O backed by a cloud client."""
+def open_stream(
+    raw_io_class: Type[_CloudStorageRaw],
+    client: Client,
+    cloud_path: CloudPath,
+    mode: str,
+    buffering: int = -1,
+    encoding: Optional[str] = None,
+    errors: Optional[str] = None,
+    newline: Optional[str] = None,
+    pre_finalize: Optional[Callable[[], None]] = None,
+) -> IO[Any]:
+    """Build a file object over a provider raw stream the way the builtin `open` does.
 
-    def __init__(
-        self,
-        raw_io_class: Type[_CloudStorageRaw],
-        client: Client,
-        cloud_path: CloudPath,
-        mode: str = "rb",
-        buffer_size: int = DEFAULT_BUFFER_SIZE,
-        pre_finalize: Optional[Callable[[], None]] = None,
-    ) -> None:
-        _validate_file_mode(mode)
-        if "b" not in mode:
-            raise ValueError("CloudBufferedIO requires binary mode (must include 'b')")
-        if "a" in mode or "+" in mode:
-            raise io.UnsupportedOperation(
-                "append and update modes require the local-cache implementation"
-            )
-
-        raw = raw_io_class(client, cloud_path, mode)
-        if pre_finalize is not None:
-            raw._pre_finalize = pre_finalize
-
-        if "r" in mode:
-            self._buffer: Union[io.BufferedReader, io.BufferedWriter]
-            self._buffer = io.BufferedReader(raw, buffer_size=buffer_size)  # type: ignore[arg-type,assignment]
-        else:
-            self._buffer = io.BufferedWriter(raw, buffer_size=buffer_size)  # type: ignore[arg-type,assignment]
-
-        self._cloud_path = cloud_path
-        self._mode = mode
-        self._buffer_size_val = buffer_size
-
-    @property
-    def name(self) -> str:
-        """File name (the cloud URL)."""
-        return str(self._cloud_path)
-
-    @property
-    def mode(self) -> str:
-        """File mode."""
-        return self._mode
-
-    @property
-    def _buffer_size(self) -> int:
-        """Buffer size for compatibility with tests."""
-        return self._buffer_size_val
-
-    def read(self, size: Optional[int] = -1, /) -> bytes:
-        return self._buffer.read(size)
-
-    def read1(self, size: int = -1, /) -> bytes:
-        return self._buffer.read1(size)  # type: ignore[attr-defined]
-
-    def readinto(self, b: _WriteableBuffer, /) -> int:
-        return self._buffer.readinto(b)
-
-    def readinto1(self, b: _WriteableBuffer, /) -> int:
-        return self._buffer.readinto1(b)  # type: ignore[attr-defined]
-
-    def write(self, b: _ReadableBuffer, /) -> int:
-        return self._buffer.write(b)
-
-    def seek(self, offset: int, whence: int = io.SEEK_SET, /) -> int:
-        return self._buffer.seek(offset, whence)
-
-    def tell(self) -> int:
-        return self._buffer.tell()
-
-    def flush(self) -> None:
-        self._buffer.flush()
-
-    def close(self) -> None:
-        if hasattr(self, "_buffer") and not self._buffer.closed:
-            self._buffer.close()
-
-    def readable(self) -> bool:
-        return self._buffer.readable()
-
-    def writable(self) -> bool:
-        return self._buffer.writable()
-
-    def seekable(self) -> bool:
-        return self._buffer.seekable()
-
-    @property
-    def closed(self) -> bool:
-        return self._buffer.closed
-
-    def __enter__(self) -> CloudBufferedIO:
-        return self
-
-    def __exit__(
-        self,
-        exc_type: Optional[Type[BaseException]],
-        exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType],
-        /,
-    ) -> None:
-        self.close()
-
-
-class CloudTextIO(io.TextIOWrapper):
-    """Text I/O backed by a cloud client."""
-
-    def __init__(
-        self,
-        raw_io_class: Type[_CloudStorageRaw],
-        client: Client,
-        cloud_path: CloudPath,
-        mode: str = "rt",
-        encoding: Optional[str] = None,
-        errors: Optional[str] = None,
-        newline: Optional[str] = None,
-        buffer_size: int = DEFAULT_BUFFER_SIZE,
-        line_buffering: bool = False,
-        pre_finalize: Optional[Callable[[], None]] = None,
-    ) -> None:
-        _validate_file_mode(mode)
-        if "b" in mode:
-            raise ValueError("CloudTextIO requires text mode (no 'b' in mode)")
-        if "a" in mode or "+" in mode:
-            raise io.UnsupportedOperation(
-                "append and update modes require the local-cache implementation"
-            )
-
-        # only r/w/x can reach here: 'b' was rejected above and 'a'/'+' raised earlier
-        if "t" not in mode and "r" in mode:
-            binary_mode = mode.replace("r", "rb", 1)
-        elif "t" not in mode and "w" in mode:
-            binary_mode = mode.replace("w", "wb", 1)
-        elif "t" not in mode and "x" in mode:
-            binary_mode = mode.replace("x", "xb", 1)
-        else:
-            binary_mode = mode.replace("t", "b")
-
-        buffered = CloudBufferedIO(
-            raw_io_class,
-            client,
-            cloud_path,
-            mode=binary_mode,
-            buffer_size=buffer_size,
-            pre_finalize=pre_finalize,
+    Returns the raw stream for `buffering=0`, an `io.BufferedReader`/`io.BufferedWriter`
+    for binary modes, and an `io.TextIOWrapper` for text modes. `buffering` has the same
+    meaning as for `open`: `-1` for the default buffer size, `1` for line buffering in
+    text mode, otherwise the buffer size in bytes (which is also the size of each ranged
+    request for reads).
+    """
+    _validate_file_mode(mode)
+    binary = "b" in mode
+    if "a" in mode or "+" in mode:
+        raise io.UnsupportedOperation(
+            "append and update modes require the local-cache implementation"
         )
-
-        super().__init__(
-            buffered,
-            encoding=encoding,
-            errors=errors,
-            newline=newline,
-            line_buffering=line_buffering,
+    if binary and buffering == 1:
+        warnings.warn(
+            "line buffering (buffering=1) isn't supported in binary mode, "
+            "the default buffer size will be used",
+            RuntimeWarning,
+            stacklevel=2,
         )
+        buffering = -1
+    if not binary and buffering == 0:
+        raise ValueError("can't have unbuffered text I/O")
 
-        self._cloud_path = cloud_path
-        self._mode = mode
+    raw_mode = mode.replace("t", "") if binary else mode.replace("t", "") + "b"
+    raw = raw_io_class(client, cloud_path, raw_mode, pre_finalize)
+    if buffering == 0:
+        return raw  # type: ignore[return-value]
 
-    @property
-    def name(self) -> str:
-        """File name (the cloud URL)."""
-        return str(self._cloud_path)
+    line_buffering = buffering == 1
+    buffer_size = DEFAULT_BUFFER_SIZE if buffering < 2 else buffering
+    buffered: Union[io.BufferedReader, io.BufferedWriter]
+    if "r" in mode:
+        buffered = io.BufferedReader(raw, buffer_size)
+    else:
+        buffered = io.BufferedWriter(raw, buffer_size)
+    if binary:
+        return buffered  # type: ignore[return-value]
 
-    @property
-    def mode(self) -> str:
-        """File mode."""
-        return self._mode
+    text = io.TextIOWrapper(
+        buffered,
+        encoding=encoding,
+        errors=errors,
+        newline=newline,
+        line_buffering=line_buffering,
+    )
+    # TextIOWrapper pulls from the buffer in 8 KiB `read1` calls, and BufferedReader
+    # passes a `read1` straight through to the raw stream when its buffer is empty; without
+    # this, every text read would become an 8 KiB ranged request regardless of `buffering`.
+    text._CHUNK_SIZE = buffer_size  # type: ignore[attr-defined]
+    text.mode = mode  # type: ignore[misc]  # the builtin open sets this too
+    return text
