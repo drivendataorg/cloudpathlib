@@ -33,20 +33,7 @@
 - Added `AGENTS.md` with repository-specific guidance for coding agents covering contributor
   workflow, compatibility expectations, test rig and mock usage, live backend validation, and PR
   hygiene. (PR [#573](https://github.com/drivendataorg/cloudpathlib/pull/573))
-- Added streaming I/O support for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS via `FileCacheMode.streaming`. (PR [#535](https://github.com/drivendataorg/cloudpathlib/pull/535))
-  - Added `FileCacheMode.streaming` enum value to enable direct streaming I/O without local caching.
-  - Added `CloudBufferedIO` class implementing `io.BufferedIOBase` for binary streaming operations.
-  - Added `CloudTextIO` class implementing `io.TextIOBase` for text streaming operations.
-  - Added provider-specific raw I/O implementations: `_S3StorageRaw`, `_AzureBlobStorageRaw`, `_GSStorageRaw`, `_HttpStorageRaw`.
-  - Added `register_raw_io_class` decorator for registering streaming I/O implementations.
-  - Added `buffer_size` parameter to `CloudPath.open()` for controlling streaming buffer size; the default is 5 MiB, matching the block sizes of comparable tools (a full-object `read()` always uses a single ranged request regardless of buffer size).
-  - Streaming upload extra args for S3 are filtered against botocore's bundled service model (also when the client object does not expose `meta`), so newly added S3 parameters are never silently dropped.
-  - Added a `streaming_max_concurrency` client parameter (default 1): each open streaming stream may issue up to that many requests in parallel — background part uploads while writing (in-flight memory bounded to concurrency × part size) and read-ahead prefetch of upcoming byte ranges while reading sequentially.
-  - Google Cloud Storage streaming writes use the XML API multipart upload (via the SDK's transfer-manager machinery) instead of a resumable-upload stream, matching the S3/Azure part mechanism and enabling concurrent part uploads.
-  - Streaming writes honor `force_overwrite_to_cloud` (and `CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD`), raising `OverwriteNewerCloudError` on close instead of overwriting an object that changed while the stream was open.
-  - `copy`/`rename`/`replace` work in streaming mode by streaming between clients instead of round-tripping through the local cache (`fspath`).
-  - Cache files created by the append/update fallback in streaming mode are cleaned up when the client is garbage collected.
-  - Streaming error paths raise `cloudpathlib.exceptions` types (`CloudPathFileNotFoundError`, `CloudPathNotImplementedError`), which subclass the corresponding builtins.
+- Added streaming I/O via `FileCacheMode.streaming` for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS. In this mode `CloudPath.open()` returns the standard `io` file objects (`BufferedReader`/`BufferedWriter`/`TextIOWrapper`) backed by ranged reads and multipart uploads instead of the local cache, so only the bytes you read are downloaded and written data is uploaded as you write it. Read streams are seekable; append and update modes fall back to the cache and remove the cache file on close. `buffering` has its builtin `open()` meaning and sets the ranged-request size (default 5 MiB). A new `streaming_max_concurrency` client option (default 4) bounds background read-ahead and part uploads per stream. `copy`/`rename`/`replace` stream between clients, `fspath` raises `CloudPathNotImplementedError`, and failures raise `cloudpathlib.exceptions` types including the new `CloudPathStreamingError`. See the [Streaming I/O](https://cloudpathlib.drivendata.org/stable/streaming_io/) docs. (PR [#535](https://github.com/drivendataorg/cloudpathlib/pull/535))
 - Changed `CloudPath.open(mode="a")` on a nonexistent cloud file to create it (matching the stdlib `open` and `pathlib`) instead of raising `CloudPathFileNotFoundError`. **Breaking change for users that relied on the previous error.** (PR [#535](https://github.com/drivendataorg/cloudpathlib/pull/535))
 
 ## v0.24.0 (2026-04-29)

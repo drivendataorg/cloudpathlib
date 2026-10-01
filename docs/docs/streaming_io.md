@@ -1,875 +1,169 @@
 # Streaming I/O
 
-cloudpathlib provides streaming I/O capabilities for cloud storage through Python's standard I/O interfaces.
+By default, `CloudPath.open()` downloads a file to the local cache before opening it and
+uploads the whole cache file when a written handle is closed. With
+`FileCacheMode.streaming`, `open()` instead returns a standard Python file object that
+reads from cloud storage with ranged requests and writes to it with multipart uploads.
+Nothing is written to disk, only the part of the object you read is downloaded, and
+written data is uploaded while you write it.
 
-## Overview
+## Enabling streaming
 
-By default, CloudPathLib downloads files to a local cache before opening them. While this works well for many use cases, it can be inefficient for:
-
-- **Large files** that don't fit in memory or disk
-- **Partial reads** where you only need to access part of a file
-- **Sequential processing** where you read a file once and discard it
-- **Write-only workflows** where you're generating data to upload
-
-The streaming I/O system solves these problems by:
-
-- Reading data directly from cloud storage using range requests
-- Writing data directly to cloud storage using multipart/block uploads
-- Providing standard Python file-like objects that work with any library
-- Eliminating the need for local disk caching
-
-## Quick Start
-
-### Enable Streaming Mode
-
-To use streaming I/O, set your client's `file_cache_mode` to `FileCacheMode.streaming`:
+Set `file_cache_mode` on the client (or the `CLOUDPATHLIB_FILE_CACHE_MODE=streaming`
+environment variable):
 
 ```python
-from cloudpathlib import S3Path, S3Client
+from cloudpathlib import S3Client, S3Path
 from cloudpathlib.enums import FileCacheMode
-
-# Option 1: Set streaming mode on the client
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/file.txt", client=client)
-
-with path.open("rt") as f:
-    for line in f:
-        print(line.strip())
-
-# Option 2: Change mode on existing client
-client = S3Client()
-client.file_cache_mode = FileCacheMode.streaming
-
-path = S3Path("s3://bucket/file.txt", client=client)
-with path.open("rt") as f:
-    content = f.read()
-
-# Option 3: Temporarily enable streaming
-client = S3Client()
-path = S3Path("s3://bucket/file.txt", client=client)
-
-original_mode = path.client.file_cache_mode
-path.client.file_cache_mode = FileCacheMode.streaming
-
-with path.open("rt") as f:
-    content = f.read()
-
-path.client.file_cache_mode = original_mode  # Restore
-```
-
-### Basic Examples
-
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-# Create a client with streaming enabled
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-
-# Read a text file
-path = S3Path("s3://bucket/file.txt", client=client)
-with path.open("rt") as f:
-    for line in f:
-        print(line.strip())
-
-# Write a binary file
-path = S3Path("s3://bucket/output.bin", client=client)
-with path.open("wb") as f:
-    f.write(b"Hello, cloud!")
-
-# Read binary data in chunks
-path = S3Path("s3://bucket/large-file.bin", client=client)
-with path.open("rb") as f:
-    while chunk := f.read(8192):
-        process(chunk)
-```
-
-## API Reference
-
-!!! tip "Prefer `CloudPath.open()`"
-    The usual entry point is `CloudPath.open()` with `FileCacheMode.streaming`. `CloudBufferedIO` and `CloudTextIO` are also public for integrations that need to construct a provider-backed file object directly.
-
-### `FileCacheMode` Enum
-
-Controls how `CloudPath.open()` handles file caching:
-
-- `FileCacheMode.cloudpath_object`: Default - cache files in CloudPath object
-- `FileCacheMode.tmp_dir`: Cache files in temporary directory
-- `FileCacheMode.persistent`: Cache files persistently
-- `FileCacheMode.close_file`: Close file after reading
-- **`FileCacheMode.streaming`**: Stream directly without caching
-
-```python
-from cloudpathlib.enums import FileCacheMode
-
-# Set on client initialization
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-
-# Or change dynamically
-client.file_cache_mode = FileCacheMode.streaming
-```
-
-### `CloudPath.open()`
-
-Opens a cloud file in streaming mode when `file_cache_mode` is set to `FileCacheMode.streaming`.
-
-```python
-CloudPath.open(
-    mode: str = "r",
-    buffering: int = -1,
-    encoding: Optional[str] = None,
-    errors: Optional[str] = None,
-    newline: Optional[str] = None,
-    *,
-    buffer_size: Optional[int] = None,
-) -> Union[CloudBufferedIO, CloudTextIO, IO]
-```
-
-**Parameters:**
-
-- `mode`: File mode - binary (`'rb'`, `'wb'`, etc.) or text (`'r'`, `'w'`, `'rt'`, `'wt'`, etc.)
-- `buffering`: Standard Python buffering control. Binary mode supports `0` for an unbuffered raw stream.
-- `encoding`: Text encoding (default: platform locale, text mode only)
-- `errors`: Error handling strategy (default: `"strict"`, text mode only)
-- `newline`: Newline handling (text mode only)
-- `buffer_size`: Size of read/write buffer in bytes (default: 5 MiB)
-
-**Returns:**
-
-- `CloudBufferedIO` for binary modes (when streaming)
-- `CloudTextIO` for text modes (when streaming)
-- Standard file object (when not streaming)
-
-### Compatibility with standard interfaces
-
-Streaming file objects subclass the standard `io` base classes, so code written
-against Python's file protocol works without modification:
-
-- `CloudBufferedIO` is an `io.BufferedIOBase` (and `io.IOBase`); `CloudTextIO`
-  is an `io.TextIOWrapper`. `isinstance` checks against the `io` ABCs pass.
-- `CloudPath.open()` keeps the same signature and mode grammar as
-  `pathlib.Path.open()`, so call sites that accept either a `Path` or a
-  `CloudPath` behave the same in both cases.
-- Any library that accepts an open file object works with streaming streams:
-  `json`, `csv`, `pickle`, `zipfile`, `tarfile`, `pandas`, `PIL.Image.open`,
-  `pyarrow`, etc. Read streams are seekable, so formats that require random
-  access (zip archives, parquet) also work.
-- The one intentional gap is `os.PathLike`: `os.fspath(path)` /
-  `path.fspath` raise `CloudPathNotImplementedError` in streaming mode because
-  there is no local file to point at. Pass the open file object instead of the
-  path to libraries that require a filesystem path.
-
-### `CloudBufferedIO`
-
-Binary file-like object implementing `io.BufferedIOBase`.
-
-!!! note "Usually returned by `CloudPath.open()`"
-    Most applications should let `CloudPath.open()` construct this class. Direct construction is supported when implementing file-object integrations.
-
-**Key Methods:**
-
-- `read(size=-1)`: Read up to size bytes (all if size is -1)
-- `read1(size=-1)`: Read up to size bytes with one underlying read call
-- `readinto(b)`: Read bytes into a pre-allocated buffer
-- `write(b)`: Write bytes
-- `flush()`: Flush write buffer to cloud storage
-- `seek(offset, whence=SEEK_SET)`: Change stream position
-- `tell()`: Return current stream position
-- `close()`: Close file and finalize upload
-
-**Properties:**
-
-- `name`: The cloud path
-- `mode`: File mode (e.g., `"rb"`, `"wb"`)
-- `closed`: Whether the file is closed
-
-**Capability Flags:**
-
-- `readable()`: Returns True for read modes
-- `writable()`: Returns True for write modes
-- `seekable()`: Returns `True` for readable streams. Streaming writes are sequential and return `False`.
-
-### `CloudTextIO`
-
-Text file-like object implementing `io.TextIOBase`.
-
-!!! note "Usually returned by `CloudPath.open()`"
-    Most applications should let `CloudPath.open()` construct this class. Direct construction is supported when implementing file-object integrations.
-
-**Key Methods:**
-
-- `read(size=-1)`: Read up to size characters
-- `readline(size=-1)`: Read one line
-- `readlines(hint=-1)`: Read list of lines
-- `write(s)`: Write string
-- `writelines(lines)`: Write list of strings
-- `flush()`: Flush write buffer
-- `seek(offset, whence=SEEK_SET)`: Change position
-- `tell()`: Return current position
-- `close()`: Close file
-
-**Properties:**
-
-- `name`: The cloud path
-- `mode`: File mode (e.g., `"rt"`, `"wt"`)
-- `encoding`: Text encoding
-- `errors`: Error handling strategy
-- `newlines`: Newline(s) encountered
-- `buffer`: Underlying binary buffer (CloudBufferedIO)
-- `closed`: Whether the file is closed
-
-**Iteration:**
-
-CloudTextIO supports iteration:
-
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/file.txt", client=client)
-
-with path.open("rt") as f:
-    for line in f:
-        process(line)
-```
-
-## Usage Examples
-
-### Reading Large Files in Chunks
-
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/huge-file.csv", client=client)
-
-# Process a large file without loading it entirely into memory
-with path.open("rt") as f:
-    header = f.readline()
-    for line in f:
-        process_csv_line(line)
-```
-
-### Partial File Reads
-
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/data.bin", client=client)
-
-# Read just the header of a file
-with path.open("rb") as f:
-    header = f.read(1024)  # Read first 1KB
-    parse_header(header)
-
-    # Seek to specific position
-    f.seek(10000)
-    chunk = f.read(100)
-```
-
-### Streaming Uploads
-
-```python
-from cloudpathlib import AzureBlobPath, AzureBlobClient
-from cloudpathlib.enums import FileCacheMode
-import json
-
-client = AzureBlobClient(file_cache_mode=FileCacheMode.streaming)
-path = AzureBlobPath("az://container/output.json", client=client)
-
-# Write data directly to cloud without local file
-with path.open("wt") as f:
-    f.write('{"items": [\n')
-    for i, item in enumerate(generate_items()):
-        if i > 0:
-            f.write(',\n')
-        f.write(json.dumps(item))
-    f.write('\n]}')
-```
-
-### Using with pandas
-
-```python
-import pandas as pd
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-
-# Read CSV directly from cloud
-read_path = S3Path("s3://bucket/data.csv", client=client)
-with read_path.open("rt") as f:
-    df = pd.read_csv(f)
-
-# Write CSV directly to cloud
-write_path = S3Path("s3://bucket/output.csv", client=client)
-with write_path.open("wt") as f:
-    df.to_csv(f, index=False)
-```
-
-
-### Using with parquet
-
-Streaming read streams are seekable, which is exactly what columnar formats
-need: `pyarrow` seeks to the parquet footer to read the file metadata, then
-fetches only the byte ranges for the row groups and columns you ask for — the
-rest of the object is never downloaded.
-
-```python
-import pyarrow.parquet as pq
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/data.parquet", client=client)
-
-with path.open("rb") as f:
-    parquet_file = pq.ParquetFile(f)
-
-    # metadata comes from the footer alone
-    print(parquet_file.metadata.num_rows, parquet_file.schema_arrow)
-
-    # reads only the column chunks for "user_id"
-    table = parquet_file.read(columns=["user_id"])
-```
-
-For column-slicing workloads, a smaller `buffer_size` (e.g. 64 KiB - 1 MiB)
-reduces over-fetch around the footer and column chunk boundaries; for reading
-most of the file, keep the default.
-
-### Using with PIL/Pillow
-
-```python
-from PIL import Image
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-
-# Read image
-read_path = S3Path("s3://bucket/image.jpg", client=client)
-with read_path.open("rb") as f:
-    img = Image.open(f)
-    img.show()
-
-# Write image
-write_path = S3Path("s3://bucket/output.png", client=client)
-with write_path.open("wb") as f:
-    img.save(f, format="PNG")
-```
-
-### Custom Buffer Size
-
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-
-# Use a larger buffer for better throughput on fast connections
-path = S3Path("s3://bucket/large-file.bin", client=client)
-with path.open("rb", buffer_size=16 * 1024 * 1024) as f:
-    data = f.read()
-
-# Use a smaller buffer for memory-constrained environments
-path = S3Path("s3://bucket/file.txt", client=client)
-with path.open("rt", buffer_size=64 * 1024) as f:
-    for line in f:
-        process(line)
-```
-
-## Performance Considerations
-
-### Buffer Size
-
-The `buffer_size` parameter controls how much data is fetched from/written to cloud storage in each request:
-
-- **Default** (5 MiB): Matches the multi-MiB block sizes used by comparable
-  tools (fsspec/s3fs/gcsfs) so per-request latency does not dominate sequential
-  throughput. Reads never fetch past EOF, so small objects only pay for their
-  actual size.
-- **Smaller buffers** (64 KiB - 1 MiB): Less memory per open stream and less
-  over-fetch when reading small slices of large objects, at the cost of more
-  requests for sequential scans.
-- **Larger buffers**: Fewer, bigger requests; memory per open stream grows to
-  match.
-
-Two request-count notes:
-
-- A full-object `read()` is always satisfied with a single ranged request
-  regardless of `buffer_size`.
-- Each buffered refill costs one ranged request, so a sequential scan of a
-  1 GiB object makes ~205 requests at the 5 MiB default versus ~16,000 at
-  64 KiB.
-
-### Read Patterns
-
-- **Sequential reads**: Optimal performance - data is fetched ahead as needed
-- **Random seeks**: Each seek may trigger a new range request - less efficient
-- **Small random reads**: Consider downloading the file to cache instead
-
-### Concurrency
-
-Pass `streaming_max_concurrency=N` when constructing a client to let each open
-streaming stream issue up to `N` requests in parallel (the default of `1` is
-fully sequential):
-
-```python
-client = S3Client(
-    file_cache_mode=FileCacheMode.streaming,
-    streaming_max_concurrency=4,
-)
-```
-
-- **Writes**: completed parts upload in a background thread pool while your
-  code keeps writing; the stream blocks only when `N` parts are already in
-  flight, so buffered memory is bounded by roughly `N x` part size. Works for
-  S3, Azure, and GCS (all use order-independent multipart/block uploads);
-  HTTP writes are a single request and are unaffected.
-- **Reads**: the next `N` byte ranges are prefetched in the background while
-  you consume the current one, pipelining sequential scans. Seeking outside
-  the prefetched window discards it.
-- Failures in background requests surface on the next `write()`/`close()`
-  (aborting the upload) or the next `read()`, exactly like sequential errors.
-
-Semantics that no configuration changes:
-
-- **Streams are not thread-safe.** Like ordinary Python file objects, a single
-  `CloudBufferedIO`/`CloudTextIO` instance must not be shared between threads
-  without external locking. Open one stream per thread instead.
-- **Concurrent readers are safe.** Any number of streams (across threads or
-  processes) can read the same object simultaneously; each issues independent
-  range requests and holds independent positions.
-- **Concurrent writers to the same object are last-committer-wins.** Each
-  writer's upload is isolated (S3 multipart upload IDs; per-session Azure block
-  IDs), so writers cannot corrupt each other's data — whichever stream closes
-  last determines the final object.
-- **Conflict detection**: open a write stream with
-  `force_overwrite_to_cloud=False` and closing raises `OverwriteNewerCloudError`
-  instead of overwriting a version of the object that was uploaded while the
-  stream was open.
-
-### Write Contract
-
-Object storage is fundamentally a **sequential, write-once** medium.
-Streaming mode reflects that contract:
-
-| Mode | Streaming behaviour |
-|------|---------------------|
-| `wb`, `w`, `xb`, `x` | True streaming — data is forwarded to the provider as it arrives |
-| `ab`, `a`, `r+b`, `r+`, `w+b`, `w+` | **Falls back to cache** — the object is downloaded, mutated locally, then re-uploaded on close. Semantics are correct; performance matches the cached path. |
-
-!!! warning "There is no true streaming append"
-    Object stores cannot append to (or modify a byte range of) an existing
-    object — every write creates a whole new object. Anything that opens an
-    existing file for appending or in-place update (`a`, `a+`, `r+`, `w+`)
-    therefore cannot stream: cloudpathlib downloads the entire object to the
-    local cache, applies the writes there, and re-uploads the entire object on
-    close. That is correct but costs a full download plus a full upload (and
-    temporary disk space) proportional to the object's size — for a
-    log-appending workload, prefer writing many small objects or a
-    provider-native mechanism instead.
-
-Attempting to seek on a write-only streaming stream raises
-`io.UnsupportedOperation` because the provider has already accepted
-the earlier bytes.
-
-Streaming writes honor `force_overwrite_to_cloud` (and the
-`CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD` environment variable): when it
-resolves to `False`, closing the stream raises `OverwriteNewerCloudError`
-instead of clobbering a version of the object that was uploaded while the
-stream was open.
-
-### Multipart/Block Uploads
-
-For write operations, the streaming I/O system automatically handles:
-
-- **S3**: Multipart upload; non-final parts are buffered until they reach
-  the provider minimum of **5 MiB** (S3 rejects smaller non-final parts).
-  The final part may be smaller than 5 MiB.
-- **Azure**: Block blob staging — blocks grow adaptively during very large uploads
-  and are committed on close.
-- **GCS**: XML API multipart upload — parts are buffered to the provider
-  minimum of **5 MiB** and assembled on close, mirroring the S3 mechanism
-  (set an `AbortIncompleteMultipartUpload` bucket lifecycle rule to expire
-  uploads orphaned by hardware failure).
-
-## Provider-Specific Behavior
-
-### AWS S3
-
-- Uses boto3 `get_object()` with `Range` header for reads
-- Uses boto3 multipart upload API for writes
-- Supports all S3-compatible storage (MinIO, Ceph, etc.)
-
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/file.txt", client=client)
-
-with path.open("rt") as f:
-    content = f.read()
-```
-
-### Azure Blob Storage
-
-- Uses Azure SDK `download_blob()` with offset/length for reads
-- Uses block blob staging and commit for writes
-- Compatible with Azure Data Lake Storage Gen2
-
-```python
-from cloudpathlib import AzureBlobPath, AzureBlobClient
-from cloudpathlib.enums import FileCacheMode
-
-client = AzureBlobClient(file_cache_mode=FileCacheMode.streaming)
-path = AzureBlobPath("az://container/file.txt", client=client)
-
-with path.open("rt") as f:
-    content = f.read()
-```
-
-### Google Cloud Storage
-
-- Uses GCS SDK `download_as_bytes()` with start/end for reads
-- Uses the XML API multipart upload for writes (via the SDK's transfer-manager
-  machinery), which supports concurrent part uploads
-- Supports GCS-specific features through client configuration
-
-```python
-from cloudpathlib import GSPath, GSClient
-from cloudpathlib.enums import FileCacheMode
-
-client = GSClient(file_cache_mode=FileCacheMode.streaming)
-path = GSPath("gs://bucket/file.txt", client=client)
-
-with path.open("rt") as f:
-    content = f.read()
-```
-
-### HTTP and HTTPS
-
-- Requires servers to honor byte-range requests for streaming reads
-- Uses the client's configured `write_file_http_method` for writes
-- Spools single-request upload bodies with bounded memory, using a temporary file above 8 MiB
-
-## Comparison with Cached Mode
-
-| Feature | Streaming (`FileCacheMode.streaming`) | Cached (default) |
-|---------|--------------------------------------|------------------|
-| **Disk usage** | None for cloud providers; HTTP uploads may use a temporary spool | Full file size |
-| **Memory usage** | Configurable buffer | Varies |
-| **Read performance** | Sequential: Good<br>Random: Moderate | Fast (local disk) |
-| **Write performance** | Good (direct upload) | Fast write, slower close |
-| **Partial reads** | Efficient | Downloads full file |
-| **Large files** | Excellent | Limited by disk space |
-| **Offline access** | No | Yes (after download) |
-| **Compatibility** | Standard I/O interfaces | Standard I/O interfaces |
-
-## Best Practices
-
-### When to Use Streaming I/O
-
-✅ **Good use cases:**
-
-- Large files that don't fit in memory/disk
-- Reading only part of a file (e.g., headers, metadata)
-- Sequential processing (one-pass reads)
-- Direct upload of generated content
-- Integration with libraries that accept file-like objects
-
-❌ **Consider caching instead:**
-
-- Small files (< 10 MB)
-- Frequent random access to same file
-- Multiple passes over the same data
-- Offline processing
-- Maximum read performance required
-- Libraries that require file paths (`.fspath` not available in streaming mode)
-
-### Error Handling
-
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/file.txt", client=client)
-
-try:
-    with path.open("rt") as f:
-        content = f.read()
-except FileNotFoundError:
-    print("File not found in cloud storage")
-except PermissionError:
-    print("Access denied")
-except Exception as e:
-    print(f"Error: {e}")
-```
-
-### Resource Management
-
-Always use context managers to ensure proper cleanup:
-
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/file.txt", client=client)
-
-# ✅ Good - file is automatically closed
-with path.open("rt") as f:
-    content = f.read()
-
-# ❌ Bad - must remember to close manually
-f = path.open("rt")
-content = f.read()
-f.close()  # Easy to forget!
-```
-
-### Streaming Mode Limitations
-
-When using `FileCacheMode.streaming`, certain CloudPath features are not available because streaming mode avoids the local file cache (the append/update modes of `open` are the exception — they fall back to the cache, which is cleaned up when the client is garbage collected):
-
-**Not Available:**
-- `.fspath` property - Raises `CloudPathNotImplementedError`
-- `.__fspath__()` method - Raises `CloudPathNotImplementedError`
-- Passing CloudPath as `os.PathLike` to libraries that need file paths
-
-**Workaround:**
-Use `CloudPath.open()` and pass the file-like object to libraries that accept file handles instead of file paths.
-
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-import pandas as pd
 
 client = S3Client(file_cache_mode=FileCacheMode.streaming)
 path = S3Path("s3://bucket/data.csv", client=client)
 
-# ❌ This will raise an error in streaming mode
-# df = pd.read_csv(path.fspath)
+with path.open("r") as f:          # text, ranged reads
+    for line in f:
+        ...
 
-# ✅ Use this instead - pass the open file handle
-with path.open("rt") as f:
-    df = pd.read_csv(f)
+with path.open("wb") as f:         # binary, multipart upload
+    f.write(b"...")
 ```
 
-## Compatibility
+Streaming is supported for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS,
+as well as the `cloudpathlib.local` mock clients used in tests.
 
-### Python I/O Interfaces
+## What `open()` returns
 
-The streaming I/O classes are fully compatible with Python's I/O hierarchy:
+The same objects the builtin `open()` returns, so any library that accepts a file object
+works unchanged: `json`, `csv`, `zipfile`, `tarfile`, `pandas`, `pyarrow`, `PIL`, etc.
+
+| Mode | Returns |
+|------|---------|
+| `rb`, `wb`, `xb` | `io.BufferedReader` / `io.BufferedWriter` over a provider raw stream |
+| `r`, `w`, `x` (text) | `io.TextIOWrapper` over the buffered stream |
+| binary with `buffering=0` | the raw `io.RawIOBase` stream itself |
+
+Read streams are seekable, so formats that need random access (zip archives, parquet)
+work: `pyarrow` seeks to the parquet footer and then fetches only the column chunks you
+ask for.
 
 ```python
-import io
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
+import pyarrow.parquet as pq
 
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-
-path = S3Path("s3://bucket/file.bin", client=client)
 with path.open("rb") as f:
-    assert isinstance(f, io.IOBase)
-    assert isinstance(f, io.BufferedIOBase)
-
-path = S3Path("s3://bucket/file.txt", client=client)
-with path.open("rt") as f:
-    assert isinstance(f, io.IOBase)
-    assert isinstance(f, io.TextIOBase)
+    table = pq.ParquetFile(f).read(columns=["user_id"])
 ```
 
-### Third-Party Libraries
+Write streams are sequential: `seek()` on a write stream raises `io.UnsupportedOperation`.
 
-Works with any library that accepts file-like objects:
+## `buffering`
 
-- **Data processing**: pandas, NumPy, PyArrow
-- **Images**: PIL/Pillow, OpenCV
-- **Compression**: gzip, zipfile, tarfile
-- **Serialization**: pickle, json, yaml
-- **Scientific**: h5py, netCDF4
+`buffering` means what it means for the builtin `open()`:
 
-## Troubleshooting
+- `-1` (default): a 5 MiB buffer. Each refill of a read stream is one ranged request of
+  that size (never past the end of the object), so a sequential scan of a 1 GiB object is
+  about 205 requests.
+- `N > 1`: the buffer size in bytes. Use a smaller buffer (64 KiB to 1 MiB) when you read
+  small slices of large objects (parquet column reads, headers), and a larger one for
+  sequential scans on fast networks.
+- `1`: line buffering for text streams, with the default buffer size.
+- `0`: unbuffered; binary only. Every `read()`/`write()` is a request (or a part-buffer
+  append).
 
-### "File not found" errors
-
-Ensure the file exists and you have read permissions:
-
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/file.txt", client=client)
-
-if path.exists():
-    with path.open("rt") as f:
-        content = f.read()
-```
-
-### Slow performance
-
-Try increasing buffer size:
+A full-object `read()` is always a single request regardless of the buffer size.
 
 ```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/file.txt", client=client)
-
-# Larger buffer for faster networks
-with path.open("rb", buffer_size=16 * 1024 * 1024) as f:
+with path.open("rb", buffering=16 * 1024 * 1024) as f:   # 16 MiB requests
     data = f.read()
 ```
 
-### Out of memory
+## Concurrency
 
-Try smaller buffer size or process in chunks:
+Each client has a `streaming_max_concurrency` setting (default 4) that bounds the number
+of requests one open stream may have in flight:
 
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
+- **Reads:** once two consecutive reads are sequential, the next byte ranges are fetched
+  in the background while you consume the current one. A single read (for example of a
+  header) or a seek does not trigger read-ahead.
+- **Writes:** completed parts upload in the background while you keep writing; a
+  `write()` blocks only when that many parts are already in flight, so buffered memory is
+  bounded by roughly `streaming_max_concurrency` times the part size.
 
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/huge.bin", client=client)
-
-# Process large file in chunks
-with path.open("rb", buffer_size=8192) as f:
-    while chunk := f.read(8192):
-        process_chunk(chunk)
-```
-
-## Migration Guide
-
-### From Cached to Streaming
-
-Before:
+Pass `streaming_max_concurrency=1` for fully sequential I/O.
 
 ```python
-from cloudpathlib import S3Path
-
-path = S3Path("s3://bucket/file.txt")
-with path.open("rt") as f:  # Downloads to cache
-    content = f.read()
+client = S3Client(file_cache_mode=FileCacheMode.streaming, streaming_max_concurrency=8)
 ```
 
-After:
+Streams are not thread-safe, like ordinary file objects: open one per thread. Any number
+of streams may read the same object at once. Concurrent writers to the same object are
+last-closed-wins; each writer's upload is isolated, so they cannot corrupt each other's
+data.
 
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
+## Writes
 
-# Option 1: Set on client initialization
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/file.txt", client=client)
-with path.open("rt") as f:  # Streams directly
-    content = f.read()
+Object stores cannot append to or modify an existing object, so only whole-object writes
+stream:
 
-# Option 2: Change client mode
-client = S3Client()
-path = S3Path("s3://bucket/file.txt", client=client)
+| Mode | Behaviour |
+|------|-----------|
+| `w`, `wb`, `x`, `xb` | Streamed: data is uploaded in parts as you write; the object appears on `close()`. |
+| `a`, `ab`, `r+`, `w+`, ... | Fall back to the local cache: the object is downloaded, modified locally, re-uploaded on `close()`, and the cache file is then removed (as with `close_file`). Correct, but costs a full download and upload. |
 
-path.client.file_cache_mode = FileCacheMode.streaming
-with path.open("rt") as f:  # Streams directly
-    content = f.read()
-```
+Details of a streamed write:
 
-## Advanced Topics
+- Data that fits in one part (5 MiB on S3 and GCS, 4 MiB on Azure) is uploaded with a
+  single `PUT` on close. Larger writes use a multipart (S3, GCS XML API) or block (Azure)
+  upload; part sizes grow for very large streams so the provider's part-count limit is
+  never hit.
+- If a write or the final upload fails, the multipart upload is aborted and the error
+  propagates from `write()` or `close()`; no partial object is left behind. If the abort
+  itself fails, a `RuntimeWarning` names the object so you can clean up.
+- `force_overwrite_to_cloud` (and `CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD`) work as in
+  cached mode: when the object changed while the stream was open and overwriting is not
+  forced, `close()` raises `OverwriteNewerCloudError`. An `x` mode stream raises
+  `CloudPathFileExistsError` if the object appeared while it was open, whatever the flag.
+- The content type is guessed from the object name with the client's
+  `content_type_method`, exactly as for cached uploads.
+- HTTP servers have no multipart upload, so an HTTP write is one request on `close()`;
+  the body is held in memory up to 5 MiB and spooled to a temporary file beyond that.
 
-### Custom Clients
+## Limitations
 
-Pass custom clients with specific configurations:
+- **No `fspath`.** `os.fspath(path)` and `path.fspath` raise `CloudPathNotImplementedError`
+  in streaming mode because there is no local file. Pass the open file object to libraries
+  instead of the path; if a library requires a filesystem path, use a cached mode.
+- **`copy`, `rename`, and `replace`** between different clients stream from one object to
+  the other instead of going through the cache.
+- **HTTP reads** need a server that honours `Range` requests (a `200` response is only
+  accepted for reads from the start of the object). Servers that omit `Content-Length`
+  work, but `seek(..., SEEK_END)` raises `CloudPathStreamingError`.
+- **Size lookups.** A read stream fetches the object's size once (a metadata request). If
+  that lookup fails (for example, a policy that allows `GET` but not `HEAD`), reading still
+  works; only `SEEK_END` raises, with the lookup error as its cause.
 
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-# Custom S3-compatible endpoint and upload metadata
-client = S3Client(
-    file_cache_mode=FileCacheMode.streaming,
-    endpoint_url="https://objects.example.com",
-    addressing_style="path",
-    extra_args={"ServerSideEncryption": "AES256"},
-)
+## Errors
 
-path = S3Path("s3://bucket/file.txt", client=client)
-with path.open("rt") as f:
-    content = f.read()
-```
+Streaming raises the same exception types as the rest of cloudpathlib:
+`CloudPathFileNotFoundError` for a missing object, `CloudPathFileExistsError` for `x`
+modes, `OverwriteNewerCloudError` for write conflicts, and `CloudPathStreamingError` (also
+an `OSError`) when a request cannot be completed, such as exceeding the provider's
+part-count limit or an HTTP server rejecting a write.
 
-### Multiple Files
+## Provider notes
 
-Process multiple files efficiently:
+| Provider | Reads | Writes |
+|----------|-------|--------|
+| S3 (and S3-compatible) | `GetObject` with `Range` | `PutObject` or multipart upload; `extra_args` are forwarded to each operation that accepts them |
+| Azure Blob Storage | `download_blob(offset, length)` | `upload_blob` or staged blocks committed on close; block IDs are unique per stream |
+| Google Cloud Storage | `download_as_bytes(start, end)` | `upload_from_file` or the XML API multipart upload (concurrent parts). Set an `AbortIncompleteMultipartUpload` lifecycle rule on the bucket to expire uploads orphaned by a crash |
+| HTTP/HTTPS | `GET` with `Range` | one request using the client's `write_file_http_method` |
 
-```python
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
+## Adding streaming to a custom client
 
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-bucket = S3Path("s3://bucket/", client=client)
-
-for file_path in bucket.glob("*.csv"):
-    with file_path.open("rt") as f:
-        process_csv(f)
-```
-
-### Encoding Detection
-
-For files with unknown encoding:
-
-```python
-import chardet
-from cloudpathlib import S3Path, S3Client
-from cloudpathlib.enums import FileCacheMode
-
-client = S3Client(file_cache_mode=FileCacheMode.streaming)
-path = S3Path("s3://bucket/file.txt", client=client)
-
-# Read a small sample to detect encoding
-with path.open("rb") as f:
-    sample = f.read(10000)
-    detected = chardet.detect(sample)
-    encoding = detected['encoding']
-
-# Re-open with detected encoding
-with path.open("rt", encoding=encoding) as f:
-    content = f.read()
-```
-
-### Context Manager for Temporary Streaming
-
-Use a context manager to temporarily enable streaming mode:
-
-```python
-from contextlib import contextmanager
-from cloudpathlib import S3Client
-from cloudpathlib.enums import FileCacheMode
-
-@contextmanager
-def streaming_mode(client):
-    """Temporarily enable streaming mode on a client."""
-    original_mode = client.file_cache_mode
-    try:
-        client.file_cache_mode = FileCacheMode.streaming
-        yield client
-    finally:
-        client.file_cache_mode = original_mode
-
-# Usage
-client = S3Client()
-path = S3Path("s3://bucket/file.txt", client=client)
-
-with streaming_mode(client):
-    with path.open("rt") as f:
-        content = f.read()  # Uses streaming
-
-# Back to cached mode
-with path.open("rt") as f:
-    content = f.read()  # Uses caching
-```
+A `Client` subclass gets streaming by implementing the hooks `_range_download`,
+`_put_object`, and (for multipart uploads) `_initiate_multipart_upload`, `_upload_part`,
+`_complete_multipart_upload`, and `_abort_multipart_upload`, then setting
+`_streaming_raw_class` to `cloudpathlib.cloud_io._CloudMultipartStorageRaw` (or
+`_CloudSpooledStorageRaw` for single-request uploads) and the `_multipart_*` part limits.
+Subclasses of the built-in clients inherit all of this. A client that leaves
+`_streaming_raw_class` as `None` raises `CloudPathNotImplementedError` from `open()` in
+streaming mode and works normally in the cached modes.
