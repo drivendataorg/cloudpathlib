@@ -19,13 +19,16 @@ try:
         from google.api_core.retry import Retry
 
     from google.api_core.exceptions import NotFound as GCSNotFound
+    from google.api_core.exceptions import RequestRangeNotSatisfiable as GCSRangeNotSatisfiable
     from google.auth import default as google_default_auth
     from google.auth.exceptions import DefaultCredentialsError
     from google.cloud.storage.client import Client as StorageClient
 
 except ModuleNotFoundError:
     implementation_registry["gs"].dependencies_loaded = False
-    GCSNotFound = Exception  # type: ignore[misc, assignment]  # fallback so name is always defined
+    # fallbacks so the names are always defined
+    GCSNotFound = Exception  # type: ignore[misc, assignment]
+    GCSRangeNotSatisfiable = Exception  # type: ignore[misc, assignment]
 
 
 try:
@@ -378,15 +381,8 @@ class GSClient(Client):
             return blob.download_as_bytes(start=start, end=end, **self.blob_kwargs)
         except GCSNotFound:
             raise CloudPathFileNotFoundError(f"GCS object not found: {cloud_path}")
-        except Exception as e:
-            # match a range-past-EOF error structurally (status 416) rather than by
-            # substring, so unrelated errors are not silently treated as EOF
-            status = getattr(e, "code", None)
-            if status is None:
-                status = getattr(getattr(e, "response", None), "status_code", None)
-            if status == 416 or "Requested Range Not Satisfiable" in str(e):
-                return b""
-            raise
+        except GCSRangeNotSatisfiable:
+            return b""
 
     def _get_content_length(self, cloud_path: GSPath) -> int:
         """Get the size of a GCS object."""

@@ -4,7 +4,10 @@ from pathlib import Path, PurePosixPath
 import shutil
 from tempfile import TemporaryDirectory
 
+from types import SimpleNamespace
+
 from boto3.session import Session
+import botocore.session
 from botocore.exceptions import ClientError
 
 from .utils import delete_empty_parents_up_to_root
@@ -211,6 +214,9 @@ class MockCollection:
 
 
 class MockBoto3Client:
+    # the real botocore S3 service model, so parameter filtering behaves as in production
+    meta = SimpleNamespace(service_model=botocore.session.get_session().get_service_model("s3"))
+
     def __init__(self, root, session=None):
         self.root = root
         self.session = session

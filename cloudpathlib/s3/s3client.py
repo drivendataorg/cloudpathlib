@@ -1,4 +1,3 @@
-from functools import lru_cache
 import mimetypes
 import os
 from pathlib import Path, PurePosixPath
@@ -19,12 +18,6 @@ try:
     import botocore.session
 except ModuleNotFoundError:
     implementation_registry["s3"].dependencies_loaded = False
-
-
-@lru_cache(maxsize=None)
-def _botocore_s3_operation_model(operation_name: str):
-    """Operation model from the installed botocore's bundled S3 service data (no network)."""
-    return botocore.session.get_session().get_service_model("s3").operation_model(operation_name)
 
 
 @register_client_class("s3")
@@ -440,10 +433,6 @@ class S3Client(Client):
             if code in ("InvalidRange", "416"):
                 return b""
             raise
-        except Exception as e:
-            if "InvalidRange" in str(e):
-                return b""
-            raise
 
     def _get_content_length(self, cloud_path: S3Path) -> int:
         """Get the size of an S3 object.
@@ -465,13 +454,7 @@ class S3Client(Client):
 
     def _streaming_extra_args(self, operation_name: str) -> Dict[str, Any]:
         """Return upload extras accepted by a specific low-level S3 operation."""
-        try:
-            operation = self.client.meta.service_model.operation_model(operation_name)
-        except AttributeError:
-            # client objects that do not expose botocore's meta (e.g. test doubles):
-            # consult the installed botocore service model directly so filtering
-            # behaves identically to a real boto3 client
-            operation = _botocore_s3_operation_model(operation_name)
+        operation = self.client.meta.service_model.operation_model(operation_name)
         allowed = set(operation.input_shape.members)
         return {key: value for key, value in self.boto3_ul_extra_args.items() if key in allowed}
 

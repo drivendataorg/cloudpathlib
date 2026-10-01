@@ -1714,12 +1714,6 @@ def test_provider_part_sizes_grow_for_large_streams(rig):
     raw.close()
 
 
-def test_s3_invalid_object_state_is_not_eof(s3_rig):
-    path = s3_rig.create_cloud_path("archived.bin")
-    raw = path.client._streaming_raw_class(path.client, path, "rb")
-    assert not raw._is_eof_error(Exception("InvalidObjectState"))
-
-
 def test_raw_read_errors_follow_file_object_semantics(local_s3_rig):
     class Raw(_CloudStorageRaw):
         def _upload_chunk(self, data):
@@ -1751,7 +1745,6 @@ def test_raw_read_errors_follow_file_object_semantics(local_s3_rig):
 
 def test_raw_read_handles_unknown_size_and_provider_eof(local_s3_rig):
     class Raw(_CloudStorageRaw):
-        eof = False
         empty = False
 
         def _get_size(self):
@@ -1762,9 +1755,6 @@ def test_raw_read_handles_unknown_size_and_provider_eof(local_s3_rig):
                 return b""
             raise OSError("range unavailable")
 
-        def _is_eof_error(self, error):
-            return self.eof
-
         def _upload_chunk(self, data):
             pass
 
@@ -1774,13 +1764,9 @@ def test_raw_read_handles_unknown_size_and_provider_eof(local_s3_rig):
     path = local_s3_rig.create_cloud_path("raw-eof.bin")
     raw = Raw(path.client, path, "rb")
 
+    # read errors propagate; an empty range (the provider's past-EOF answer) reads as EOF
     with pytest.raises(OSError, match="range unavailable"):
         raw.readinto(bytearray(1))
-
-    raw.eof = True
-    assert raw.readinto(bytearray(1)) == 0
-
-    raw.eof = False
     raw.empty = True
     assert raw.readinto(bytearray(1)) == 0
 
@@ -1999,14 +1985,13 @@ def test_streaming_size_fetch_failure_is_memoized(streaming_rig, monkeypatch):
 
 def test_gs_range_download_transient_error_not_treated_as_eof(gs_rig, monkeypatch):
     """Errors that merely contain '416' in their message (request IDs, generation
-    numbers) must propagate; only true 416 range errors read as EOF."""
+    numbers) must propagate; only the SDK's range-not-satisfiable error reads as EOF."""
+    from google.api_core.exceptions import RequestRangeNotSatisfiable
+
     path = gs_rig.create_cloud_path("test_416_matching.bin")
 
     class FakeServiceUnavailable(Exception):
         code = 503
-
-    class FakeRangeError(Exception):
-        code = 416
 
     def make_stub(error):
         class StubBlob:
@@ -2028,15 +2013,11 @@ def test_gs_range_download_transient_error_not_treated_as_eof(gs_rig, monkeypatc
     with pytest.raises(FakeServiceUnavailable):
         path.client._range_download(path, 0, 9)
 
-    # structured 416 still reads as EOF
+    # the SDK's structured 416 reads as EOF
     monkeypatch.setattr(
-        path.client.client, "bucket", make_stub(FakeRangeError("range not satisfiable"))
-    )
-    assert path.client._range_download(path, 0, 9) == b""
-
-    # exact reason phrase still reads as EOF (some layers do not expose a code)
-    monkeypatch.setattr(
-        path.client.client, "bucket", make_stub(Exception("Requested Range Not Satisfiable"))
+        path.client.client,
+        "bucket",
+        make_stub(RequestRangeNotSatisfiable("range not satisfiable")),
     )
     assert path.client._range_download(path, 0, 9) == b""
 
@@ -2351,38 +2332,6 @@ def test_s3_streaming_extra_args_uses_service_model(s3_rig):
     client.client = SimpleNamespace(meta=SimpleNamespace(service_model=service_model))
 
     assert client._streaming_extra_args("CreateMultipartUpload") == {"StorageClass": "STANDARD_IA"}
-
-
-def test_s3_streaming_extra_args_fallback_matches_botocore(s3_rig):
-    """The hard-coded fallback table must filter identically to botocore's real
-    service model, so it cannot silently drop newly added parameters."""
-    from types import SimpleNamespace
-
-    botocore_session = pytest.importorskip("botocore.session")
-    service_model = botocore_session.get_session().get_service_model("s3")
-
-    for operation in (
-        "CreateMultipartUpload",
-        "UploadPart",
-        "CompleteMultipartUpload",
-        "PutObject",
-    ):
-        members = set(service_model.operation_model(operation).input_shape.members)
-        extra_args = {name: "value" for name in sorted(members)}
-
-        fallback_client = s3_rig.client_class(**s3_rig.required_client_kwargs)
-        fallback_client.boto3_ul_extra_args = extra_args
-        fallback_client.client = SimpleNamespace()  # no .meta -> fallback table
-
-        real_client = s3_rig.client_class(**s3_rig.required_client_kwargs)
-        real_client.boto3_ul_extra_args = extra_args
-        real_client.client = SimpleNamespace(meta=SimpleNamespace(service_model=service_model))
-
-        assert fallback_client._streaming_extra_args(
-            operation
-        ) == real_client._streaming_extra_args(
-            operation
-        ), f"fallback table diverges from botocore for {operation}"
 
 
 def test_s3_streaming_content_encoding_threaded(s3_rig):

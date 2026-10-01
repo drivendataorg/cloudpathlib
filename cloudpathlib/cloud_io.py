@@ -108,12 +108,7 @@ class _CloudStorageRaw(io.RawIOBase):
             if start >= size:
                 return 0
 
-        try:
-            data = self._fetch_range(start, end)
-        except Exception as e:
-            if self._is_eof_error(e):
-                return 0
-            raise
+        data = self._fetch_range(start, end)
 
         n = len(data)
         if n == 0:
@@ -317,14 +312,6 @@ class _CloudStorageRaw(io.RawIOBase):
             except Exception:
                 self._size_fetch_failed = True
         return self._size
-
-    def _is_eof_error(self, error: Exception) -> bool:
-        """
-        Check if an error indicates EOF/out of range.
-
-        Override in subclasses for provider-specific error handling.
-        """
-        return False
 
 
 class _CloudMultipartStorageRaw(_CloudStorageRaw):
