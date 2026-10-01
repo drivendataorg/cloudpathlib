@@ -2361,6 +2361,23 @@ def test_streaming_text_exclusive_create(streaming_rig):
             pass
 
 
+def test_streaming_exclusive_create_lost_race_raises(streaming_rig):
+    """A file that appears while an 'x' stream is open is a FileExists error on close, even
+    when overwriting is forced: exclusive creation must never clobber."""
+    from cloudpathlib.exceptions import CloudPathFileExistsError
+
+    path = streaming_rig.create_cloud_path("test_x_race.txt")
+    try:
+        f = path.open("xb", force_overwrite_to_cloud=True)
+        f.write(b"mine")
+        path.write_bytes(b"theirs")  # a concurrent writer wins the race
+        with pytest.raises(CloudPathFileExistsError):
+            f.close()
+        assert path.read_bytes() == b"theirs"
+    finally:
+        path.unlink(missing_ok=True)
+
+
 def test_range_download_past_eof_returns_empty(streaming_rig):
     """A range starting past EOF maps to EOF (empty bytes) on every provider."""
     path = streaming_rig.create_cloud_path("past_eof.bin")

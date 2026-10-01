@@ -965,7 +965,7 @@ class CloudPath(metaclass=CloudPathMeta):
         pre_finalize = None
         if "w" in mode or "x" in mode:
             pre_finalize = self._streaming_overwrite_check(
-                exists_on_cloud, force_overwrite_to_cloud
+                mode, exists_on_cloud, force_overwrite_to_cloud
             )
 
         return open_stream(
@@ -981,12 +981,14 @@ class CloudPath(metaclass=CloudPathMeta):
         )
 
     def _streaming_overwrite_check(
-        self, exists_on_cloud: bool, force_overwrite_to_cloud: Optional[bool]
+        self, mode: str, exists_on_cloud: bool, force_overwrite_to_cloud: Optional[bool]
     ) -> Optional[Callable[[], None]]:
         """Build the pre-upload conflict check for a streaming write, mirroring the cached
         path's `OverwriteNewerCloudError` protection in `_upload_file_to_cloud`. Returns None
-        when overwriting is forced."""
-        if _force_overwrite_to_cloud(force_overwrite_to_cloud):
+        when overwriting is forced. Exclusive creation (`x`) always checks, since a file that
+        appeared while the stream was open must raise `CloudPathFileExistsError`."""
+        exclusive = "x" in mode
+        if not exclusive and _force_overwrite_to_cloud(force_overwrite_to_cloud):
             return None
 
         original_mtime = self.stat().st_mtime if exists_on_cloud else None
@@ -997,6 +999,10 @@ class CloudPath(metaclass=CloudPathMeta):
             except (NoStatError, CloudPathFileNotFoundError, FileNotFoundError):
                 # nothing on the cloud to conflict with
                 return
+            if exclusive:
+                raise CloudPathFileExistsError(
+                    f"Cannot create file ({self}): it was created while the stream was open."
+                )
             if original_mtime is None or stats.st_mtime > original_mtime:
                 raise OverwriteNewerCloudError(
                     f"Cloud path ({self}) changed while it was open for streaming write, "
