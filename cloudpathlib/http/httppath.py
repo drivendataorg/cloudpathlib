@@ -90,7 +90,12 @@ class HttpPath(CloudPath):
         return not self.client.dir_matcher(str(self))
 
     def mkdir(
-        self, parents: bool = False, exist_ok: bool = False, mode: Optional[Any] = None
+        self,
+        parents: bool = False,
+        exist_ok: bool = False,
+        mode: Optional[Any] = None,
+        *,
+        parent_mode: Optional[Any] = None,
     ) -> None:
         pass  # no-op for HTTP Paths
 
