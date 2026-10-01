@@ -229,19 +229,22 @@ class HttpClient(Client):
             # the connection is closed when we exit the context manager.
             return response, response.read()
 
-    def _range_download(self, cloud_path: "HttpPath", start: int, end: int) -> bytes:
+    def _range_download(
+        self, cloud_path: "HttpPath", start: int, end: Optional[int] = None
+    ) -> bytes:
         """Download an HTTP byte range."""
-        headers = {"Range": f"bytes={start}-{end}"}
+        headers = {"Range": f"bytes={start}-{'' if end is None else end}"}
         request = urllib.request.Request(str(cloud_path), headers=headers)
+        length = -1 if end is None else end - start + 1
         try:
             with self.opener.open(request) as response:
                 status = response.status
                 if status == 206:
-                    return response.read(end - start + 1)
+                    return response.read(length)
                 elif status == 200 and start == 0:
                     # servers without Range support can still serve reads from the start
                     # (e.g. a full-object read); the surplus body is simply not consumed
-                    return response.read(end + 1)
+                    return response.read(length)
                 elif status == 200:
                     raise CloudPathStreamingError(
                         f"HTTP server ignored the Range header for {cloud_path}; "
@@ -258,17 +261,13 @@ class HttpClient(Client):
                 return b""
             raise
 
-    def _get_content_length(self, cloud_path: "HttpPath") -> int:
-        """Get the size of an HTTP resource."""
+    def _get_content_length(self, cloud_path: "HttpPath") -> Optional[int]:
+        """Size of an HTTP resource from a HEAD request, or None without Content-Length."""
         request = urllib.request.Request(str(cloud_path), method="HEAD")
         try:
             with self.opener.open(request) as response:
                 content_length = response.headers.get("Content-Length")
-                if content_length:
-                    return int(content_length)
-                raise CloudPathStreamingError(
-                    f"HTTP resource does not provide Content-Length: {cloud_path}"
-                )
+                return int(content_length) if content_length else None
         except urllib.error.HTTPError as e:
             if e.code == 404:
                 raise CloudPathFileNotFoundError(f"HTTP resource not found: {cloud_path}") from e

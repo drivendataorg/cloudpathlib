@@ -385,7 +385,7 @@ class GSClient(Client):
         )
         return url
 
-    def _range_download(self, cloud_path: GSPath, start: int, end: int) -> bytes:
+    def _range_download(self, cloud_path: GSPath, start: int, end: Optional[int] = None) -> bytes:
         """Download a byte range from GCS."""
         blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
         try:
@@ -394,15 +394,6 @@ class GSClient(Client):
             raise CloudPathFileNotFoundError(f"GCS object not found: {cloud_path}") from e
         except GCSRangeNotSatisfiable:
             return b""
-
-    def _get_content_length(self, cloud_path: GSPath) -> int:
-        """Get the size of a GCS object."""
-        blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
-        try:
-            blob.reload(**self.blob_kwargs)
-            return blob.size
-        except GCSNotFound as e:
-            raise CloudPathFileNotFoundError(f"GCS object not found: {cloud_path}") from e
 
     def _mpu_url(self, cloud_path: GSPath) -> str:
         """XML API URL for a multipart upload of this object."""

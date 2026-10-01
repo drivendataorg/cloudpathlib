@@ -249,7 +249,9 @@ class LocalClient(Client):
         query["signature"] = "local"
         return urlunsplit(parts._replace(query=urlencode(query)))
 
-    def _range_download(self, cloud_path: LocalPath, start: int, end: int) -> bytes:
+    def _range_download(
+        self, cloud_path: LocalPath, start: int, end: Optional[int] = None
+    ) -> bytes:
         """Download a byte range from local storage."""
         local_path = self._cloud_path_to_local(cloud_path)
         if not local_path.exists():
@@ -257,15 +259,7 @@ class LocalClient(Client):
 
         with open(local_path, "rb") as f:
             f.seek(start)
-            length = end - start + 1
-            return f.read(length)
-
-    def _get_content_length(self, cloud_path: LocalPath) -> int:
-        """Get the size of a local file."""
-        local_path = self._cloud_path_to_local(cloud_path)
-        if not local_path.exists():
-            raise CloudPathFileNotFoundError(f"File not found: {cloud_path}")
-        return local_path.stat().st_size
+            return f.read(-1 if end is None else end - start + 1)
 
     def _initiate_multipart_upload(self, cloud_path: LocalPath) -> str:
         """Return a unique upload ID so concurrent uploads don't share a buffer."""

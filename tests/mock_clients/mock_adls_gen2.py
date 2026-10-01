@@ -60,7 +60,7 @@ class MockedFileClient:
             fp = FileProperties(
                 **{
                     "name": self.key,
-                    "size": 0,
+                    "Content-Length": 0,  # the SDK reads size from this header
                     "ETag": "etag",
                     "Last-Modified": datetime.fromtimestamp(path.stat().st_mtime),
                     "metadata": {"hdi_isfolder": True},
@@ -73,7 +73,7 @@ class MockedFileClient:
             fp = FileProperties(
                 **{
                     "name": self.key,
-                    "size": path.stat().st_size,
+                    "Content-Length": path.stat().st_size,  # the SDK reads size from this header
                     "ETag": "etag",
                     "Last-Modified": datetime.fromtimestamp(path.stat().st_mtime),
                     "metadata": {"hdi_isfolder": False},

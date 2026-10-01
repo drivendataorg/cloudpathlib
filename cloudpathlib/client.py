@@ -23,7 +23,11 @@ from typing import (
 from .cloud_io import _CloudStorageRaw
 from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 from .enums import FileCacheMode
-from .exceptions import InvalidConfigurationException
+from .exceptions import (
+    CloudPathFileNotFoundError,
+    InvalidConfigurationException,
+    NoStatError,
+)
 
 BoundedCloudPath = TypeVar("BoundedCloudPath", bound=CloudPath)
 _UploadPart = Dict[str, Any]
@@ -220,18 +224,22 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     ) -> str:
         pass
 
-    def _range_download(self, cloud_path: BoundedCloudPath, start: int, end: int) -> bytes:
-        """Download an inclusive byte range."""
+    def _range_download(
+        self, cloud_path: BoundedCloudPath, start: int, end: Optional[int] = None
+    ) -> bytes:
+        """Download the inclusive byte range `start`-`end`, or from `start` to the end of the
+        object when `end` is None."""
         raise NotImplementedError(
             f"{type(self).__name__} does not support streaming I/O (_range_download). "
             "Implement this method or use a non-streaming file_cache_mode."
         )
 
-    def _get_content_length(self, cloud_path: BoundedCloudPath) -> int:
-        """Return object size without downloading it."""
-        raise NotImplementedError(
-            f"{type(self).__name__} does not support streaming I/O (_get_content_length)."
-        )
+    def _get_content_length(self, cloud_path: BoundedCloudPath) -> Optional[int]:
+        """Object size without downloading it, or None when the provider cannot say."""
+        try:
+            return cloud_path.stat().st_size
+        except NoStatError as e:
+            raise CloudPathFileNotFoundError(f"Object not found: {cloud_path}") from e
 
     def _initiate_multipart_upload(self, cloud_path: BoundedCloudPath) -> str:
         """Start a multipart upload."""

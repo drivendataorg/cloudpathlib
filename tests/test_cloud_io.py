@@ -1988,7 +1988,7 @@ def test_streaming_full_read_uses_single_range_request(streaming_rig, monkeypatc
     calls = []
     original_range_download = type(client)._range_download
 
-    def counting_range_download(self, cloud_path, start, end):
+    def counting_range_download(self, cloud_path, start, end=None):
         calls.append((start, end))
         return original_range_download(self, cloud_path, start, end)
 
@@ -2008,8 +2008,8 @@ def test_streaming_full_read_uses_single_range_request(streaming_rig, monkeypatc
 
 
 def test_streaming_size_fetch_failure_is_memoized(streaming_rig, monkeypatch):
-    """A failing content-length lookup must be attempted at most once per stream,
-    not re-issued before every chunk read."""
+    """A failing content-length lookup is attempted at most once per stream, a full read
+    is still a single (open-ended) request, and SEEK_END reports the lookup error."""
     rig = streaming_rig
     content = b"z" * (200 * 1024)
 
@@ -2027,11 +2027,24 @@ def test_streaming_size_fetch_failure_is_memoized(streaming_rig, monkeypatch):
 
     monkeypatch.setattr(type(client), "_get_content_length", failing_get_content_length)
 
+    ranges = []
+    original_range_download = type(client)._range_download
+
+    def recording_range_download(self, cloud_path, start, end=None):
+        ranges.append((start, end))
+        return original_range_download(self, cloud_path, start, end)
+
+    monkeypatch.setattr(type(client), "_range_download", recording_range_download)
+
     try:
         with path.open("rb", buffering=16 * 1024) as f:
             data = f.read()
+            with pytest.raises(CloudPathStreamingError, match="size") as exc_info:
+                f.seek(0, io.SEEK_END)
+            assert isinstance(exc_info.value.__cause__, OSError)
         assert data == content
         assert calls["n"] == 1
+        assert ranges == [(0, None)]
     finally:
         monkeypatch.undo()
         try:
@@ -2525,10 +2538,9 @@ def test_http_streaming_error_paths(http_rig, monkeypatch):
     with pytest.raises(CloudPathStreamingError, match="Unexpected status"):
         path.client._range_download(path, 0, 3)
 
-    # HEAD without Content-Length cannot size the stream
+    # HEAD without Content-Length means the size is unknown, not an error
     monkeypatch.setattr(path.client.opener, "open", lambda req: FakeResponse(200))
-    with pytest.raises(CloudPathStreamingError, match="Content-Length"):
-        path.client._get_content_length(path)
+    assert path.client._get_content_length(path) is None
 
     # a failing PUT status raises
     monkeypatch.setattr(path.client.opener, "open", lambda req: FakeResponse(500))

@@ -281,9 +281,10 @@ class MockBoto3Client:
         if Range:
             import re
 
-            match = re.match(r"bytes=(\d+)-(\d+)", Range)
+            match = re.match(r"bytes=(\d+)-(\d+)?$", Range)
             if match:
-                start, end = int(match.group(1)), int(match.group(2))
+                start = int(match.group(1))
+                end = len(data) - 1 if match.group(2) is None else int(match.group(2))
                 if start >= len(data):
                     # real S3 rejects ranges starting past EOF (an end past EOF is clamped)
                     raise ClientError(

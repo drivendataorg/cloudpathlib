@@ -198,7 +198,6 @@ def test_custom_mys3client_default_client(custom_s3_path):
     "call",
     [
         lambda client, path: Client._range_download(client, path, 0, 0),
-        lambda client, path: Client._get_content_length(client, path),
         lambda client, path: Client._initiate_multipart_upload(client, path),
         lambda client, path: Client._upload_part(client, path, "upload", 1, b"data"),
         lambda client, path: Client._complete_multipart_upload(client, path, "upload", []),

@@ -60,6 +60,7 @@ class _CloudStorageRaw(io.RawIOBase):
         self._pos = 0
         self._size: Optional[int] = None
         self._size_fetch_failed = False
+        self._size_error: Optional[Exception] = None
         self._closed = False
         self._upload_error: Optional[BaseException] = None
         # Optional conflict check run just before a write is finalized (set by CloudPath.open)
@@ -132,13 +133,11 @@ class _CloudStorageRaw(io.RawIOBase):
 
         self._discard_prefetch()
         size = self._known_size()
-        if size is None:
-            # Size unknown: fall back to the default chunked read loop.
-            return super().readall()
-        if self._pos >= size:
+        if size is not None and self._pos >= size:
             return b""
 
-        data = self._range_get(self._pos, size - 1)
+        # one open-ended request whether or not the size is known
+        data = self._range_get(self._pos, None if size is None else size - 1)
         self._pos += len(data)
         return data
 
@@ -165,7 +164,9 @@ class _CloudStorageRaw(io.RawIOBase):
         elif whence == io.SEEK_END:
             size = self._known_size()
             if size is None:
-                raise OSError("Unable to determine file size for SEEK_END")
+                raise CloudPathStreamingError(
+                    f"Unable to determine the size of {self._cloud_path} for SEEK_END"
+                ) from self._size_error
             new_pos = size + offset
         else:
             raise ValueError(
@@ -307,18 +308,25 @@ class _CloudStorageRaw(io.RawIOBase):
                 )
             start += chunk_len
 
-    def _range_get(self, start: int, end: int) -> bytes:
+    def _range_get(self, start: int, end: Optional[int]) -> bytes:
         return self._client._range_download(self._cloud_path, start, end)
 
-    def _get_size(self) -> int:
+    def _get_size(self) -> Optional[int]:
         return self._client._get_content_length(self._cloud_path)
 
     def _known_size(self) -> Optional[int]:
-        """Fetch and memoize the object size, attempting the lookup at most once."""
+        """Fetch and memoize the object size, attempting the lookup at most once.
+
+        The size is only needed for SEEK_END, read-ahead, and short-circuiting reads past
+        EOF, so a failed lookup (e.g. a policy that allows GET but not HEAD) does not stop
+        the stream from being read; the error is kept for SEEK_END to report.
+        """
         if self._size is None and not self._size_fetch_failed:
             try:
                 self._size = self._get_size()
-            except Exception:
+            except Exception as e:
+                self._size_error = e
+            if self._size is None:
                 self._size_fetch_failed = True
         return self._size
 

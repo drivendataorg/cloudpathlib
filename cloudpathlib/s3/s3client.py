@@ -413,13 +413,13 @@ class S3Client(Client):
         )
         return url
 
-    def _range_download(self, cloud_path: S3Path, start: int, end: int) -> bytes:
+    def _range_download(self, cloud_path: S3Path, start: int, end: Optional[int] = None) -> bytes:
         """Download a byte range from S3."""
         try:
             response = self.client.get_object(
                 Bucket=cloud_path.bucket,
                 Key=cloud_path.key,
-                Range=f"bytes={start}-{end}",
+                Range=f"bytes={start}-{'' if end is None else end}",
                 **self.boto3_dl_extra_args,
             )
             body = response["Body"]
@@ -432,24 +432,6 @@ class S3Client(Client):
                 raise CloudPathFileNotFoundError(f"S3 object not found: {cloud_path}") from e
             if code in ("InvalidRange", "416"):
                 return b""
-            raise
-
-    def _get_content_length(self, cloud_path: S3Path) -> int:
-        """Get the size of an S3 object.
-
-        head_object raises ClientError with code 404, not NoSuchKey.
-        """
-        try:
-            response = self.client.head_object(
-                Bucket=cloud_path.bucket,
-                Key=cloud_path.key,
-                **self.boto3_dl_extra_args,
-            )
-            return response["ContentLength"]
-        except ClientError as e:
-            code = e.response["Error"]["Code"]
-            if code in ("404", "NoSuchKey"):
-                raise CloudPathFileNotFoundError(f"S3 object not found: {cloud_path}") from e
             raise
 
     def _streaming_extra_args(self, operation_name: str) -> Dict[str, Any]:

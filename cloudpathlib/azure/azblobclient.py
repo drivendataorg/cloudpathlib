@@ -517,13 +517,15 @@ class AzureBlobClient(Client):
         url = f"{self._get_public_url(cloud_path)}?{sas_token}"
         return url
 
-    def _range_download(self, cloud_path: AzureBlobPath, start: int, end: int) -> bytes:
+    def _range_download(
+        self, cloud_path: AzureBlobPath, start: int, end: Optional[int] = None
+    ) -> bytes:
         """Download a byte range from Azure Blob Storage."""
         blob_client = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
         try:
-            length = end - start + 1
+            length = None if end is None else end - start + 1
             downloader = blob_client.download_blob(offset=start, length=length)
             return downloader.readall()
         except ResourceNotFoundError as e:
@@ -532,17 +534,6 @@ class AzureBlobClient(Client):
             if (e.error and e.error.code == "InvalidRange") or e.status_code == 416:
                 return b""
             raise
-
-    def _get_content_length(self, cloud_path: AzureBlobPath) -> int:
-        """Get the size of an Azure blob."""
-        blob_client = self.service_client.get_blob_client(
-            container=cloud_path.container, blob=cloud_path.blob
-        )
-        try:
-            properties = blob_client.get_blob_properties()
-            return properties.size
-        except ResourceNotFoundError as e:
-            raise CloudPathFileNotFoundError(f"Azure blob not found: {cloud_path}") from e
 
     def _initiate_multipart_upload(self, cloud_path: AzureBlobPath) -> str:
         """Return a unique session ID that namespaces this upload's block IDs.
