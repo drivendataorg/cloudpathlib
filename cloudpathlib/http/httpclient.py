@@ -25,11 +25,12 @@ class HttpClient(Client):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
-        streaming_max_concurrency: int = 1,
         auth: Optional[urllib.request.BaseHandler] = None,
         custom_list_page_parser: Optional[Callable[[str], Iterable[str]]] = None,
         custom_dir_matcher: Optional[Callable[[str], bool]] = None,
         write_file_http_method: Optional[str] = "PUT",
+        *,
+        streaming_max_concurrency: int = 1,
     ):
         """Class constructor. Creates an HTTP client that can be used to interact with HTTP servers
             using the cloudpathlib library.
@@ -43,13 +44,13 @@ class HttpClient(Client):
                 the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 uploading files. Defaults to `mimetypes.guess_type`.
-            streaming_max_concurrency (int): Maximum concurrent requests per open streaming
-                stream (background part uploads and read prefetch) when using
-                `FileCacheMode.streaming`; defaults to 1 (sequential).
             auth (Optional[urllib.request.BaseHandler]): Authentication handler to use for the client. Defaults to None, which will use the default handler.
             custom_list_page_parser (Optional[Callable[[str], Iterable[str]]]): Function to call to parse pages that list directories. Defaults to looking for `<a>` tags with `href`.
             custom_dir_matcher (Optional[Callable[[str], bool]]): Function to call to identify a url that is a directory. Defaults to a lambda that checks if the path ends with a `/`.
             write_file_http_method (Optional[str]): HTTP method to use when writing files. Defaults to "PUT", but some servers may want "POST".
+            streaming_max_concurrency (int): Maximum concurrent requests per open streaming
+                stream (background part uploads and read prefetch) when using
+                `FileCacheMode.streaming`; defaults to 1 (sequential).
         """
         super().__init__(
             file_cache_mode,

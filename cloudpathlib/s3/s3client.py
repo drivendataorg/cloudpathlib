@@ -47,8 +47,9 @@ class S3Client(Client):
         addressing_style: Optional[str] = None,
         boto3_transfer_config: Optional["TransferConfig"] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
-        streaming_max_concurrency: int = 1,
         extra_args: Optional[dict] = None,
+        *,
+        streaming_max_concurrency: int = 1,
     ):
         """Class constructor. Sets up a boto3 [`Session`](
         https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html).
@@ -86,14 +87,14 @@ class S3Client(Client):
                 [s3 transfers](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.TransferConfig)
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
-            streaming_max_concurrency (int): Maximum concurrent requests per open streaming
-                stream (background part uploads and read prefetch) when using
-                `FileCacheMode.streaming`; defaults to 1 (sequential).
             extra_args (Optional[dict]): A dictionary of extra args passed to download, upload, copy,
                 and list functions as relevant. You can include any keys supported by upload,
                 download, or copy operations, and we will pass on only the relevant args. To see the
                 extra args that are supported look at the upload, download, and copy lists in the
                 [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer).
+            streaming_max_concurrency (int): Maximum concurrent requests per open streaming
+                stream (background part uploads and read prefetch) when using
+                `FileCacheMode.streaming`; defaults to 1 (sequential).
         """
         endpoint_url = endpoint_url or os.getenv("AWS_ENDPOINT_URL")
         if boto3_session is not None:

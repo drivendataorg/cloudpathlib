@@ -57,6 +57,7 @@ class AzureBlobClient(Client):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
+        *,
         streaming_max_concurrency: int = 1,
     ):
         """Class constructor. Sets up a [`BlobServiceClient`](

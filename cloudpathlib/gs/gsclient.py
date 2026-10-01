@@ -90,10 +90,11 @@ class GSClient(Client):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
-        streaming_max_concurrency: int = 1,
         download_chunks_concurrently_kwargs: Optional[Dict[str, Any]] = None,
         timeout: Optional[float] = None,
         retry: Optional["Retry"] = None,
+        *,
+        streaming_max_concurrency: int = 1,
     ):
         """Class constructor. Sets up a [`Storage
         Client`](https://googleapis.dev/python/storage/latest/client.html).
@@ -127,14 +128,14 @@ class GSClient(Client):
                 the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
-            streaming_max_concurrency (int): Maximum concurrent requests per open streaming
-                stream (background part uploads and read prefetch) when using
-                `FileCacheMode.streaming`; defaults to 1 (sequential).
             download_chunks_concurrently_kwargs (Optional[Dict[str, Any]]): Keyword arguments to pass to
                 [`download_chunks_concurrently`](https://cloud.google.com/python/docs/reference/storage/latest/google.cloud.storage.transfer_manager#google_cloud_storage_transfer_manager_download_chunks_concurrently)
                 for sliced parallel downloads; Only available in `google-cloud-storage` version 2.7.0 or later, otherwise ignored and a warning is emitted.
             timeout (Optional[float]): Cloud Storage [timeout value](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout)
             retry (Optional[google.api_core.retry.Retry]): Cloud Storage [retry configuration](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout#configuring-retries)
+            streaming_max_concurrency (int): Maximum concurrent requests per open streaming
+                stream (background part uploads and read prefetch) when using
+                `FileCacheMode.streaming`; defaults to 1 (sequential).
         """
         # don't check `GOOGLE_APPLICATION_CREDENTIALS` since `google_default_auth` already does that
         # use explicit client
