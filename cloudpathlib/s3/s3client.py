@@ -1,7 +1,7 @@
 import mimetypes
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Tuple, Union
+from typing import Any, BinaryIO, Callable, Dict, Iterable, Optional, Sequence, Tuple, Union
 
 from ..client import Client, _UploadPart, register_client_class
 from ..cloud_io import _CloudMultipartStorageRaw
@@ -512,14 +512,13 @@ class S3Client(Client):
             Bucket=cloud_path.bucket, Key=cloud_path.key, UploadId=upload_id
         )
 
-    def _put_empty_object(self, cloud_path: S3Path) -> None:
-        """Upload a zero-byte object, threading content-type and upload extra args."""
-        extra_args = self._streaming_object_args("PutObject", cloud_path)
+    def _put_object(self, cloud_path: S3Path, data: BinaryIO) -> None:
+        """Upload a whole object in one request, threading content-type and upload extra args."""
         self.client.put_object(
             Bucket=cloud_path.bucket,
             Key=cloud_path.key,
-            Body=b"",
-            **extra_args,
+            Body=data,
+            **self._streaming_object_args("PutObject", cloud_path),
         )
 
 

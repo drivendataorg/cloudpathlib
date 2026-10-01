@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import tempfile
 from abc import abstractmethod
 from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from typing import IO, TYPE_CHECKING, Any, Callable, Dict, Optional, Type, Union
@@ -415,12 +416,15 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
             target_size = self._target_part_size()
 
     def _finalize_upload(self) -> None:
+        if self._upload_id is None:
+            # everything fit in one part (or nothing was written): a single PUT instead of
+            # the three multipart requests, as the SDK transfer managers also do
+            self._client._put_object(self._cloud_path, io.BytesIO(bytes(self._write_buffer)))
+            self._reset_upload()
+            return
         if self._write_buffer:
             self._upload_buffered_part(len(self._write_buffer))
         self._harvest_part_futures(drain=True)
-        if self._upload_id is None:
-            self._client._put_empty_object(self._cloud_path)
-            return
         ordered_parts = [self._parts[number] for number in sorted(self._parts)]
         self._client._complete_multipart_upload(self._cloud_path, self._upload_id, ordered_parts)
         self._reset_upload()
@@ -441,6 +445,40 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
         self._part_futures.clear()
         self._part_number = 1
         self._write_buffer.clear()
+
+
+class _CloudSpooledStorageRaw(_CloudStorageRaw):
+    """Range reads plus single-request writes for providers without multipart uploads
+    (HTTP). Written bytes are spooled to a temporary file above the default buffer size and
+    sent as one request on close."""
+
+    def __init__(
+        self,
+        client: Client,
+        cloud_path: CloudPath,
+        mode: str = "rb",
+        pre_finalize: Optional[Callable[[], None]] = None,
+    ) -> None:
+        super().__init__(client, cloud_path, mode, pre_finalize)
+        self._spool: Optional[tempfile.SpooledTemporaryFile] = None
+
+    def _upload_chunk(self, data: bytes) -> None:
+        if self._spool is None:
+            self._spool = tempfile.SpooledTemporaryFile(max_size=DEFAULT_BUFFER_SIZE)
+        self._spool.write(data)
+
+    def _finalize_upload(self) -> None:
+        spool = self._spool if self._spool is not None else io.BytesIO()
+        try:
+            spool.seek(0)
+            self._client._put_object(self._cloud_path, spool)  # type: ignore[arg-type]
+        finally:
+            self._abort_upload()
+
+    def _abort_upload(self) -> None:
+        if self._spool is not None:
+            self._spool.close()
+            self._spool = None
 
 
 def open_stream(

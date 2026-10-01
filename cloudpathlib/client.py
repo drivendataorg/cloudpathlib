@@ -6,6 +6,7 @@ import shutil
 from tempfile import TemporaryDirectory
 from typing import (
     Any,
+    BinaryIO,
     Callable,
     ClassVar,
     Dict,
@@ -260,8 +261,8 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
             f"{type(self).__name__} does not support streaming I/O (_abort_multipart_upload)."
         )
 
-    def _put_empty_object(self, cloud_path: BoundedCloudPath) -> None:
-        """Create an empty object."""
+    def _put_object(self, cloud_path: BoundedCloudPath, data: BinaryIO) -> None:
+        """Upload a whole object in one request from a readable binary stream."""
         raise NotImplementedError(
-            f"{type(self).__name__} does not support streaming I/O (_put_empty_object)."
+            f"{type(self).__name__} does not support streaming I/O (_put_object)."
         )

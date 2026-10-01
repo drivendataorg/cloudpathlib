@@ -3,7 +3,18 @@ from functools import lru_cache
 import mimetypes
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union, Sequence
+from typing import (
+    Any,
+    BinaryIO,
+    Callable,
+    Dict,
+    Iterable,
+    Optional,
+    TYPE_CHECKING,
+    Tuple,
+    Union,
+    Sequence,
+)
 import warnings
 
 from ..client import Client, _UploadPart, register_client_class
@@ -444,11 +455,11 @@ class GSClient(Client):
         )
         container.cancel(self.client._http)
 
-    def _put_empty_object(self, cloud_path: GSPath) -> None:
-        """Upload a zero-byte GCS object."""
+    def _put_object(self, cloud_path: GSPath, data: BinaryIO) -> None:
+        """Upload a whole object in one request, threading content-type."""
         blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
-        blob.upload_from_string(
-            b"", content_type=self._content_type(cloud_path), **self.blob_kwargs
+        blob.upload_from_file(
+            data, content_type=self._content_type(cloud_path), **self.blob_kwargs
         )
 
 

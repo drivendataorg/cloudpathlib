@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 from pathlib import Path, PurePosixPath
 import shutil
+import threading
 
 
 from azure.storage.blob import BlobProperties
@@ -23,6 +24,10 @@ class _JsonCache:
     different clients can access the same metadata store.
     """
 
+    # one process-wide lock: a cache is shared by every mock client in a test, and
+    # concurrent streaming writers would otherwise read a half-written JSON file
+    _lock = threading.Lock()
+
     def __init__(self, path: Path):
         self.path = path
 
@@ -31,16 +36,18 @@ class _JsonCache:
             json.dump({}, f)
 
     def __getitem__(self, key):
-        with self.path.open("r") as f:
-            return json.load(f)[str(key)]
+        with self._lock:
+            with self.path.open("r") as f:
+                return json.load(f)[str(key)]
 
     def __setitem__(self, key, value):
-        with self.path.open("r") as f:
-            data = json.load(f)
+        with self._lock:
+            with self.path.open("r") as f:
+                data = json.load(f)
 
-        with self.path.open("w") as f:
-            data[str(key)] = value
-            json.dump(data, f)
+            with self.path.open("w") as f:
+                data[str(key)] = value
+                json.dump(data, f)
 
     def get(self, key, default=None):
         try:

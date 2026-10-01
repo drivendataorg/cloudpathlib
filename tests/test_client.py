@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import io
 import mimetypes
 import random
 import string
@@ -202,7 +203,7 @@ def test_custom_mys3client_default_client(custom_s3_path):
         lambda client, path: Client._upload_part(client, path, "upload", 1, b"data"),
         lambda client, path: Client._complete_multipart_upload(client, path, "upload", []),
         lambda client, path: Client._abort_multipart_upload(client, path, "upload"),
-        lambda client, path: Client._put_empty_object(client, path),
+        lambda client, path: Client._put_object(client, path, io.BytesIO()),
     ],
 )
 def test_default_streaming_hooks_raise_not_implemented(local_s3_rig, call):

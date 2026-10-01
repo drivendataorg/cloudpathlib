@@ -9,6 +9,7 @@ from tempfile import TemporaryDirectory
 from time import sleep
 from typing import (
     Any,
+    BinaryIO,
     Callable,
     ClassVar,
     Dict,
@@ -298,11 +299,12 @@ class LocalClient(Client):
     def _abort_multipart_upload(self, cloud_path: LocalPath, upload_id: str) -> None:
         self._local_upload_buffers.pop(upload_id, None)
 
-    def _put_empty_object(self, cloud_path: LocalPath) -> None:
-        """Create a zero-byte local file."""
+    def _put_object(self, cloud_path: LocalPath, data: BinaryIO) -> None:
+        """Write a whole local file from a readable stream."""
         local_path = self._cloud_path_to_local(cloud_path)
         local_path.parent.mkdir(parents=True, exist_ok=True)
-        local_path.write_bytes(b"")
+        with local_path.open("wb") as f:
+            shutil.copyfileobj(data, f)
 
 
 _temp_dirs_to_clean: List[TemporaryDirectory] = []

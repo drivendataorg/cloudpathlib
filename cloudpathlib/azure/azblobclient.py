@@ -4,7 +4,18 @@ import mimetypes
 import os
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, Optional, Sequence, Tuple, Union, cast
+from typing import (
+    Any,
+    BinaryIO,
+    Callable,
+    Dict,
+    Iterable,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    cast,
+)
 from uuid import uuid4
 
 from ..client import Client, _UploadPart, register_client_class
@@ -573,13 +584,13 @@ class AzureBlobClient(Client):
         """Let Azure expire uncommitted blocks."""
         pass
 
-    def _put_empty_object(self, cloud_path: AzureBlobPath) -> None:
-        """Upload a zero-byte Azure blob, threading content-type."""
+    def _put_object(self, cloud_path: AzureBlobPath, data: BinaryIO) -> None:
+        """Upload a whole blob in one request, threading content-type."""
         blob_client = self.service_client.get_blob_client(
             container=cloud_path.container, blob=cloud_path.blob
         )
         blob_client.upload_blob(
-            b"", overwrite=True, content_settings=self._content_settings(cloud_path)
+            data, overwrite=True, content_settings=self._content_settings(cloud_path)
         )
 
 

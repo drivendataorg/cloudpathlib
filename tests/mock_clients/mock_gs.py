@@ -143,6 +143,12 @@ class MockBlob:
 
         self.client.metadata_cache[self.bucket / self.name] = content_type
 
+    def upload_from_file(self, file_obj, content_type=None, timeout=None, retry=None):
+        """Upload from a readable binary stream."""
+        self.upload_from_string(
+            file_obj.read(), content_type=content_type, timeout=timeout, retry=retry
+        )
+
     def upload_from_string(self, data, content_type=None, timeout=None, retry=None):
         """Upload from bytes/string data."""
         # if timeout is not None, assume that the test wants a timeout and throw it

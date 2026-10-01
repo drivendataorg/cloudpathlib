@@ -1063,6 +1063,50 @@ def test_write_error_cleanup(rig):
             pass
 
 
+def test_small_streaming_write_is_a_single_put(streaming_rig, monkeypatch):
+    """Writes that fit in one part (the common case) are one PUT, not a three-request
+    multipart upload; larger writes still go multipart."""
+    from cloudpathlib.cloud_io import _CloudMultipartStorageRaw
+
+    rig = streaming_rig
+    if not issubclass(rig.raw_io_class, _CloudMultipartStorageRaw):
+        pytest.skip("provider does not use multipart streaming writes")
+    path = rig.create_cloud_path("single-put.bin")
+    client = path.client
+
+    calls = []
+    for name in ("_put_object", "_initiate_multipart_upload"):
+        original = getattr(client, name)
+
+        def spy(*args, _name=name, _original=original, **kwargs):
+            calls.append(_name)
+            return _original(*args, **kwargs)
+
+        monkeypatch.setattr(client, name, spy)
+
+    try:
+        data = b"x" * (client._multipart_min_part_size - 1)
+        with path.open("wb") as f:
+            f.write(data)
+        assert calls == ["_put_object"]
+        assert path.read_bytes() == data
+
+        calls.clear()
+        with path.open("wb"):
+            pass
+        assert calls == ["_put_object"]
+        assert path.read_bytes() == b""
+
+        calls.clear()
+        data = b"y" * (client._multipart_min_part_size + 1)
+        with path.open("wb") as f:
+            f.write(data)
+        assert calls == ["_initiate_multipart_upload"]
+        assert path.read_bytes() == data
+    finally:
+        path.unlink(missing_ok=True)
+
+
 def test_http_write_empty_file(rig):
     """Test HTTP write for empty file."""
     if rig.path_class.cloud_prefix not in ("http://", "https://"):
@@ -1408,19 +1452,21 @@ def test_concurrent_writes_dont_cross_buffers(rig):
     if rig.path_class.cloud_prefix not in ("s3://", "az://", "gs://"):
         pytest.skip(f"Streaming I/O not implemented for {rig.path_class.cloud_prefix}")
 
-    path_a = rig.create_cloud_path("test_concurrent_a.bin")
-    path_b = rig.create_cloud_path("test_concurrent_b.bin")
+    # a dedicated client: toggling the shared default client's mode from two threads
+    # would race, which is not what this test is about
+    client = rig.client_class(
+        file_cache_mode=FileCacheMode.streaming, **rig.required_client_kwargs
+    )
+    path_a = rig.create_cloud_path("test_concurrent_a.bin", client=client)
+    path_b = rig.create_cloud_path("test_concurrent_b.bin", client=client)
     data_a = b"AAAA" * 1024
     data_b = b"BBBB" * 1024
     errors = []
 
     def write_path(path, data):
         try:
-            original_mode = path.client.file_cache_mode
-            path.client.file_cache_mode = FileCacheMode.streaming
             with path.open("wb") as f:
                 f.write(data)
-            path.client.file_cache_mode = original_mode
         except Exception as e:
             errors.append(e)
 
@@ -1695,7 +1741,7 @@ def test_http_streaming_upload_uses_client_configuration(http_rig, monkeypatch):
     path = http_rig.create_cloud_path("configured.txt")
     path.client.write_file_http_method = "PATCH"
     monkeypatch.setattr(path.client.opener, "open", record_request)
-    path.client._put_data(path, io.BytesIO(b"abc"), 3)
+    path.client._put_object(path, io.BytesIO(b"abc"))
 
     request = calls["request"]
     assert request.method == "PATCH"
@@ -2487,7 +2533,7 @@ def test_http_streaming_error_paths(http_rig, monkeypatch):
     # a failing PUT status raises
     monkeypatch.setattr(path.client.opener, "open", lambda req: FakeResponse(500))
     with pytest.raises(CloudPathStreamingError, match="HTTP PUT failed"):
-        path.client._put_data(path, io.BytesIO(b"x"), 1)
+        path.client._put_object(path, io.BytesIO(b"x"))
 
     # non-404 HTTP errors propagate from reads and size checks
     def raise_403(req):
@@ -2505,7 +2551,7 @@ def test_http_streaming_error_paths(http_rig, monkeypatch):
 
     monkeypatch.setattr(path.client.opener, "open", raise_405)
     with pytest.raises(CloudPathNotImplementedError):
-        path.client._put_data(path, io.BytesIO(b"x"), 1)
+        path.client._put_object(path, io.BytesIO(b"x"))
 
     monkeypatch.undo()
     try:
