@@ -377,17 +377,20 @@ class S3Client(Client):
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: S3Path) -> S3Path:
         obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
-        extra_args = self.boto3_ul_extra_args.copy()
-
-        if self.content_type_method is not None:
-            content_type, content_encoding = self.content_type_method(str(local_path))
-            if content_type is not None:
-                extra_args["ContentType"] = content_type
-            if content_encoding is not None:
-                extra_args["ContentEncoding"] = content_encoding
-
+        extra_args = {**self.boto3_ul_extra_args, **self._content_type_args(cloud_path)}
         obj.upload_file(str(local_path), Config=self.boto3_transfer_config, ExtraArgs=extra_args)
         return cloud_path
+
+    def _content_type_args(self, cloud_path: S3Path) -> Dict[str, Any]:
+        """`ContentType`/`ContentEncoding` guessed from the object name, for uploads."""
+        args: Dict[str, Any] = {}
+        if self.content_type_method is not None:
+            content_type, content_encoding = self.content_type_method(str(cloud_path))
+            if content_type is not None:
+                args["ContentType"] = content_type
+            if content_encoding is not None:
+                args["ContentEncoding"] = content_encoding
+        return args
 
     def _get_public_url(self, cloud_path: S3Path) -> str:
         """Apparently the best way to get the public URL is to generate a presigned URL
@@ -470,14 +473,10 @@ class S3Client(Client):
         return {key: value for key, value in self.boto3_ul_extra_args.items() if key in allowed}
 
     def _streaming_object_args(self, operation_name: str, cloud_path: S3Path) -> Dict[str, Any]:
-        extra_args = self._streaming_extra_args(operation_name)
-        if self.content_type_method is not None:
-            content_type, content_encoding = self.content_type_method(str(cloud_path))
-            if content_type is not None:
-                extra_args["ContentType"] = content_type
-            if content_encoding is not None:
-                extra_args["ContentEncoding"] = content_encoding
-        return extra_args
+        return {
+            **self._streaming_extra_args(operation_name),
+            **self._content_type_args(cloud_path),
+        }
 
     def _initiate_multipart_upload(self, cloud_path: S3Path) -> str:
         """Start an S3 multipart upload, threading content-type and upload extra args."""

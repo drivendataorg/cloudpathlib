@@ -339,13 +339,21 @@ class GSClient(Client):
         bucket = self.client.bucket(cloud_path.bucket)
         blob = bucket.blob(cloud_path.blob)
 
-        extra_args = {}
-        if self.content_type_method is not None:
-            content_type, _ = self.content_type_method(str(local_path))
-            extra_args["content_type"] = content_type
-
-        blob.upload_from_filename(str(local_path), **extra_args, **self.blob_kwargs)
+        blob.upload_from_filename(
+            str(local_path), content_type=self._content_type(cloud_path), **self.blob_kwargs
+        )
         return cloud_path
+
+    def _content_type(self, cloud_path: GSPath) -> Optional[str]:
+        """Content type guessed from the object name, for uploads.
+
+        The guessed encoding is deliberately not sent: GCS applies decompressive transcoding to
+        objects with `Content-Encoding: gzip`, so a `.gz` object would no longer round-trip.
+        """
+        if self.content_type_method is None:
+            return None
+        content_type, _ = self.content_type_method(str(cloud_path))
+        return content_type
 
     def _get_public_url(self, cloud_path: GSPath) -> str:
         bucket = self.client.get_bucket(cloud_path.bucket)
@@ -399,20 +407,15 @@ class GSClient(Client):
         return f"{hostname}/{cloud_path.bucket}/{quote(cloud_path.blob)}"
 
     def _initiate_multipart_upload(self, cloud_path: GSPath) -> str:
-        """Start a GCS XML multipart upload, threading content type and encoding."""
+        """Start a GCS XML multipart upload, threading the content type."""
         if XMLMPUContainer is None:
             raise CloudPathNotImplementedError(
                 "Streaming writes require google-cloud-storage with XML multipart support."
             )
-        content_type = None
-        headers = {}
-        if self.content_type_method is not None:
-            content_type, content_encoding = self.content_type_method(str(cloud_path))
-            if content_encoding is not None:
-                headers["Content-Encoding"] = content_encoding
-        container = XMLMPUContainer(self._mpu_url(cloud_path), cloud_path.blob, headers=headers)
+        container = XMLMPUContainer(self._mpu_url(cloud_path), cloud_path.blob)
         container.initiate(
-            transport=self.client._http, content_type=content_type or "application/octet-stream"
+            transport=self.client._http,
+            content_type=self._content_type(cloud_path) or "application/octet-stream",
         )
         return container.upload_id
 
@@ -445,7 +448,9 @@ class GSClient(Client):
     def _put_empty_object(self, cloud_path: GSPath) -> None:
         """Upload a zero-byte GCS object."""
         blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
-        blob.upload_from_string(b"", **self.blob_kwargs)
+        blob.upload_from_string(
+            b"", content_type=self._content_type(cloud_path), **self.blob_kwargs
+        )
 
 
 GSClient.GSPath = GSClient.CloudPath  # type: ignore

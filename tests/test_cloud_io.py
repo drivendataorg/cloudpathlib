@@ -2402,18 +2402,18 @@ def test_azure_streaming_content_settings_branches(azure_rig):
         content_type_method=None, **azure_rig.required_client_kwargs
     )
     path = azure_rig.create_cloud_path("content-settings.bin", client=client_none)
-    assert client_none._streaming_content_settings(path) is None
+    assert client_none._content_settings(path) is None
 
     client_empty = azure_rig.client_class(
         content_type_method=lambda name: (None, None), **azure_rig.required_client_kwargs
     )
-    assert client_empty._streaming_content_settings(path) is None
+    assert client_empty._content_settings(path) is None
 
     client_full = azure_rig.client_class(
         content_type_method=lambda name: ("text/plain", "gzip"),
         **azure_rig.required_client_kwargs,
     )
-    settings = client_full._streaming_content_settings(path)
+    settings = client_full._content_settings(path)
     assert settings.content_type == "text/plain"
     assert settings.content_encoding == "gzip"
 
@@ -2447,8 +2447,9 @@ def test_gs_multipart_upload_hooks(gs_rig):
             pass
 
 
-def test_gs_mpu_initiate_threads_content_type_and_encoding(gs_rig):
-    """Initiate carries the content type and encoding from content_type_method."""
+def test_gs_mpu_initiate_threads_content_type_only(gs_rig):
+    """Initiate carries the content type from content_type_method but, like the cached
+    upload path, never the encoding: GCS would otherwise transcode `.gz` objects on read."""
     from types import SimpleNamespace
 
     client = gs_rig.client_class(
@@ -2484,7 +2485,7 @@ def test_gs_mpu_initiate_threads_content_type_and_encoding(gs_rig):
     assert captured["method"] == "POST"
     assert captured["url"].endswith("?uploads")
     assert captured["headers"]["content-type"] == "text/plain"
-    assert captured["headers"]["content-encoding"] == "gzip"
+    assert "content-encoding" not in captured["headers"]
 
 
 def test_http_streaming_error_paths(http_rig, monkeypatch):

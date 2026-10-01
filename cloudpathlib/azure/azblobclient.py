@@ -463,21 +463,21 @@ class AzureBlobClient(Client):
             container=cloud_path.container, blob=cloud_path.blob
         )
 
-        extra_args = {}
-        if self.content_type_method is not None:
-            content_type, content_encoding = self.content_type_method(str(local_path))
-
-            if content_type is not None:
-                extra_args["content_type"] = content_type
-            if content_encoding is not None:
-                extra_args["content_encoding"] = content_encoding
-
-        content_settings = ContentSettings(**extra_args)
-
         with Path(local_path).open("rb") as data:
-            blob.upload_blob(data, overwrite=True, content_settings=content_settings)  # type: ignore
+            blob.upload_blob(
+                data, overwrite=True, content_settings=self._content_settings(cloud_path)
+            )  # type: ignore
 
         return cloud_path
+
+    def _content_settings(self, cloud_path: AzureBlobPath) -> Optional["ContentSettings"]:
+        """Content type/encoding guessed from the object name, for uploads."""
+        if self.content_type_method is None:
+            return None
+        content_type, content_encoding = self.content_type_method(str(cloud_path))
+        if content_type is None and content_encoding is None:
+            return None
+        return ContentSettings(content_type=content_type, content_encoding=content_encoding)
 
     def _get_public_url(self, cloud_path: AzureBlobPath) -> str:
         blob_client = self.service_client.get_blob_client(
@@ -559,18 +559,8 @@ class AzureBlobClient(Client):
         )
         block_ids = [part["block_id"] for part in parts]
         blob_client.commit_block_list(
-            block_ids, content_settings=self._streaming_content_settings(cloud_path)
+            block_ids, content_settings=self._content_settings(cloud_path)
         )
-
-    def _streaming_content_settings(
-        self, cloud_path: AzureBlobPath
-    ) -> Optional["ContentSettings"]:
-        if self.content_type_method is None:
-            return None
-        content_type, content_encoding = self.content_type_method(str(cloud_path))
-        if not content_type and not content_encoding:
-            return None
-        return ContentSettings(content_type=content_type, content_encoding=content_encoding)
 
     def _abort_multipart_upload(self, cloud_path: AzureBlobPath, upload_id: str) -> None:
         """Let Azure expire uncommitted blocks."""
@@ -582,7 +572,7 @@ class AzureBlobClient(Client):
             container=cloud_path.container, blob=cloud_path.blob
         )
         blob_client.upload_blob(
-            b"", overwrite=True, content_settings=self._streaming_content_settings(cloud_path)
+            b"", overwrite=True, content_settings=self._content_settings(cloud_path)
         )
 
 
