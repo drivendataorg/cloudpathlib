@@ -515,8 +515,8 @@ class AzureBlobClient(Client):
             length = end - start + 1
             downloader = blob_client.download_blob(offset=start, length=length)
             return downloader.readall()
-        except ResourceNotFoundError:
-            raise CloudPathFileNotFoundError(f"Azure blob not found: {cloud_path}")
+        except ResourceNotFoundError as e:
+            raise CloudPathFileNotFoundError(f"Azure blob not found: {cloud_path}") from e
         except HttpResponseError as e:
             if (e.error and e.error.code == "InvalidRange") or e.status_code == 416:
                 return b""
@@ -530,8 +530,8 @@ class AzureBlobClient(Client):
         try:
             properties = blob_client.get_blob_properties()
             return properties.size
-        except ResourceNotFoundError:
-            raise CloudPathFileNotFoundError(f"Azure blob not found: {cloud_path}")
+        except ResourceNotFoundError as e:
+            raise CloudPathFileNotFoundError(f"Azure blob not found: {cloud_path}") from e
 
     def _initiate_multipart_upload(self, cloud_path: AzureBlobPath) -> str:
         """Return a unique session ID that namespaces this upload's block IDs.

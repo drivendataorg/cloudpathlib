@@ -15,6 +15,7 @@ from cloudpathlib.enums import FileCacheMode
 from cloudpathlib.exceptions import (
     CloudPathFileNotFoundError,
     CloudPathNotImplementedError,
+    CloudPathStreamingError,
     OverwriteNewerCloudError,
 )
 
@@ -1662,8 +1663,16 @@ def test_http_streaming_rejects_servers_that_ignore_ranges(http_rig, monkeypatch
     path = http_rig.create_cloud_path("ignored-range.bin")
     monkeypatch.setattr(path.client.opener, "open", ignore_range)
 
-    with pytest.raises(OSError, match="ignored the Range header"):
+    with pytest.raises(CloudPathStreamingError, match="ignored the Range header"):
         path.client._range_download(path, 2, 5)
+
+    # a read from the start can be served from a full response
+    def ignore_range_from_start(request):
+        assert request.headers["Range"] == "bytes=0-3"
+        return FullResponse(b"0123456789")
+
+    monkeypatch.setattr(path.client.opener, "open", ignore_range_from_start)
+    assert path.client._range_download(path, 0, 3) == b"0123"
 
 
 def test_http_streaming_upload_uses_client_configuration(http_rig, monkeypatch):
@@ -1825,8 +1834,10 @@ def test_raw_abort_failure_does_not_mask_original_error(local_s3_rig, fail_durin
     else:
         raw.write(b"data")
 
-    with pytest.raises(OSError, match="original failure"):
-        raw.close()
+    # the original error propagates; the failed cleanup is reported, not swallowed
+    with pytest.warns(RuntimeWarning, match="Could not abort"):
+        with pytest.raises(OSError, match="original failure"):
+            raw.close()
 
 
 # ============================================================================
@@ -2246,9 +2257,9 @@ def test_multipart_part_limit_enforced(local_s3_rig):
 
     raw = path.client._streaming_raw_class(path.client, path, "wb")
     raw.write(b"x" * 8)  # exactly two full parts — at the limit
-    with pytest.raises(OSError, match="part limit"):
+    with pytest.raises(CloudPathStreamingError, match="part limit"):
         raw.write(b"x" * 4)
-    with pytest.raises(OSError, match="part limit"):
+    with pytest.raises(CloudPathStreamingError, match="part limit"):
         raw.close()  # the write failure is sticky and aborts the upload
 
 
@@ -2465,17 +2476,17 @@ def test_http_streaming_error_paths(http_rig, monkeypatch):
 
     # a non-206/200 success status for a range request is unexpected
     monkeypatch.setattr(path.client.opener, "open", lambda req: FakeResponse(204))
-    with pytest.raises(OSError, match="Unexpected status"):
+    with pytest.raises(CloudPathStreamingError, match="Unexpected status"):
         path.client._range_download(path, 0, 3)
 
     # HEAD without Content-Length cannot size the stream
     monkeypatch.setattr(path.client.opener, "open", lambda req: FakeResponse(200))
-    with pytest.raises(ValueError, match="Content-Length"):
+    with pytest.raises(CloudPathStreamingError, match="Content-Length"):
         path.client._get_content_length(path)
 
-    # a failing PUT status raises OSError
+    # a failing PUT status raises
     monkeypatch.setattr(path.client.opener, "open", lambda req: FakeResponse(500))
-    with pytest.raises(OSError, match="HTTP PUT failed"):
+    with pytest.raises(CloudPathStreamingError, match="HTTP PUT failed"):
         path.client._put_data(path, io.BytesIO(b"x"), 1)
 
     # non-404 HTTP errors propagate from reads and size checks

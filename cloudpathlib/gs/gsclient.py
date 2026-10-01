@@ -379,8 +379,8 @@ class GSClient(Client):
         blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
         try:
             return blob.download_as_bytes(start=start, end=end, **self.blob_kwargs)
-        except GCSNotFound:
-            raise CloudPathFileNotFoundError(f"GCS object not found: {cloud_path}")
+        except GCSNotFound as e:
+            raise CloudPathFileNotFoundError(f"GCS object not found: {cloud_path}") from e
         except GCSRangeNotSatisfiable:
             return b""
 
@@ -390,8 +390,8 @@ class GSClient(Client):
         try:
             blob.reload(**self.blob_kwargs)
             return blob.size
-        except GCSNotFound:
-            raise CloudPathFileNotFoundError(f"GCS object not found: {cloud_path}")
+        except GCSNotFound as e:
+            raise CloudPathFileNotFoundError(f"GCS object not found: {cloud_path}") from e
 
     def _mpu_url(self, cloud_path: GSPath) -> str:
         """XML API URL for a multipart upload of this object."""

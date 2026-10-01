@@ -429,7 +429,7 @@ class S3Client(Client):
         except ClientError as e:
             code = e.response["Error"]["Code"]
             if code in ("404", "NoSuchKey"):
-                raise CloudPathFileNotFoundError(f"S3 object not found: {cloud_path}")
+                raise CloudPathFileNotFoundError(f"S3 object not found: {cloud_path}") from e
             if code in ("InvalidRange", "416"):
                 return b""
             raise
@@ -449,7 +449,7 @@ class S3Client(Client):
         except ClientError as e:
             code = e.response["Error"]["Code"]
             if code in ("404", "NoSuchKey"):
-                raise CloudPathFileNotFoundError(f"S3 object not found: {cloud_path}")
+                raise CloudPathFileNotFoundError(f"S3 object not found: {cloud_path}") from e
             raise
 
     def _streaming_extra_args(self, operation_name: str) -> Dict[str, Any]:

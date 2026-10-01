@@ -16,7 +16,11 @@ from cloudpathlib.client import Client, register_client_class
 from cloudpathlib.cloud_io import _CloudStorageRaw
 from cloudpathlib.cloudpath import CloudPath, _STREAM_COPY_CHUNK_SIZE
 from cloudpathlib.enums import FileCacheMode
-from cloudpathlib.exceptions import CloudPathFileNotFoundError, CloudPathNotImplementedError
+from cloudpathlib.exceptions import (
+    CloudPathFileNotFoundError,
+    CloudPathNotImplementedError,
+    CloudPathStreamingError,
+)
 
 from .httppath import HttpPath
 
@@ -266,16 +270,22 @@ class HttpClient(Client):
                 status = response.status
                 if status == 206:
                     return response.read(end - start + 1)
+                elif status == 200 and start == 0:
+                    # servers without Range support can still serve reads from the start
+                    # (e.g. a full-object read); the surplus body is simply not consumed
+                    return response.read(end + 1)
                 elif status == 200:
-                    raise OSError(
+                    raise CloudPathStreamingError(
                         f"HTTP server ignored the Range header for {cloud_path}; "
                         "streaming reads require byte-range support"
                     )
                 else:
-                    raise OSError(f"Unexpected status {status} for range request on {cloud_path}")
+                    raise CloudPathStreamingError(
+                        f"Unexpected status {status} for range request on {cloud_path}"
+                    )
         except urllib.error.HTTPError as e:
             if e.code == 404:
-                raise CloudPathFileNotFoundError(f"HTTP resource not found: {cloud_path}")
+                raise CloudPathFileNotFoundError(f"HTTP resource not found: {cloud_path}") from e
             elif e.code == 416:
                 return b""
             raise
@@ -288,10 +298,12 @@ class HttpClient(Client):
                 content_length = response.headers.get("Content-Length")
                 if content_length:
                     return int(content_length)
-                raise ValueError(f"HTTP resource does not provide Content-Length: {cloud_path}")
+                raise CloudPathStreamingError(
+                    f"HTTP resource does not provide Content-Length: {cloud_path}"
+                )
         except urllib.error.HTTPError as e:
             if e.code == 404:
-                raise CloudPathFileNotFoundError(f"HTTP resource not found: {cloud_path}")
+                raise CloudPathFileNotFoundError(f"HTTP resource not found: {cloud_path}") from e
             raise
 
     def _put_data(self, cloud_path: "HttpPath", data: BinaryIO, content_length: int) -> None:
@@ -307,15 +319,16 @@ class HttpClient(Client):
         try:
             with self.opener.open(request) as response:
                 if response.status not in (200, 201, 204):
-                    raise OSError(
-                        f"HTTP PUT failed with status {response.status}: {response.reason}"
+                    raise CloudPathStreamingError(
+                        f"HTTP {self.write_file_http_method} failed with status "
+                        f"{response.status}: {response.reason}"
                     )
         except urllib.error.HTTPError as e:
             if e.code == 405:
                 raise CloudPathNotImplementedError(
                     f"HTTP server does not support {self.write_file_http_method} requests for {url}"
-                )
-            raise OSError(f"HTTP upload failed: {e}")
+                ) from e
+            raise CloudPathStreamingError(f"HTTP upload failed: {e}") from e
 
 
 HttpClient.HttpPath = HttpClient.CloudPath  # type: ignore

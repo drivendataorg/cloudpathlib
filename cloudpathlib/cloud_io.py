@@ -15,6 +15,8 @@ else:
     _ReadableBuffer = Union[bytes, bytearray, memoryview]
     _WriteableBuffer = Union[bytearray, memoryview]
 
+from .exceptions import CloudPathStreamingError
+
 if TYPE_CHECKING:
     from .client import Client
     from .cloudpath import CloudPath
@@ -210,26 +212,32 @@ class _CloudStorageRaw(io.RawIOBase):
 
         try:
             if self.writable() and self._upload_error is not None:
-                try:
-                    self._abort_upload()
-                except Exception:
-                    pass
-                finally:
-                    raise self._upload_error
+                self._abort_upload_after_failure()
+                raise self._upload_error
             if self.writable():
                 try:
                     if self._pre_finalize is not None:
                         self._pre_finalize()
                     self._finalize_upload()
                 except BaseException:
-                    try:
-                        self._abort_upload()
-                    except Exception:
-                        pass
+                    self._abort_upload_after_failure()
                     raise
         finally:
             self._shutdown_executor()
             super().close()
+
+    def _abort_upload_after_failure(self) -> None:
+        """Abort without masking the error that is about to propagate; a failed abort is
+        reported as a warning since it can leave an unfinished upload on the provider."""
+        try:
+            self._abort_upload()
+        except Exception as abort_error:
+            warnings.warn(
+                f"Could not abort the failed streaming upload of {self._cloud_path}; "
+                f"an unfinished multipart upload may remain on the provider: {abort_error!r}",
+                RuntimeWarning,
+                stacklevel=3,
+            )
 
     def _abort_upload(self) -> None:
         """Best-effort cleanup after a write or finalization failure."""
@@ -350,7 +358,7 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
 
     def _check_part_limit(self) -> None:
         if self._part_number > self._max_parts:
-            raise OSError(
+            raise CloudPathStreamingError(
                 f"{type(self._client).__name__} multipart upload exceeded the "
                 f"{self._max_parts:,}-part limit"
             )
