@@ -600,6 +600,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#v0260-2026-10-01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.26.0 (2026-10-01)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v0250-2026-08-22" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1707,6 +1718,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#v0260-2026-10-01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.26.0 (2026-10-01)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v0250-2026-08-22" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2157,11 +2179,13 @@
 
 <h1 id="cloudpathlib-changelog">cloudpathlib Changelog<a class="headerlink" href="#cloudpathlib-changelog" title="Permanent link">&para;</a></h1>
 <h2 id="unreleased">UNRELEASED<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<h2 id="v0260-2026-10-01">v0.26.0 (2026-10-01)<a class="headerlink" href="#v0260-2026-10-01" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Added support for Python 3.15: <code>CloudPath.mkdir(parent_mode=...)</code> works across providers, and cloud paths can be pickled repeatedly without a <code>ParseResult</code> error. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/593">#593</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/594">#594</a>)</li>
+<li>Changed the minimum supported Python version from 3.9 to 3.10. <strong>Python 3.9 is no longer supported.</strong> (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/597">#597</a>)</li>
+<li>Changed CI so pull requests from forks no longer show failing live-test and install jobs: live cloud tests now run after a maintainer approves the run, and the Azure install check no longer needs repository secrets. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/306">#306</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/592">#592</a>)</li>
 <li>Fixed a spurious <code>OverwriteNewerCloudError</code> when a write leaves the local cache file with the same modified time as the cloud file. Previously, writing the same path twice in quick succession (e.g., two <code>path.write_text(...)</code> calls) on a filesystem with coarse modified-time resolution (such as FAT/exFAT or some network mounts) could raise this error on the second close and skip the upload; these writes now upload. (PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/586">#586</a>)</li>
 <li>Fixed test suite reliability issues and sped up live-backend test runs in CI. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/589">#589</a>, PRs <a href="https://github.com/drivendataorg/cloudpathlib/pull/586">#586</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/587">#587</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/588">#588</a>, <a href="https://github.com/drivendataorg/cloudpathlib/pull/590">#590</a>)</li>
-<li>Changed CI so pull requests from forks no longer show failing live-test and install jobs: live cloud tests now run after a maintainer approves the run, and the Azure install check no longer needs repository secrets. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/306">#306</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/592">#592</a>)</li>
 </ul>
 <h2 id="v0250-2026-08-22">v0.25.0 (2026-08-22)<a class="headerlink" href="#v0250-2026-08-22" title="Permanent link">&para;</a></h2>
 <ul>
