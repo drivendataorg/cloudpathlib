@@ -1,0 +1,26 @@
+:root {
+    --md-primary-fg-color:        #31529e;
+  }
+
+.md-logo {
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+}
+
+.md-logo svg, .md-logo img {
+  width: 2.6rem !important;
+}
+
+.md-header-nav__title {
+  padding-left: 0.05rem !important;
+}
+
+
+/* hide jupyter notebooks input/output numbers */
+.jp-InputPrompt {
+  display: none !important;
+}
+
+.jp-OutputPrompt {
+  display: none !important;
+}
