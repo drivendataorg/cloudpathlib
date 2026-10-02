@@ -1,7 +1,7 @@
 -e .[all]
 
 azure-identity
-black[jupyter]>=24.1.0;python_version>='3.8'
+black[jupyter]>=24.1.0
 botocore[crt]  # required for S3 Multi-Region Access Point (MRAP) tests
 build
 flake8

@@ -1,15 +1,10 @@
 from datetime import datetime, timedelta
+from itertools import islice
 import mimetypes
 import os
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
-from itertools import islice
-
-try:
-    from typing import cast
-except ImportError:
-    from typing_extensions import cast
+from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union, cast
 
 from ..client import Client, register_client_class
 from ..cloudpath import implementation_registry

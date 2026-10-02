@@ -31,10 +31,10 @@ Notes:
 ## 3. Compatibility guardrails
 
 - CI covers Linux, macOS, and Windows.
-- CI covers Python 3.9 through 3.15.
+- CI covers Python 3.10 through 3.15.
 - Preserve the repository's existing compatibility patterns (`typing_extensions`, version guards,
-  `pathlib` shims) instead of rewriting toward newer-version-only syntax.
-- Do not introduce Python 3.10+/3.11+ syntax or stdlib dependencies unless they are properly
+  `pathlib` shims) where supported versions still need them.
+- Do not introduce Python 3.11+ syntax or stdlib dependencies unless they are properly
   guarded and compatible with the supported matrix.
 
 ## 4. Architecture and exceptions
