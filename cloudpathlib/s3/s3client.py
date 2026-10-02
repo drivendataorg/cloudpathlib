@@ -292,10 +292,13 @@ class S3Client(Client):
 
                 # yield object as file
                 else:
+                    path_obj = self.CloudPath(
+                        f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{result_key.get('Key')}"
+                    )
+                    raw_etag = result_key.get("ETag", "").strip('"')
+                    path_obj._etag = raw_etag or None
                     yield (
-                        self.CloudPath(
-                            f"{cloud_path.cloud_prefix}{cloud_path.bucket}/{result_key.get('Key')}"
-                        ),
+                        path_obj,
                         False,
                     )
 
