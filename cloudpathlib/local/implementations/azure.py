@@ -24,6 +24,7 @@ class LocalAzureBlobClient(LocalClient):
             kwargs.get("connection_string", None),
             kwargs.get("account_url", None),
             os.getenv("AZURE_STORAGE_CONNECTION_STRING", None),
+            os.getenv("AZURE_STORAGE_ACCOUNT_URL", None),
         ]
         super().__init__(*args, **kwargs)
 
