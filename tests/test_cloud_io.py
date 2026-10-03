@@ -2234,6 +2234,9 @@ def test_raw_stream_edge_semantics(local_s3_rig):
     writer.close()  # double close is a no-op
     with pytest.raises(ValueError, match="closed file"):
         writer.readall()
+    # the cached copy from write_bytes may share a modification time with the rewritten
+    # object on coarse-timestamp filesystems, so do not rely on it being refreshed
+    path.clear_cache()
     assert path.read_bytes() == b"replaced"
 
 
