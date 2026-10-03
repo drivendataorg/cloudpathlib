@@ -72,4 +72,6 @@ markers = ["no_seed_assets: test creates all of its own cloud data and needs no 
 
 [tool.coverage.run]
 source = ["cloudpathlib"]
+# measure Python subprocesses started by tests (import-fallback tests re-import in a child)
+patch = ["subprocess"]
 omit = ["cloudpathlib/legacy/glob.py"]

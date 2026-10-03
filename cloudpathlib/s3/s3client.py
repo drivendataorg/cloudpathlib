@@ -1,12 +1,13 @@
 import mimetypes
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
+from typing import Any, BinaryIO, Callable, Dict, Iterable, Optional, Sequence, Tuple, Union
 
-from ..client import Client, register_client_class
+from ..client import Client, _UploadPart, register_client_class
+from ..cloud_io import _CloudMultipartStorageRaw
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
-from ..exceptions import CloudPathException
+from ..exceptions import CloudPathException, CloudPathFileNotFoundError
 from .s3path import S3Path
 
 try:
@@ -25,6 +26,8 @@ class S3Client(Client):
     instances. See documentation for the [`__init__` method][cloudpathlib.s3.s3client.S3Client.__init__]
     for detailed authentication options."""
 
+    _streaming_raw_class = _CloudMultipartStorageRaw
+
     def __init__(
         self,
         aws_access_key_id: Optional[str] = None,
@@ -41,6 +44,8 @@ class S3Client(Client):
         boto3_transfer_config: Optional["TransferConfig"] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
         extra_args: Optional[dict] = None,
+        *,
+        streaming_max_concurrency: Optional[int] = None,
     ):
         """Class constructor. Sets up a boto3 [`Session`](
         https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html).
@@ -83,6 +88,11 @@ class S3Client(Client):
                 download, or copy operations, and we will pass on only the relevant args. To see the
                 extra args that are supported look at the upload, download, and copy lists in the
                 [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer).
+            streaming_max_concurrency (Optional[int]): Maximum concurrent requests per open
+                streaming file (background part uploads while writing, read-ahead of the next
+                byte ranges during sequential reads) when using `FileCacheMode.streaming`.
+                Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable
+                or 4; 1 makes each stream fully sequential.
         """
         endpoint_url = endpoint_url or os.getenv("AWS_ENDPOINT_URL")
         if boto3_session is not None:
@@ -133,6 +143,7 @@ class S3Client(Client):
             local_cache_dir=local_cache_dir,
             content_type_method=content_type_method,
             file_cache_mode=file_cache_mode,
+            streaming_max_concurrency=streaming_max_concurrency,
         )
 
     def _get_boto3_config(self, signature_version: Optional[str] = None):
@@ -364,17 +375,20 @@ class S3Client(Client):
     def _upload_file(self, local_path: Union[str, os.PathLike], cloud_path: S3Path) -> S3Path:
         obj = self.s3.Object(cloud_path.bucket, cloud_path.key)
 
-        extra_args = self.boto3_ul_extra_args.copy()
-
-        if self.content_type_method is not None:
-            content_type, content_encoding = self.content_type_method(str(local_path))
-            if content_type is not None:
-                extra_args["ContentType"] = content_type
-            if content_encoding is not None:
-                extra_args["ContentEncoding"] = content_encoding
-
+        extra_args = {**self.boto3_ul_extra_args, **self._content_type_args(cloud_path)}
         obj.upload_file(str(local_path), Config=self.boto3_transfer_config, ExtraArgs=extra_args)
         return cloud_path
+
+    def _content_type_args(self, cloud_path: S3Path) -> Dict[str, Any]:
+        """The guessed content type/encoding (see `Client._guess_content_type`) as boto3
+        upload arguments."""
+        content_type, content_encoding = self._guess_content_type(cloud_path)
+        args: Dict[str, Any] = {}
+        if content_type is not None:
+            args["ContentType"] = content_type
+        if content_encoding is not None:
+            args["ContentEncoding"] = content_encoding
+        return args
 
     def _get_public_url(self, cloud_path: S3Path) -> str:
         """Apparently the best way to get the public URL is to generate a presigned URL
@@ -400,6 +414,99 @@ class S3Client(Client):
             ExpiresIn=expire_seconds,
         )
         return url
+
+    def _range_download(self, cloud_path: S3Path, start: int, end: Optional[int] = None) -> bytes:
+        """Download a byte range from S3."""
+        try:
+            response = self.client.get_object(
+                Bucket=cloud_path.bucket,
+                Key=cloud_path.key,
+                Range=f"bytes={start}-{'' if end is None else end}",
+                **self.boto3_dl_extra_args,
+            )
+            body = response["Body"]
+            try:
+                return body.read()
+            finally:
+                body.close()  # release the connection even if the read fails midway
+        except ClientError as e:
+            code = e.response["Error"]["Code"]
+            if code in ("404", "NoSuchKey"):
+                raise CloudPathFileNotFoundError(f"S3 object not found: {cloud_path}") from e
+            # a range starting past the end of the object is how a reader that does not know
+            # the size learns it is at EOF: file objects report that as an empty read
+            if code in ("InvalidRange", "416"):
+                return b""
+            raise
+
+    def _streaming_extra_args(self, operation_name: str) -> Dict[str, Any]:
+        """Return upload extras accepted by a specific low-level S3 operation."""
+        operation = self.client.meta.service_model.operation_model(operation_name)
+        allowed = set(operation.input_shape.members)
+        return {key: value for key, value in self.boto3_ul_extra_args.items() if key in allowed}
+
+    def _streaming_object_args(self, operation_name: str, cloud_path: S3Path) -> Dict[str, Any]:
+        return {
+            **self._streaming_extra_args(operation_name),
+            **self._content_type_args(cloud_path),
+        }
+
+    def _initiate_multipart_upload(self, cloud_path: S3Path) -> str:
+        """Start an S3 multipart upload, threading content-type and upload extra args."""
+        extra_args = self._streaming_object_args("CreateMultipartUpload", cloud_path)
+        response = self.client.create_multipart_upload(
+            Bucket=cloud_path.bucket,
+            Key=cloud_path.key,
+            **extra_args,
+        )
+        return response["UploadId"]
+
+    def _upload_part(
+        self, cloud_path: S3Path, upload_id: str, part_number: int, data: bytes
+    ) -> _UploadPart:
+        """Upload a part in an S3 multipart upload."""
+        response = self.client.upload_part(
+            Bucket=cloud_path.bucket,
+            Key=cloud_path.key,
+            UploadId=upload_id,
+            PartNumber=part_number,
+            Body=data,
+            **self._streaming_extra_args("UploadPart"),
+        )
+        part = {"PartNumber": part_number, "ETag": response["ETag"]}
+        checksum_algorithm = self.boto3_ul_extra_args.get("ChecksumAlgorithm")
+        if checksum_algorithm is not None:
+            checksum_key = f"Checksum{checksum_algorithm}"
+            if checksum_key in response:
+                part[checksum_key] = response[checksum_key]
+        return part
+
+    def _complete_multipart_upload(
+        self, cloud_path: S3Path, upload_id: str, parts: Sequence[_UploadPart]
+    ) -> None:
+        """Complete an S3 multipart upload."""
+        self.client.complete_multipart_upload(
+            Bucket=cloud_path.bucket,
+            Key=cloud_path.key,
+            UploadId=upload_id,
+            MultipartUpload={"Parts": parts},
+            **self._streaming_extra_args("CompleteMultipartUpload"),
+        )
+
+    def _abort_multipart_upload(self, cloud_path: S3Path, upload_id: str) -> None:
+        """Abort an S3 multipart upload."""
+        self.client.abort_multipart_upload(
+            Bucket=cloud_path.bucket, Key=cloud_path.key, UploadId=upload_id
+        )
+
+    def _put_object(self, cloud_path: S3Path, data: BinaryIO) -> None:
+        """Upload a whole object in one request, threading content-type and upload extra args."""
+        self.client.put_object(
+            Bucket=cloud_path.bucket,
+            Key=cloud_path.key,
+            Body=data,
+            **self._streaming_object_args("PutObject", cloud_path),
+        )
 
 
 S3Client.S3Path = S3Client.CloudPath  # type: ignore

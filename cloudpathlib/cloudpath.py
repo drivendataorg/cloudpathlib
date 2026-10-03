@@ -78,7 +78,7 @@ elif sys.version_info >= (3, 14):
 
 from cloudpathlib.enums import FileCacheMode
 
-from . import anypath
+from . import anypath, env
 from .exceptions import (
     ClientMismatchError,
     CloudPathFileExistsError,
@@ -132,6 +132,16 @@ def _ensure_local_path_within_base(
             f"segments that escape the local cache directory or download destination."
         )
     return candidate
+
+
+def _force_overwrite_to_cloud(flag: Optional[bool]) -> bool:
+    """Resolve `force_overwrite_to_cloud`, falling back to the environment variable."""
+    return env.env_flag("CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD") if flag is None else flag
+
+
+def _force_overwrite_from_cloud(flag: Optional[bool]) -> bool:
+    """Resolve `force_overwrite_from_cloud`, falling back to the environment variable."""
+    return env.env_flag("CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD") if flag is None else flag
 
 
 class CloudImplementation:
@@ -386,6 +396,14 @@ class CloudPath(metaclass=CloudPathMeta):
         return isinstance(other, type(self)) and str(self) == str(other)
 
     def __fspath__(self) -> str:
+        # Check if streaming mode is enabled
+        if self.client.file_cache_mode == FileCacheMode.streaming:
+            raise CloudPathNotImplementedError(
+                "fspath is not available in streaming mode, which avoids the local file cache "
+                "(except for append/update modes of `open`, which fall back to it). "
+                "Use CloudPath.open() to read/write data directly."
+            )
+
         if self.is_file():
             self._refresh_cache()
         return str(self._local)
@@ -800,6 +818,19 @@ class CloudPath(metaclass=CloudPathMeta):
         force_overwrite_from_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
         force_overwrite_to_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
     ) -> "IO[Any]":
+        from .cloud_io import _validate_file_mode
+
+        _validate_file_mode(mode)
+        binary_mode = "b" in mode
+        if binary_mode and encoding is not None:
+            raise ValueError("binary mode doesn't take an encoding argument")
+        if binary_mode and errors is not None:
+            raise ValueError("binary mode doesn't take an errors argument")
+        if binary_mode and newline is not None:
+            raise ValueError("binary mode doesn't take a newline argument")
+        if not binary_mode and buffering == 0:
+            raise ValueError("can't have unbuffered text I/O")
+
         # if trying to call open on a directory that exists
         exists_on_cloud = self.exists()
 
@@ -813,10 +844,31 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"File opened for read or append, but it does not exist on cloud: {self}"
             )
 
-        if mode == "x" and self.exists():
+        if "x" in mode and exists_on_cloud:
             raise CloudPathFileExistsError(f"Cannot open existing file ({self}) for creation.")
 
-        # TODO: consider streaming from client rather than DLing entire file to cache
+        if self.client.file_cache_mode == FileCacheMode.streaming:
+            # Append (a) and update (+) modes cannot be done as pure streaming over object
+            # storage; they fall through to the cached path for correct semantics.
+            if any(m in mode for m in ("a", "+")):
+                warn(
+                    f"Opening {self} with mode {mode!r} in streaming mode downloads the whole "
+                    f"object to the local cache, modifies it there, and re-uploads it on close "
+                    f"(object stores cannot append to or update an object in place).",
+                    stacklevel=2,
+                )
+            else:
+                return self._open_streaming(
+                    mode,
+                    buffering,
+                    encoding,
+                    errors,
+                    newline,
+                    exists_on_cloud=exists_on_cloud,
+                    force_overwrite_to_cloud=force_overwrite_to_cloud,
+                )
+
+        # Standard cached mode
         self._refresh_cache(force_overwrite_from_cloud=force_overwrite_from_cloud)
 
         # create any directories that may be needed if the file is new
@@ -869,9 +921,10 @@ class CloudPath(metaclass=CloudPathMeta):
             # opened for write, so mark dirty
             self._dirty = True
 
-        # if we don't want any cache around, remove the cache
-        # as soon as the file is closed
-        if self.client.file_cache_mode == FileCacheMode.close_file:
+        # if we don't want any cache around, remove the cache as soon as the file is
+        # closed; streaming mode only reaches the cache through the append/update
+        # fallback and should not leave anything behind either
+        if self.client.file_cache_mode in (FileCacheMode.close_file, FileCacheMode.streaming):
             # this may be _patched_close_upload, in which case we need to
             # make sure to call that first so the file gets uploaded
             wrapped_close_for_cache = buffer.close
@@ -885,6 +938,58 @@ class CloudPath(metaclass=CloudPathMeta):
             buffer.close = _patched_close_empty_cache  # type: ignore
 
         return buffer
+
+    def _open_streaming(
+        self,
+        mode: str,
+        buffering: int,
+        encoding: Optional[str],
+        errors: Optional[str],
+        newline: Optional[str],
+        exists_on_cloud: bool,
+        force_overwrite_to_cloud: Optional[bool],
+    ) -> "IO[Any]":
+        """`open` without the local cache: ranged reads and multipart writes."""
+        from .cloud_io import open_stream
+
+        raw_io_class = self.client._streaming_raw_class
+        if raw_io_class is None:
+            raise CloudPathNotImplementedError(
+                f"Streaming I/O is not implemented for {type(self.client).__name__}"
+            )
+
+        # overwrite protection mirroring the cached path's upload conflict check
+        pre_finalize = None
+        if "w" in mode or "x" in mode:
+            pre_finalize = self._streaming_overwrite_check(
+                mode, exists_on_cloud, force_overwrite_to_cloud
+            )
+
+        return open_stream(
+            raw_io_class,
+            self.client,
+            self,
+            mode,
+            buffering=buffering,
+            encoding=encoding,
+            errors=errors,
+            newline=newline,
+            pre_finalize=pre_finalize,
+        )
+
+    def _raise_if_copy_target_newer(
+        self, target: "CloudPath", force_overwrite_to_cloud: Optional[bool]
+    ) -> None:
+        """Refuse a cloud-to-cloud copy that would clobber a target at least as new as the
+        source, unless overwriting is forced."""
+        if _force_overwrite_to_cloud(force_overwrite_to_cloud):
+            return
+        if target.exists() and target.stat().st_mtime >= self.stat().st_mtime:
+            raise OverwriteNewerCloudError(
+                f"File ({target}) is newer than ({self}). "
+                f"To overwrite "
+                f"pass `force_overwrite_to_cloud=True`."
+            )
 
     def replace(self, target: Self) -> Self:
         if type(self) is not type(target):
@@ -1270,39 +1375,36 @@ class CloudPath(metaclass=CloudPathMeta):
             if destination.exists() and destination.is_dir():
                 destination = destination / self.name
 
-            if force_overwrite_to_cloud is None:
-                force_overwrite_to_cloud = os.environ.get(
-                    "CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD", "False"
-                ).lower() in ["1", "true"]
-
-            if (
-                not force_overwrite_to_cloud
-                and destination.exists()
-                and destination.stat().st_mtime >= self.stat().st_mtime
-            ):
-                raise OverwriteNewerCloudError(
-                    f"File ({destination}) is newer than ({self}). "
-                    f"To overwrite "
-                    f"pass `force_overwrite_to_cloud=True`."
-                )
+            self._raise_if_copy_target_newer(destination, force_overwrite_to_cloud)
 
             return cast(Self, self.client._move_file(self, destination, remove_src=remove_src))
 
         else:
             if not destination.exists() or destination.is_file():
-                return cast(
-                    Union[Path, Self],
-                    destination.upload_from(
-                        self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
-                    ),
-                )
+                target_path: CloudPath = destination
             else:
-                return cast(
-                    Union[Path, Self],
-                    (destination / self.name).upload_from(
-                        self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
-                    ),
+                target_path = destination / self.name
+
+            # streaming mode has no local cache to round-trip through (fspath is
+            # unavailable), so copy by streaming between the two clients directly
+            if self.client.file_cache_mode == FileCacheMode.streaming:
+                self._raise_if_copy_target_newer(target_path, force_overwrite_to_cloud)
+
+                with self.open("rb") as src_file:
+                    with target_path.open("wb", force_overwrite_to_cloud=True) as dst_file:
+                        # the streaming buffer size rather than shutil's 64 KiB default, so
+                        # each buffered read is forwarded in one iteration
+                        shutil.copyfileobj(src_file, dst_file, env.streaming_buffer_size())
+            else:
+                target_path.upload_from(
+                    self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
                 )
+
+            # a move removes the source only once the destination has been written
+            if remove_src:
+                self.unlink()
+
+            return cast(Union[Path, Self], target_path)
 
     @overload
     def copy(
@@ -1608,14 +1710,9 @@ class CloudPath(metaclass=CloudPathMeta):
             # new files that will be uploaded
             return
 
-        if force_overwrite_from_cloud is None:
-            force_overwrite_from_cloud = os.environ.get(
-                "CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD", "False"
-            ).lower() in ["1", "true"]
-
         # if not exist or cloud newer
         if (
-            force_overwrite_from_cloud
+            _force_overwrite_from_cloud(force_overwrite_from_cloud)
             or not self._local.exists()
             or (self._local.stat().st_mtime < stats.st_mtime)
         ):
@@ -1676,12 +1773,7 @@ class CloudPath(metaclass=CloudPathMeta):
         """Uploads file at `local_path` to the cloud if there is not a newer file
         already there.
         """
-        if force_overwrite_to_cloud is None:
-            force_overwrite_to_cloud = os.environ.get(
-                "CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD", "False"
-            ).lower() in ["1", "true"]
-
-        if force_overwrite_to_cloud:
+        if _force_overwrite_to_cloud(force_overwrite_to_cloud):
             # If we are overwriting no need to perform any checks, so we can save time
             self.client._upload_file(
                 local_path,
@@ -1710,6 +1802,39 @@ class CloudPath(metaclass=CloudPathMeta):
             f"(2) pass `force_overwrite_to_cloud=True` to "
             f"overwrite; or set env var CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD=1."
         )
+
+    def _streaming_overwrite_check(
+        self, mode: str, exists_on_cloud: bool, force_overwrite_to_cloud: Optional[bool]
+    ) -> Optional[Callable[[], None]]:
+        """Build the pre-upload conflict check for a streaming write, mirroring the cached
+        path's `OverwriteNewerCloudError` protection in `_upload_file_to_cloud`. Returns None
+        when overwriting is forced. Exclusive creation (`x`) always checks, since a file that
+        appeared while the stream was open must raise `CloudPathFileExistsError`."""
+        exclusive = "x" in mode
+        if not exclusive and _force_overwrite_to_cloud(force_overwrite_to_cloud):
+            return None
+
+        original_mtime = self.stat().st_mtime if exists_on_cloud else None
+
+        def check() -> None:
+            try:
+                stats = self.stat()
+            except (NoStatError, CloudPathFileNotFoundError, FileNotFoundError):
+                # nothing on the cloud to conflict with
+                return
+            if exclusive:
+                raise CloudPathFileExistsError(
+                    f"Cannot create file ({self}): it was created while the stream was open."
+                )
+            if original_mtime is None or stats.st_mtime > original_mtime:
+                raise OverwriteNewerCloudError(
+                    f"Cloud path ({self}) changed while it was open for streaming write, "
+                    f"but is being requested to be overwritten on close. Either (1) pass "
+                    f"`force_overwrite_to_cloud=True` to overwrite; or (2) set env var "
+                    f"CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD=1."
+                )
+
+        return check
 
     # ===========  pydantic integration special methods ===============
     @classmethod

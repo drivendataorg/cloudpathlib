@@ -1,5 +1,6 @@
 from typing import Any, Optional
 
+from ...cloud_io import _CloudMultipartStorageRaw
 from ...cloudpath import CloudImplementation
 from ..localclient import LocalClient
 from ..localpath import LocalPath
@@ -14,6 +15,7 @@ class LocalS3Client(LocalClient):
     """
 
     _cloud_meta = local_s3_implementation
+    _streaming_raw_class = _CloudMultipartStorageRaw
 
 
 LocalS3Client.S3Path = LocalS3Client.CloudPath  # type: ignore

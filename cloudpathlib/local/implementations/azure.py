@@ -1,6 +1,7 @@
 import os
 from typing import Any, Optional
 
+from ...cloud_io import _CloudMultipartStorageRaw
 from ...cloudpath import CloudImplementation
 from ...exceptions import MissingCredentialsError
 from ..localclient import LocalClient
@@ -17,6 +18,10 @@ class LocalAzureBlobClient(LocalClient):
     """
 
     _cloud_meta = local_azure_blob_implementation
+    _streaming_raw_class = _CloudMultipartStorageRaw
+    _multipart_min_part_size = 4 * 1024 * 1024
+    _multipart_max_part_size = 4_000 * 1024 * 1024
+    _multipart_max_parts = 50_000
 
     def __init__(self, *args, **kwargs):
         cred_opts = [

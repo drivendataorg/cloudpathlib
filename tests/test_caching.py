@@ -536,3 +536,47 @@ def test_reuse_cache_after_manual_cache_clear(rig: CloudProviderTestRig):
         _ = f.read()
 
     assert cp._local.exists()
+
+
+def test_write_mtime_tie_does_not_raise(rig: CloudProviderTestRig):
+    """A save that leaves the cache file's mtime exactly equal to the cloud version's
+    (coarse-resolution filesystems, no-op writes) must bump the mtime and upload rather
+    than raise OverwriteNewerCloudError."""
+    client = rig.client_class(**rig.required_client_kwargs)
+    cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
+
+    cp.write_text("v1")
+    _sync_filesystem()
+
+    # re-sync the cache from the cloud so the cache file's mtime equals the cloud mtime
+    cp.clear_cache()
+    cp.read_text()
+    cloud_mtime = cp.stat().st_mtime
+
+    with cp.open("w") as f:
+        f.write("v2")
+        f.flush()
+        # simulate a write that leaves the mtime unchanged (e.g. same-second write on a
+        # coarse-resolution filesystem)
+        os.utime(cp._local, times=(cloud_mtime, cloud_mtime))
+
+    assert cp.read_text() == "v2"
+
+
+def test_streaming_append_fallback_cache_cleaned_up(rig: CloudProviderTestRig):
+    """Append/update modes fall back to the cache in streaming mode; like `close_file`,
+    the cache file is removed as soon as the handle is closed and uploaded."""
+    client = rig.client_class(
+        file_cache_mode=FileCacheMode.streaming, **rig.required_client_kwargs
+    )
+    cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
+    original = cp.read_text()
+
+    with pytest.warns(UserWarning, match="downloads the whole object"):
+        f = cp.open("a")
+    with f:
+        f.write("appended")
+        assert cp._local.exists()  # the fallback works on a real cache file
+
+    assert not cp._local.exists()
+    assert cp.read_text() == original + "appended"

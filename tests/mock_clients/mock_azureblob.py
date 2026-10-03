@@ -3,12 +3,13 @@ from datetime import datetime
 import json
 from pathlib import Path, PurePosixPath
 import shutil
+import threading
 
 
 from azure.storage.blob import BlobProperties
 from azure.storage.blob._list_blobs_helper import BlobPrefix
 from azure.storage.blob._shared.authentication import SharedKeyCredentialPolicy
-from azure.core.exceptions import ResourceNotFoundError
+from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
 
 from .utils import delete_empty_parents_up_to_root
 
@@ -23,6 +24,10 @@ class _JsonCache:
     different clients can access the same metadata store.
     """
 
+    # one process-wide lock: a cache is shared by every mock client in a test, and
+    # concurrent streaming writers would otherwise read a half-written JSON file
+    _lock = threading.Lock()
+
     def __init__(self, path: Path):
         self.path = path
 
@@ -31,16 +36,18 @@ class _JsonCache:
             json.dump({}, f)
 
     def __getitem__(self, key):
-        with self.path.open("r") as f:
-            return json.load(f)[str(key)]
+        with self._lock:
+            with self.path.open("r") as f:
+                return json.load(f)[str(key)]
 
     def __setitem__(self, key, value):
-        with self.path.open("r") as f:
-            data = json.load(f)
+        with self._lock:
+            with self.path.open("r") as f:
+                data = json.load(f)
 
-        with self.path.open("w") as f:
-            data[str(key)] = value
-            json.dump(data, f)
+            with self.path.open("w") as f:
+                data[str(key)] = value
+                json.dump(data, f)
 
     def get(self, key, default=None):
         try:
@@ -60,6 +67,9 @@ class MockBlobServiceClient:
 
         self.metadata_cache = _JsonCache(self.root / ".metadata")
         self.adls_gen2 = adls
+
+        # For block blob uploads (multipart) - shared across all blob clients
+        self._staged_blocks = {}
 
     @classmethod
     def from_connection_string(cls, conn_str, credential):
@@ -114,7 +124,7 @@ class MockBlobClient:
     def get_blob_properties(self):
         path = self.root / self.key
         if path.exists() and path.is_file():
-            return BlobProperties(
+            props = BlobProperties(
                 **{
                     "name": self.key,
                     "Last-Modified": datetime.fromtimestamp(path.stat().st_mtime),
@@ -125,11 +135,22 @@ class MockBlobClient:
                     "metadata": dict(),
                 }
             )
+            # Set size directly as BlobProperties doesn't accept it in constructor
+            props.size = path.stat().st_size
+            return props
         else:
             raise ResourceNotFoundError
 
-    def download_blob(self):
-        return MockStorageStreamDownloader(self.root, self.key)
+    def download_blob(self, offset=None, length=None):
+        path = self.root / self.key
+        if not (path.exists() and path.is_file()):
+            raise ResourceNotFoundError
+        if offset is not None and offset >= path.stat().st_size:
+            # real Azure rejects ranges starting past EOF (an end past EOF is clamped)
+            error = HttpResponseError("The range specified is invalid for the current size")
+            error.status_code = 416
+            raise error
+        return MockStorageStreamDownloader(self.root, self.key, offset=offset, length=length)
 
     def set_blob_metadata(self, metadata):
         path = self.root / self.key
@@ -148,21 +169,55 @@ class MockBlobClient:
     def upload_blob(self, data, overwrite, content_settings=None):
         path = self.root / self.key
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data.read())
+        if isinstance(data, bytes):
+            path.write_bytes(data)
+        else:
+            path.write_bytes(data.read())
 
         if content_settings is not None:
             self.service_client.metadata_cache[self.root / self.key] = (
                 content_settings.content_type
             )
 
+    def stage_block(self, block_id, data, length):
+        """Stage a block for block blob upload."""
+        # Store the block data indexed by blob key in service client's staged blocks
+        if self.key not in self.service_client._staged_blocks:
+            self.service_client._staged_blocks[self.key] = {}
+        self.service_client._staged_blocks[self.key][block_id] = data
+
+    def commit_block_list(self, block_ids, content_settings=None):
+        """Commit a list of staged blocks to create a blob."""
+        path = self.root / self.key
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Concatenate blocks in order
+        if self.key in self.service_client._staged_blocks:
+            complete_data = b""
+            for block_id in block_ids:
+                complete_data += self.service_client._staged_blocks[self.key][block_id]
+
+            path.write_bytes(complete_data)
+
+            # Clean up staged blocks
+            del self.service_client._staged_blocks[self.key]
+
 
 class MockStorageStreamDownloader:
-    def __init__(self, root, key):
+    def __init__(self, root, key, offset=None, length=None):
         self.root = root
         self.key = key
+        self.offset = offset
+        self.length = length
 
     def readall(self):
-        return (self.root / self.key).read_bytes()
+        data = (self.root / self.key).read_bytes()
+        if self.offset is not None:
+            if self.length is not None:
+                return data[self.offset : self.offset + self.length]
+            else:
+                return data[self.offset :]
+        return data
 
     def content_as_bytes(self):
         return self.readall()

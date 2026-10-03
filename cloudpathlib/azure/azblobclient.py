@@ -4,12 +4,26 @@ import mimetypes
 import os
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union, cast
+from typing import (
+    Any,
+    BinaryIO,
+    Callable,
+    Dict,
+    Iterable,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    cast,
+)
+from uuid import uuid4
 
-from ..client import Client, register_client_class
+from ..client import Client, _UploadPart, register_client_class
+from ..env import MiB
+from ..cloud_io import _CloudMultipartStorageRaw
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
-from ..exceptions import MissingCredentialsError
+from ..exceptions import CloudPathFileNotFoundError, MissingCredentialsError
 from .azblobpath import AzureBlobPath
 
 try:
@@ -46,6 +60,13 @@ class AzureBlobClient(Client):
     authentication options.
     """
 
+    _streaming_raw_class = _CloudMultipartStorageRaw
+    # Azure block blobs: 4 MiB default block (the SDK's default), 4000 MiB largest block,
+    # 50,000 committed blocks per blob
+    _multipart_min_part_size = 4 * MiB
+    _multipart_max_part_size = 4_000 * MiB
+    _multipart_max_parts = 50_000
+
     def __init__(
         self,
         account_url: Optional[str] = None,
@@ -56,6 +77,8 @@ class AzureBlobClient(Client):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
+        *,
+        streaming_max_concurrency: Optional[int] = None,
     ):
         """Class constructor. Sets up a [`BlobServiceClient`](
         https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blobserviceclient?view=azure-python).
@@ -103,11 +126,17 @@ class AzureBlobClient(Client):
                 the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 writing a file to the cloud. Defaults to `mimetypes.guess_type`. Must return a tuple (content type, content encoding).
+            streaming_max_concurrency (Optional[int]): Maximum concurrent requests per open
+                streaming file (background part uploads while writing, read-ahead of the next
+                byte ranges during sequential reads) when using `FileCacheMode.streaming`.
+                Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable
+                or 4; 1 makes each stream fully sequential.
         """
         super().__init__(
             local_cache_dir=local_cache_dir,
             content_type_method=content_type_method,
             file_cache_mode=file_cache_mode,
+            streaming_max_concurrency=streaming_max_concurrency,
         )
 
         if connection_string is None:
@@ -456,21 +485,20 @@ class AzureBlobClient(Client):
             container=cloud_path.container, blob=cloud_path.blob
         )
 
-        extra_args = {}
-        if self.content_type_method is not None:
-            content_type, content_encoding = self.content_type_method(str(local_path))
-
-            if content_type is not None:
-                extra_args["content_type"] = content_type
-            if content_encoding is not None:
-                extra_args["content_encoding"] = content_encoding
-
-        content_settings = ContentSettings(**extra_args)
-
         with Path(local_path).open("rb") as data:
-            blob.upload_blob(data, overwrite=True, content_settings=content_settings)  # type: ignore
+            blob.upload_blob(
+                data, overwrite=True, content_settings=self._content_settings(cloud_path)
+            )  # type: ignore
 
         return cloud_path
+
+    def _content_settings(self, cloud_path: AzureBlobPath) -> Optional["ContentSettings"]:
+        """The guessed content type/encoding (see `Client._guess_content_type`) in the form the
+        Azure SDK takes."""
+        content_type, content_encoding = self._guess_content_type(cloud_path)
+        if content_type is None and content_encoding is None:
+            return None
+        return ContentSettings(content_type=content_type, content_encoding=content_encoding)
 
     def _get_public_url(self, cloud_path: AzureBlobPath) -> str:
         blob_client = self.service_client.get_blob_client(
@@ -491,6 +519,79 @@ class AzureBlobClient(Client):
         )
         url = f"{self._get_public_url(cloud_path)}?{sas_token}"
         return url
+
+    def _range_download(
+        self, cloud_path: AzureBlobPath, start: int, end: Optional[int] = None
+    ) -> bytes:
+        """Download a byte range from Azure Blob Storage."""
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        try:
+            length = None if end is None else end - start + 1
+            downloader = blob_client.download_blob(offset=start, length=length)
+            return downloader.readall()
+        except ResourceNotFoundError as e:
+            raise CloudPathFileNotFoundError(f"Azure blob not found: {cloud_path}") from e
+        except HttpResponseError as e:
+            # a range starting past the end of the blob is how a reader that does not know
+            # the size learns it is at EOF: file objects report that as an empty read
+            if (e.error and e.error.code == "InvalidRange") or e.status_code == 416:
+                return b""
+            raise
+
+    def _initiate_multipart_upload(self, cloud_path: AzureBlobPath) -> str:
+        """Return a unique session ID that namespaces this upload's block IDs.
+
+        Azure has no "begin upload" call; uncommitted blocks live in one per-blob namespace
+        keyed by block ID. A random session ID (rather than IDs derived from the content or
+        part number alone) keeps two writers streaming to the same blob at the same time
+        from overwriting each other's staged blocks and committing interleaved data.
+        """
+        return uuid4().hex
+
+    def _upload_part(
+        self, cloud_path: AzureBlobPath, upload_id: str, part_number: int, data: bytes
+    ) -> _UploadPart:
+        """Upload a block in an Azure block blob upload."""
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        # Azure requires all block IDs of a blob to have the same length; uuid4().hex (32)
+        # plus a fixed-width part number keeps them uniform. The SDK base64-encodes the ID.
+        block_id = f"{upload_id}-{part_number:06d}"
+        blob_client.stage_block(block_id=block_id, data=data, length=len(data))
+        return {"block_id": block_id}
+
+    def _complete_multipart_upload(
+        self, cloud_path: AzureBlobPath, upload_id: str, parts: Sequence[_UploadPart]
+    ) -> None:
+        """Commit an Azure block blob upload, threading content-type."""
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        block_ids = [part["block_id"] for part in parts]
+        blob_client.commit_block_list(
+            block_ids, content_settings=self._content_settings(cloud_path)
+        )
+
+    def _abort_multipart_upload(self, cloud_path: AzureBlobPath, upload_id: str) -> None:
+        """Nothing to do: Azure has no call to discard uncommitted blocks.
+
+        The service garbage-collects blocks that are not committed within a week (see the
+        Put Block documentation, https://learn.microsoft.com/rest/api/storageservices/put-block).
+        The only way to drop them sooner is to commit a block list without them, which would
+        create or rewrite the blob, so it is not done here.
+        """
+
+    def _put_object(self, cloud_path: AzureBlobPath, data: BinaryIO) -> None:
+        """Upload a whole blob in one request, threading content-type."""
+        blob_client = self.service_client.get_blob_client(
+            container=cloud_path.container, blob=cloud_path.blob
+        )
+        blob_client.upload_blob(
+            data, overwrite=True, content_settings=self._content_settings(cloud_path)
+        )
 
 
 def _hns_rmtree(data_lake_client, container, directory):
