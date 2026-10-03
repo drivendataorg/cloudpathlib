@@ -427,14 +427,18 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
             raise error
 
     def _upload_chunk(self, data: _ReadableBuffer) -> None:
-        view = memoryview(data)
-        if view.nbytes == 0:
-            return
-        self._write_buffer.extend(view)
-        target_size = self._target_part_size()
-        while len(self._write_buffer) >= target_size:
-            self._upload_buffered_part(target_size)
+        # Copy at most one part's worth at a time: a single write larger than the part size
+        # (BufferedWriter passes oversized writes straight through) would otherwise be
+        # duplicated wholesale into the part buffer before any part is emitted.
+        view = memoryview(data).cast("B")
+        offset = 0
+        while offset < view.nbytes:
             target_size = self._target_part_size()
+            take = min(target_size - len(self._write_buffer), view.nbytes - offset)
+            self._write_buffer.extend(view[offset : offset + take])
+            offset += take
+            if len(self._write_buffer) >= target_size:
+                self._upload_buffered_part(target_size)
 
     def _finalize_upload(self) -> None:
         if self._upload_id is None:

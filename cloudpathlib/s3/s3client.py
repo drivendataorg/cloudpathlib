@@ -425,9 +425,10 @@ class S3Client(Client):
                 **self.boto3_dl_extra_args,
             )
             body = response["Body"]
-            data = body.read()
-            body.close()
-            return data
+            try:
+                return body.read()
+            finally:
+                body.close()  # release the connection even if the read fails midway
         except ClientError as e:
             code = e.response["Error"]["Code"]
             if code in ("404", "NoSuchKey"):

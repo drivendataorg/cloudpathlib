@@ -4,8 +4,9 @@ By default, `CloudPath.open()` downloads a file to the local cache before openin
 uploads the whole cache file when a written handle is closed. With
 `FileCacheMode.streaming`, `open()` instead returns a standard Python file object that
 reads from cloud storage with ranged requests and writes to it with multipart uploads.
-Nothing is written to disk, only the part of the object you read is downloaded, and
-written data is uploaded while you write it.
+Nothing goes through the cloudpathlib cache, only the part of the object you read is
+downloaded, and written data is uploaded while you write it. (The one place streaming may
+still touch disk is HTTP uploads, which have no multipart API; see [Writes](#writes).)
 
 The exception is the append and update modes (`a`, `a+`, `r+`, `w+`, ...): object stores
 cannot modify an object in place, so those modes still download the whole object to the

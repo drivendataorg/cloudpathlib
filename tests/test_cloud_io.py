@@ -2066,12 +2066,65 @@ def test_streaming_cross_client_copy(streaming_rig):
     try:
         result = src.copy(dst)
         assert result.read_bytes() == content
+        assert src.exists()
+
+        # move() is a copy that removes the source once the destination is written (the
+        # destination was just written by the copy, so overwriting it must be forced)
+        moved = src.move(dst, force_overwrite_to_cloud=True)
+        assert moved.read_bytes() == content
+        assert not src.exists()
     finally:
         for p in (src, dst):
             try:
                 p.unlink()
             except Exception:
                 pass
+
+
+def test_cached_cross_client_move_removes_source(rig):
+    """move() between clients in the default cached mode must also remove the source."""
+    src = rig.create_cloud_path("test_move_src.bin")
+    src.write_bytes(b"move me")
+    other_client = rig.client_class(**rig.required_client_kwargs)
+    dst = other_client.CloudPath(str(rig.create_cloud_path("test_move_dst.bin")))
+    assert src.client is not dst.client
+
+    try:
+        moved = src.move(dst)
+        assert moved.read_bytes() == b"move me"
+        assert not src.exists()
+    finally:
+        for p in (src, dst):
+            p.unlink(missing_ok=True)
+
+
+def test_large_single_write_buffers_at_most_one_part(local_s3_rig):
+    """A write bigger than the part size is sliced into parts as it is copied, so the part
+    buffer never holds more than one part (the documented memory bound)."""
+    path = local_s3_rig.create_cloud_path("big-single-write.bin")
+    client = path.client
+    client.file_cache_mode = FileCacheMode.streaming
+    part_size = client._multipart_part_size
+    observed = []
+
+    raw = client._streaming_raw_class(client, path, "wb")
+    original = raw._upload_buffered_part
+
+    def spy(size):
+        observed.append(len(raw._write_buffer))
+        return original(size)
+
+    raw._upload_buffered_part = spy
+    data = b"q" * (3 * part_size + 1234)
+    try:
+        raw.write(data)  # a single oversized write, as BufferedWriter would pass through
+        assert len(raw._write_buffer) == 1234
+        assert observed == [part_size] * 3
+        raw.close()
+        assert path.read_bytes() == data
+    finally:
+        client.file_cache_mode = FileCacheMode.cloudpath_object
+        path.unlink(missing_ok=True)
 
 
 def test_http_rename_in_streaming_mode(rig):
@@ -2583,10 +2636,11 @@ def test_streaming_max_concurrency_validation(local_s3_rig, monkeypatch):
     default and the keyword argument wins over it."""
     from cloudpathlib.exceptions import InvalidConfigurationException
 
-    with pytest.raises(ValueError, match="streaming_max_concurrency"):
-        local_s3_rig.client_class(
-            streaming_max_concurrency=0, **local_s3_rig.required_client_kwargs
-        )
+    for bad in (0, 1.5, True, "2"):
+        with pytest.raises(ValueError, match="streaming_max_concurrency"):
+            local_s3_rig.client_class(
+                streaming_max_concurrency=bad, **local_s3_rig.required_client_kwargs
+            )
 
     assert (
         local_s3_rig.client_class(**local_s3_rig.required_client_kwargs).streaming_max_concurrency

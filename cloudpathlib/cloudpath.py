@@ -1395,15 +1395,16 @@ class CloudPath(metaclass=CloudPathMeta):
                         # the streaming buffer size rather than shutil's 64 KiB default, so
                         # each buffered read is forwarded in one iteration
                         shutil.copyfileobj(src_file, dst_file, env.streaming_buffer_size())
-
-                return cast(Union[Path, Self], target_path)
-
-            return cast(
-                Union[Path, Self],
+            else:
                 target_path.upload_from(
                     self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
-                ),
-            )
+                )
+
+            # a move removes the source only once the destination has been written
+            if remove_src:
+                self.unlink()
+
+            return cast(Union[Path, Self], target_path)
 
     @overload
     def copy(

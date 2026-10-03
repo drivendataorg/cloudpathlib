@@ -77,8 +77,12 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         # 1 means fully sequential I/O
         if streaming_max_concurrency is None:
             streaming_max_concurrency = env.streaming_max_concurrency()
-        if streaming_max_concurrency < 1:
-            raise ValueError("streaming_max_concurrency must be at least 1")
+        if (
+            not isinstance(streaming_max_concurrency, int)
+            or isinstance(streaming_max_concurrency, bool)
+            or streaming_max_concurrency < 1
+        ):
+            raise ValueError("streaming_max_concurrency must be an integer of at least 1")
         self.streaming_max_concurrency = streaming_max_concurrency
         # multipart part size for streaming writes: the provider minimum unless overridden
         self._multipart_part_size = env.streaming_part_size(
