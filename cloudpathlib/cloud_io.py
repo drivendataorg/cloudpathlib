@@ -1,7 +1,5 @@
 """Buffered cloud I/O without a local cache."""
 
-from __future__ import annotations
-
 import io
 import tempfile
 from abc import abstractmethod
@@ -16,17 +14,12 @@ else:
     _ReadableBuffer = Union[bytes, bytearray, memoryview]
     _WriteableBuffer = Union[bytearray, memoryview]
 
+from .env import streaming_buffer_size
 from .exceptions import CloudPathStreamingError
 
 if TYPE_CHECKING:
     from .client import Client
     from .cloudpath import CloudPath
-
-# Bytes fetched/buffered per request for buffered streaming I/O. Sized to match the
-# multi-MiB block sizes used by comparable tools (fsspec/s3fs/gcsfs) so per-request
-# latency does not dominate sequential throughput; reads never fetch past EOF, so
-# small objects only pay for their actual size.
-DEFAULT_BUFFER_SIZE = 5 * 1024 * 1024
 
 
 def _validate_file_mode(mode: str) -> None:
@@ -48,8 +41,8 @@ class _CloudStorageRaw(io.RawIOBase):
 
     def __init__(
         self,
-        client: Client,
-        cloud_path: CloudPath,
+        client: "Client",
+        cloud_path: "CloudPath",
         mode: str = "rb",
         pre_finalize: Optional[Callable[[], None]] = None,
     ) -> None:
@@ -63,10 +56,13 @@ class _CloudStorageRaw(io.RawIOBase):
         self._size_error: Optional[Exception] = None
         self._closed = False
         self._upload_error: Optional[BaseException] = None
-        # Optional conflict check run just before a write is finalized (set by CloudPath.open)
+        # Optional check run after the last part is uploaded but before the upload is
+        # completed (CloudPath.open passes its overwrite/exclusive-create conflict check).
+        # If it raises, the upload is aborted and the existing object is left untouched, so
+        # a streamed write is all-or-nothing from the object's point of view.
         self._pre_finalize = pre_finalize
         # concurrent requests for this stream (read prefetch / background part uploads)
-        self._max_concurrency = max(1, int(getattr(client, "streaming_max_concurrency", 1)))
+        self._max_concurrency = client.streaming_max_concurrency
         self._executor: Optional[ThreadPoolExecutor] = None
         self._prefetch: Dict[int, Future] = {}
         # end of the previous foreground read; read-ahead starts once a read continues it
@@ -185,7 +181,7 @@ class _CloudStorageRaw(io.RawIOBase):
         return self._pos
 
     def tell(self) -> int:
-        """Return current stream position."""
+        # IOBase.tell is seek(0, SEEK_CUR), which write streams (not seekable) reject
         if self._closed:
             raise ValueError("I/O operation on closed file")
         return self._pos
@@ -356,13 +352,13 @@ class _CloudMultipartStorageRaw(_CloudStorageRaw):
 
     def __init__(
         self,
-        client: Client,
-        cloud_path: CloudPath,
+        client: "Client",
+        cloud_path: "CloudPath",
         mode: str = "rb",
         pre_finalize: Optional[Callable[[], None]] = None,
     ) -> None:
         super().__init__(client, cloud_path, mode, pre_finalize)
-        self._min_part_size = client._multipart_min_part_size
+        self._min_part_size = client._multipart_part_size
         self._max_part_size = client._multipart_max_part_size
         self._max_parts = client._multipart_max_parts
         self._upload_id: Optional[str] = None
@@ -479,8 +475,8 @@ class _CloudSpooledStorageRaw(_CloudStorageRaw):
 
     def __init__(
         self,
-        client: Client,
-        cloud_path: CloudPath,
+        client: "Client",
+        cloud_path: "CloudPath",
         mode: str = "rb",
         pre_finalize: Optional[Callable[[], None]] = None,
     ) -> None:
@@ -489,7 +485,7 @@ class _CloudSpooledStorageRaw(_CloudStorageRaw):
 
     def _upload_chunk(self, data: _ReadableBuffer) -> None:
         if self._spool is None:
-            self._spool = tempfile.SpooledTemporaryFile(max_size=DEFAULT_BUFFER_SIZE)
+            self._spool = tempfile.SpooledTemporaryFile(max_size=streaming_buffer_size())
         self._spool.write(data)
 
     def _finalize_upload(self) -> None:
@@ -508,8 +504,8 @@ class _CloudSpooledStorageRaw(_CloudStorageRaw):
 
 def open_stream(
     raw_io_class: Type[_CloudStorageRaw],
-    client: Client,
-    cloud_path: CloudPath,
+    client: "Client",
+    cloud_path: "CloudPath",
     mode: str,
     buffering: int = -1,
     encoding: Optional[str] = None,
@@ -521,9 +517,9 @@ def open_stream(
 
     Returns the raw stream for `buffering=0`, an `io.BufferedReader`/`io.BufferedWriter`
     for binary modes, and an `io.TextIOWrapper` for text modes. `buffering` has the same
-    meaning as for `open`: `-1` for the default buffer size, `1` for line buffering in
-    text mode, otherwise the buffer size in bytes (which is also the size of each ranged
-    request for reads).
+    meaning as for `open`: `-1` for the default buffer size (`CLOUDPATHLIB_STREAMING_BUFFER_SIZE`,
+    5 MiB), `1` for line buffering in text mode, otherwise the buffer size in bytes (which is
+    also the size of each ranged request for reads).
     """
     _validate_file_mode(mode)
     binary = "b" in mode
@@ -550,7 +546,7 @@ def open_stream(
     line_buffering = buffering == 1
     buffered: Union[io.BufferedReader, io.BufferedWriter]
     if "r" in mode:
-        buffer_size = DEFAULT_BUFFER_SIZE if buffering < 2 else buffering
+        buffer_size = streaming_buffer_size() if buffering < 2 else buffering
         buffered = io.BufferedReader(raw, buffer_size)
     else:
         # the raw stream accumulates whole upload parts itself, so a large wrapper buffer

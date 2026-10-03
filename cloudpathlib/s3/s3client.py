@@ -45,7 +45,7 @@ class S3Client(Client):
         content_type_method: Optional[Callable] = mimetypes.guess_type,
         extra_args: Optional[dict] = None,
         *,
-        streaming_max_concurrency: int = 4,
+        streaming_max_concurrency: Optional[int] = None,
     ):
         """Class constructor. Sets up a boto3 [`Session`](
         https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html).
@@ -88,10 +88,11 @@ class S3Client(Client):
                 download, or copy operations, and we will pass on only the relevant args. To see the
                 extra args that are supported look at the upload, download, and copy lists in the
                 [boto3 docs](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/customizations/s3.html#boto3.s3.transfer.S3Transfer).
-            streaming_max_concurrency (int): Maximum concurrent requests per open streaming
-                file (background part uploads while writing, read-ahead of the next byte
-                ranges during sequential reads) when using `FileCacheMode.streaming`.
-                Defaults to 4; 1 makes each stream fully sequential.
+            streaming_max_concurrency (Optional[int]): Maximum concurrent requests per open
+                streaming file (background part uploads while writing, read-ahead of the next
+                byte ranges during sequential reads) when using `FileCacheMode.streaming`.
+                Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable
+                or 4; 1 makes each stream fully sequential.
         """
         endpoint_url = endpoint_url or os.getenv("AWS_ENDPOINT_URL")
         if boto3_session is not None:
@@ -379,14 +380,14 @@ class S3Client(Client):
         return cloud_path
 
     def _content_type_args(self, cloud_path: S3Path) -> Dict[str, Any]:
-        """`ContentType`/`ContentEncoding` guessed from the object name, for uploads."""
+        """The guessed content type/encoding (see `Client._guess_content_type`) as boto3
+        upload arguments."""
+        content_type, content_encoding = self._guess_content_type(cloud_path)
         args: Dict[str, Any] = {}
-        if self.content_type_method is not None:
-            content_type, content_encoding = self.content_type_method(str(cloud_path))
-            if content_type is not None:
-                args["ContentType"] = content_type
-            if content_encoding is not None:
-                args["ContentEncoding"] = content_encoding
+        if content_type is not None:
+            args["ContentType"] = content_type
+        if content_encoding is not None:
+            args["ContentEncoding"] = content_encoding
         return args
 
     def _get_public_url(self, cloud_path: S3Path) -> str:
@@ -431,6 +432,8 @@ class S3Client(Client):
             code = e.response["Error"]["Code"]
             if code in ("404", "NoSuchKey"):
                 raise CloudPathFileNotFoundError(f"S3 object not found: {cloud_path}") from e
+            # a range starting past the end of the object is how a reader that does not know
+            # the size learns it is at EOF: file objects report that as an empty read
             if code in ("InvalidRange", "416"):
                 return b""
             raise

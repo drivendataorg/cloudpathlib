@@ -7,6 +7,11 @@ reads from cloud storage with ranged requests and writes to it with multipart up
 Nothing is written to disk, only the part of the object you read is downloaded, and
 written data is uploaded while you write it.
 
+The exception is the append and update modes (`a`, `a+`, `r+`, `w+`, ...): object stores
+cannot modify an object in place, so those modes still download the whole object to the
+local cache, work on it there, and re-upload it on close (with a warning; see
+[Writes](#writes)).
+
 ## Enabling streaming
 
 Set `file_cache_mode` on the client (or the `CLOUDPATHLIB_FILE_CACHE_MODE=streaming`
@@ -93,6 +98,10 @@ Pass `streaming_max_concurrency=1` for fully sequential I/O.
 client = S3Client(file_cache_mode=FileCacheMode.streaming, streaming_max_concurrency=8)
 ```
 
+This concurrency is cloudpathlib's own (a small thread pool per open stream issuing the
+provider's plain ranged `GET` and part-upload calls); the SDKs' transfer managers, which
+only move whole files to and from disk, are not involved in streaming.
+
 Streams are not thread-safe, like ordinary file objects: open one per thread. Any number
 of streams may read the same object at once. Concurrent writers to the same object are
 last-closed-wins; each writer's upload is isolated, so they cannot corrupt each other's
@@ -106,7 +115,7 @@ stream:
 | Mode | Behaviour |
 |------|-----------|
 | `w`, `wb`, `x`, `xb` | Streamed: data is uploaded in parts as you write; the object appears on `close()`. |
-| `a`, `ab`, `r+`, `w+`, ... | Fall back to the local cache: the object is downloaded, modified locally, re-uploaded on `close()`, and the cache file is then removed (as with `close_file`). Correct, but costs a full download and upload. |
+| `a`, `ab`, `r+`, `w+`, ... | Fall back to the local cache, with a `UserWarning`: the object is downloaded, modified locally, re-uploaded on `close()`, and the cache file is then removed (as with `close_file`). Correct, but costs a full download and upload. |
 
 Details of a streamed write:
 
@@ -125,6 +134,23 @@ Details of a streamed write:
   `content_type_method`, exactly as for cached uploads.
 - HTTP servers have no multipart upload, so an HTTP write is one request on `close()`;
   the body is held in memory up to 5 MiB and spooled to a temporary file beyond that.
+
+## Configuration
+
+Every streaming knob has a default that can be changed with an environment variable; an
+explicit argument always wins.
+
+| Setting | Environment variable | Default |
+|---------|----------------------|---------|
+| Buffer / ranged-request size (`buffering=-1`), also the chunk size for stream-to-stream copies and the in-memory limit for HTTP uploads | `CLOUDPATHLIB_STREAMING_BUFFER_SIZE` (bytes) | 5 MiB |
+| Requests in flight per stream (`streaming_max_concurrency=`) | `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` | 4 |
+| Multipart part size, all providers | `CLOUDPATHLIB_STREAMING_PART_SIZE` (bytes) | provider minimum |
+| Multipart part size, one provider | `CLOUDPATHLIB_S3_STREAMING_PART_SIZE`, `CLOUDPATHLIB_AZURE_STREAMING_PART_SIZE`, `CLOUDPATHLIB_GS_STREAMING_PART_SIZE` (bytes) | provider minimum |
+
+The part size cannot go below the provider's minimum non-final part (5 MiB on S3 and GCS,
+4 MiB on Azure) and grows automatically during very large uploads so the provider's
+part-count limit (10,000 on S3 and GCS, 50,000 on Azure) is never reached. Invalid values
+raise `InvalidConfigurationException` when the client is created.
 
 ## Limitations
 

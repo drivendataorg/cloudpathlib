@@ -111,7 +111,7 @@ class GSClient(Client):
         timeout: Optional[float] = None,
         retry: Optional["Retry"] = None,
         *,
-        streaming_max_concurrency: int = 4,
+        streaming_max_concurrency: Optional[int] = None,
     ):
         """Class constructor. Sets up a [`Storage
         Client`](https://googleapis.dev/python/storage/latest/client.html).
@@ -150,10 +150,11 @@ class GSClient(Client):
                 for sliced parallel downloads; Only available in `google-cloud-storage` version 2.7.0 or later, otherwise ignored and a warning is emitted.
             timeout (Optional[float]): Cloud Storage [timeout value](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout)
             retry (Optional[google.api_core.retry.Retry]): Cloud Storage [retry configuration](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout#configuring-retries)
-            streaming_max_concurrency (int): Maximum concurrent requests per open streaming
-                file (background part uploads while writing, read-ahead of the next byte
-                ranges during sequential reads) when using `FileCacheMode.streaming`.
-                Defaults to 4; 1 makes each stream fully sequential.
+            streaming_max_concurrency (Optional[int]): Maximum concurrent requests per open
+                streaming file (background part uploads while writing, read-ahead of the next
+                byte ranges during sequential reads) when using `FileCacheMode.streaming`.
+                Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable
+                or 4; 1 makes each stream fully sequential.
         """
         # don't check `GOOGLE_APPLICATION_CREDENTIALS` since `google_default_auth` already does that
         # use explicit client
@@ -368,9 +369,7 @@ class GSClient(Client):
         The guessed encoding is deliberately not sent: GCS applies decompressive transcoding to
         objects with `Content-Encoding: gzip`, so a `.gz` object would no longer round-trip.
         """
-        if self.content_type_method is None:
-            return None
-        content_type, _ = self.content_type_method(str(cloud_path))
+        content_type, _ = self._guess_content_type(cloud_path)
         return content_type
 
     def _get_public_url(self, cloud_path: GSPath) -> str:
@@ -412,7 +411,9 @@ class GSClient(Client):
         """Start a GCS XML multipart upload, threading the content type."""
         if XMLMPUContainer is None:
             raise CloudPathNotImplementedError(
-                "Streaming writes require google-cloud-storage with XML multipart support."
+                "Streaming writes to GCS need the XML multipart upload classes shipped with "
+                "google-cloud-storage 2.10 or newer; upgrade with "
+                "`pip install --upgrade 'cloudpathlib[gs]'`."
             )
         container = XMLMPUContainer(self._mpu_url(cloud_path), cloud_path.blob)
         container.initiate(

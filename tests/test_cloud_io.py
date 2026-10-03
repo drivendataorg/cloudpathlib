@@ -1267,7 +1267,9 @@ def test_append_mode_uses_cache_fallback(rig):
     path.client.file_cache_mode = FileCacheMode.streaming
 
     try:
-        with path.open("ab") as f:
+        with pytest.warns(UserWarning, match="downloads the whole object"):
+            f = path.open("ab")
+        with f:
             assert not _is_streaming(f), "append mode must use cache, not streaming"
             f.write(b"world")
 
@@ -1292,7 +1294,9 @@ def test_rplus_mode_uses_cache_fallback(rig):
     path.client.file_cache_mode = FileCacheMode.streaming
 
     try:
-        with path.open("r+b") as f:
+        with pytest.warns(UserWarning, match="downloads the whole object"):
+            f = path.open("r+b")
+        with f:
             assert not _is_streaming(f), "r+b must use cache, not streaming"
             f.seek(6)
             f.write(b"there")
@@ -2234,7 +2238,7 @@ def test_multipart_part_limit_enforced(local_s3_rig):
     """Exceeding the provider's maximum part count raises a clear OSError."""
     path = local_s3_rig.create_cloud_path("part-limit.bin")
 
-    path.client._multipart_min_part_size = 4
+    path.client._multipart_part_size = 4
     path.client._multipart_max_part_size = 4
     path.client._multipart_max_parts = 2
 
@@ -2568,12 +2572,81 @@ def test_streaming_parquet_metadata_and_column_read(streaming_rig):
 # ============================================================================
 
 
-def test_streaming_max_concurrency_validation(local_s3_rig):
-    """The concurrency knob must be a positive integer."""
+def test_streaming_max_concurrency_validation(local_s3_rig, monkeypatch):
+    """The concurrency knob must be a positive integer; the environment variable supplies the
+    default and the keyword argument wins over it."""
+    from cloudpathlib.exceptions import InvalidConfigurationException
+
     with pytest.raises(ValueError, match="streaming_max_concurrency"):
         local_s3_rig.client_class(
             streaming_max_concurrency=0, **local_s3_rig.required_client_kwargs
         )
+
+    assert (
+        local_s3_rig.client_class(**local_s3_rig.required_client_kwargs).streaming_max_concurrency
+        == 4
+    )
+
+    monkeypatch.setenv("CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY", "2")
+    assert (
+        local_s3_rig.client_class(**local_s3_rig.required_client_kwargs).streaming_max_concurrency
+        == 2
+    )
+    assert (
+        local_s3_rig.client_class(
+            streaming_max_concurrency=7, **local_s3_rig.required_client_kwargs
+        ).streaming_max_concurrency
+        == 7
+    )
+
+    monkeypatch.setenv("CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY", "zero")
+    with pytest.raises(InvalidConfigurationException, match="must be an integer"):
+        local_s3_rig.client_class(**local_s3_rig.required_client_kwargs)
+
+
+def test_streaming_part_size_environment_variables(rig, monkeypatch):
+    """The multipart part size defaults to the provider minimum and can be raised with a
+    generic or a provider-specific environment variable, never lowered below the minimum."""
+    from cloudpathlib.exceptions import InvalidConfigurationException
+
+    _skip_unless_multipart(rig)
+    make = lambda: rig.client_class(**rig.required_client_kwargs)  # noqa: E731
+    minimum = rig.client_class._multipart_min_part_size
+    provider = rig.client_class._cloud_meta.name.upper()
+
+    assert make()._multipart_part_size == minimum
+
+    monkeypatch.setenv("CLOUDPATHLIB_STREAMING_PART_SIZE", str(2 * minimum))
+    assert make()._multipart_part_size == 2 * minimum
+
+    monkeypatch.setenv(f"CLOUDPATHLIB_{provider}_STREAMING_PART_SIZE", str(3 * minimum))
+    assert make()._multipart_part_size == 3 * minimum
+
+    monkeypatch.setenv(f"CLOUDPATHLIB_{provider}_STREAMING_PART_SIZE", str(minimum - 1))
+    with pytest.raises(InvalidConfigurationException, match="at least"):
+        make()
+
+
+def test_streaming_buffer_size_environment_variable(streaming_rig, monkeypatch):
+    """CLOUDPATHLIB_STREAMING_BUFFER_SIZE sets the default ranged-request size."""
+    path = streaming_rig.create_cloud_path("buffer-env.bin")
+    path.write_bytes(b"x" * (100 * 1024))
+    client = path.client
+
+    requests = []
+    original = client._range_download
+
+    def spy(cloud_path, start, end=None):
+        requests.append(end - start + 1)
+        return original(cloud_path, start, end)
+
+    monkeypatch.setattr(client, "_range_download", spy)
+    monkeypatch.setenv("CLOUDPATHLIB_STREAMING_BUFFER_SIZE", str(16 * 1024))
+    with path.open("rb") as f:
+        while f.read(4096):
+            pass
+    assert max(requests) == 16 * 1024
+    assert len(requests) == 100 // 16 + 1
 
 
 def test_concurrent_multipart_write_correctness(streaming_rig):

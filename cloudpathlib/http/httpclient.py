@@ -14,7 +14,7 @@ import warnings
 
 from cloudpathlib.client import Client, register_client_class
 from cloudpathlib.cloud_io import _CloudSpooledStorageRaw
-from cloudpathlib.cloudpath import _STREAM_COPY_CHUNK_SIZE
+from cloudpathlib.env import streaming_buffer_size
 from cloudpathlib.enums import FileCacheMode
 from cloudpathlib.exceptions import (
     CloudPathFileNotFoundError,
@@ -39,7 +39,7 @@ class HttpClient(Client):
         custom_dir_matcher: Optional[Callable[[str], bool]] = None,
         write_file_http_method: Optional[str] = "PUT",
         *,
-        streaming_max_concurrency: int = 4,
+        streaming_max_concurrency: Optional[int] = None,
     ):
         """Class constructor. Creates an HTTP client that can be used to interact with HTTP servers
             using the cloudpathlib library.
@@ -57,10 +57,11 @@ class HttpClient(Client):
             custom_list_page_parser (Optional[Callable[[str], Iterable[str]]]): Function to call to parse pages that list directories. Defaults to looking for `<a>` tags with `href`.
             custom_dir_matcher (Optional[Callable[[str], bool]]): Function to call to identify a url that is a directory. Defaults to a lambda that checks if the path ends with a `/`.
             write_file_http_method (Optional[str]): HTTP method to use when writing files. Defaults to "PUT", but some servers may want "POST".
-            streaming_max_concurrency (int): Maximum concurrent requests per open streaming
-                file (background part uploads while writing, read-ahead of the next byte
-                ranges during sequential reads) when using `FileCacheMode.streaming`.
-                Defaults to 4; 1 makes each stream fully sequential.
+            streaming_max_concurrency (Optional[int]): Maximum concurrent requests per open
+                streaming file (background part uploads while writing, read-ahead of the next
+                byte ranges during sequential reads) when using `FileCacheMode.streaming`.
+                Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable
+                or 4; 1 makes each stream fully sequential.
         """
         super().__init__(
             file_cache_mode,
@@ -128,9 +129,11 @@ class HttpClient(Client):
     def _move_file(self, src: HttpPath, dst: HttpPath, remove_src: bool = True) -> HttpPath:
         if self.file_cache_mode == FileCacheMode.streaming:
             # streaming mode has no local cache to round-trip through (fspath is
-            # unavailable), so stream between the two paths directly
+            # unavailable), so stream between the two paths directly: both are ordinary
+            # file objects (ranged GETs on one side, a PUT on close on the other), so
+            # shutil just shuttles buffers between them
             with src.open("rb") as src_file, dst.open("wb") as dst_file:
-                shutil.copyfileobj(src_file, dst_file, _STREAM_COPY_CHUNK_SIZE)
+                shutil.copyfileobj(src_file, dst_file, streaming_buffer_size())
         else:
             # .fspath will download the file so the local version can be uploaded
             self._upload_file(src.fspath, dst)

@@ -572,7 +572,9 @@ def test_streaming_append_fallback_cache_cleaned_up(rig: CloudProviderTestRig):
     cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
     original = cp.read_text()
 
-    with cp.open("a") as f:
+    with pytest.warns(UserWarning, match="downloads the whole object"):
+        f = cp.open("a")
+    with f:
         f.write("appended")
         assert cp._local.exists()  # the fallback works on a real cache file
 

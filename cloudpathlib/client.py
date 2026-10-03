@@ -20,6 +20,7 @@ from typing import (
     Union,
 )
 
+from . import env
 from .cloud_io import _CloudStorageRaw
 from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 from .enums import FileCacheMode
@@ -51,10 +52,13 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
 
     # Streaming I/O (`FileCacheMode.streaming`): the raw stream class `CloudPath.open` wraps,
     # or None when the provider has no streaming support. Multipart providers use
-    # `_CloudMultipartStorageRaw` and the part limits below (S3's by default).
+    # `_CloudMultipartStorageRaw` and the provider's hard limits below (S3's by default).
+    # The part size actually used starts at the minimum (overridable per client with
+    # `CLOUDPATHLIB_<PROVIDER>_STREAMING_PART_SIZE`, see `env.py`) and grows for very large
+    # streams so the part-count limit is never reached.
     _streaming_raw_class: ClassVar[Optional[Type[_CloudStorageRaw]]] = None
-    _multipart_min_part_size: ClassVar[int] = 5 * 1024 * 1024
-    _multipart_max_part_size: ClassVar[int] = 5 * 1024 * 1024 * 1024
+    _multipart_min_part_size: ClassVar[int] = 5 * env.MiB  # smallest non-final part (5 MiB)
+    _multipart_max_part_size: ClassVar[int] = 5 * 1024 * env.MiB  # largest part (5 GiB)
     _multipart_max_parts: ClassVar[int] = 10_000
 
     def __init__(
@@ -63,17 +67,23 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
         *,
-        streaming_max_concurrency: int = 4,
+        streaming_max_concurrency: Optional[int] = None,
     ) -> None:
         self.file_cache_mode = None
         self._cache_tmp_dir = None
         self._cloud_meta.validate_completeness()
 
-        if streaming_max_concurrency < 1:
-            raise ValueError("streaming_max_concurrency must be at least 1")
         # concurrent requests per open streaming file (part uploads / read-ahead);
         # 1 means fully sequential I/O
+        if streaming_max_concurrency is None:
+            streaming_max_concurrency = env.streaming_max_concurrency()
+        if streaming_max_concurrency < 1:
+            raise ValueError("streaming_max_concurrency must be at least 1")
         self.streaming_max_concurrency = streaming_max_concurrency
+        # multipart part size for streaming writes: the provider minimum unless overridden
+        self._multipart_part_size = env.streaming_part_size(
+            getattr(self._cloud_meta, "name", None), self._multipart_min_part_size
+        )
 
         # convert strings passed to enum
         if isinstance(file_cache_mode, str):
@@ -214,6 +224,15 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     ) -> BoundedCloudPath:
         pass
 
+    def _guess_content_type(
+        self, cloud_path: BoundedCloudPath
+    ) -> Tuple[Optional[str], Optional[str]]:
+        """`(content_type, content_encoding)` for an upload, from `content_type_method` applied
+        to the object name; `(None, None)` when guessing is disabled."""
+        if self.content_type_method is None:
+            return None, None
+        return self.content_type_method(str(cloud_path))
+
     @abc.abstractmethod
     def _get_public_url(self, cloud_path: BoundedCloudPath) -> str:
         pass
@@ -235,7 +254,11 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         )
 
     def _get_content_length(self, cloud_path: BoundedCloudPath) -> Optional[int]:
-        """Object size without downloading it, or None when the provider cannot say."""
+        """Object size without downloading it, or None when the provider cannot say.
+
+        `stat()` is one metadata request on every provider (HEAD-equivalent through
+        `_get_metadata`), so this is as cheap as a dedicated size call would be.
+        """
         try:
             return cloud_path.stat().st_size
         except NoStatError as e:

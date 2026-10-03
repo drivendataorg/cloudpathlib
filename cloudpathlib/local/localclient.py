@@ -51,7 +51,7 @@ class LocalClient(Client):
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
-        streaming_max_concurrency: int = 4,
+        streaming_max_concurrency: Optional[int] = None,
         **kwargs: Any,
     ) -> None:
         self._local_storage_dir = local_storage_dir
