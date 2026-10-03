@@ -20,7 +20,7 @@ nbautoexport
 pandas
 pillow
 psutil
-pyarrow
+pyarrow; python_version < "3.15"  # no 3.15 wheels yet; the parquet test skips without it
 pydantic
 pytest<9.1
 pytest-cases>=3.9.1
