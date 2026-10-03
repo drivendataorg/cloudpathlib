@@ -1323,11 +1323,11 @@ def test_s3_no_small_non_final_parts(rig):
     original_mode = path.client.file_cache_mode
     path.client.file_cache_mode = FileCacheMode.streaming
 
-    uploaded_parts = []
+    uploaded_parts = {}  # part number -> size; parts upload concurrently, so call order varies
     real_upload_part = path.client._upload_part
 
     def spy_upload_part(cloud_path, upload_id, part_number, part_data):
-        uploaded_parts.append(len(part_data))
+        uploaded_parts[part_number] = len(part_data)
         return real_upload_part(cloud_path, upload_id, part_number, part_data)
 
     path.client._upload_part = spy_upload_part
@@ -1340,7 +1340,10 @@ def test_s3_no_small_non_final_parts(rig):
         assert path.read_bytes() == data
 
         min_size = path.client._multipart_min_part_size
-        for part_size in uploaded_parts[:-1]:  # all except last
+        final_part = max(uploaded_parts)
+        for number, part_size in uploaded_parts.items():
+            if number == final_part:
+                continue
             assert (
                 part_size >= min_size
             ), f"Non-final part is {part_size} bytes, below 5 MiB minimum"
