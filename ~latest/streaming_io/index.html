@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://cloudpathlib.drivendata.org/stable/integrations/">
+        <link rel="canonical" href="https://cloudpathlib.drivendata.org/stable/streaming_io/">
       
       
-        <link rel="prev" href="../testing_mocked_cloudpathlib/">
+        <link rel="prev" href="../caching/">
       
       
-        <link rel="next" href="../contributing/">
+        <link rel="next" href="../patching_builtins/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Integrations - cloudpathlib</title>
+        <title>Streaming I/O - cloudpathlib</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#integrations-with-other-libraries" class="md-skip">
+        <a href="#streaming-io" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Integrations
+              Streaming I/O
             
           </span>
         </div>
@@ -391,10 +391,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../streaming_io/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Streaming I/O
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -410,6 +437,136 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#enabling-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enabling streaming
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-open-returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What open() returns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#buffering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        buffering
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concurrency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concurrency
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-streaming-to-a-custom-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding streaming to a custom client
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -499,37 +656,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Integrations
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../integrations/" class="md-nav__link">
         
   
   
@@ -545,37 +675,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#pydantic" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pydantic
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1294,10 +1393,109 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#pydantic" class="md-nav__link">
+  <a href="#enabling-streaming" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pydantic
+        Enabling streaming
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-open-returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What open() returns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#buffering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        buffering
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concurrency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concurrency
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Provider notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-streaming-to-a-custom-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding streaming to a custom client
       
     </span>
   </a>
@@ -1324,52 +1522,246 @@
   
 
 
-<h1 id="integrations-with-other-libraries">Integrations with Other Libraries<a class="headerlink" href="#integrations-with-other-libraries" title="Permanent link">&para;</a></h1>
-<h2 id="pydantic">Pydantic<a class="headerlink" href="#pydantic" title="Permanent link">&para;</a></h2>
-<p><code>cloudpathlib</code> integrates with <a href="https://pydantic-docs.helpmanual.io/">Pydantic</a>'s data validation. You can declare fields with cloud path classes, and Pydantic's validation mechanisms will run inputs through the cloud path's constructor.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+<h1 id="streaming-io">Streaming I/O<a class="headerlink" href="#streaming-io" title="Permanent link">&para;</a></h1>
+<p>By default, <code>CloudPath.open()</code> downloads a file to the local cache before opening it and
+uploads the whole cache file when a written handle is closed. With
+<code>FileCacheMode.streaming</code>, <code>open()</code> instead returns a standard Python file object that
+reads from cloud storage with ranged requests and writes to it with multipart uploads.
+Nothing goes through the cloudpathlib cache, only the part of the object you read is
+downloaded, and written data is uploaded while you write it. (The one place streaming may
+still touch disk is HTTP uploads, which have no multipart API; see <a href="#writes">Writes</a>.)</p>
+<p>The exception is the append and update modes (<code>a</code>, <code>a+</code>, <code>r+</code>, <code>w+</code>, ...): object stores
+cannot modify an object in place, so those modes still download the whole object to the
+local cache, work on it there, and re-upload it on close (with a warning; see
+<a href="#writes">Writes</a>).</p>
+<h2 id="enabling-streaming">Enabling streaming<a class="headerlink" href="#enabling-streaming" title="Permanent link">&para;</a></h2>
+<p>Set <code>file_cache_mode</code> on the client (or the <code>CLOUDPATHLIB_FILE_CACHE_MODE=streaming</code>
+environment variable):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Client</span><span class="p">,</span> <span class="n">S3Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">FileCacheMode</span>
 
-<span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-    <span class="n">s3_file</span><span class="p">:</span> <span class="n">S3Path</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">file_cache_mode</span><span class="o">=</span><span class="n">FileCacheMode</span><span class="o">.</span><span class="n">streaming</span><span class="p">)</span>
+<span class="n">path</span> <span class="o">=</span> <span class="n">S3Path</span><span class="p">(</span><span class="s2">"s3://bucket/data.csv"</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
 
-<span class="n">inst</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">s3_file</span><span class="o">=</span><span class="s2">"s3://mybucket/myfile.txt"</span><span class="p">)</span>
-<span class="n">inst</span><span class="o">.</span><span class="n">s3_file</span>
-<span class="c1">#&gt; S3Path('s3://mybucket/myfile.txt')</span>
-<span class="n">inst</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()</span>
-<span class="c1">#&gt; '{"s3_file":"s3://mybucket/myfile.txt"}'</span>
+<span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>          <span class="c1"># text, ranged reads</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+        <span class="o">...</span>
+
+<span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>         <span class="c1"># binary, multipart upload</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">"..."</span><span class="p">)</span>
 </code></pre></div>
-<p>This also works with the <code>AnyPath</code> polymorphic class. Inputs will get dispatched and instantiated as the appropriate class.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnyPath</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+<p>Streaming is supported for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS,
+as well as the <code>cloudpathlib.local</code> mock clients used in tests.</p>
+<h2 id="what-open-returns">What <code>open()</code> returns<a class="headerlink" href="#what-open-returns" title="Permanent link">&para;</a></h2>
+<p>The same objects the builtin <code>open()</code> returns, so any library that accepts a file object
+works unchanged: <code>json</code>, <code>csv</code>, <code>zipfile</code>, <code>tarfile</code>, <code>pandas</code>, <code>pyarrow</code>, <code>PIL</code>, etc.</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rb</code>, <code>wb</code>, <code>xb</code></td>
+<td><code>io.BufferedReader</code> / <code>io.BufferedWriter</code> over a provider raw stream</td>
+</tr>
+<tr>
+<td><code>r</code>, <code>w</code>, <code>x</code> (text)</td>
+<td><code>io.TextIOWrapper</code> over the buffered stream</td>
+</tr>
+<tr>
+<td>binary with <code>buffering=0</code></td>
+<td>the raw <code>io.RawIOBase</code> stream itself</td>
+</tr>
+</tbody>
+</table>
+<p>Read streams are seekable, so formats that need random access (zip archives, parquet)
+work: <code>pyarrow</code> seeks to the parquet footer and then fetches only the column chunks you
+ask for.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pyarrow.parquet</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pq</span>
 
-<span class="k">class</span><span class="w"> </span><span class="nc">FancyModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-    <span class="n">path</span><span class="p">:</span> <span class="n">AnyPath</span>
-
-<span class="n">fancy1</span> <span class="o">=</span> <span class="n">FancyModel</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">"s3://mybucket/myfile.txt"</span><span class="p">)</span>
-<span class="n">fancy1</span><span class="o">.</span><span class="n">path</span>
-<span class="c1">#&gt; S3Path('s3://mybucket/myfile.txt')</span>
-
-<span class="n">fancy2</span> <span class="o">=</span> <span class="n">FancyModel</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">"mydir/myfile.txt"</span><span class="p">)</span>
-<span class="n">fancy2</span><span class="o">.</span><span class="n">path</span>
-<span class="c1">#&gt; PosixPath('mydir/myfile.txt')</span>
-<span class="n">fancy2</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()</span>
-<span class="c1">#&gt; '{"path":"mydir/myfile.txt"}'</span>
+<span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">pq</span><span class="o">.</span><span class="n">ParquetFile</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"user_id"</span><span class="p">])</span>
 </code></pre></div>
-<p>As seen above, the default serialization uses the URI but Pydantic supports custom serializers.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">cloudpathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">S3Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">PlainSerializer</span>
-
-<span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-    <span class="n">s3_file</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">S3Path</span><span class="p">,</span> <span class="n">PlainSerializer</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">as_url</span><span class="p">())]</span>
-
-<span class="n">inst</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">(</span><span class="n">s3_file</span><span class="o">=</span><span class="s2">"s3://mybucket/myfile.txt"</span><span class="p">)</span>
-<span class="n">inst</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()</span>
-<span class="c1">#&gt; '{"s3_file":"https://mybucket.s3.amazonaws.com/myfile.txt"}'</span>
+<p>Write streams are sequential: <code>seek()</code> on a write stream raises <code>io.UnsupportedOperation</code>.</p>
+<h2 id="buffering"><code>buffering</code><a class="headerlink" href="#buffering" title="Permanent link">&para;</a></h2>
+<p><code>buffering</code> means what it means for the builtin <code>open()</code>:</p>
+<ul>
+<li><code>-1</code> (default): a 5 MiB buffer. Each refill of a read stream is one ranged request of
+  that size (never past the end of the object), so a sequential scan of a 1 GiB object is
+  about 205 requests.</li>
+<li><code>N &gt; 1</code>: the buffer size in bytes. Use a smaller buffer (64 KiB to 1 MiB) when you read
+  small slices of large objects (parquet column reads, headers), and a larger one for
+  sequential scans on fast networks.</li>
+<li><code>1</code>: line buffering for text streams, with the default buffer size.</li>
+<li><code>0</code>: unbuffered; binary only. Every <code>read()</code>/<code>write()</code> is a request (or a part-buffer
+  append).</li>
+</ul>
+<p>A full-object <code>read()</code> is always a single request regardless of the buffer size.</p>
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"rb"</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=</span><span class="mi">16</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>   <span class="c1"># 16 MiB requests</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 </code></pre></div>
-<hr />
-<p><sup>Examples created with <a href="https://github.com/jayqi/reprexlite">reprexlite</a></sup></p>
+<h2 id="concurrency">Concurrency<a class="headerlink" href="#concurrency" title="Permanent link">&para;</a></h2>
+<p>Each client has a <code>streaming_max_concurrency</code> setting (default 4) that bounds the number
+of requests one open stream may have in flight:</p>
+<ul>
+<li><strong>Reads:</strong> once two consecutive reads are sequential, the next byte ranges are fetched
+  in the background while you consume the current one. A single read (for example of a
+  header) or a seek does not trigger read-ahead.</li>
+<li><strong>Writes:</strong> completed parts upload in the background while you keep writing; a
+  <code>write()</code> blocks only when that many parts are already in flight, so buffered memory is
+  bounded by roughly <code>streaming_max_concurrency</code> times the part size.</li>
+</ul>
+<p>Pass <code>streaming_max_concurrency=1</code> for fully sequential I/O.</p>
+<div class="highlight"><pre><span></span><code><span class="n">client</span> <span class="o">=</span> <span class="n">S3Client</span><span class="p">(</span><span class="n">file_cache_mode</span><span class="o">=</span><span class="n">FileCacheMode</span><span class="o">.</span><span class="n">streaming</span><span class="p">,</span> <span class="n">streaming_max_concurrency</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</code></pre></div>
+<p>This concurrency is cloudpathlib's own (a small thread pool per open stream issuing the
+provider's plain ranged <code>GET</code> and part-upload calls); the SDKs' transfer managers, which
+only move whole files to and from disk, are not involved in streaming.</p>
+<p>Streams are not thread-safe, like ordinary file objects: open one per thread. Any number
+of streams may read the same object at once. Concurrent writers to the same object are
+last-closed-wins; each writer's upload is isolated, so they cannot corrupt each other's
+data.</p>
+<h2 id="writes">Writes<a class="headerlink" href="#writes" title="Permanent link">&para;</a></h2>
+<p>Object stores cannot append to or modify an existing object, so only whole-object writes
+stream:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>w</code>, <code>wb</code>, <code>x</code>, <code>xb</code></td>
+<td>Streamed: data is uploaded in parts as you write; the object appears on <code>close()</code>.</td>
+</tr>
+<tr>
+<td><code>a</code>, <code>ab</code>, <code>r+</code>, <code>w+</code>, ...</td>
+<td>Fall back to the local cache, with a <code>UserWarning</code>: the object is downloaded, modified locally, re-uploaded on <code>close()</code>, and the cache file is then removed (as with <code>close_file</code>). Correct, but costs a full download and upload.</td>
+</tr>
+</tbody>
+</table>
+<p>Details of a streamed write:</p>
+<ul>
+<li>Data that fits in one part (5 MiB on S3 and GCS, 4 MiB on Azure) is uploaded with a
+  single <code>PUT</code> on close. Larger writes use a multipart (S3, GCS XML API) or block (Azure)
+  upload; part sizes grow for very large streams so the provider's part-count limit is
+  never hit.</li>
+<li>If a write or the final upload fails, the multipart upload is aborted and the error
+  propagates from <code>write()</code> or <code>close()</code>; no partial object is left behind. If the abort
+  itself fails, a <code>RuntimeWarning</code> names the object so you can clean up.</li>
+<li><code>force_overwrite_to_cloud</code> (and <code>CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD</code>) work as in
+  cached mode: when the object changed while the stream was open and overwriting is not
+  forced, <code>close()</code> raises <code>OverwriteNewerCloudError</code>. An <code>x</code> mode stream raises
+  <code>CloudPathFileExistsError</code> if the object appeared while it was open, whatever the flag.</li>
+<li>The content type is guessed from the object name with the client's
+  <code>content_type_method</code>, exactly as for cached uploads.</li>
+<li>HTTP servers have no multipart upload, so an HTTP write is one request on <code>close()</code>;
+  the body is held in memory up to 5 MiB and spooled to a temporary file beyond that.</li>
+</ul>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<p>Every streaming knob has a default that can be changed with an environment variable; an
+explicit argument always wins.</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Environment variable</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Buffer / ranged-request size (<code>buffering=-1</code>), also the chunk size for stream-to-stream copies and the in-memory limit for HTTP uploads</td>
+<td><code>CLOUDPATHLIB_STREAMING_BUFFER_SIZE</code> (bytes)</td>
+<td>5 MiB</td>
+</tr>
+<tr>
+<td>Requests in flight per stream (<code>streaming_max_concurrency=</code>)</td>
+<td><code>CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td>Multipart part size, all providers</td>
+<td><code>CLOUDPATHLIB_STREAMING_PART_SIZE</code> (bytes)</td>
+<td>provider minimum</td>
+</tr>
+<tr>
+<td>Multipart part size, one provider</td>
+<td><code>CLOUDPATHLIB_S3_STREAMING_PART_SIZE</code>, <code>CLOUDPATHLIB_AZURE_STREAMING_PART_SIZE</code>, <code>CLOUDPATHLIB_GS_STREAMING_PART_SIZE</code> (bytes)</td>
+<td>provider minimum</td>
+</tr>
+</tbody>
+</table>
+<p>The part size cannot go below the provider's minimum non-final part (5 MiB on S3 and GCS,
+4 MiB on Azure) and grows automatically during very large uploads so the provider's
+part-count limit (10,000 on S3 and GCS, 50,000 on Azure) is never reached. Invalid values
+raise <code>InvalidConfigurationException</code> when the client is created.</p>
+<h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>No <code>fspath</code>.</strong> <code>os.fspath(path)</code> and <code>path.fspath</code> raise <code>CloudPathNotImplementedError</code>
+  in streaming mode because there is no local file. Pass the open file object to libraries
+  instead of the path; if a library requires a filesystem path, use a cached mode.</li>
+<li><strong><code>copy</code>, <code>rename</code>, and <code>replace</code></strong> between different clients stream from one object to
+  the other instead of going through the cache.</li>
+<li><strong>HTTP reads</strong> need a server that honours <code>Range</code> requests (a <code>200</code> response is only
+  accepted for reads from the start of the object). Servers that omit <code>Content-Length</code>
+  work, but <code>seek(..., SEEK_END)</code> raises <code>CloudPathStreamingError</code>.</li>
+<li><strong>Size lookups.</strong> A read stream fetches the object's size once (a metadata request). If
+  that lookup fails (for example, a policy that allows <code>GET</code> but not <code>HEAD</code>), reading still
+  works; only <code>SEEK_END</code> raises, with the lookup error as its cause.</li>
+</ul>
+<h2 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">&para;</a></h2>
+<p>Streaming raises the same exception types as the rest of cloudpathlib:
+<code>CloudPathFileNotFoundError</code> for a missing object, <code>CloudPathFileExistsError</code> for <code>x</code>
+modes, <code>OverwriteNewerCloudError</code> for write conflicts, and <code>CloudPathStreamingError</code> (also
+an <code>OSError</code>) when a request cannot be completed, such as exceeding the provider's
+part-count limit or an HTTP server rejecting a write.</p>
+<h2 id="provider-notes">Provider notes<a class="headerlink" href="#provider-notes" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Reads</th>
+<th>Writes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S3 (and S3-compatible)</td>
+<td><code>GetObject</code> with <code>Range</code></td>
+<td><code>PutObject</code> or multipart upload; <code>extra_args</code> are forwarded to each operation that accepts them</td>
+</tr>
+<tr>
+<td>Azure Blob Storage</td>
+<td><code>download_blob(offset, length)</code></td>
+<td><code>upload_blob</code> or staged blocks committed on close; block IDs are unique per stream</td>
+</tr>
+<tr>
+<td>Google Cloud Storage</td>
+<td><code>download_as_bytes(start, end)</code></td>
+<td><code>upload_from_file</code> or the XML API multipart upload (concurrent parts). Set an <code>AbortIncompleteMultipartUpload</code> lifecycle rule on the bucket to expire uploads orphaned by a crash</td>
+</tr>
+<tr>
+<td>HTTP/HTTPS</td>
+<td><code>GET</code> with <code>Range</code></td>
+<td>one request using the client's <code>write_file_http_method</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="adding-streaming-to-a-custom-client">Adding streaming to a custom client<a class="headerlink" href="#adding-streaming-to-a-custom-client" title="Permanent link">&para;</a></h2>
+<p>A <code>Client</code> subclass gets streaming by implementing the hooks <code>_range_download</code>,
+<code>_put_object</code>, and (for multipart uploads) <code>_initiate_multipart_upload</code>, <code>_upload_part</code>,
+<code>_complete_multipart_upload</code>, and <code>_abort_multipart_upload</code>, then setting
+<code>_streaming_raw_class</code> to <code>cloudpathlib.cloud_io._CloudMultipartStorageRaw</code> (or
+<code>_CloudSpooledStorageRaw</code> for single-request uploads) and the <code>_multipart_*</code> part limits.
+Subclasses of the built-in clients inherit all of this. A client that leaves
+<code>_streaming_raw_class</code> as <code>None</code> raises <code>CloudPathNotImplementedError</code> from <code>open()</code> in
+streaming mode and works normally in the cached modes.</p>
 
 
 
