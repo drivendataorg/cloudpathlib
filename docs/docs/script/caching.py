@@ -222,7 +222,7 @@ from cloudpathlib.enums import FileCacheMode
 print("\n".join(FileCacheMode))
 
 
-# ### File cache mode: `"close_file"`
+# ### File cache mode: close_file
 # 
 # Example instantiation by passing a string to the client.
 # 
@@ -243,7 +243,7 @@ with flood_image.open("rb") as f:
 print("Cache file exists after finished reading: ", flood_image._local.exists())
 
 
-# ### File cache mode: `"cloudpath_object"`
+# ### File cache mode: cloudpath_object
 # 
 # Example instantiation by passing enum member to the client.
 # 
@@ -274,7 +274,7 @@ del flood_image
 print("Cache file exists after CloudPath is no longer referenced: ", local_cached_file.exists())
 
 
-# ### File cache mode: `"tmp_dir"` (default)
+# ### File cache mode: tmp_dir (default)
 # 
 # Local cache file exists after file is closed for reading.
 # 
@@ -309,7 +309,7 @@ del tmp_dir_client
 print("Cache file exists after Client is no longer referenced: ", local_cached_file.exists())
 
 
-# ### File cache mode: `"persistent"`
+# ### File cache mode: persistent
 # 
 # If `local_cache_dir` is specified, but `file_cache_mode` is not, then the mode is set to `"persistent"` automatically. Conversely, if you set the mode to `"persistent"` explicitly, you must also pass `local_cache_dir` or the `Client` will raise `InvalidConfigurationException`.
 # 
@@ -357,7 +357,7 @@ import shutil
 shutil.rmtree(client_cache_dir)
 
 
-# ### File cache mode: `"streaming"`
+# ### File cache mode: streaming
 # 
 # The `"streaming"` mode provides direct streaming I/O without any local caching. This is ideal for:
 # 
