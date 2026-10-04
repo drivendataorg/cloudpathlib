@@ -4,13 +4,34 @@ import os
 from pathlib import Path
 import shutil
 from tempfile import TemporaryDirectory
-from typing import ClassVar, Generic, Callable, Iterable, Optional, Tuple, TypeVar, Union
+from typing import (
+    Any,
+    BinaryIO,
+    Callable,
+    ClassVar,
+    Dict,
+    Generic,
+    Iterable,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
+from . import env
+from .cloud_io import _CloudStorageRaw
 from .cloudpath import CloudImplementation, CloudPath, implementation_registry
 from .enums import FileCacheMode
-from .exceptions import InvalidConfigurationException
+from .exceptions import (
+    CloudPathFileNotFoundError,
+    InvalidConfigurationException,
+    NoStatError,
+)
 
 BoundedCloudPath = TypeVar("BoundedCloudPath", bound=CloudPath)
+_UploadPart = Dict[str, Any]
 
 
 def register_client_class(key: str) -> Callable:
@@ -29,15 +50,44 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     _cloud_meta: CloudImplementation
     _default_client: ClassVar[Optional["Client[BoundedCloudPath]"]] = None
 
+    # Streaming I/O (`FileCacheMode.streaming`): the raw stream class `CloudPath.open` wraps,
+    # or None when the provider has no streaming support. Multipart providers use
+    # `_CloudMultipartStorageRaw` and the provider's hard limits below (S3's by default).
+    # The part size actually used starts at the minimum (overridable per client with
+    # `CLOUDPATHLIB_<PROVIDER>_STREAMING_PART_SIZE`, see `env.py`) and grows for very large
+    # streams so the part-count limit is never reached.
+    _streaming_raw_class: ClassVar[Optional[Type[_CloudStorageRaw]]] = None
+    _multipart_min_part_size: ClassVar[int] = 5 * env.MiB  # smallest non-final part (5 MiB)
+    _multipart_max_part_size: ClassVar[int] = 5 * 1024 * env.MiB  # largest part (5 GiB)
+    _multipart_max_parts: ClassVar[int] = 10_000
+
     def __init__(
         self,
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
-    ):
+        *,
+        streaming_max_concurrency: Optional[int] = None,
+    ) -> None:
         self.file_cache_mode = None
         self._cache_tmp_dir = None
         self._cloud_meta.validate_completeness()
+
+        # concurrent requests per open streaming file (part uploads / read-ahead);
+        # 1 means fully sequential I/O
+        if streaming_max_concurrency is None:
+            streaming_max_concurrency = env.streaming_max_concurrency()
+        if (
+            not isinstance(streaming_max_concurrency, int)
+            or isinstance(streaming_max_concurrency, bool)
+            or streaming_max_concurrency < 1
+        ):
+            raise ValueError("streaming_max_concurrency must be an integer of at least 1")
+        self.streaming_max_concurrency = streaming_max_concurrency
+        # multipart part size for streaming writes: the provider minimum unless overridden
+        self._multipart_part_size = env.streaming_part_size(
+            getattr(self._cloud_meta, "name", None), self._multipart_min_part_size
+        )
 
         # convert strings passed to enum
         if isinstance(file_cache_mode, str):
@@ -88,6 +138,9 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
             FileCacheMode.tmp_dir,
             FileCacheMode.close_file,
             FileCacheMode.cloudpath_object,
+            # streaming avoids the cache except for append/update fallbacks, which
+            # should not outlive the client
+            FileCacheMode.streaming,
         ]:
             self.clear_cache()
 
@@ -175,6 +228,15 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     ) -> BoundedCloudPath:
         pass
 
+    def _guess_content_type(
+        self, cloud_path: BoundedCloudPath
+    ) -> Tuple[Optional[str], Optional[str]]:
+        """`(content_type, content_encoding)` for an upload, from `content_type_method` applied
+        to the object name; `(None, None)` when guessing is disabled."""
+        if self.content_type_method is None:
+            return None, None
+        return self.content_type_method(str(cloud_path))
+
     @abc.abstractmethod
     def _get_public_url(self, cloud_path: BoundedCloudPath) -> str:
         pass
@@ -184,3 +246,58 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
         self, cloud_path: BoundedCloudPath, expire_seconds: int = 60 * 60
     ) -> str:
         pass
+
+    def _range_download(
+        self, cloud_path: BoundedCloudPath, start: int, end: Optional[int] = None
+    ) -> bytes:
+        """Download the inclusive byte range `start`-`end`, or from `start` to the end of the
+        object when `end` is None."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_range_download). "
+            "Implement this method or use a non-streaming file_cache_mode."
+        )
+
+    def _get_content_length(self, cloud_path: BoundedCloudPath) -> Optional[int]:
+        """Object size without downloading it, or None when the provider cannot say.
+
+        `stat()` is one metadata request on every provider (HEAD-equivalent through
+        `_get_metadata`), so this is as cheap as a dedicated size call would be.
+        """
+        try:
+            return cloud_path.stat().st_size
+        except NoStatError as e:
+            raise CloudPathFileNotFoundError(f"Object not found: {cloud_path}") from e
+
+    def _initiate_multipart_upload(self, cloud_path: BoundedCloudPath) -> str:
+        """Start a multipart upload."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_initiate_multipart_upload)."
+        )
+
+    def _upload_part(
+        self, cloud_path: BoundedCloudPath, upload_id: str, part_number: int, data: bytes
+    ) -> _UploadPart:
+        """Upload one part."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_upload_part)."
+        )
+
+    def _complete_multipart_upload(
+        self, cloud_path: BoundedCloudPath, upload_id: str, parts: Sequence[_UploadPart]
+    ) -> None:
+        """Complete a multipart upload."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_complete_multipart_upload)."
+        )
+
+    def _abort_multipart_upload(self, cloud_path: BoundedCloudPath, upload_id: str) -> None:
+        """Abort a multipart upload."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_abort_multipart_upload)."
+        )
+
+    def _put_object(self, cloud_path: BoundedCloudPath, data: BinaryIO) -> None:
+        """Upload a whole object in one request from a readable binary stream."""
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support streaming I/O (_put_object)."
+        )

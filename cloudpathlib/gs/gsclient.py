@@ -1,13 +1,27 @@
 from datetime import datetime, timedelta
+from functools import lru_cache
 import mimetypes
 import os
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Dict, Iterable, Optional, TYPE_CHECKING, Tuple, Union
+from typing import (
+    Any,
+    BinaryIO,
+    Callable,
+    Dict,
+    Iterable,
+    Optional,
+    TYPE_CHECKING,
+    Tuple,
+    Union,
+    Sequence,
+)
 import warnings
 
-from ..client import Client, register_client_class
+from ..client import Client, _UploadPart, register_client_class
+from ..cloud_io import _CloudMultipartStorageRaw
 from ..cloudpath import implementation_registry
 from ..enums import FileCacheMode
+from ..exceptions import CloudPathFileNotFoundError, CloudPathNotImplementedError
 from .gspath import GSPath
 
 try:
@@ -15,18 +29,63 @@ try:
         from google.auth.credentials import Credentials
         from google.api_core.retry import Retry
 
+    from google.api_core.exceptions import NotFound as GCSNotFound
+    from google.api_core.exceptions import RequestRangeNotSatisfiable as GCSRangeNotSatisfiable
     from google.auth import default as google_default_auth
     from google.auth.exceptions import DefaultCredentialsError
-    from google.cloud.storage import Client as StorageClient
+    from google.cloud.storage.client import Client as StorageClient
 
 except ModuleNotFoundError:
     implementation_registry["gs"].dependencies_loaded = False
+    # fallbacks so the names are always defined
+    GCSNotFound = Exception  # type: ignore[misc, assignment]
+    GCSRangeNotSatisfiable = Exception  # type: ignore[misc, assignment]
 
 
 try:
-    from google.cloud.storage import transfer_manager
+    import google.cloud.storage.transfer_manager as transfer_manager
 except ImportError:
-    transfer_manager = None
+    transfer_manager = None  # type: ignore[assignment]
+
+try:
+    from google.cloud.storage._media.requests import XMLMPUContainer, XMLMPUPart
+except ImportError:
+    try:
+        # older google-cloud-storage versions expose these via google-resumable-media
+        from google.resumable_media.requests import (  # type: ignore[assignment,no-redef]
+            XMLMPUContainer,
+            XMLMPUPart,
+        )
+    except ImportError:
+        XMLMPUContainer = None  # type: ignore[assignment,misc]
+        XMLMPUPart = None  # type: ignore[assignment,misc]
+
+
+@lru_cache(maxsize=1)
+def _bytes_mpu_part_class() -> type:
+    """XMLMPUPart subclass that uploads an in-memory payload instead of a file slice."""
+
+    class _BytesXMLMPUPart(XMLMPUPart):
+        def __init__(self, upload_url, upload_id, data, part_number, headers=None):
+            super().__init__(
+                upload_url,
+                upload_id,
+                filename="",
+                start=0,
+                end=len(data),
+                part_number=part_number,
+                headers=headers,
+                checksum=None,
+            )
+            self._data = bytes(data)
+
+        def _prepare_upload_request(self):
+            if self.finished:
+                raise ValueError("This part has already been uploaded.")
+            query = f"?partNumber={self._part_number}&uploadId={self._upload_id}"
+            return "PUT", self.upload_url + query, self._data, self._headers
+
+    return _BytesXMLMPUPart
 
 
 @register_client_class("gs")
@@ -36,6 +95,8 @@ class GSClient(Client):
     [`__init__` method][cloudpathlib.gs.gsclient.GSClient.__init__] for detailed authentication
     options.
     """
+
+    _streaming_raw_class = _CloudMultipartStorageRaw
 
     def __init__(
         self,
@@ -49,6 +110,8 @@ class GSClient(Client):
         download_chunks_concurrently_kwargs: Optional[Dict[str, Any]] = None,
         timeout: Optional[float] = None,
         retry: Optional["Retry"] = None,
+        *,
+        streaming_max_concurrency: Optional[int] = None,
     ):
         """Class constructor. Sets up a [`Storage
         Client`](https://googleapis.dev/python/storage/latest/client.html).
@@ -87,6 +150,11 @@ class GSClient(Client):
                 for sliced parallel downloads; Only available in `google-cloud-storage` version 2.7.0 or later, otherwise ignored and a warning is emitted.
             timeout (Optional[float]): Cloud Storage [timeout value](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout)
             retry (Optional[google.api_core.retry.Retry]): Cloud Storage [retry configuration](https://cloud.google.com/python/docs/reference/storage/1.39.0/retry_timeout#configuring-retries)
+            streaming_max_concurrency (Optional[int]): Maximum concurrent requests per open
+                streaming file (background part uploads while writing, read-ahead of the next
+                byte ranges during sequential reads) when using `FileCacheMode.streaming`.
+                Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable
+                or 4; 1 makes each stream fully sequential.
         """
         # don't check `GOOGLE_APPLICATION_CREDENTIALS` since `google_default_auth` already does that
         # use explicit client
@@ -122,6 +190,7 @@ class GSClient(Client):
             local_cache_dir=local_cache_dir,
             content_type_method=content_type_method,
             file_cache_mode=file_cache_mode,
+            streaming_max_concurrency=streaming_max_concurrency,
         )
 
     def _get_metadata(self, cloud_path: GSPath) -> Optional[Dict[str, Any]]:
@@ -289,13 +358,19 @@ class GSClient(Client):
         bucket = self.client.bucket(cloud_path.bucket)
         blob = bucket.blob(cloud_path.blob)
 
-        extra_args = {}
-        if self.content_type_method is not None:
-            content_type, _ = self.content_type_method(str(local_path))
-            extra_args["content_type"] = content_type
-
-        blob.upload_from_filename(str(local_path), **extra_args, **self.blob_kwargs)
+        blob.upload_from_filename(
+            str(local_path), content_type=self._content_type(cloud_path), **self.blob_kwargs
+        )
         return cloud_path
+
+    def _content_type(self, cloud_path: GSPath) -> Optional[str]:
+        """Content type guessed from the object name, for uploads.
+
+        The guessed encoding is deliberately not sent: GCS applies decompressive transcoding to
+        objects with `Content-Encoding: gzip`, so a `.gz` object would no longer round-trip.
+        """
+        content_type, _ = self._guess_content_type(cloud_path)
+        return content_type
 
     def _get_public_url(self, cloud_path: GSPath) -> str:
         bucket = self.client.get_bucket(cloud_path.bucket)
@@ -309,6 +384,76 @@ class GSClient(Client):
             version="v4", expiration=timedelta(seconds=expire_seconds), method="GET"
         )
         return url
+
+    def _range_download(self, cloud_path: GSPath, start: int, end: Optional[int] = None) -> bytes:
+        """Download a byte range from GCS."""
+        blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
+        try:
+            return blob.download_as_bytes(start=start, end=end, **self.blob_kwargs)
+        except GCSNotFound as e:
+            raise CloudPathFileNotFoundError(f"GCS object not found: {cloud_path}") from e
+        except GCSRangeNotSatisfiable:
+            return b""
+
+    def _mpu_url(self, cloud_path: GSPath) -> str:
+        """XML API URL for a multipart upload of this object."""
+        from urllib.parse import quote
+
+        connection = self.client._connection
+        hostname = (
+            connection.get_api_base_url_for_mtls()
+            if hasattr(connection, "get_api_base_url_for_mtls")
+            else connection.API_BASE_URL
+        )
+        return f"{hostname}/{cloud_path.bucket}/{quote(cloud_path.blob)}"
+
+    def _initiate_multipart_upload(self, cloud_path: GSPath) -> str:
+        """Start a GCS XML multipart upload, threading the content type."""
+        if XMLMPUContainer is None:
+            raise CloudPathNotImplementedError(
+                "Streaming writes to GCS need the XML multipart upload classes shipped with "
+                "google-cloud-storage 2.10 or newer; upgrade with "
+                "`pip install --upgrade 'cloudpathlib[gs]'`."
+            )
+        container = XMLMPUContainer(self._mpu_url(cloud_path), cloud_path.blob)
+        container.initiate(
+            transport=self.client._http,
+            content_type=self._content_type(cloud_path) or "application/octet-stream",
+        )
+        return container.upload_id
+
+    def _upload_part(
+        self, cloud_path: GSPath, upload_id: str, part_number: int, data: bytes
+    ) -> _UploadPart:
+        """Upload one part of a GCS XML multipart upload."""
+        part = _bytes_mpu_part_class()(self._mpu_url(cloud_path), upload_id, data, part_number)
+        part.upload(self.client._http)
+        return {"part_number": part_number, "etag": part.etag}
+
+    def _complete_multipart_upload(
+        self, cloud_path: GSPath, upload_id: str, parts: Sequence[_UploadPart]
+    ) -> None:
+        """Finalize a GCS XML multipart upload."""
+        container = XMLMPUContainer(
+            self._mpu_url(cloud_path), cloud_path.blob, upload_id=upload_id
+        )
+        for part in parts:
+            container.register_part(part["part_number"], part["etag"])
+        container.finalize(self.client._http)
+
+    def _abort_multipart_upload(self, cloud_path: GSPath, upload_id: str) -> None:
+        """Cancel a GCS XML multipart upload, discarding uploaded parts."""
+        container = XMLMPUContainer(
+            self._mpu_url(cloud_path), cloud_path.blob, upload_id=upload_id
+        )
+        container.cancel(self.client._http)
+
+    def _put_object(self, cloud_path: GSPath, data: BinaryIO) -> None:
+        """Upload a whole object in one request, threading content-type."""
+        blob = self.client.bucket(cloud_path.bucket).blob(cloud_path.blob)
+        blob.upload_from_file(
+            data, content_type=self._content_type(cloud_path), **self.blob_kwargs
+        )
 
 
 GSClient.GSPath = GSClient.CloudPath  # type: ignore

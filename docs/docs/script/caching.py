@@ -197,16 +197,15 @@ get_ipython().system('rm -rf data')
 # 
 # ### Automatically
 # 
-# We provide a number of different ways for the cache to get cleared automatically for you depending on your use case. These range from no cache clearing done by `cloudpathlib` (`"persistent"`), to the most aggressive (`"close_file"`), which deletes a file from the cache as soon as the file handle is closed and the file is uploaded to the cloud, if it was changed).
+# We provide a number of different ways for the cache to get cleared automatically for you depending on your use case. These range from no cache clearing done by `cloudpathlib` (`"persistent"`), to the most aggressive (`"close_file"`), which deletes a file from the cache as soon as the file handle is closed and the file is uploaded to the cloud, if it was changed). There is also a `"streaming"` mode that bypasses caching entirely for direct I/O.
 # 
 # The modes are defined in the `FileCacheMode` enum, which you can use directly or you can use the corresponding string value. Examples of both methods are included below.
-# 
-# Note: There is not currently a cache mode that _never_ writes a file to disk and only keeps it in memory.
 # 
 #  - `"persistent"` - `cloudpathlib` does not clear the cache at all. In this case, you must also pass a `local_cache_dir` when you instantiate the client.
 #  - `"tmp_dir"` (_default_) - Cached files are saved using Python's [`TemporaryDirectory`](https://docs.python.org/3/library/tempfile.html#tempfile.TemporaryDirectory). This provides three potential avenues for the cache to get cleared. First, cached files are removed by `cloudpathlib` when the `*Client` object is garbage collected. This happens on the next garbage collection run after the object leaves scope or `del` is called. Second, Python clears a temporary directory if all references to that directory leave scope. Finally since the folder is in an operating system temp directory, it will be cleared by the OS (which, depending on the OS, may not happen until system restart).
 #  - `"cloudpath_object"` - cached files are removed when the `CloudPath` object is garbage collected. This happens on the next garbage collection run after the object leaves scope or `del` is called.
 #  - `"close_file"` - since we only download a file to the cache on read/write, we can ensure the cache is empty by removing the cached file as soon as the read/write is finished. Reading/writing the same `CloudPath` multiple times will result in re-downloading the file from the cloud. Note: For this to work, `cloudpath` needs to be in control of the reading/writing of files. This means your code base should use the `CloudPath.write_*`, `CloudPath.read_*`, and `CloudPath.open` methods. Using `CloudPath.fspath` (or passing the `CloudPath` as a `PathLike` object to another library) will not clear the cache on file close since it was not opened by `cloudpathlib`.
+#  - `"streaming"` - supported read/write modes stream directly from/to cloud storage using range requests for reads and multipart/block uploads for writes, without writing cache files to disk (append and update modes are the exception: they fall back to the local cache, which is removed as soon as the file is closed, like `close_file`). This mode uses only in-memory buffers and is ideal for large files or memory-constrained environments. Note: `.fspath` and similar properties are not available in streaming mode. Supported for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS (HTTP writes are a single request, spooled to a temporary file above 5 MiB).
 # 
 # Note: Although we use it in the examples below, for `"cloudpath_object"` and `"tmp_dir"` you normally shouldn't need to explicitly call `del`. Letting Python garbage collection run on its own once all references to the object leave scope should be sufficient. See details [in the Python docs](https://docs.python.org/3/reference/datamodel.html?highlight=__del__#object.__del__)).
 # 
@@ -223,7 +222,7 @@ from cloudpathlib.enums import FileCacheMode
 print("\n".join(FileCacheMode))
 
 
-# ### File cache mode: `"close_file"`
+# ### File cache mode: close_file
 # 
 # Example instantiation by passing a string to the client.
 # 
@@ -244,7 +243,7 @@ with flood_image.open("rb") as f:
 print("Cache file exists after finished reading: ", flood_image._local.exists())
 
 
-# ### File cache mode: `"cloudpath_object"`
+# ### File cache mode: cloudpath_object
 # 
 # Example instantiation by passing enum member to the client.
 # 
@@ -275,7 +274,7 @@ del flood_image
 print("Cache file exists after CloudPath is no longer referenced: ", local_cached_file.exists())
 
 
-# ### File cache mode: `"tmp_dir"` (default)
+# ### File cache mode: tmp_dir (default)
 # 
 # Local cache file exists after file is closed for reading.
 # 
@@ -310,7 +309,7 @@ del tmp_dir_client
 print("Cache file exists after Client is no longer referenced: ", local_cached_file.exists())
 
 
-# ### File cache mode: `"persistent"`
+# ### File cache mode: persistent
 # 
 # If `local_cache_dir` is specified, but `file_cache_mode` is not, then the mode is set to `"persistent"` automatically. Conversely, if you set the mode to `"persistent"` explicitly, you must also pass `local_cache_dir` or the `Client` will raise `InvalidConfigurationException`.
 # 
@@ -356,6 +355,57 @@ print("Cache file exists after Client is no longer referenced: ", local_cached_f
 import shutil
 
 shutil.rmtree(client_cache_dir)
+
+
+# ### File cache mode: streaming
+# 
+# The `"streaming"` mode provides direct streaming I/O without any local caching. This is ideal for:
+# 
+# - **Large files** that don't fit in memory or disk
+# - **Partial reads** where you only need part of a file
+# - **Sequential processing** where you read/write once
+# - **Memory-constrained environments**
+# 
+# Unlike other cache modes, streaming mode:
+# - Reads data directly from cloud storage using range requests
+# - Writes data directly to cloud storage using multipart/block uploads
+# - Never creates cached files on disk for read and write modes (append and update modes fall back to the cache and clean it up on close)
+# - Works with standard Python file-like interfaces
+# 
+# **Note:** Streaming mode is supported for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS. See the [Streaming I/O](../streaming_io/) page for details.
+# 
+
+# Example: Streaming a large file
+streaming_client = S3Client(file_cache_mode=FileCacheMode.streaming)
+
+flood_image = streaming_client.CloudPath(
+    "s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0002_a89f1b79-786f-4dac-9dcc-609fb1a977b1.jpg"
+)
+
+# Read the image in streaming mode - no cache file created
+with flood_image.open("rb") as f:
+    i = Image.open(f)
+    print("Image loaded via streaming...")
+
+# No cache file exists - streaming mode doesn't create one
+print("Cache file exists: ", flood_image._local.exists())
+
+
+# Example: Reading in chunks for memory efficiency
+streaming_client = S3Client(file_cache_mode=FileCacheMode.streaming)
+
+flood_image = streaming_client.CloudPath(
+    "s3://ladi/Images/FEMA_CAP/2020/70349/DSC_0002_a89f1b79-786f-4dac-9dcc-609fb1a977b1.jpg"
+)
+
+# Read file in 8KB chunks without loading entire file
+print("Reading file in chunks:")
+chunk_count = 0
+with flood_image.open("rb", buffering=8192) as f:
+    while chunk := f.read(8192):
+        chunk_count += 1
+
+print(f"Read {chunk_count} chunks without caching the file")
 
 
 # We show an example below of `InvalidConfigurationException` being raised with the mode being interpreted from the environment variable.

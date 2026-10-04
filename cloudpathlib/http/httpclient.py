@@ -1,24 +1,34 @@
 from datetime import datetime, timezone
 import http
+import io
 import os
 import re
 import urllib.request
 import urllib.parse
 import urllib.error
 from pathlib import Path
-from typing import Iterable, Optional, Tuple, Union, Callable
+from typing import BinaryIO, Iterable, Optional, Tuple, Union, Callable
 import shutil
 import mimetypes
 import warnings
 
 from cloudpathlib.client import Client, register_client_class
+from cloudpathlib.cloud_io import _CloudSpooledStorageRaw
+from cloudpathlib.env import streaming_buffer_size
 from cloudpathlib.enums import FileCacheMode
+from cloudpathlib.exceptions import (
+    CloudPathFileNotFoundError,
+    CloudPathNotImplementedError,
+    CloudPathStreamingError,
+)
 
 from .httppath import HttpPath
 
 
 @register_client_class("http")
 class HttpClient(Client):
+    _streaming_raw_class = _CloudSpooledStorageRaw
+
     def __init__(
         self,
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
@@ -28,6 +38,8 @@ class HttpClient(Client):
         custom_list_page_parser: Optional[Callable[[str], Iterable[str]]] = None,
         custom_dir_matcher: Optional[Callable[[str], bool]] = None,
         write_file_http_method: Optional[str] = "PUT",
+        *,
+        streaming_max_concurrency: Optional[int] = None,
     ):
         """Class constructor. Creates an HTTP client that can be used to interact with HTTP servers
             using the cloudpathlib library.
@@ -45,8 +57,18 @@ class HttpClient(Client):
             custom_list_page_parser (Optional[Callable[[str], Iterable[str]]]): Function to call to parse pages that list directories. Defaults to looking for `<a>` tags with `href`.
             custom_dir_matcher (Optional[Callable[[str], bool]]): Function to call to identify a url that is a directory. Defaults to a lambda that checks if the path ends with a `/`.
             write_file_http_method (Optional[str]): HTTP method to use when writing files. Defaults to "PUT", but some servers may want "POST".
+            streaming_max_concurrency (Optional[int]): Maximum concurrent requests per open
+                streaming file (background part uploads while writing, read-ahead of the next
+                byte ranges during sequential reads) when using `FileCacheMode.streaming`.
+                Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable
+                or 4; 1 makes each stream fully sequential.
         """
-        super().__init__(file_cache_mode, local_cache_dir, content_type_method)
+        super().__init__(
+            file_cache_mode,
+            local_cache_dir,
+            content_type_method,
+            streaming_max_concurrency=streaming_max_concurrency,
+        )
         self.auth = auth
 
         if self.auth is None:
@@ -105,8 +127,16 @@ class HttpClient(Client):
             raise
 
     def _move_file(self, src: HttpPath, dst: HttpPath, remove_src: bool = True) -> HttpPath:
-        # .fspath will download the file so the local version can be uploaded
-        self._upload_file(src.fspath, dst)
+        if self.file_cache_mode == FileCacheMode.streaming:
+            # streaming mode has no local cache to round-trip through (fspath is
+            # unavailable), so stream between the two paths directly: both are ordinary
+            # file objects (ranged GETs on one side, a PUT on close on the other), so
+            # shutil just shuttles buffers between them
+            with src.open("rb") as src_file, dst.open("wb") as dst_file:
+                shutil.copyfileobj(src_file, dst_file, streaming_buffer_size())
+        else:
+            # .fspath will download the file so the local version can be uploaded
+            self._upload_file(src.fspath, dst)
         if remove_src:
             try:
                 self._remove(src)
@@ -202,6 +232,77 @@ class HttpClient(Client):
             # eager read of response content, which is not available after
             # the connection is closed when we exit the context manager.
             return response, response.read()
+
+    def _range_download(
+        self, cloud_path: "HttpPath", start: int, end: Optional[int] = None
+    ) -> bytes:
+        """Download an HTTP byte range."""
+        headers = {"Range": f"bytes={start}-{'' if end is None else end}"}
+        request = urllib.request.Request(str(cloud_path), headers=headers)
+        length = -1 if end is None else end - start + 1
+        try:
+            with self.opener.open(request) as response:
+                status = response.status
+                if status == 206:
+                    return response.read(length)
+                elif status == 200 and start == 0:
+                    # servers without Range support can still serve reads from the start
+                    # (e.g. a full-object read); the surplus body is simply not consumed
+                    return response.read(length)
+                elif status == 200:
+                    raise CloudPathStreamingError(
+                        f"HTTP server ignored the Range header for {cloud_path}; "
+                        "streaming reads require byte-range support"
+                    )
+                else:
+                    raise CloudPathStreamingError(
+                        f"Unexpected status {status} for range request on {cloud_path}"
+                    )
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                raise CloudPathFileNotFoundError(f"HTTP resource not found: {cloud_path}") from e
+            elif e.code == 416:
+                return b""
+            raise
+
+    def _get_content_length(self, cloud_path: "HttpPath") -> Optional[int]:
+        """Size of an HTTP resource from a HEAD request, or None without Content-Length."""
+        request = urllib.request.Request(str(cloud_path), method="HEAD")
+        try:
+            with self.opener.open(request) as response:
+                content_length = response.headers.get("Content-Length")
+                return int(content_length) if content_length else None
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                raise CloudPathFileNotFoundError(f"HTTP resource not found: {cloud_path}") from e
+            raise
+
+    def _put_object(self, cloud_path: "HttpPath", data: BinaryIO) -> None:
+        """Upload a whole resource in one request from a seekable binary stream."""
+        url = str(cloud_path)
+        start = data.tell()
+        content_length = data.seek(0, io.SEEK_END) - start
+        data.seek(start)
+        request = urllib.request.Request(url, data=data, method=self.write_file_http_method)
+        content_type = None
+        if self.content_type_method is not None:
+            content_type, _ = self.content_type_method(str(cloud_path))
+        request.add_header("Content-Type", content_type or "application/octet-stream")
+        request.add_header("Content-Length", str(content_length))
+
+        try:
+            with self.opener.open(request) as response:
+                if response.status not in (200, 201, 204):
+                    raise CloudPathStreamingError(
+                        f"HTTP {self.write_file_http_method} failed with status "
+                        f"{response.status}: {response.reason}"
+                    )
+        except urllib.error.HTTPError as e:
+            if e.code == 405:
+                raise CloudPathNotImplementedError(
+                    f"HTTP server does not support {self.write_file_http_method} requests for {url}"
+                ) from e
+            raise CloudPathStreamingError(f"HTTP upload failed: {e}") from e
 
 
 HttpClient.HttpPath = HttpClient.CloudPath  # type: ignore

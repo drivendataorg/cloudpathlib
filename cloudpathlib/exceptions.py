@@ -40,6 +40,10 @@ class CloudPathNotImplementedError(CloudPathException, NotImplementedError):
     pass
 
 
+class CloudPathStreamingError(CloudPathException, OSError):
+    """A streaming read or write (`FileCacheMode.streaming`) could not be completed."""
+
+
 class DirectoryNotEmptyError(CloudPathException):
     pass
 
