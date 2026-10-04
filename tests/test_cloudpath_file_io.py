@@ -619,6 +619,47 @@ def test_file_read_writes(rig, tmp_path):
         (p / "not_exists_file").download_to(dl_file)
 
 
+@pytest.mark.parametrize("mode", ["a", "ab", "a+", "ab+"])
+def test_append_creates_missing_file_and_preserves_content(rig, tmp_path, mode):
+    p = rig.create_cloud_path("new_dir/append.txt")
+    assert not p.exists()
+    content = b"first" if "b" in mode else "first"
+
+    with p.open(mode) as f:
+        f.write(content)
+
+    assert p.download_to(tmp_path / "created.txt").read_bytes() == b"first"
+    p.clear_cache()
+
+    with p.open(mode) as f:
+        if "+" in mode:
+            f.seek(0)
+            assert f.read() == content
+        f.write(content)
+
+    assert p.download_to(tmp_path / "appended.txt").read_bytes() == b"firstfirst"
+
+
+@pytest.mark.parametrize("mode", ["a", "ab", "a+", "ab+"])
+def test_append_creates_empty_file_on_close(rig, tmp_path, mode):
+    p = rig.create_cloud_path("new_dir/empty.txt")
+    assert not p.exists()
+
+    with p.open(mode):
+        pass
+
+    assert p.exists()
+    assert p.download_to(tmp_path / "empty.txt").read_bytes() == b""
+
+
+@pytest.mark.parametrize("mode", ["r", "rb", "r+", "rb+"])
+def test_read_missing_file_still_raises(rig, mode):
+    p = rig.create_cloud_path("missing.txt")
+
+    with pytest.raises(FileNotFoundError):
+        p.open(mode)
+
+
 def test_filenames(rig):
     # test that we can handle filenames with special characters
     p = rig.create_cloud_path("dir_0/new_file.txt")  # real extension
