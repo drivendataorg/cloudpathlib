@@ -9,6 +9,7 @@ from cloudpathlib import CloudPath
 
 from cloudpathlib.cloudpath import _ensure_local_path_within_base
 from cloudpathlib.exceptions import (
+    CloudPathFileNotFoundError,
     CloudPathLocalPathTraversalError,
     CloudPathNotExistsError,
     CloudPathIsADirectoryError,
@@ -656,7 +657,7 @@ def test_append_creates_empty_file_on_close(rig, tmp_path, mode):
 def test_read_missing_file_still_raises(rig, mode):
     p = rig.create_cloud_path("missing.txt")
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(CloudPathFileNotFoundError):
         p.open(mode)
 
 
