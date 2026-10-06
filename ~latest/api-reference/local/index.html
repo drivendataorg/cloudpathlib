@@ -11612,9 +11612,9 @@ substitute when writing tests.</p>
             <span class="sa">f</span><span class="s2">"Cannot open directory, only files. Tried to open (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="s2">"r"</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CloudPathFileNotFoundError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"File opened for read or append, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"File opened for read, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">exists_on_cloud</span><span class="p">:</span>
@@ -15909,9 +15909,9 @@ when writing tests.</p>
             <span class="sa">f</span><span class="s2">"Cannot open directory, only files. Tried to open (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="s2">"r"</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CloudPathFileNotFoundError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"File opened for read or append, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"File opened for read, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">exists_on_cloud</span><span class="p">:</span>
@@ -18720,9 +18720,9 @@ monkeypatch substitutes for normal CloudPath subclasses when writing tests.</p>
             <span class="sa">f</span><span class="s2">"Cannot open directory, only files. Tried to open (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="s2">"r"</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CloudPathFileNotFoundError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"File opened for read or append, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"File opened for read, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">exists_on_cloud</span><span class="p">:</span>
@@ -22034,9 +22034,9 @@ when writing tests.</p>
             <span class="sa">f</span><span class="s2">"Cannot open directory, only files. Tried to open (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="s2">"r"</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CloudPathFileNotFoundError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"File opened for read or append, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"File opened for read, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">exists_on_cloud</span><span class="p">:</span>
@@ -25442,9 +25442,9 @@ substitute when writing tests.</p>
             <span class="sa">f</span><span class="s2">"Cannot open directory, only files. Tried to open (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="s2">"r"</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CloudPathFileNotFoundError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"File opened for read or append, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"File opened for read, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">exists_on_cloud</span><span class="p">:</span>
@@ -29721,9 +29721,9 @@ when writing tests.</p>
             <span class="sa">f</span><span class="s2">"Cannot open directory, only files. Tried to open (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="s2">"r"</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CloudPathFileNotFoundError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"File opened for read or append, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"File opened for read, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">exists_on_cloud</span><span class="p">:</span>
@@ -32526,9 +32526,9 @@ monkeypatch substitutes for normal CloudPath subclasses when writing tests.</p>
             <span class="sa">f</span><span class="s2">"Cannot open directory, only files. Tried to open (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="s2">"r"</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CloudPathFileNotFoundError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"File opened for read or append, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"File opened for read, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">exists_on_cloud</span><span class="p">:</span>
@@ -35828,9 +35828,9 @@ when writing tests.</p>
             <span class="sa">f</span><span class="s2">"Cannot open directory, only files. Tried to open (</span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">mode</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">exists_on_cloud</span> <span class="ow">and</span> <span class="s2">"r"</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CloudPathFileNotFoundError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"File opened for read or append, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"File opened for read, but it does not exist on cloud: </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="s2">"x"</span> <span class="ow">in</span> <span class="n">mode</span> <span class="ow">and</span> <span class="n">exists_on_cloud</span><span class="p">:</span>
