@@ -1,5 +1,13 @@
 # Other `Client` settings
 
+## Cache directories for concurrent workers
+
+A persistent `local_cache_dir` can be reused across sequential sessions, but it
+does not synchronize concurrent access to the same cached file. This also
+applies to `CLOUDPATHLIB_LOCAL_CACHE_DIR`. See
+[Concurrent cache access](concurrent_cache_access.md) for worker-specific caches
+and coordination when sharing a cache.
+
 ## Content type guessing (`content_type_method`)
 
 All of the clients support passing a `content_type_method` when they are instantiated.  
