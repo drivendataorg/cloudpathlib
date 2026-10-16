@@ -1842,7 +1842,7 @@ class CloudPath(metaclass=CloudPathMeta):
         """Pydantic special method. See
         https://docs.pydantic.dev/2.0/usage/types/custom/"""
         try:
-            from pydantic_core import core_schema
+            from pydantic_core import core_schema  # type: ignore[import-not-found, unused-ignore]
 
             return core_schema.no_info_after_validator_function(
                 cls.validate,
