@@ -900,6 +900,10 @@ class CloudPath(metaclass=CloudPathMeta):
                 # we already ran our close method patch
                 if not self._dirty:
                     return
+                if id(self) not in self.client._dirty_cache_files.get(self._local, set()):
+                    # Explicit cleanup discarded these pending writes; do not retry them.
+                    self._dirty = False
+                    return
 
                 # original mtime should match what was in the cloud; because of system clocks or rounding
                 # by the cloud provider, the new version in our cache is not newer than the original
@@ -918,7 +922,8 @@ class CloudPath(metaclass=CloudPathMeta):
             # keep reference in case we need to close when __del__ is called on this object
             self._handle = buffer
 
-            # opened for write, so mark dirty
+            # Track pending writes by cache file, since equivalent paths share it.
+            self.client._dirty_cache_files.setdefault(self._local, set()).add(id(self))
             self._dirty = True
 
         # if we don't want any cache around, remove the cache as soon as the file is
@@ -992,6 +997,11 @@ class CloudPath(metaclass=CloudPathMeta):
             )
 
     def replace(self, target: Self) -> Self:
+        """Move the cloud object to target, clearing obsolete caches after success.
+
+        Pending cached source or target writes must be uploaded or explicitly
+        cleared first; otherwise :class:`OverwriteDirtyFileError` is raised.
+        """
         if type(self) is not type(target):
             raise TypeError(
                 f"The target based to rename must be an instantiated class of type: {type(self)}"
@@ -1006,10 +1016,13 @@ class CloudPath(metaclass=CloudPathMeta):
             # Request is to replace/rename this with the same path - nothing to do
             return self
 
+        self._raise_if_pending_move_cache(target)
         if target.exists():
             target.unlink()
 
         self.client._move_file(self, target)
+        self.clear_cache()
+        target.clear_cache()
         return target
 
     def rename(self, target: Self) -> Self:
@@ -1030,6 +1043,7 @@ class CloudPath(metaclass=CloudPathMeta):
         except StopIteration:
             pass
         self.client._remove(self)
+        self.clear_cache()
 
     def samefile(self, other_path: Union[str, os.PathLike]) -> bool:
         # all cloud paths are absolute and the paths are used for hash
@@ -1041,7 +1055,12 @@ class CloudPath(metaclass=CloudPathMeta):
             raise CloudPathIsADirectoryError(
                 f"Path {self} is a directory; call rmdir instead of unlink."
             )
+        # A missing cloud object may still have pending local changes to upload.
+        dirty_cache = self._cache_is_dirty()
+        existed = dirty_cache and self.exists()
         self.client._remove(self, missing_ok)
+        if existed or not dirty_cache:
+            self.clear_cache()
 
     def write_bytes(self, data: bytes) -> int:
         """Open the file in bytes mode, write to it, and close the file.
@@ -1322,6 +1341,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"Path {self} is a file; call unlink instead of rmtree."
             )
         self.client._remove(self)
+        self.clear_cache()
 
     def upload_from(
         self,
@@ -1375,9 +1395,17 @@ class CloudPath(metaclass=CloudPathMeta):
             if destination.exists() and destination.is_dir():
                 destination = destination / self.name
 
+            if remove_src:
+                if destination == self:
+                    return self
+                self._raise_if_pending_move_cache(destination)
             self._raise_if_copy_target_newer(destination, force_overwrite_to_cloud)
 
-            return cast(Self, self.client._move_file(self, destination, remove_src=remove_src))
+            result = self.client._move_file(self, destination, remove_src=remove_src)
+            if remove_src:
+                self.clear_cache()
+                destination.clear_cache()
+            return cast(Self, result)
 
         else:
             if not destination.exists() or destination.is_file():
@@ -1604,7 +1632,11 @@ class CloudPath(metaclass=CloudPathMeta):
         preserve_metadata: bool = False,
         force_overwrite_to_cloud: Optional[bool] = None,
     ) -> Union[Path, Self]:
-        """Move self to target location, removing the source."""
+        """Move self to target location, removing the source.
+
+        Cloud-native moves raise :class:`OverwriteDirtyFileError` before changing
+        cloud objects if source or target caches have pending writes.
+        """
         return self._copy(
             target,
             follow_symlinks=follow_symlinks,
@@ -1659,6 +1691,33 @@ class CloudPath(metaclass=CloudPathMeta):
         )
         return cast(Union[Path, Self], result)
 
+    def _raise_if_pending_move_cache(self, target: "CloudPath") -> None:
+        for path in (self, target):
+            pending = path._cache_is_dirty()
+            if not pending:
+                try:
+                    local = path._local
+                    pending = any(
+                        cached_file.is_relative_to(local) and cached_file.is_file()
+                        for cached_file in tuple(path.client._dirty_cache_files)
+                    )
+                except CloudPathLocalPathTraversalError:
+                    pass
+            if pending:
+                raise OverwriteDirtyFileError(
+                    f"Cache for {path} has pending writes. Upload the local changes "
+                    "or explicitly clear the cache before moving."
+                )
+
+    def _cache_is_dirty(self) -> bool:
+        try:
+            local = self._local
+            # Explicit cleanup releases tracking even if an old writer's flag remains set.
+            return local.is_file() and bool(self.client._dirty_cache_files.get(local))
+        except CloudPathLocalPathTraversalError:
+            # A path that cannot map to the cache cannot have pending cache writes.
+            return False
+
     def clear_cache(self):
         """Removes cache if it exists"""
         try:
@@ -1667,11 +1726,18 @@ class CloudPath(metaclass=CloudPathMeta):
             # a key that cannot be safely mapped to a local path can never have been cached,
             # so there is nothing to clear (and __del__ must not raise on such paths)
             return
+        is_directory = local.is_dir()
         if local.exists():
             if local.is_file():
                 local.unlink()
             else:
                 shutil.rmtree(local)
+        if is_directory:
+            for cached_file in tuple(self.client._dirty_cache_files):
+                if cached_file.is_relative_to(local):
+                    self.client._dirty_cache_files.pop(cached_file, None)
+        else:
+            self.client._dirty_cache_files.pop(local, None)
 
     # ===========  private cloud methods ===============
     @property
@@ -1706,8 +1772,10 @@ class CloudPath(metaclass=CloudPathMeta):
         try:
             stats = self.stat()
         except NoStatError:
-            # nothing to cache if the file does not exist; happens when creating
-            # new files that will be uploaded
+            # Discard stale files after external deletions, retaining pending writes
+            # and cached directory contents that cannot be described by a file stat.
+            if not self._cache_is_dirty() and self._local.is_file():
+                self.clear_cache()
             return
 
         # if not exist or cloud newer
@@ -1758,6 +1826,13 @@ class CloudPath(metaclass=CloudPathMeta):
         # force cache time to match cloud times
         stats = self.stat()
         os.utime(self._local, times=(stats.st_mtime, stats.st_mtime))
+
+        # Remove this writer only; another path instance may still have pending work.
+        writers = self.client._dirty_cache_files.get(self._local)
+        if writers is not None:
+            writers.discard(id(self))
+            if not writers:
+                self.client._dirty_cache_files.pop(self._local, None)
 
         # reset dirty and handle now that this is uploaded
         self._dirty = False
