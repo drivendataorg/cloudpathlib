@@ -24,7 +24,7 @@ with CloudPath("s3://bucket/filename.txt").open("w+") as f:
  - **Supported clouds**: AWS S3, Google Cloud Storage, and Azure Blob Storage are implemented. FTP is on the way.
  - **Extensible**: The base classes do most of the work generically, so implementing two small classes `MyPath` and `MyClient` is all you need to add support for a new cloud storage service.
  - **Read/write support**: Reading just works. Using the `write_text`, `write_bytes` or `.open('w')` methods will all upload your changes to cloud storage without any additional file management as a developer.
- - **Seamless caching**: Files are downloaded locally only when necessary. You can also easily pass a persistent cache folder so that across processes and sessions you only re-download what is necessary.
+ - **Seamless caching**: Files are downloaded locally only when necessary. A persistent cache folder can reuse downloads across sequential processes and sessions. For multiple workers, see [concurrent cache access](https://github.com/drivendataorg/cloudpathlib/blob/master/docs/docs/concurrent_cache_access.md).
  - **Tested**: Comprehensive test suite and code coverage.
  - **Testability**: Local filesystem implementations that can be used to easily mock cloud storage in your unit tests.
 
