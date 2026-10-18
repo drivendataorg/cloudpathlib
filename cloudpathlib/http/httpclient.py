@@ -51,6 +51,9 @@ class HttpClient(Client):
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory. Default can be set with
                 the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
+                Workers accessing different objects can share a persistent cache; concurrent access
+                to the same cached file requires separate caches or external coordination. See
+                [Concurrent cache access](https://cloudpathlib.drivendata.org/stable/concurrent_cache_access/).
             content_type_method (Optional[Callable]): Function to call to guess media type (mimetype) when
                 uploading files. Defaults to `mimetypes.guess_type`.
             auth (Optional[urllib.request.BaseHandler]): Authentication handler to use for the client. Defaults to None, which will use the default handler.
