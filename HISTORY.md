@@ -8,6 +8,8 @@
 
 - Fixed mypy missing-import errors for `CloudPath` and `AnyPath` when the optional Pydantic integration is not installed. (Issue [#385](https://github.com/drivendataorg/cloudpathlib/issues/385), PR [#603](https://github.com/drivendataorg/cloudpathlib/pull/603))
 
+- Fixed stale local caches after cloud file and directory deletions and moves, including `move`, `move_into`, and ADLS Gen2 directory renames. Clean cached files are also discarded after external cloud deletions, so exclusive creation and append start fresh. (Issue [#388](https://github.com/drivendataorg/cloudpathlib/issues/388), PR [#600](https://github.com/drivendataorg/cloudpathlib/pull/600))
+
 ## v0.26.0 (2026-10-01)
 
 - Added support for Python 3.15: `CloudPath.mkdir(parent_mode=...)` works across providers, and cloud paths can be pickled repeatedly without a `ParseResult` error. (Issue [#593](https://github.com/drivendataorg/cloudpathlib/issues/593), PR [#594](https://github.com/drivendataorg/cloudpathlib/pull/594))

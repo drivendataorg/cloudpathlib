@@ -13,6 +13,7 @@ from tenacity import (
 from cloudpathlib.enums import FileCacheMode
 from cloudpathlib.exceptions import (
     InvalidConfigurationException,
+    NoStatError,
     OverwriteNewerCloudError,
     OverwriteNewerLocalError,
 )
@@ -580,3 +581,257 @@ def test_streaming_append_fallback_cache_cleaned_up(rig: CloudProviderTestRig):
 
     assert not cp._local.exists()
     assert cp.read_text() == original + "appended"
+
+
+@pytest.mark.parametrize("mode", ["x", "a"])
+def test_unlink_clears_cache_before_recreating(rig: CloudProviderTestRig, mode):
+    cp = rig.create_cloud_path("unlink-cache.txt")
+    cp.write_text("old content")
+    assert cp._local.exists()
+
+    cp.unlink()
+
+    assert not cp.exists()
+    assert not cp._local.exists()
+    with cp.open(mode) as handle:
+        handle.write("new content")
+    assert cp.read_text() == "new content"
+
+
+@pytest.mark.parametrize("method", ["rename", "replace"])
+@pytest.mark.parametrize("target_exists", [False, True])
+def test_move_clears_source_and_target_caches(rig: CloudProviderTestRig, method, target_exists):
+    source = rig.create_cloud_path("move-source.txt")
+    target = rig.create_cloud_path("move-target.txt")
+    source.write_text("source content")
+    target.write_text("old target content")
+    if not target_exists:
+        # Model a remote deletion made outside cloudpathlib, leaving a stale target cache.
+        target.client._remove(target)
+    assert source._local.exists()
+    assert target._local.exists()
+
+    result = getattr(source, method)(target)
+
+    assert result == target
+    assert not source.exists()
+    assert not source._local.exists()
+    assert not target._local.exists()
+    assert target.read_text() == "source content"
+    with source.open("x") as handle:
+        handle.write("recreated source")
+    assert source.read_text() == "recreated source"
+
+
+@pytest.mark.parametrize("method", ["rename", "replace"])
+def test_move_to_same_path_preserves_cache(rig: CloudProviderTestRig, method):
+    cp = rig.create_cloud_path("same-path.txt")
+    cp.write_text("unchanged")
+
+    assert getattr(cp, method)(cp) == cp
+
+    assert cp._local.exists()
+    assert cp.read_text() == "unchanged"
+
+
+def test_rmtree_clears_only_its_cache_subtree(rig: CloudProviderTestRig):
+    directory = rig.create_cloud_path("delete-tree/")
+    child = directory / "nested" / "file.txt"
+    sibling = rig.create_cloud_path("keep-tree/file.txt")
+    child.write_text("delete")
+    sibling.write_text("keep")
+    assert child._local.exists()
+    assert sibling._local.exists()
+
+    directory.rmtree()
+
+    assert not directory.exists()
+    assert not directory._local.exists()
+    assert sibling._local.exists()
+    assert sibling.read_text() == "keep"
+
+
+def test_rmdir_clears_stale_cached_children(rig: CloudProviderTestRig, monkeypatch):
+    directory = rig.create_cloud_path("empty-directory/")
+    child = directory / "file.txt"
+    child.write_text("stale")
+    child.client._remove(child)
+    assert child._local.exists()
+    # Object stores need not retain an empty directory; some mocks cannot list it.
+    monkeypatch.setattr(directory, "iterdir", lambda: iter(()))
+
+    directory.rmdir()
+
+    assert not directory._local.exists()
+
+
+@pytest.mark.parametrize("method", ["unlink", "rename"])
+def test_failed_mutation_preserves_source_cache(rig: CloudProviderTestRig, method, monkeypatch):
+    cp = rig.create_cloud_path("failed-mutation.txt")
+    cp.write_text("preserved")
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("simulated cloud failure")
+
+    if method == "unlink":
+        monkeypatch.setattr(cp.client, "_remove", fail)
+        args = ()
+    else:
+        monkeypatch.setattr(cp.client, "_move_file", fail)
+        args = (rig.create_cloud_path("failed-move-target.txt"),)
+
+    with pytest.raises(RuntimeError, match="simulated cloud failure"):
+        getattr(cp, method)(*args)
+
+    assert cp.exists()
+    assert cp._local.read_text() == "preserved"
+
+
+@pytest.mark.parametrize("method", ["move", "move_into"])
+def test_native_move_invalidates_both_caches(rig: CloudProviderTestRig, method):
+    source = rig.create_cloud_path("native-move-source.txt")
+    target = rig.create_cloud_path(
+        "native-move-target/" if method == "move_into" else "native-move-target.txt"
+    )
+    destination = target / source.name if method == "move_into" else target
+    source.write_text("source content")
+    destination.write_text("old target content")
+    # A stale destination cache must be invalidated even if its remote file is gone.
+    destination.client._remove(destination)
+    assert source.client is destination.client
+    assert source._local.exists()
+    assert destination._local.exists()
+
+    result = getattr(source, method)(target, force_overwrite_to_cloud=True)
+
+    assert result == destination
+    assert not source.exists()
+    assert not source._local.exists()
+    assert not destination._local.exists()
+    assert result.read_text() == "source content"
+    with source.open("x") as handle:
+        handle.write("recreated")
+    assert source.read_text() == "recreated"
+
+
+@pytest.mark.parametrize("mode", ["x", "a"])
+def test_external_deletion_discards_clean_cache(rig: CloudProviderTestRig, mode):
+    cp = rig.create_cloud_path("externally-deleted.txt")
+    cp.write_text("old content")
+    cp.client._remove(cp)
+    assert cp._local.exists()
+
+    with cp.open(mode) as handle:
+        handle.write("new content")
+
+    assert cp.read_text() == "new content"
+
+
+def test_refresh_preserves_missing_dirty_cache(rig: CloudProviderTestRig, monkeypatch):
+    cp = rig.create_cloud_path("dirty-refresh.txt")
+
+    def fail_upload(*args, **kwargs):
+        raise RuntimeError("simulated upload failure")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(cp.client, "_upload_file", fail_upload)
+        with pytest.raises(RuntimeError, match="simulated upload failure"):
+            cp.write_text("pending local content")
+    assert cp._dirty
+    # The failed upload closed the buffer; avoid retrying it during fixture cleanup.
+    assert cp._handle.closed
+    cp._handle = None
+
+    cp._refresh_cache()
+
+    assert cp._local.read_text() == "pending local content"
+
+
+def test_refresh_preserves_directory_cache(rig: CloudProviderTestRig, monkeypatch):
+    directory = rig.create_cloud_path("refresh-directory/")
+    child = directory / "file.txt"
+    child.write_text("keep cached child")
+
+    def no_stat():
+        raise NoStatError("directory has no file stat")
+
+    monkeypatch.setattr(directory, "stat", no_stat)
+    directory._refresh_cache()
+
+    assert child._local.read_text() == "keep cached child"
+
+
+@pytest.mark.parametrize("method", ["rename", "replace"])
+def test_adls_directory_move_invalidates_nested_caches(azure_gen2_rig, method):
+    source = azure_gen2_rig.create_cloud_path("cached-directory")
+    source.mkdir()
+    (source / "nested").mkdir()
+    child = source / "nested" / "file.txt"
+    child.write_text("nested source content")
+    target = azure_gen2_rig.create_cloud_path("renamed-directory")
+    target._local.mkdir(parents=True, exist_ok=True)
+    (target._local / "stale.txt").write_text("stale destination cache")
+    assert child._local.exists()
+
+    result = getattr(source, method)(target)
+
+    assert result == target
+    assert not source.exists()
+    assert not source._local.exists()
+    assert not target._local.exists()
+    assert (target / "nested" / "file.txt").read_text() == "nested source content"
+
+
+@pytest.mark.parametrize("method", ["move", "move_into"])
+def test_failed_native_move_preserves_both_caches(rig: CloudProviderTestRig, method, monkeypatch):
+    source = rig.create_cloud_path("failed-native-source.txt")
+    target = rig.create_cloud_path(
+        "failed-native-target/" if method == "move_into" else "failed-native-target.txt"
+    )
+    destination = target / source.name if method == "move_into" else target
+    source.write_text("source content")
+    destination.write_text("target content")
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("simulated move failure")
+
+    monkeypatch.setattr(source.client, "_move_file", fail)
+    with pytest.raises(RuntimeError, match="simulated move failure"):
+        getattr(source, method)(target, force_overwrite_to_cloud=True)
+
+    assert source.exists()
+    assert destination.exists()
+    assert source._local.read_text() == "source content"
+    assert destination._local.read_text() == "target content"
+
+
+def test_failed_adls_directory_move_preserves_caches(azure_gen2_rig, monkeypatch):
+    source = azure_gen2_rig.create_cloud_path("failed-directory")
+    source.mkdir()
+    child = source / "file.txt"
+    child.write_text("cached source content")
+    target = azure_gen2_rig.create_cloud_path("failed-directory-target")
+    target._local.mkdir(parents=True, exist_ok=True)
+    stale_target = target._local / "stale.txt"
+    stale_target.write_text("cached target content")
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("simulated directory move failure")
+
+    monkeypatch.setattr(source.client, "_move_file", fail)
+    with pytest.raises(RuntimeError, match="simulated directory move failure"):
+        source.rename(target)
+
+    assert source.exists()
+    assert child._local.read_text() == "cached source content"
+    assert stale_target.read_text() == "cached target content"
+
+
+def test_adls_directory_self_rename_preserves_cache(azure_gen2_rig):
+    directory = azure_gen2_rig.create_cloud_path("same-directory")
+    directory.mkdir()
+    child = directory / "file.txt"
+    child.write_text("cached contents")
+
+    assert directory.rename(directory) == directory
+    assert child._local.read_text() == "cached contents"

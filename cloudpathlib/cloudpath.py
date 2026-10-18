@@ -1010,6 +1010,8 @@ class CloudPath(metaclass=CloudPathMeta):
             target.unlink()
 
         self.client._move_file(self, target)
+        self.clear_cache()
+        target.clear_cache()
         return target
 
     def rename(self, target: Self) -> Self:
@@ -1030,6 +1032,7 @@ class CloudPath(metaclass=CloudPathMeta):
         except StopIteration:
             pass
         self.client._remove(self)
+        self.clear_cache()
 
     def samefile(self, other_path: Union[str, os.PathLike]) -> bool:
         # all cloud paths are absolute and the paths are used for hash
@@ -1042,6 +1045,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"Path {self} is a directory; call rmdir instead of unlink."
             )
         self.client._remove(self, missing_ok)
+        self.clear_cache()
 
     def write_bytes(self, data: bytes) -> int:
         """Open the file in bytes mode, write to it, and close the file.
@@ -1322,6 +1326,7 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"Path {self} is a file; call unlink instead of rmtree."
             )
         self.client._remove(self)
+        self.clear_cache()
 
     def upload_from(
         self,
@@ -1375,9 +1380,16 @@ class CloudPath(metaclass=CloudPathMeta):
             if destination.exists() and destination.is_dir():
                 destination = destination / self.name
 
+            if remove_src:
+                if destination == self:
+                    return self
             self._raise_if_copy_target_newer(destination, force_overwrite_to_cloud)
 
-            return cast(Self, self.client._move_file(self, destination, remove_src=remove_src))
+            result = self.client._move_file(self, destination, remove_src=remove_src)
+            if remove_src:
+                self.clear_cache()
+                destination.clear_cache()
+            return cast(Self, result)
 
         else:
             if not destination.exists() or destination.is_file():
@@ -1706,8 +1718,10 @@ class CloudPath(metaclass=CloudPathMeta):
         try:
             stats = self.stat()
         except NoStatError:
-            # nothing to cache if the file does not exist; happens when creating
-            # new files that will be uploaded
+            # Discard stale files after external deletions, retaining pending writes
+            # and cached directory contents that cannot be described by a file stat.
+            if not self._dirty and self._local.is_file():
+                self.clear_cache()
             return
 
         # if not exist or cloud newer
