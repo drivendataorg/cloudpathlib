@@ -89,7 +89,6 @@ class AzureBlobPath(CloudPath):
             if self.client._check_hns(self):
                 if target == self:
                     return self
-                self._raise_if_pending_move_cache(target)
                 result = self.client._move_file(self, target)
                 self.clear_cache()
                 target.clear_cache()

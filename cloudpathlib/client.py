@@ -71,8 +71,6 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
     ) -> None:
         self.file_cache_mode = None
         self._cache_tmp_dir = None
-        # Writer identities avoid retaining CloudPath objects and distinguish aliases.
-        self._dirty_cache_files: Dict[Path, set[int]] = {}
         self._cloud_meta.validate_completeness()
 
         # concurrent requests per open streaming file (part uploads / read-ahead);
@@ -176,7 +174,6 @@ class Client(abc.ABC, Generic[BoundedCloudPath]):
                     p.unlink()
                 else:
                     shutil.rmtree(p)
-        self._dirty_cache_files.clear()
 
     @abc.abstractmethod
     def _download_file(

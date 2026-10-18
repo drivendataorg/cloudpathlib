@@ -15,7 +15,6 @@ from cloudpathlib.exceptions import (
     InvalidConfigurationException,
     NoStatError,
     OverwriteNewerCloudError,
-    OverwriteDirtyFileError,
     OverwriteNewerLocalError,
 )
 from tests.conftest import CloudProviderTestRig
@@ -728,35 +727,6 @@ def test_external_deletion_discards_clean_cache(rig: CloudProviderTestRig, mode)
     assert cp.read_text() == "new content"
 
 
-@pytest.mark.parametrize("existed", [False, True])
-def test_unlink_preserves_only_missing_dirty_cache(
-    rig: CloudProviderTestRig, existed, monkeypatch
-):
-    cp = rig.create_cloud_path("dirty-unlink.txt")
-    if existed:
-        cp.write_text("cloud content")
-
-    def fail_upload(*args, **kwargs):
-        raise RuntimeError("simulated upload failure")
-
-    with monkeypatch.context() as patch:
-        patch.setattr(cp.client, "_upload_file", fail_upload)
-        with pytest.raises(RuntimeError, match="simulated upload failure"):
-            cp.write_text("pending local content")
-    assert cp._dirty
-    # The failed upload closed the buffer; avoid retrying it during fixture cleanup.
-    assert cp._handle.closed
-    cp._handle = None
-
-    cp.unlink()
-
-    assert not cp.exists()
-    if existed:
-        assert not cp._local.exists()
-    else:
-        assert cp._local.read_text() == "pending local content"
-
-
 def test_refresh_preserves_missing_dirty_cache(rig: CloudProviderTestRig, monkeypatch):
     cp = rig.create_cloud_path("dirty-refresh.txt")
 
@@ -857,165 +827,6 @@ def test_failed_adls_directory_move_preserves_caches(azure_gen2_rig, monkeypatch
     assert stale_target.read_text() == "cached target content"
 
 
-@pytest.mark.parametrize("operation", ["refresh", "unlink"])
-def test_clean_alias_preserves_pending_cache(rig: CloudProviderTestRig, operation, monkeypatch):
-    owner = rig.create_cloud_path("aliased-pending.txt")
-
-    def fail_upload(*args, **kwargs):
-        raise RuntimeError("simulated upload failure")
-
-    with monkeypatch.context() as patch:
-        patch.setattr(owner.client, "_upload_file", fail_upload)
-        with pytest.raises(RuntimeError, match="simulated upload failure"):
-            owner.write_text("pending local content")
-    assert owner._dirty
-    assert owner._handle.closed
-    owner._handle = None
-    alias = rig.create_cloud_path("aliased-pending.txt", client=owner.client)
-    assert alias is not owner
-    assert not alias._dirty
-    assert alias._local == owner._local
-
-    if operation == "refresh":
-        alias._refresh_cache()
-    else:
-        alias.unlink()
-
-    assert owner._local.read_text() == "pending local content"
-    # The original owner can still retry the failed upload successfully.
-    owner._upload_local_to_cloud()
-    assert owner.read_text() == "pending local content"
-
-
-@pytest.mark.parametrize("cleanup", ["path", "client"])
-def test_explicit_cache_cleanup_releases_pending_tracking(
-    rig: CloudProviderTestRig, cleanup, monkeypatch
-):
-    owner = rig.create_cloud_path("clear-pending-cache.txt")
-
-    def fail_upload(*args, **kwargs):
-        raise RuntimeError("simulated upload failure")
-
-    with monkeypatch.context() as patch:
-        patch.setattr(owner.client, "_upload_file", fail_upload)
-        with pytest.raises(RuntimeError, match="simulated upload failure"):
-            owner.write_text("pending local content")
-    assert owner._handle.closed
-    owner._handle = None
-    alias = rig.create_cloud_path("clear-pending-cache.txt", client=owner.client)
-    assert alias._cache_is_dirty()
-
-    if cleanup == "path":
-        alias.clear_cache()
-    else:
-        alias.client.clear_cache()
-
-    assert not alias._cache_is_dirty()
-    with alias.open("x") as handle:
-        handle.write("fresh content")
-    assert not alias._cache_is_dirty()
-    assert alias.read_text() == "fresh content"
-
-
-def test_upload_keeps_other_writer_protection(rig: CloudProviderTestRig, monkeypatch):
-    owners = [rig.create_cloud_path("multiple-pending.txt") for _ in range(2)]
-
-    def fail_upload(*args, **kwargs):
-        raise RuntimeError("simulated upload failure")
-
-    for index, owner in enumerate(owners):
-        with monkeypatch.context() as patch:
-            patch.setattr(owner.client, "_upload_file", fail_upload)
-            with pytest.raises(RuntimeError, match="simulated upload failure"):
-                owner.write_text(f"pending {index}")
-        assert owner._handle.closed
-        owner._handle = None
-    alias = rig.create_cloud_path("multiple-pending.txt", client=owners[0].client)
-
-    owners[0]._upload_local_to_cloud()
-    alias.client._remove(alias)
-    alias._refresh_cache()
-    assert alias._local.read_text() == "pending 1"
-
-    owners[1]._upload_local_to_cloud()
-    alias.client._remove(alias)
-    alias._refresh_cache()
-    assert not alias._local.exists()
-
-
-@pytest.mark.parametrize("method", ["rename", "replace", "move", "move_into"])
-@pytest.mark.parametrize("pending_side", ["source", "destination"])
-def test_move_rejects_pending_cached_writes(
-    rig: CloudProviderTestRig, method, pending_side, monkeypatch
-):
-    source = rig.create_cloud_path("pending-move-source.txt")
-    target = rig.create_cloud_path(
-        "pending-move-target/" if method == "move_into" else "pending-move-target.txt"
-    )
-    destination = target / source.name if method == "move_into" else target
-    source.write_text("cloud source")
-    destination.write_text("cloud destination")
-    owner_key = (
-        "pending-move-source.txt"
-        if pending_side == "source"
-        else (
-            "pending-move-target/pending-move-source.txt"
-            if method == "move_into"
-            else "pending-move-target.txt"
-        )
-    )
-    owner = rig.create_cloud_path(owner_key, client=source.client)
-
-    def fail_upload(*args, **kwargs):
-        raise RuntimeError("simulated upload failure")
-
-    with monkeypatch.context() as patch:
-        patch.setattr(owner.client, "_upload_file", fail_upload)
-        with pytest.raises(RuntimeError, match="simulated upload failure"):
-            owner.write_text("pending local changes")
-    assert owner._handle.closed
-    owner._handle = None
-    kwargs = {"force_overwrite_to_cloud": True} if method in ("move", "move_into") else {}
-
-    with pytest.raises(OverwriteDirtyFileError, match="pending writes"):
-        getattr(source, method)(target, **kwargs)
-
-    assert source.exists()
-    assert destination.exists()
-    assert owner._local.read_text() == "pending local changes"
-    owner._upload_local_to_cloud(force_overwrite_to_cloud=True)
-    assert owner.read_text() == "pending local changes"
-
-
-@pytest.mark.parametrize("pending_side", ["source", "destination"])
-def test_adls_directory_move_rejects_pending_descendants(
-    azure_gen2_rig, pending_side, monkeypatch
-):
-    source = azure_gen2_rig.create_cloud_path("pending-directory-source")
-    target = azure_gen2_rig.create_cloud_path("pending-directory-target")
-    source.mkdir()
-    target.mkdir()
-    owner = (source if pending_side == "source" else target) / "file.txt"
-    owner.write_text("cloud content")
-
-    def fail_upload(*args, **kwargs):
-        raise RuntimeError("simulated upload failure")
-
-    with monkeypatch.context() as patch:
-        patch.setattr(owner.client, "_upload_file", fail_upload)
-        with pytest.raises(RuntimeError, match="simulated upload failure"):
-            owner.write_text("pending directory content")
-    assert owner._handle.closed
-    owner._handle = None
-
-    with pytest.raises(OverwriteDirtyFileError, match="pending writes"):
-        source.rename(target)
-
-    assert source.exists()
-    assert target.exists()
-    assert owner._local.read_text() == "pending directory content"
-
-
 def test_adls_directory_self_rename_preserves_cache(azure_gen2_rig):
     directory = azure_gen2_rig.create_cloud_path("same-directory")
     directory.mkdir()
@@ -1024,33 +835,3 @@ def test_adls_directory_self_rename_preserves_cache(azure_gen2_rig):
 
     assert directory.rename(directory) == directory
     assert child._local.read_text() == "cached contents"
-
-
-@pytest.mark.parametrize("cleanup", ["path", "client"])
-def test_original_writer_can_move_after_explicit_cleanup(
-    rig: CloudProviderTestRig, cleanup, monkeypatch
-):
-    source = rig.create_cloud_path("cleanup-then-move.txt")
-    source.write_text("cloud content")
-
-    def fail_upload(*args, **kwargs):
-        raise RuntimeError("simulated upload failure")
-
-    with monkeypatch.context() as patch:
-        patch.setattr(source.client, "_upload_file", fail_upload)
-        with pytest.raises(RuntimeError, match="simulated upload failure"):
-            source.write_text("discarded pending content")
-    assert source._handle.closed
-
-    if cleanup == "path":
-        source.clear_cache()
-    else:
-        source.client.clear_cache()
-    # A retry of the closed handle must not re-upload explicitly discarded data.
-    source._handle.close()
-    target = rig.create_cloud_path("cleanup-move-target.txt")
-    result = source.rename(target)
-
-    assert result == target
-    assert not source.exists()
-    assert target.read_text() == "cloud content"
