@@ -2071,7 +2071,9 @@ options.</p>
 <span class="normal">453</span>
 <span class="normal">454</span>
 <span class="normal">455</span>
-<span class="normal">456</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">"gs"</span><span class="p">)</span>
+<span class="normal">456</span>
+<span class="normal">457</span>
+<span class="normal">458</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">"gs"</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">GSClient</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Client class for Google Cloud Storage which handles authentication with GCP for</span>
 <span class="sd">    [`GSPath`](../gspath/) instances. See documentation for the</span>
@@ -2139,6 +2141,8 @@ options.</p>
 <span class="sd">                Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable</span>
 <span class="sd">                or 4; 1 makes each stream fully sequential.</span>
 <span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">validate_completeness</span><span class="p">()</span>
+
         <span class="c1"># don't check `GOOGLE_APPLICATION_CREDENTIALS` since `google_default_auth` already does that</span>
         <span class="c1"># use explicit client</span>
         <span class="k">if</span> <span class="n">storage_client</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -2961,7 +2965,9 @@ or 4; 1 makes each stream fully sequential.</p>
 <span class="normal">191</span>
 <span class="normal">192</span>
 <span class="normal">193</span>
-<span class="normal">194</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">application_credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">"Credentials"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -3019,6 +3025,8 @@ or 4; 1 makes each stream fully sequential.</p>
 <span class="sd">            Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable</span>
 <span class="sd">            or 4; 1 makes each stream fully sequential.</span>
 <span class="sd">    """</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">validate_completeness</span><span class="p">()</span>
+
     <span class="c1"># don't check `GOOGLE_APPLICATION_CREDENTIALS` since `google_default_auth` already does that</span>
     <span class="c1"># use explicit client</span>
     <span class="k">if</span> <span class="n">storage_client</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

@@ -2257,7 +2257,9 @@ for detailed authentication options.</p>
 <span class="normal">506</span>
 <span class="normal">507</span>
 <span class="normal">508</span>
-<span class="normal">509</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">"s3"</span><span class="p">)</span>
+<span class="normal">509</span>
+<span class="normal">510</span>
+<span class="normal">511</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@register_client_class</span><span class="p">(</span><span class="s2">"s3"</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">S3Client</span><span class="p">(</span><span class="n">Client</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Client class for AWS S3 which handles authentication with AWS for [`S3Path`](../s3path/)</span>
 <span class="sd">    instances. See documentation for the [`__init__` method][cloudpathlib.s3.s3client.S3Client.__init__]</span>
@@ -2331,6 +2333,8 @@ for detailed authentication options.</p>
 <span class="sd">                Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable</span>
 <span class="sd">                or 4; 1 makes each stream fully sequential.</span>
 <span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">validate_completeness</span><span class="p">()</span>
+
         <span class="n">endpoint_url</span> <span class="o">=</span> <span class="n">endpoint_url</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"AWS_ENDPOINT_URL"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">boto3_session</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sess</span> <span class="o">=</span> <span class="n">boto3_session</span>
@@ -3415,7 +3419,9 @@ or 4; 1 makes each stream fully sequential.</p>
 <span class="normal">144</span>
 <span class="normal">145</span>
 <span class="normal">146</span>
-<span class="normal">147</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">aws_access_key_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">aws_secret_access_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -3481,6 +3487,8 @@ or 4; 1 makes each stream fully sequential.</p>
 <span class="sd">            Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable</span>
 <span class="sd">            or 4; 1 makes each stream fully sequential.</span>
 <span class="sd">    """</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_cloud_meta</span><span class="o">.</span><span class="n">validate_completeness</span><span class="p">()</span>
+
     <span class="n">endpoint_url</span> <span class="o">=</span> <span class="n">endpoint_url</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">"AWS_ENDPOINT_URL"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">boto3_session</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sess</span> <span class="o">=</span> <span class="n">boto3_session</span>

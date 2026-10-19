@@ -2215,6 +2215,9 @@
 <li>
 <p>Fixed mypy missing-import errors for <code>CloudPath</code> and <code>AnyPath</code> when the optional Pydantic integration is not installed. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/385">#385</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/603">#603</a>)</p>
 </li>
+<li>
+<p>Fixed direct S3 and GCS client construction without the optional cloud SDK to raise <code>MissingDependenciesError</code> with the appropriate install command instead of <code>NameError</code>. (Issue <a href="https://github.com/drivendataorg/cloudpathlib/issues/441">#441</a>, PR <a href="https://github.com/drivendataorg/cloudpathlib/pull/601">#601</a>)</p>
+</li>
 </ul>
 <h2 id="v0260-2026-10-01">v0.26.0 (2026-10-01)<a class="headerlink" href="#v0260-2026-10-01" title="Permanent link">&para;</a></h2>
 <ul>
