@@ -1,5 +1,3 @@
-import subprocess
-import sys
 from urllib.parse import urlparse, parse_qs
 
 from google.api_core import retry
@@ -8,6 +6,7 @@ import pytest
 
 from cloudpathlib import GSPath
 from cloudpathlib.local import LocalGSPath
+from tests.utils import run_isolated
 
 
 @pytest.mark.parametrize("path_class", [GSPath, LocalGSPath])
@@ -119,26 +118,12 @@ def test_timeout_and_retry(gs_rig):
 # class with the implementation registry and desynchronise every other test.
 
 
-def _run_isolated(blocked_modules, body):
-    """Import cloudpathlib.gs.gsclient with `blocked_modules` made unimportable, run `body`,
-    and return its stdout."""
-    code = "\n".join(
-        ["import sys"]
-        + [f"sys.modules[{name!r}] = None" for name in blocked_modules]
-        + ["import cloudpathlib.gs.gsclient as gsclient", body]
-    )
-    result = subprocess.run(
-        [sys.executable, "-c", code], capture_output=True, text=True, timeout=120
-    )
-    assert result.returncode == 0, result.stderr
-    return result.stdout.strip()
-
-
 def test_import_without_google_cloud_storage():
     """With the GCS SDK missing, the module imports, marks the dependency as unavailable, and
     leaves the optional transfer manager unset."""
-    out = _run_isolated(
+    out = run_isolated(
         ["google.cloud.storage.client"],
+        "import cloudpathlib.gs.gsclient as gsclient\n"
         'print(gsclient.implementation_registry["gs"].dependencies_loaded, '
         "gsclient.transfer_manager is None)",
     )
@@ -148,8 +133,9 @@ def test_import_without_google_cloud_storage():
 def test_import_xml_multipart_from_resumable_media_fallback():
     """Older google-cloud-storage versions ship the XML multipart classes in
     google-resumable-media instead of the storage package."""
-    out = _run_isolated(
+    out = run_isolated(
         ["google.cloud.storage._media.requests"],
+        "import cloudpathlib.gs.gsclient as gsclient\n"
         "import google.resumable_media.requests as fallback\n"
         "print(gsclient.XMLMPUContainer is fallback.XMLMPUContainer)",
     )
@@ -159,16 +145,18 @@ def test_import_xml_multipart_from_resumable_media_fallback():
 def test_streaming_write_requires_xml_multipart_support():
     """Without any XML multipart implementation, reads still work but a streaming write fails
     with an actionable error."""
-    out = _run_isolated(
+    out = run_isolated(
         ["google.cloud.storage._media.requests", "google.resumable_media.requests"],
+        "import cloudpathlib.gs.gsclient as gsclient\n"
         "from cloudpathlib.exceptions import CloudPathNotImplementedError\n"
-        "assert gsclient.XMLMPUContainer is None and gsclient.XMLMPUPart is None\n"
+        "print(gsclient.XMLMPUContainer is None, gsclient.XMLMPUPart is None)\n"
         "client = gsclient.GSClient.__new__(gsclient.GSClient)  # no credentials needed\n"
         "try:\n"
         "    gsclient.GSClient._initiate_multipart_upload(client, None)\n"
         "except CloudPathNotImplementedError as e:\n"
         "    print(e)",
     )
+    assert out.splitlines()[0] == "True True"
     assert "google-cloud-storage 2.10 or newer" in out
 
 
