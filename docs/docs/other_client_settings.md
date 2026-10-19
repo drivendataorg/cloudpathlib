@@ -1,5 +1,14 @@
 # Other `Client` settings
 
+## Cache directories for concurrent workers
+
+Workers accessing different cloud objects can share a persistent `local_cache_dir`.
+Share one client across threads, giving each thread its own `CloudPath`; construct
+a client inside each process with the same cache directory. This also applies to
+`CLOUDPATHLIB_LOCAL_CACHE_DIR`. See [Concurrent cache access](concurrent_cache_access.md)
+for shared-cache examples and the separate caches or external coordination needed
+when workers access the same object.
+
 ## Content type guessing (`content_type_method`)
 
 All of the clients support passing a `content_type_method` when they are instantiated.  
