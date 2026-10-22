@@ -6,7 +6,12 @@ from tempfile import TemporaryDirectory
 from typing import Any, Tuple, TYPE_CHECKING, Union, Optional
 import urllib
 
-from ..cloudpath import CloudPath, NoStatError, register_path_class
+from ..cloudpath import (
+    CloudPath,
+    NoStatError,
+    _ensure_local_path_within_base,
+    register_path_class,
+)
 
 if TYPE_CHECKING:
     from .httpclient import HttpClient, HttpsClient
@@ -35,7 +40,12 @@ class HttpPath(CloudPath):
     def _local(self) -> Path:
         """Cached local version of the file."""
         # remove params, query, fragment to get local path
-        return self.client._local_cache_dir / self._url.path.lstrip("/")
+        return _ensure_local_path_within_base(
+            self.client._local_cache_dir / self._url.path.lstrip("/"),
+            self.client._local_cache_dir,
+            self,
+            resolve=False,
+        )
 
     def _dispatch_to_path(self, func: str, *args, **kwargs) -> Any:
         sup = super()._dispatch_to_path(func, *args, **kwargs)
@@ -80,7 +90,12 @@ class HttpPath(CloudPath):
         return not self.client.dir_matcher(str(self))
 
     def mkdir(
-        self, parents: bool = False, exist_ok: bool = False, mode: Optional[Any] = None
+        self,
+        parents: bool = False,
+        exist_ok: bool = False,
+        mode: Optional[Any] = None,
+        *,
+        parent_mode: Optional[Any] = None,
     ) -> None:
         pass  # no-op for HTTP Paths
 

@@ -31,10 +31,10 @@ Notes:
 ## 3. Compatibility guardrails
 
 - CI covers Linux, macOS, and Windows.
-- CI covers Python 3.9 through 3.14.
+- CI covers Python 3.10 through 3.15.
 - Preserve the repository's existing compatibility patterns (`typing_extensions`, version guards,
-  `pathlib` shims) instead of rewriting toward newer-version-only syntax.
-- Do not introduce Python 3.10+/3.11+ syntax or stdlib dependencies unless they are properly
+  `pathlib` shims) where supported versions still need them.
+- Do not introduce Python 3.11+ syntax or stdlib dependencies unless they are properly
   guarded and compatible with the supported matrix.
 
 ## 4. Architecture and exceptions
@@ -55,7 +55,7 @@ Notes:
   - `make format`
   - `make lint`
   - `make test`
-  - `make test-live-cloud`
+  - `make test-live-cloud` (one rig at a time: `make test-live-cloud-rig RIG=s3`)
   - `make docs`
   - `make dist`
   - `make perf`
@@ -74,8 +74,12 @@ Notes:
   specifically about dispatch, direct instantiation, or client construction.
 - If a change adds or alters SDK calls, update the corresponding mock implementation in
   `tests/mock_clients/`.
-- Temporary local shortcuts like commenting out rigs in `tests/conftest.py` are fine during
-  development, but must not be committed.
+- To run a subset of the rigs during development, set `CLOUDPATHLIB_TEST_RIGS` (e.g.
+  `CLOUDPATHLIB_TEST_RIGS=s3,gs`) instead of editing `tests/conftest.py`.
+- `tests/rigs.py` defines which rigs exist, which ones live tests use, and their concurrency;
+  CI builds its live-test matrix from it, so update it there rather than in the workflow.
+- Tests treat an empty environment variable as unset (`getenv` in `tests/utils.py`), because CI
+  gives each live-test job only its own provider's secrets.
 - Validate affected providers, not just one backend.
 - For performance-sensitive changes (`_list_dir`, `glob`, `rglob`, `walk`), run `make perf` and
   include before/after results in PR notes.
@@ -94,6 +98,8 @@ Notes:
   - Custom S3: `CUSTOM_S3_BUCKET`, `CUSTOM_S3_ENDPOINT`, `CUSTOM_S3_KEY_ID`,
     `CUSTOM_S3_SECRET_KEY`
 - Run live tests with `USE_LIVE_CLOUD=1 make test-live-cloud`.
+- Live runs default to the network-backed rigs only (`azure`, `azure_gen2`, `gs`, `s3`,
+  `custom_s3`); narrow further with `CLOUDPATHLIB_TEST_RIGS`.
 - Live tests create and delete cloud files.
 - If live backend access is unavailable, run mocked tests locally and document the live-test gap
   clearly for maintainers.
@@ -115,7 +121,43 @@ Before opening or updating a PR:
 2. Confirm an issue exists and include `Closes #<issue>` in the PR body.
 3. Confirm the change is demonstrated by failure-before/fix-after evidence.
 4. Update `HISTORY.md` under `## UNRELEASED` to satisfy this repo's PR checklist; include
-   issue and PR references when they are known.
+   issue and PR references when they are known, and follow section 9.
 5. Verify API changes include doc/docstring updates and generated-doc refresh as needed.
 6. If working from an external contributor context, note any live-backend limitations that
    maintainers need to validate on a repo-local branch.
+
+## 9. Changelog (`HISTORY.md`)
+
+Follow [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/).
+
+Guiding principles:
+
+- Changelogs are for humans, not machines.
+- There should be an entry for every single version.
+- The same types of changes should be grouped.
+- Versions and sections should be linkable.
+- The latest version comes first.
+- The release date of each version is displayed.
+- Mention whether you follow Semantic Versioning.
+
+Start each entry with the verb for its type of change, and keep entries of the same type together
+(in this order):
+
+- `Added` for new features.
+- `Changed` for changes in existing functionality.
+- `Deprecated` for soon-to-be removed features.
+- `Removed` for now removed features.
+- `Fixed` for any bug fixes.
+- `Security` in case of vulnerabilities.
+
+When a release has enough entries to warrant it, group them under matching `### Added`,
+`### Changed`, ... subsections.
+
+Write for library users:
+
+- Describe user-visible behavior in one or two sentences; leave implementation detail to the PR.
+- Test-suite, CI, and other internal-only changes do not get their own entries; fold them into a
+  single consolidated line (e.g. "Fixed test suite reliability issues ...") that lists the PRs.
+- For fixes and behavior changes, name a concrete scenario where the user sees different behavior
+  (what they called, what happened before, what happens now).
+- Call out breaking changes in bold.

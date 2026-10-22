@@ -9,6 +9,9 @@ on:
     - cron: "0 0 * * 0"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   code-quality:
     name: Code Quality
@@ -38,7 +41,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: [3.9, "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
     env:
       UV_MANAGED_PYTHON: true
 
@@ -76,57 +79,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
           fail_ci_if_error: true
-
-  live-tests:
-    name: Live Tests
-    needs: tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python and uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          python-version: "3.12"
-          activate-environment: true
-
-      - name: Install dependencies
-        run: |
-          uv pip install -r requirements-dev.txt
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0.2.0
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
-
-      - name: Run live tests
-        run: |
-          make test-live-cloud
-        env:
-          LIVE_AZURE_CONTAINER: ${{ secrets.LIVE_AZURE_CONTAINER }}
-          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
-          AZURE_STORAGE_GEN2_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_GEN2_CONNECTION_STRING }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          LIVE_GS_BUCKET: ${{ secrets.LIVE_GS_BUCKET }}
-          LIVE_S3_BUCKET: ${{ secrets.LIVE_S3_BUCKET }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          CUSTOM_S3_BUCKET: ${{secrets.CUSTOM_S3_BUCKET}}
-          CUSTOM_S3_KEY_ID: ${{secrets.CUSTOM_S3_KEY_ID}}
-          CUSTOM_S3_SECRET_KEY: ${{secrets.CUSTOM_S3_SECRET_KEY}}
-          CUSTOM_S3_ENDPOINT: ${{secrets.CUSTOM_S3_ENDPOINT}}
-
-      - name: Upload coverage to codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
-          fail_ci_if_error: ${{ (github.event_name == 'push' && true) || (github.event_name == 'pull_request' && true) || false }}
 
   extras-test:
     name: Test independent installs of clients
@@ -171,13 +123,17 @@ jobs:
           source ${{ matrix.extra }}-env/bin/activate
           python -c 'from cloudpathlib import CloudPath; CloudPath("${{ matrix.prefix }}://bucket/test")'
         env:
-          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          # Path construction makes no network request. Azure only needs a parseable
+          # connection string, so this independent-install check uses a dummy value.
+          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=https;AccountName=fake;AccountKey=ZmFrZQ==;EndpointSuffix=core.windows.net"
 
   notify:
     name: Notify failed build
-    needs: [code-quality, tests, live-tests, extras-test]
+    needs: [code-quality, tests, extras-test]
     if: failure() && github.event.pull_request == null
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - uses: jayqi/failed-build-issue-action@v1
         with:

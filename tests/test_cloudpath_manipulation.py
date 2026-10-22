@@ -6,6 +6,9 @@ import pytest
 
 from cloudpathlib import CloudPath
 from cloudpathlib.http.httppath import HttpPath, HttpsPath
+from cloudpathlib.local import LocalGSPath, LocalS3Path
+
+pytestmark = pytest.mark.no_seed_assets
 
 
 def test_properties(rig):
@@ -45,7 +48,7 @@ def test_no_op_actions(rig):
     assert path.is_absolute()
 
 
-def test_relative_to(rig, azure_rigs, gs_rig):
+def test_relative_to(rig):
     assert rig.create_cloud_path("bucket/path/to/file.txt").relative_to(
         rig.create_cloud_path("bucket/path")
     ) == PurePosixPath("to/file.txt")
@@ -61,9 +64,13 @@ def test_relative_to(rig, azure_rigs, gs_rig):
 
     with pytest.raises(ValueError):
         assert rig.create_cloud_path("a/b/c/d.file").relative_to(PurePosixPath("/a/b/c"))
-    other_rig = azure_rigs if rig.cloud_prefix != azure_rigs.cloud_prefix else gs_rig
+
+    # a path on a different backend: `relative_to` compares anchors, so all this needs is a
+    # cloud path with a different prefix. The mock classes give us one without needing a
+    # second set of credentials (or a second rig).
+    other_class = LocalGSPath if rig.cloud_prefix != LocalGSPath.cloud_prefix else LocalS3Path
     path = CloudPath(f"{rig.cloud_prefix}bucket/path/to/file.txt")
-    other_cloud_path = CloudPath(f"{other_rig.cloud_prefix}bucket/path")
+    other_cloud_path = other_class(f"{other_class.cloud_prefix}bucket/path")
     with pytest.raises(ValueError):
         assert path.relative_to(other_cloud_path)
 

@@ -1,5 +1,6 @@
 from typing import Any, Optional
 
+from ...cloud_io import _CloudMultipartStorageRaw
 from ...cloudpath import CloudImplementation
 from ..localclient import LocalClient
 from ..localpath import LocalPath
@@ -14,6 +15,7 @@ class LocalGSClient(LocalClient):
     """
 
     _cloud_meta = local_gs_implementation
+    _streaming_raw_class = _CloudMultipartStorageRaw
 
 
 LocalGSClient.GSPath = LocalGSClient.CloudPath  # type: ignore
@@ -31,7 +33,9 @@ class LocalGSPath(LocalPath):
     def drive(self) -> str:
         return self.bucket
 
-    def mkdir(self, parents=False, exist_ok=False, mode: Optional[Any] = None):
+    def mkdir(
+        self, parents=False, exist_ok=False, mode: Optional[Any] = None, *, parent_mode=None
+    ):
         # not possible to make empty directory on gs
         pass
 

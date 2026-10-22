@@ -15,6 +15,8 @@ class FileCacheMode(str, Enum):
             called by Python garbage collection.
         close_file (str): Cache for a `CloudPath` file is removed as soon as the file is closed. Note: you must
             use `CloudPath.open` whenever opening the file for this method to function.
+        streaming (str): No caching is used; files are streamed directly from/to cloud storage using
+            efficient range requests and multipart uploads.
 
     Modes can be set by passing them to the Client or by setting the `CLOUDPATHLIB_FILE_CACHE_MODE`
     environment variable.
@@ -26,6 +28,7 @@ class FileCacheMode(str, Enum):
     tmp_dir = "tmp_dir"  # DEFAULT: handled by deleting client, Python, or OS (usually on machine restart)
     cloudpath_object = "cloudpath_object"  # __del__ called on the CloudPath object
     close_file = "close_file"  # cache is cleared when file is closed
+    streaming = "streaming"  # no caching, direct streaming I/O
 
     @classmethod
     def from_environment(cls) -> Optional["FileCacheMode"]:

@@ -1,5 +1,7 @@
-.PHONY: clean clean-docs clean-pyc clean-test clean-build docs format install lint release release-test test help
+.PHONY: clean clean-docs clean-pyc clean-test clean-build docs format install lint release release-test test help live-rigs test-live-cloud-rig test-live-cloud-rigs
 .DEFAULT_GOAL := help
+
+PYTHON ?= python
 
 define PRINT_HELP_PYSCRIPT
 import re, sys
@@ -78,13 +80,27 @@ reqs:  ## install development requirements
 	pip install -U -r requirements-dev.txt
 
 test: ## run tests with mocked cloud SDKs
-	python -m pytest -vv
+	python -m pytest -vv $(PYTEST_ARGS)
 
 test-debug:  ## rerun tests that failed in last run and stop with pdb at failures
 	python -m pytest -n=0 -vv --lf --pdb
 
-test-live-cloud:  ## run tests on live cloud backends
-	USE_LIVE_CLOUD=1 python -m pytest -vv
+test-live-cloud:  ## run tests on live cloud backends (set CLOUDPATHLIB_TEST_RIGS to pick rigs)
+	USE_LIVE_CLOUD=1 $(PYTHON) -m pytest -vv $(PYTEST_ARGS)
+
+live-rigs:  ## print the rigs that live tests run against, as JSON (CI builds its matrix from this)
+	@$(PYTHON) -m tests.rigs
+
+test-live-cloud-rig:  ## run live tests for one rig the way CI does, e.g. RIG=s3
+	CLOUDPATHLIB_TEST_RIGS=$(RIG) USE_LIVE_CLOUD=1 $(PYTHON) -m pytest -vv \
+		-n $$($(PYTHON) -c "from tests.rigs import live_workers; print(live_workers('$(RIG)'))") \
+		$(PYTEST_ARGS)
+
+test-live-cloud-rigs:  ## run each live rig the way CI does, one after another
+	@for rig in $$($(PYTHON) -c "from tests.rigs import NETWORK_RIGS; print(' '.join(NETWORK_RIGS))"); do \
+		echo "=== $$rig ==="; \
+		$(MAKE) test-live-cloud-rig RIG=$$rig || exit 1; \
+	done
 
 test-time-report:
 	pytest-duration-insights explore --no-trim reportlog.jsonl

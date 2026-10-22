@@ -30,6 +30,7 @@ from typing import (
     Tuple,
     Type,
     TYPE_CHECKING,
+    TypeGuard,
     TypeVar,
     Union,
     cast,
@@ -45,11 +46,6 @@ if TYPE_CHECKING:
         OpenBinaryModeWriting,
         OpenTextMode,
     )
-
-if sys.version_info >= (3, 10):
-    from typing import TypeGuard
-else:
-    from typing_extensions import TypeGuard
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -82,12 +78,13 @@ elif sys.version_info >= (3, 14):
 
 from cloudpathlib.enums import FileCacheMode
 
-from . import anypath
+from . import anypath, env
 from .exceptions import (
     ClientMismatchError,
     CloudPathFileExistsError,
     CloudPathFileNotFoundError,
     CloudPathIsADirectoryError,
+    CloudPathLocalPathTraversalError,
     CloudPathNotADirectoryError,
     CloudPathNotExistsError,
     CloudPathNotImplementedError,
@@ -105,6 +102,46 @@ if TYPE_CHECKING:
     from .client import Client
 
 from .cloudpath_info import CloudPathInfo
+
+
+def _ensure_local_path_within_base(
+    candidate: Path, base: Path, cloud_path: "CloudPath", resolve: bool = True
+) -> Path:
+    """Guard against path traversal: cloud object keys are opaque strings and may contain ``..``
+    segments (or, on Windows, ``\\`` separators and drive letters), but cloudpathlib maps them onto
+    local paths (the cache directory or a download destination) with plain path arithmetic. Confirm
+    ``candidate`` stays within ``base``; raise :class:`CloudPathLocalPathTraversalError` if it
+    escapes. Returns ``candidate`` unchanged when it is contained.
+
+    When ``resolve`` is True (the default), both paths are resolved on the filesystem, which also
+    follows symlinks — appropriate for user-supplied download destinations. When False, a purely
+    lexical check (``os.path.normpath``) is used with no filesystem syscalls; this is used for the
+    cache mapping, where cloudpathlib only ever writes file content and object keys therefore
+    cannot introduce symlinks inside the base directory.
+    """
+    if resolve:
+        candidate_cmp = Path(candidate).resolve()
+        base_cmp = Path(base).resolve()
+    else:
+        candidate_cmp = Path(os.path.normpath(candidate))
+        base_cmp = Path(os.path.normpath(base))
+    if not candidate_cmp.is_relative_to(base_cmp):
+        raise CloudPathLocalPathTraversalError(
+            f"Refusing to map cloud path '{cloud_path}' to a local path outside its base directory "
+            f"'{base}' (it would resolve to '{candidate_cmp}'). The object key contains path "
+            f"segments that escape the local cache directory or download destination."
+        )
+    return candidate
+
+
+def _force_overwrite_to_cloud(flag: Optional[bool]) -> bool:
+    """Resolve `force_overwrite_to_cloud`, falling back to the environment variable."""
+    return env.env_flag("CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD") if flag is None else flag
+
+
+def _force_overwrite_from_cloud(flag: Optional[bool]) -> bool:
+    """Resolve `force_overwrite_from_cloud`, falling back to the environment variable."""
+    return env.env_flag("CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD") if flag is None else flag
 
 
 class CloudImplementation:
@@ -306,10 +343,14 @@ class CloudPath(metaclass=CloudPathMeta):
         if "_client" in state:
             del state["_client"]
 
+        # urllib.parse.ParseResult can be rebuilt from the cloud path string.
+        state.pop("_url", None)
+
         return state
 
     def __setstate__(self, state: Dict[str, Any]) -> None:
         self.__dict__.update(state)
+        self._url = urlparse(self._str)
 
     @property
     def _no_prefix(self) -> str:
@@ -355,6 +396,14 @@ class CloudPath(metaclass=CloudPathMeta):
         return isinstance(other, type(self)) and str(self) == str(other)
 
     def __fspath__(self) -> str:
+        # Check if streaming mode is enabled
+        if self.client.file_cache_mode == FileCacheMode.streaming:
+            raise CloudPathNotImplementedError(
+                "fspath is not available in streaming mode, which avoids the local file cache "
+                "(except for append/update modes of `open`, which fall back to it). "
+                "Use CloudPath.open() to read/write data directly."
+            )
+
         if self.is_file():
             self._refresh_cache()
         return str(self._local)
@@ -413,7 +462,12 @@ class CloudPath(metaclass=CloudPathMeta):
 
     @abc.abstractmethod
     def mkdir(
-        self, parents: bool = False, exist_ok: bool = False, mode: Optional[Any] = None
+        self,
+        parents: bool = False,
+        exist_ok: bool = False,
+        mode: Optional[Any] = None,
+        *,
+        parent_mode: Optional[Any] = None,
     ) -> None:
         """Should be implemented using the client API without requiring a dir is downloaded"""
         pass
@@ -764,6 +818,19 @@ class CloudPath(metaclass=CloudPathMeta):
         force_overwrite_from_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
         force_overwrite_to_cloud: Optional[bool] = None,  # extra kwarg not in pathlib
     ) -> "IO[Any]":
+        from .cloud_io import _validate_file_mode
+
+        _validate_file_mode(mode)
+        binary_mode = "b" in mode
+        if binary_mode and encoding is not None:
+            raise ValueError("binary mode doesn't take an encoding argument")
+        if binary_mode and errors is not None:
+            raise ValueError("binary mode doesn't take an errors argument")
+        if binary_mode and newline is not None:
+            raise ValueError("binary mode doesn't take a newline argument")
+        if not binary_mode and buffering == 0:
+            raise ValueError("can't have unbuffered text I/O")
+
         # if trying to call open on a directory that exists
         exists_on_cloud = self.exists()
 
@@ -772,15 +839,36 @@ class CloudPath(metaclass=CloudPathMeta):
                 f"Cannot open directory, only files. Tried to open ({self})"
             )
 
-        if not exists_on_cloud and any(m in mode for m in ("r", "a")):
+        if not exists_on_cloud and "r" in mode:
             raise CloudPathFileNotFoundError(
-                f"File opened for read or append, but it does not exist on cloud: {self}"
+                f"File opened for read, but it does not exist on cloud: {self}"
             )
 
-        if mode == "x" and self.exists():
+        if "x" in mode and exists_on_cloud:
             raise CloudPathFileExistsError(f"Cannot open existing file ({self}) for creation.")
 
-        # TODO: consider streaming from client rather than DLing entire file to cache
+        if self.client.file_cache_mode == FileCacheMode.streaming:
+            # Append (a) and update (+) modes cannot be done as pure streaming over object
+            # storage; they fall through to the cached path for correct semantics.
+            if any(m in mode for m in ("a", "+")):
+                warn(
+                    f"Opening {self} with mode {mode!r} in streaming mode downloads the whole "
+                    f"object to the local cache, modifies it there, and re-uploads it on close "
+                    f"(object stores cannot append to or update an object in place).",
+                    stacklevel=2,
+                )
+            else:
+                return self._open_streaming(
+                    mode,
+                    buffering,
+                    encoding,
+                    errors,
+                    newline,
+                    exists_on_cloud=exists_on_cloud,
+                    force_overwrite_to_cloud=force_overwrite_to_cloud,
+                )
+
+        # Standard cached mode
         self._refresh_cache(force_overwrite_from_cloud=force_overwrite_from_cloud)
 
         # create any directories that may be needed if the file is new
@@ -814,9 +902,11 @@ class CloudPath(metaclass=CloudPathMeta):
                     return
 
                 # original mtime should match what was in the cloud; because of system clocks or rounding
-                # by the cloud provider, the new version in our cache is "older" than the original version;
-                # explicitly set the new modified time to be after the original modified time.
-                if self._local.stat().st_mtime < original_mtime:
+                # by the cloud provider, the new version in our cache is not newer than the original
+                # version; explicitly set the new modified time to be after the original modified
+                # time. Equal mtimes need the same treatment as older ones: we know this file was
+                # written, and the upload requires the local file to be strictly newer.
+                if self._local.stat().st_mtime <= original_mtime:
                     new_mtime = original_mtime + 1
                     os.utime(self._local, times=(new_mtime, new_mtime))
 
@@ -831,9 +921,10 @@ class CloudPath(metaclass=CloudPathMeta):
             # opened for write, so mark dirty
             self._dirty = True
 
-        # if we don't want any cache around, remove the cache
-        # as soon as the file is closed
-        if self.client.file_cache_mode == FileCacheMode.close_file:
+        # if we don't want any cache around, remove the cache as soon as the file is
+        # closed; streaming mode only reaches the cache through the append/update
+        # fallback and should not leave anything behind either
+        if self.client.file_cache_mode in (FileCacheMode.close_file, FileCacheMode.streaming):
             # this may be _patched_close_upload, in which case we need to
             # make sure to call that first so the file gets uploaded
             wrapped_close_for_cache = buffer.close
@@ -847,6 +938,58 @@ class CloudPath(metaclass=CloudPathMeta):
             buffer.close = _patched_close_empty_cache  # type: ignore
 
         return buffer
+
+    def _open_streaming(
+        self,
+        mode: str,
+        buffering: int,
+        encoding: Optional[str],
+        errors: Optional[str],
+        newline: Optional[str],
+        exists_on_cloud: bool,
+        force_overwrite_to_cloud: Optional[bool],
+    ) -> "IO[Any]":
+        """`open` without the local cache: ranged reads and multipart writes."""
+        from .cloud_io import open_stream
+
+        raw_io_class = self.client._streaming_raw_class
+        if raw_io_class is None:
+            raise CloudPathNotImplementedError(
+                f"Streaming I/O is not implemented for {type(self.client).__name__}"
+            )
+
+        # overwrite protection mirroring the cached path's upload conflict check
+        pre_finalize = None
+        if "w" in mode or "x" in mode:
+            pre_finalize = self._streaming_overwrite_check(
+                mode, exists_on_cloud, force_overwrite_to_cloud
+            )
+
+        return open_stream(
+            raw_io_class,
+            self.client,
+            self,
+            mode,
+            buffering=buffering,
+            encoding=encoding,
+            errors=errors,
+            newline=newline,
+            pre_finalize=pre_finalize,
+        )
+
+    def _raise_if_copy_target_newer(
+        self, target: "CloudPath", force_overwrite_to_cloud: Optional[bool]
+    ) -> None:
+        """Refuse a cloud-to-cloud copy that would clobber a target at least as new as the
+        source, unless overwriting is forced."""
+        if _force_overwrite_to_cloud(force_overwrite_to_cloud):
+            return
+        if target.exists() and target.stat().st_mtime >= self.stat().st_mtime:
+            raise OverwriteNewerCloudError(
+                f"File ({target}) is newer than ({self}). "
+                f"To overwrite "
+                f"pass `force_overwrite_to_cloud=True`."
+            )
 
     def replace(self, target: Self) -> Self:
         if type(self) is not type(target):
@@ -1096,11 +1239,7 @@ class CloudPath(metaclass=CloudPathMeta):
         return self._dispatch_to_path("suffixes")
 
     def with_stem(self, stem: str) -> Self:
-        try:
-            return self._dispatch_to_path("with_stem", stem)
-        except AttributeError:
-            # with_stem was only added in python 3.9, so we fallback for compatibility
-            return self.with_name(stem + self.suffix)
+        return self._dispatch_to_path("with_stem", stem)
 
     def with_name(self, name: str) -> Self:
         return self._dispatch_to_path("with_name", name)
@@ -1159,7 +1298,9 @@ class CloudPath(metaclass=CloudPathMeta):
 
         if self.is_file():
             if destination.is_dir():
-                destination = destination / self.name
+                destination = _ensure_local_path_within_base(
+                    destination / self.name, destination, self
+                )
             return self.client._download_file(self, destination)
         else:
             destination.mkdir(exist_ok=True)
@@ -1169,17 +1310,48 @@ class CloudPath(metaclass=CloudPathMeta):
                     rel = rel + "/"
 
                 rel_dest = str(f)[len(rel) :]
-                f.download_to(destination / rel_dest)
+                target = _ensure_local_path_within_base(destination / rel_dest, destination, f)
+                f.download_to(target)
 
             return destination
 
-    def rmtree(self) -> None:
-        """Delete an entire directory tree."""
-        if self.is_file():
-            raise CloudPathNotADirectoryError(
-                f"Path {self} is a file; call unlink instead of rmtree."
-            )
-        self.client._remove(self)
+    def rmtree(
+        self,
+        ignore_errors: bool = False,
+        onerror: Optional[Callable] = None,
+        *,
+        onexc: Optional[Callable] = None,
+    ) -> None:
+        """Delete an entire directory tree.
+
+        By default, exceptions from checking the path or removing cloud objects are raised.
+        Set ``ignore_errors=True`` to suppress these exceptions. This takes precedence over
+        either callback. Control-flow exceptions such as ``KeyboardInterrupt`` are not suppressed.
+
+        ``onexc(function, path, exception)`` handles a failure with the exception object;
+        ``onerror(function, path, exc_info)`` receives the tuple returned by ``sys.exc_info()``.
+        If both callbacks are supplied, ``onexc`` takes precedence, matching ``shutil.rmtree``.
+        Exceptions raised by either callback propagate to the caller.
+
+        Callbacks receive the unbound ``rmtree`` method and this cloud path, so
+        ``function(path)`` retries the entire operation. Callbacks run once per failed operation,
+        rather than once per object in the tree; a backend may already have removed some objects.
+        """
+        try:
+            if self.is_file():
+                raise CloudPathNotADirectoryError(
+                    f"Path {self} is a file; call unlink instead of rmtree."
+                )
+            self.client._remove(self)
+        except Exception as error:
+            if ignore_errors:
+                return
+            if onexc is not None:
+                onexc(type(self).rmtree, self, error)
+            elif onerror is not None:
+                onerror(type(self).rmtree, self, sys.exc_info())
+            else:
+                raise
 
     def upload_from(
         self,
@@ -1233,39 +1405,36 @@ class CloudPath(metaclass=CloudPathMeta):
             if destination.exists() and destination.is_dir():
                 destination = destination / self.name
 
-            if force_overwrite_to_cloud is None:
-                force_overwrite_to_cloud = os.environ.get(
-                    "CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD", "False"
-                ).lower() in ["1", "true"]
-
-            if (
-                not force_overwrite_to_cloud
-                and destination.exists()
-                and destination.stat().st_mtime >= self.stat().st_mtime
-            ):
-                raise OverwriteNewerCloudError(
-                    f"File ({destination}) is newer than ({self}). "
-                    f"To overwrite "
-                    f"pass `force_overwrite_to_cloud=True`."
-                )
+            self._raise_if_copy_target_newer(destination, force_overwrite_to_cloud)
 
             return cast(Self, self.client._move_file(self, destination, remove_src=remove_src))
 
         else:
             if not destination.exists() or destination.is_file():
-                return cast(
-                    Union[Path, Self],
-                    destination.upload_from(
-                        self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
-                    ),
-                )
+                target_path: CloudPath = destination
             else:
-                return cast(
-                    Union[Path, Self],
-                    (destination / self.name).upload_from(
-                        self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
-                    ),
+                target_path = destination / self.name
+
+            # streaming mode has no local cache to round-trip through (fspath is
+            # unavailable), so copy by streaming between the two clients directly
+            if self.client.file_cache_mode == FileCacheMode.streaming:
+                self._raise_if_copy_target_newer(target_path, force_overwrite_to_cloud)
+
+                with self.open("rb") as src_file:
+                    with target_path.open("wb", force_overwrite_to_cloud=True) as dst_file:
+                        # the streaming buffer size rather than shutil's 64 KiB default, so
+                        # each buffered read is forwarded in one iteration
+                        shutil.copyfileobj(src_file, dst_file, env.streaming_buffer_size())
+            else:
+                target_path.upload_from(
+                    self.fspath, force_overwrite_to_cloud=force_overwrite_to_cloud
                 )
+
+            # a move removes the source only once the destination has been written
+            if remove_src:
+                self.unlink()
+
+            return cast(Union[Path, Self], target_path)
 
     @overload
     def copy(
@@ -1403,16 +1572,28 @@ class CloudPath(metaclass=CloudPathMeta):
 
         destination.mkdir(parents=True, exist_ok=True)
 
+        # when copying to a local destination, a listing may surface a key's ".." segment as a
+        # directory entry named "..", so each child destination must be confirmed within the
+        # destination before recursing (otherwise the recursion walks outside it); cloud-to-cloud
+        # copytree is not a local-filesystem traversal concern
+        destination_is_local = isinstance(destination, Path)
+
         for subpath in contents:
             if subpath.name in ignored_names:
                 continue
             if subpath.is_file():
-                subpath.copy(
-                    destination / subpath.name, force_overwrite_to_cloud=force_overwrite_to_cloud
-                )
+                file_destination = destination / subpath.name
+                if destination_is_local:
+                    _ensure_local_path_within_base(file_destination, destination, subpath)
+                subpath.copy(file_destination, force_overwrite_to_cloud=force_overwrite_to_cloud)
             elif subpath.is_dir():
+                dir_destination = destination / (
+                    subpath.name + ("" if subpath.name.endswith("/") else "/")
+                )
+                if destination_is_local:
+                    _ensure_local_path_within_base(dir_destination, destination, subpath)
                 subpath.copytree(
-                    destination / (subpath.name + ("" if subpath.name.endswith("/") else "/")),
+                    dir_destination,
                     force_overwrite_to_cloud=force_overwrite_to_cloud,
                     ignore=ignore,
                 )
@@ -1510,17 +1691,28 @@ class CloudPath(metaclass=CloudPathMeta):
 
     def clear_cache(self):
         """Removes cache if it exists"""
-        if self._local.exists():
-            if self._local.is_file():
-                self._local.unlink()
+        try:
+            local = self._local
+        except CloudPathLocalPathTraversalError:
+            # a key that cannot be safely mapped to a local path can never have been cached,
+            # so there is nothing to clear (and __del__ must not raise on such paths)
+            return
+        if local.exists():
+            if local.is_file():
+                local.unlink()
             else:
-                shutil.rmtree(self._local)
+                shutil.rmtree(local)
 
     # ===========  private cloud methods ===============
     @property
     def _local(self) -> Path:
         """Cached local version of the file."""
-        return self.client._local_cache_dir / self._no_prefix
+        return _ensure_local_path_within_base(
+            self.client._local_cache_dir / self._no_prefix,
+            self.client._local_cache_dir,
+            self,
+            resolve=False,
+        )
 
     def _new_cloudpath(self, path: Union[str, os.PathLike], *parts: str) -> Self:
         """Use the scheme, client, cache dir of this cloudpath to instantiate
@@ -1548,14 +1740,9 @@ class CloudPath(metaclass=CloudPathMeta):
             # new files that will be uploaded
             return
 
-        if force_overwrite_from_cloud is None:
-            force_overwrite_from_cloud = os.environ.get(
-                "CLOUDPATHLIB_FORCE_OVERWRITE_FROM_CLOUD", "False"
-            ).lower() in ["1", "true"]
-
         # if not exist or cloud newer
         if (
-            force_overwrite_from_cloud
+            _force_overwrite_from_cloud(force_overwrite_from_cloud)
             or not self._local.exists()
             or (self._local.stat().st_mtime < stats.st_mtime)
         ):
@@ -1616,12 +1803,7 @@ class CloudPath(metaclass=CloudPathMeta):
         """Uploads file at `local_path` to the cloud if there is not a newer file
         already there.
         """
-        if force_overwrite_to_cloud is None:
-            force_overwrite_to_cloud = os.environ.get(
-                "CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD", "False"
-            ).lower() in ["1", "true"]
-
-        if force_overwrite_to_cloud:
+        if _force_overwrite_to_cloud(force_overwrite_to_cloud):
             # If we are overwriting no need to perform any checks, so we can save time
             self.client._upload_file(
                 local_path,
@@ -1651,13 +1833,46 @@ class CloudPath(metaclass=CloudPathMeta):
             f"overwrite; or set env var CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD=1."
         )
 
+    def _streaming_overwrite_check(
+        self, mode: str, exists_on_cloud: bool, force_overwrite_to_cloud: Optional[bool]
+    ) -> Optional[Callable[[], None]]:
+        """Build the pre-upload conflict check for a streaming write, mirroring the cached
+        path's `OverwriteNewerCloudError` protection in `_upload_file_to_cloud`. Returns None
+        when overwriting is forced. Exclusive creation (`x`) always checks, since a file that
+        appeared while the stream was open must raise `CloudPathFileExistsError`."""
+        exclusive = "x" in mode
+        if not exclusive and _force_overwrite_to_cloud(force_overwrite_to_cloud):
+            return None
+
+        original_mtime = self.stat().st_mtime if exists_on_cloud else None
+
+        def check() -> None:
+            try:
+                stats = self.stat()
+            except (NoStatError, CloudPathFileNotFoundError, FileNotFoundError):
+                # nothing on the cloud to conflict with
+                return
+            if exclusive:
+                raise CloudPathFileExistsError(
+                    f"Cannot create file ({self}): it was created while the stream was open."
+                )
+            if original_mtime is None or stats.st_mtime > original_mtime:
+                raise OverwriteNewerCloudError(
+                    f"Cloud path ({self}) changed while it was open for streaming write, "
+                    f"but is being requested to be overwritten on close. Either (1) pass "
+                    f"`force_overwrite_to_cloud=True` to overwrite; or (2) set env var "
+                    f"CLOUDPATHLIB_FORCE_OVERWRITE_TO_CLOUD=1."
+                )
+
+        return check
+
     # ===========  pydantic integration special methods ===============
     @classmethod
     def __get_pydantic_core_schema__(cls, _source_type: Any, _handler):
         """Pydantic special method. See
         https://docs.pydantic.dev/2.0/usage/types/custom/"""
         try:
-            from pydantic_core import core_schema
+            from pydantic_core import core_schema  # type: ignore[import-not-found, unused-ignore]
 
             return core_schema.no_info_after_validator_function(
                 cls.validate,

@@ -3,15 +3,49 @@
 ## UNRELEASED
 
 - Delegated `AWS_ENDPOINT_URL` handling to boto3 now that the AWS SDK supports endpoint environment variables directly (Issue [#194](https://github.com/drivendataorg/cloudpathlib/issues/194)).
+- Added streaming I/O via `FileCacheMode.streaming` for S3, Azure Blob Storage, Google Cloud Storage, and HTTP/HTTPS. In this mode `CloudPath.open()` returns the standard `io` file objects (`BufferedReader`/`BufferedWriter`/`TextIOWrapper`) backed by ranged reads and multipart uploads instead of the local cache, so only the bytes you read are downloaded and written data is uploaded as you write it. Read streams are seekable; append and update modes fall back to the cache and remove the cache file on close. `buffering` has its builtin `open()` meaning and sets the ranged-request size (default 5 MiB). A new `streaming_max_concurrency` client option (default 4) bounds background read-ahead and part uploads per stream; the buffer size, concurrency, and multipart part size can also be set with the `CLOUDPATHLIB_STREAMING_BUFFER_SIZE`, `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY`, and `CLOUDPATHLIB_[<PROVIDER>_]STREAMING_PART_SIZE` environment variables. Opening a file for append or update in streaming mode warns that it falls back to the cache. `copy`/`rename`/`replace` stream between clients, `fspath` raises `CloudPathNotImplementedError`, and failures raise `cloudpathlib.exceptions` types including the new `CloudPathStreamingError`. See the [Streaming I/O](https://cloudpathlib.drivendata.org/stable/streaming_io/) docs. (PR [#535](https://github.com/drivendataorg/cloudpathlib/pull/535))
+- Added `ignore_errors`, `onerror`, and `onexc` options to `CloudPath.rmtree()` for suppressing deletion errors or handling them with a callback. Calls without these options still raise errors. (Issue [#270](https://github.com/drivendataorg/cloudpathlib/issues/270), PR [#604](https://github.com/drivendataorg/cloudpathlib/pull/604))
+- Changed append mode (`a`, `ab`, `a+`, and `ab+`) to create missing cloud files, matching Python file behavior. Appending to existing files still preserves their content. (Issue [#585](https://github.com/drivendataorg/cloudpathlib/issues/585))
+- Changed test dependencies to permit newer `pytest-rerunfailures` releases while excluding version 16.0, which causes distributed-test serialization failures. (Issue [#528](https://github.com/drivendataorg/cloudpathlib/issues/528), PR [#606](https://github.com/drivendataorg/cloudpathlib/pull/606))
+
+- Fixed mypy missing-import errors for `CloudPath` and `AnyPath` when the optional Pydantic integration is not installed. (Issue [#385](https://github.com/drivendataorg/cloudpathlib/issues/385), PR [#603](https://github.com/drivendataorg/cloudpathlib/pull/603))
+
+- Fixed direct S3 and GCS client construction without the optional cloud SDK to raise `MissingDependenciesError` with the appropriate install command instead of `NameError`. (Issue [#441](https://github.com/drivendataorg/cloudpathlib/issues/441), PR [#601](https://github.com/drivendataorg/cloudpathlib/pull/601))
+
+## v0.26.0 (2026-10-01)
+
+- Added support for Python 3.15: `CloudPath.mkdir(parent_mode=...)` works across providers, and cloud paths can be pickled repeatedly without a `ParseResult` error. (Issue [#593](https://github.com/drivendataorg/cloudpathlib/issues/593), PR [#594](https://github.com/drivendataorg/cloudpathlib/pull/594))
+- Changed the minimum supported Python version from 3.9 to 3.10. **Python 3.9 is no longer supported.** (PR [#597](https://github.com/drivendataorg/cloudpathlib/pull/597))
+- Changed CI so pull requests from forks no longer show failing live-test and install jobs: live cloud tests now run after a maintainer approves the run, and the Azure install check no longer needs repository secrets. (Issue [#306](https://github.com/drivendataorg/cloudpathlib/issues/306), PR [#592](https://github.com/drivendataorg/cloudpathlib/pull/592))
+- Fixed a spurious `OverwriteNewerCloudError` when a write leaves the local cache file with the same modified time as the cloud file. Previously, writing the same path twice in quick succession (e.g., two `path.write_text(...)` calls) on a filesystem with coarse modified-time resolution (such as FAT/exFAT or some network mounts) could raise this error on the second close and skip the upload; these writes now upload. (PR [#586](https://github.com/drivendataorg/cloudpathlib/pull/586))
+- Fixed test suite reliability issues and sped up live-backend test runs in CI. (Issue [#589](https://github.com/drivendataorg/cloudpathlib/issues/589), PRs [#586](https://github.com/drivendataorg/cloudpathlib/pull/586), [#587](https://github.com/drivendataorg/cloudpathlib/pull/587), [#588](https://github.com/drivendataorg/cloudpathlib/pull/588), [#590](https://github.com/drivendataorg/cloudpathlib/pull/590))
+
+## v0.25.0 (2026-08-22)
+
+- **Security fix ([GHSA-r4f8-3xc4-c8vw](https://github.com/drivendataorg/cloudpathlib/security/advisories/GHSA-r4f8-3xc4-c8vw)): local path traversal via `..` in cloud object keys.**
+  Cloud object keys are opaque strings and some backends (e.g. Google Cloud Storage) accept `..`
+  segments. cloudpathlib mapped keys onto local paths with plain path arithmetic and no containment
+  check, so a key such as `../../evil` could escape the local cache directory (on any
+  `read`/`write`/`open`/`os.fspath` of a `CloudPath`) or a download destination
+  (`download_to`/`copytree`/`copy`/`move` to a local path), writing attacker-controlled bytes
+  outside the intended directory. cloudpathlib now confirms each computed local target stays within
+  its base directory and raises `CloudPathLocalPathTraversalError` otherwise. This guards the cache
+  mapping (`CloudPath._local` and its S3/HTTP overrides), both branches of `CloudPath.download_to`
+  and `CloudPath.copytree` (including joins that can escape via `\` or drive letters in keys on
+  Windows), and the `cloudpathlib.local` mock's storage-side mapping. Reported by mohammad adnan
+  (cystack.ps redteam).
+- Added a `lazy` keyword argument to `CloudPath.walk`. By default (`lazy=False`) the existing fast behavior is preserved: the whole subtree is fetched up front with a single recursive listing. Passing `lazy=True` lists each directory on demand so that, when `top_down=True`, callers can prune subdirectories by modifying `dirnames` in-place (à la `os.walk` / `Path.walk`) to skip fetching the contents of those subtrees entirely — dramatically reducing API calls for large, sparsely-traversed trees. (Issue [#518](https://github.com/drivendataorg/cloudpathlib/issues/518), PR [#574](https://github.com/drivendataorg/cloudpathlib/pull/574))
+- Added presigned URL support to the mock clients in `cloudpathlib.local`, so `as_url(presign=True)` on a `LocalS3Path`, `LocalGSPath`, or `LocalAzureBlobPath` returns a deterministic URL with `expires` and `signature` query parameters instead of raising `NotImplementedError`. This lets code that generates presigned URLs be exercised in tests that use the mock classes. (PR [#572](https://github.com/drivendataorg/cloudpathlib/pull/572))
+- Fixed S3 copy and move operations to forward copy-specific extra args such as `CopySourceSSECustomerKey`, and added `addressing_style="virtual"` support for `S3Client` (Issues [#500](https://github.com/drivendataorg/cloudpathlib/issues/500), [#527](https://github.com/drivendataorg/cloudpathlib/issues/527), PR [#576](https://github.com/drivendataorg/cloudpathlib/pull/576))
+- Changed `S3Client._get_metadata` to read object metadata with `HeadObject` instead of `GetObject`, so `stat`, `etag`, and `size` no longer open the object body. Also fixes a `KeyError` on `ContentLength` against S3-compatible gateways that drop `Content-Length` from `GetObject` responses. (Issue [#564](https://github.com/drivendataorg/cloudpathlib/issues/564), PR [#565](https://github.com/drivendataorg/cloudpathlib/pull/565))
+- Fixed `KeyError` on `ETag` against S3-compatible gateways that omit `ETag` from `HeadObject` responses. (Issue [#582](https://github.com/drivendataorg/cloudpathlib/issues/582), PR [#583](https://github.com/drivendataorg/cloudpathlib/pull/583))
+- Fixed mypy 2.x type errors in `Client` and `CloudPath` that caused CI lint failures (Issue [#563](https://github.com/drivendataorg/cloudpathlib/issues/563), PR [#566](https://github.com/drivendataorg/cloudpathlib/pull/566))
 - Added `AGENTS.md` with repository-specific guidance for coding agents covering contributor
   workflow, compatibility expectations, test rig and mock usage, live backend validation, and PR
-  hygiene.
-- Fixed mypy 2.x type errors in `Client` and `CloudPath` that caused CI lint failures (Issue [#563](https://github.com/drivendataorg/cloudpathlib/issues/563), PR [#566](https://github.com/drivendataorg/cloudpathlib/pull/566))
-- Changed `S3Client._get_metadata` to read object metadata with `HeadObject` instead of `GetObject`, so `stat`, `etag`, and `size` no longer open the object body. Also fixes a `KeyError` on `ContentLength` against S3-compatible gateways that drop `Content-Length` from `GetObject` responses. (Issue [#564](https://github.com/drivendataorg/cloudpathlib/issues/564), PR [#565](https://github.com/drivendataorg/cloudpathlib/pull/565))
-- Added a `lazy` keyword argument to `CloudPath.walk`. By default (`lazy=False`) the existing fast behavior is preserved: the whole subtree is fetched up front with a single recursive listing. Passing `lazy=True` lists each directory on demand so that, when `top_down=True`, callers can prune subdirectories by modifying `dirnames` in-place (à la `os.walk` / `Path.walk`) to skip fetching the contents of those subtrees entirely — dramatically reducing API calls for large, sparsely-traversed trees. (Issue [#518](https://github.com/drivendataorg/cloudpathlib/issues/518))
-- Fixed S3 copy and move operations to forward copy-specific extra args such as `CopySourceSSECustomerKey`, and added `addressing_style="virtual"` support for `S3Client` (Issues [#500](https://github.com/drivendataorg/cloudpathlib/issues/500), [#527](https://github.com/drivendataorg/cloudpathlib/issues/527))
+  hygiene. (PR [#573](https://github.com/drivendataorg/cloudpathlib/pull/573))
 
 ## v0.24.0 (2026-04-29)
+
 - Added support for S3 Multi-Region Access Point (MRAP) URLs in `S3Path` (Issue [#556](https://github.com/drivendataorg/cloudpathlib/issues/556), PR [#557](https://github.com/drivendataorg/cloudpathlib/pull/557))
 - Added support for Pydantic serialization (Issue [#537](https://github.com/drivendataorg/cloudpathlib/issues/537), PR [#538](https://github.com/drivendataorg/cloudpathlib/pull/538))
 

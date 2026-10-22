@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "cloudpathlib"
-version = "0.24.0"
+version = "0.26.0"
 description = "pathlib-style classes for cloud storage services."
 readme = "README.md"
 authors = [{ name = "DrivenData", email = "info@drivendata.org" }]
@@ -21,14 +21,14 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
   "typing-extensions>4 ; python_version < '3.11'",
 ]
@@ -49,7 +49,7 @@ all = ["cloudpathlib[azure]", "cloudpathlib[gs]", "cloudpathlib[s3]"]
 
 [tool.black]
 line-length = 99
-target-version = ['py39', 'py310', 'py311', 'py312', 'py313', 'py314']
+target-version = ['py310', 'py311', 'py312', 'py313', 'py314', 'py315']
 include = '\.pyi?$|\.ipynb$'
 extend-exclude = '''
 /(
@@ -68,7 +68,10 @@ ignore_missing_imports = true
 minversion = "6.0"
 addopts = "--cov=cloudpathlib --cov-report=term --cov-report=html --cov-report=xml -n=auto --report-log reportlog.jsonl"
 testpaths = ["tests"]
+markers = ["no_seed_assets: test creates all of its own cloud data and needs no fixture assets"]
 
 [tool.coverage.run]
 source = ["cloudpathlib"]
+# measure Python subprocesses started by tests (import-fallback tests re-import in a child)
+patch = ["subprocess"]
 omit = ["cloudpathlib/legacy/glob.py"]

@@ -1,7 +1,9 @@
-import pytest
-
 from inspect import signature
+from pathlib import Path
+import shutil
 from urllib.parse import parse_qs, urlsplit
+
+import pytest
 
 from cloudpathlib import AzureBlobClient, AzureBlobPath, GSClient, GSPath, S3Client, S3Path
 from cloudpathlib.local import (
@@ -12,6 +14,7 @@ from cloudpathlib.local import (
     LocalS3Client,
     LocalS3Path,
 )
+from cloudpathlib.local import localclient as localclient_mod
 
 
 @pytest.mark.parametrize(
@@ -153,3 +156,69 @@ def test_as_url_presign(client_class, monkeypatch):
     assert parts.path.endswith("file.txt")
     assert query_params["expires"] == [str(expire_seconds)]
     assert query_params["signature"] == ["local"]
+
+
+def _local_download_client(tmp_path):
+    return LocalS3Client(
+        local_storage_dir=str(tmp_path / "storage"),
+        local_cache_dir=str(tmp_path / "cache"),
+    )
+
+
+def test_download_file_fails_immediately_if_source_missing(tmp_path, monkeypatch):
+    client = _local_download_client(tmp_path)
+    src = client.CloudPath("s3://drive/missing.txt")
+    dest = tmp_path / "dest" / "file.txt"
+    sleeps = []
+    monkeypatch.setattr(localclient_mod, "sleep", sleeps.append)
+
+    with pytest.raises(FileNotFoundError):
+        client._download_file(src, dest)
+
+    assert sleeps == []
+
+
+def test_download_file_retries_when_destination_parent_vanishes(tmp_path, monkeypatch):
+    client = _local_download_client(tmp_path)
+    src = client.CloudPath("s3://drive/file.txt")
+    src.write_text("hello")
+    dest = tmp_path / "dest" / "file.txt"
+    dest.parent.mkdir(parents=True)
+
+    real_copyfile = shutil.copyfile
+    calls = {"n": 0}
+
+    def flaky_copyfile(src_path, dst_path):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            Path(dst_path).parent.rmdir()
+            raise FileNotFoundError(dst_path)
+        return real_copyfile(src_path, dst_path)
+
+    monkeypatch.setattr(shutil, "copyfile", flaky_copyfile)
+    sleeps = []
+    monkeypatch.setattr(localclient_mod, "sleep", sleeps.append)
+
+    result = client._download_file(src, dest)
+
+    assert result.read_text() == "hello"
+    assert sleeps == [0.05]
+
+
+def test_download_file_gives_up_after_backoff(tmp_path, monkeypatch):
+    client = _local_download_client(tmp_path)
+    src = client.CloudPath("s3://drive/file.txt")
+    src.write_text("hello")
+    dest = tmp_path / "dest" / "file.txt"
+
+    def always_missing(src_path, dst_path):
+        raise FileNotFoundError(dst_path)
+
+    monkeypatch.setattr(shutil, "copyfile", always_missing)
+    sleeps = []
+    monkeypatch.setattr(localclient_mod, "sleep", sleeps.append)
+
+    with pytest.raises(FileNotFoundError):
+        client._download_file(src, dest)
+
+    assert sleeps == list(localclient_mod._DOWNLOAD_RETRY_DELAYS)

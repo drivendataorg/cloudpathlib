@@ -1,22 +1,27 @@
-from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 import os
 from pathlib import Path, PurePosixPath
 from shutil import rmtree
 import sys
-from time import sleep
 
 import pytest
 from cloudpathlib import CloudPath
 
+from cloudpathlib.cloudpath import _ensure_local_path_within_base
 from cloudpathlib.exceptions import (
+    CloudPathFileNotFoundError,
+    CloudPathLocalPathTraversalError,
     CloudPathNotExistsError,
     CloudPathIsADirectoryError,
     CloudPathNotImplementedError,
     DirectoryNotEmptyError,
     NoStatError,
 )
+from cloudpathlib.enums import FileCacheMode
+from cloudpathlib.local import LocalS3Client, LocalS3Path
 from cloudpathlib.http.httpclient import HttpClient, HttpsClient
 from cloudpathlib.http.httppath import HttpPath, HttpsPath
+from tests.utils import rewrite_until_newer
 
 
 def test_file_discovery(rig):
@@ -92,12 +97,22 @@ def glob_test_dirs(rig, tmp_path):
 
     def _make_glob_directory(root):
         (root / "dirB").mkdir()
-        (root / "dirB" / "fileB.txt").write_text("fileB")
         (root / "dirC").mkdir()
         (root / "dirC" / "dirD").mkdir()
-        (root / "dirC" / "dirD" / "fileD.txt").write_text("fileD")
-        (root / "dirC" / "fileC.txt").write_text("fileC")
-        (root / "fileA.txt").write_text("fileA")
+
+        files = [
+            (root / "dirB" / "fileB.txt", "fileB"),
+            (root / "dirC" / "dirD" / "fileD.txt", "fileD"),
+            (root / "dirC" / "fileC.txt", "fileC"),
+            (root / "fileA.txt", "fileA"),
+        ]
+        if rig.live_server and root is cloud_root:
+            with ThreadPoolExecutor(max_workers=len(files)) as executor:
+                for _ in executor.map(lambda f: f[0].write_text(f[1]), files):
+                    pass
+        else:
+            for path, content in files:
+                path.write_text(content)
 
     cloud_root = rig.create_cloud_path("glob-tests/")
     cloud_root.mkdir()
@@ -452,19 +467,21 @@ def test_glob_buckets(rig):
     assert len(first_result.parts) == len(set(first_result.parts))
 
 
+@pytest.mark.no_seed_assets
 def test_glob_many_open_files(rig):
     # test_glob_many_open_files
     #  Adapted from: https://github.com/python/cpython/blob/7ffe7ba30fc051014977c6f393c51e57e71a6648/Lib/test/test_pathlib.py#L1697-L1712
     depth = 30
+    n_iters = 10  # enough concurrently open iterators to catch the regression
     base = rig.create_cloud_path("deep")
     p = base / "/".join(["d"] * depth)
     (p / "file.txt").write_text("hello")  # create file so parent dirs exist
     pattern = "/".join(["*"] * depth)
-    iters = [base.glob(pattern) for j in range(100)]
+    iters = [base.glob(pattern) for j in range(n_iters)]
     for it in iters:
         print(it)
         assert next(it) == p
-    iters = [base.rglob("d") for j in range(100)]
+    iters = [base.rglob("d") for j in range(n_iters)]
     p = base
     for i in range(depth):
         p = p / "d"
@@ -544,22 +561,21 @@ def test_file_read_writes(rig, tmp_path):
     assert p.read_text() == text
     p2.write_text(text)
 
-    # sleep between writes to p to ensure different
-    # modified times
-    sleep(1)
-
     p.write_bytes(p2.read_bytes())
     assert p.read_text() == p2.read_text()
 
-    before_touch = datetime.now()
-    sleep(1)
+    # baseline from the cloud's own clock rather than wall clock, so the comparison below does not
+    # depend on the test machine and the backend agreeing on the time
+    before_touch = p.stat().st_mtime
 
     if rig.path_class not in [HttpPath, HttpsPath]:  # not supported to touch existing
-        p.touch()
-
-        if not getattr(rig, "is_custom_s3", False):
+        if getattr(rig, "is_custom_s3", False):
             # Our S3Path.touch implementation does not update mod time for MinIO
-            assert datetime.fromtimestamp(p.stat().st_mtime) > before_touch
+            p.touch()
+        else:
+            # backends that truncate mtimes to whole seconds may need more than one touch before
+            # the modified time actually advances
+            rewrite_until_newer(p, before_touch, action=p.touch)
 
     # no-op
     if not getattr(rig, "is_adls_gen2", False):
@@ -604,6 +620,47 @@ def test_file_read_writes(rig, tmp_path):
         (p / "not_exists_file").download_to(dl_file)
 
 
+@pytest.mark.parametrize("mode", ["a", "ab", "a+", "ab+"])
+def test_append_creates_missing_file_and_preserves_content(rig, tmp_path, mode):
+    p = rig.create_cloud_path("new_dir/append.txt")
+    assert not p.exists()
+    content = b"first" if "b" in mode else "first"
+
+    with p.open(mode) as f:
+        f.write(content)
+
+    assert p.download_to(tmp_path / "created.txt").read_bytes() == b"first"
+    p.clear_cache()
+
+    with p.open(mode) as f:
+        if "+" in mode:
+            f.seek(0)
+            assert f.read() == content
+        f.write(content)
+
+    assert p.download_to(tmp_path / "appended.txt").read_bytes() == b"firstfirst"
+
+
+@pytest.mark.parametrize("mode", ["a", "ab", "a+", "ab+"])
+def test_append_creates_empty_file_on_close(rig, tmp_path, mode):
+    p = rig.create_cloud_path("new_dir/empty.txt")
+    assert not p.exists()
+
+    with p.open(mode):
+        pass
+
+    assert p.exists()
+    assert p.download_to(tmp_path / "empty.txt").read_bytes() == b""
+
+
+@pytest.mark.parametrize("mode", ["r", "rb", "r+", "rb+"])
+def test_read_missing_file_still_raises(rig, mode):
+    p = rig.create_cloud_path("missing.txt")
+
+    with pytest.raises(CloudPathFileNotFoundError):
+        p.open(mode)
+
+
 def test_filenames(rig):
     # test that we can handle filenames with special characters
     p = rig.create_cloud_path("dir_0/new_file.txt")  # real extension
@@ -629,7 +686,7 @@ def test_dispatch_to_local_cache(rig):
     assert stat
 
 
-def test_close_file_idempotent(rig):
+def test_close_file_idempotent(rig, tmp_path):
     p = rig.create_cloud_path("dir_0/file0_1.txt")
 
     assert p.read_text() != "hello!"
@@ -637,24 +694,32 @@ def test_close_file_idempotent(rig):
     f = p.open("w")
     f.write("hello!")
     f.close()
-    first_modified = p.stat().st_mtime
-
     # remove cache so we can be sure it can't be re-uploaded
     p._local.unlink()
 
     # would raise trying to upload missing cache if we weren't idempotent
     f.close()
 
-    # re-open and ensure things work
-    sleep(1)
+    # re-open and check the uploaded content without requiring a later cloud timestamp
     f = p.open("w")
     f.write("hello again!")
     f.close()
+    assert p.download_to(tmp_path / "rewritten.txt").read_text() == "hello again!"
 
-    # remove cache so we are sure stat is coming from the server
-    p._local.unlink()
 
-    assert p.stat().st_mtime > first_modified
+def test_write_uploads_with_equal_cache_mtime(rig, tmp_path):
+    p = rig.create_cloud_path("dir_0/file0_1.txt")
+    original_mtime = p.stat().st_mtime
+
+    with p.open("w") as f:
+        f.write("written with the same cache mtime")
+        f.flush()
+        os.utime(p._local, times=(original_mtime, original_mtime))
+        assert p._local.stat().st_mtime == original_mtime
+
+    assert p.download_to(tmp_path / "equal-mtime.txt").read_text() == (
+        "written with the same cache mtime"
+    )
 
 
 def test_cloud_path_download_to(rig, tmp_path):
@@ -683,3 +748,265 @@ def test_drive_exists(rig):
     assert CloudPath(f"{rig.cloud_prefix}{p.drive}").exists()
 
     assert not CloudPath(f"{rig.cloud_prefix}totally-fake-not-existing-bucket-for-tests").exists()
+
+
+# =================================================================================
+# GHSA-r4f8-3xc4-c8vw: local path traversal via ".." segments in cloud object keys.
+# Cloud keys are opaque and some backends (e.g. GCS) accept ".." segments; cloudpathlib
+# must not let such a key map to a local path outside the cache dir / download destination.
+# =================================================================================
+
+# Two leading "..": the drive/bucket segment cancels one and the cache dir's own last segment the
+# other, so the mapping lands exactly in the cache dir's parent — outside the base but inside the
+# test tree, so a regression would actually write there and be caught (unlike "../" * 50, which
+# clamps at the filesystem root where writes are checked in a location the write never reaches).
+_MARKER = "GHSA_r4f8_ESCAPED.txt"
+_TRAVERSAL = "../../" + _MARKER
+
+
+def test_local_cache_path_traversal_blocked(rig):
+    """A cloud key with ``..`` segments that escapes the local cache dir must raise rather than
+    map outside it. Runs on every provider rig (and live under USE_LIVE_CLOUD)."""
+    # construction still succeeds (no normalization at construction) ...
+    p = rig.path_class(f"{rig.cloud_prefix}{rig.drive}/{_TRAVERSAL}")
+    cache_dir = Path(p.client._local_cache_dir)
+
+    # ... but mapping it to a local cache path is refused.
+    with pytest.raises(CloudPathLocalPathTraversalError):
+        _ = p._local
+
+    # and nothing was materialized at the location the escape would have reached.
+    assert not (cache_dir.parent / _MARKER).exists()
+
+
+def test_local_cache_path_traversal_no_false_positive(rig):
+    """A normal key, and a ``..`` that stays inside the cache, both map within the cache dir and
+    are not blocked."""
+    q = rig.create_cloud_path("dir_0/file0_0.txt")
+    cache_dir = Path(q.client._local_cache_dir).resolve()
+
+    assert Path(q._local).resolve().is_relative_to(cache_dir)  # normal key
+
+    contained = rig.path_class(
+        f"{rig.cloud_prefix}{rig.drive}/dir_0/../file0_0.txt", client=q.client
+    )
+    assert Path(contained._local).resolve().is_relative_to(cache_dir)  # contained ".."
+
+
+def test_download_to_directory_traversal_blocked(tmp_path, monkeypatch):
+    """download_to() on a directory must not write a listed ``..`` child outside the destination.
+    Backend interaction is mocked, so provider identity is irrelevant — run once, not per rig."""
+    client = LocalS3Client(local_cache_dir=str(tmp_path / "cache"))
+    src = LocalS3Path("s3://bkt/src", client=client)
+    # a child whose key contributes ".." segments relative to src, as a hostile backend could list
+    child = LocalS3Path(f"s3://bkt/src/{_TRAVERSAL}", client=client)
+
+    monkeypatch.setattr(src, "exists", lambda *a, **k: True)
+    monkeypatch.setattr(src, "is_file", lambda *a, **k: False)
+    monkeypatch.setattr(src, "iterdir", lambda *a, **k: iter([child]))
+
+    dest = tmp_path / "a" / "b" / "dest"
+    dest.mkdir(parents=True)
+    with pytest.raises(CloudPathLocalPathTraversalError):
+        src.download_to(dest)
+
+    assert list(tmp_path.rglob(_MARKER)) == []
+
+
+def test_download_to_file_name_traversal_blocked(tmp_path, monkeypatch):
+    """Single-file download_to(dir) joins ``destination / self.name``; a key ending in ``..`` must
+    raise rather than resolve to the destination's parent."""
+    client = LocalS3Client(local_cache_dir=str(tmp_path / "cache"))
+    src = LocalS3Path("s3://bkt/dir/..", client=client)
+    monkeypatch.setattr(src, "exists", lambda *a, **k: True)
+    monkeypatch.setattr(src, "is_file", lambda *a, **k: True)
+
+    dest = tmp_path / "dest"
+    dest.mkdir()
+    with pytest.raises(CloudPathLocalPathTraversalError):
+        src.download_to(dest)
+
+
+@pytest.mark.skipif(
+    sys.platform != "win32", reason="backslashes are path separators only on Windows"
+)
+def test_download_to_file_name_backslash_traversal_blocked_windows(tmp_path, monkeypatch):
+    r"""On Windows, backslashes in a cloud key act as path separators when joined onto a local
+    destination, so a key whose last ``/``-separated component contains ``..\`` escapes
+    ``destination / self.name``; the guard must catch it."""
+    client = LocalS3Client(local_cache_dir=str(tmp_path / "cache"))
+    src = LocalS3Path(r"s3://bkt/dir/..\..\..\GHSA_r4f8_ESCAPED.txt", client=client)
+    monkeypatch.setattr(src, "exists", lambda *a, **k: True)
+    monkeypatch.setattr(src, "is_file", lambda *a, **k: True)
+
+    dest = tmp_path / "dest"
+    dest.mkdir()
+    with pytest.raises(CloudPathLocalPathTraversalError):
+        src.download_to(dest)
+
+    assert not (tmp_path / "GHSA_r4f8_ESCAPED.txt").exists()
+
+
+def test_copytree_local_traversal_blocked(tmp_path, monkeypatch):
+    """copytree() to a local directory must not let a ``..`` surfaced as a listing entry escape the
+    destination. A delimiter-based listing (e.g. GCS) surfaces the intermediate ``..`` of a key like
+    ``dir/../ESCAPED.txt`` as a directory entry named ``..``, so the recursion's destination would
+    otherwise walk outside the base. copy/copy_into/move on a directory route through copytree, so
+    they are covered too."""
+    client = LocalS3Client(local_cache_dir=str(tmp_path / "cache"))
+    src = LocalS3Path("s3://bkt/dir", client=client)
+    mid = LocalS3Path("s3://bkt/dir/..", client=client)
+    leaf = LocalS3Path("s3://bkt/dir/../ESCAPED.txt", client=client)
+
+    monkeypatch.setattr(src, "is_dir", lambda *a, **k: True)
+    monkeypatch.setattr(src, "is_file", lambda *a, **k: False)
+    monkeypatch.setattr(src, "exists", lambda *a, **k: True)
+    monkeypatch.setattr(src, "iterdir", lambda *a, **k: iter([mid]))
+    monkeypatch.setattr(mid, "is_dir", lambda *a, **k: True)
+    monkeypatch.setattr(mid, "is_file", lambda *a, **k: False)
+    monkeypatch.setattr(mid, "exists", lambda *a, **k: True)
+    monkeypatch.setattr(mid, "iterdir", lambda *a, **k: iter([leaf]))
+    monkeypatch.setattr(leaf, "is_dir", lambda *a, **k: False)
+    monkeypatch.setattr(leaf, "is_file", lambda *a, **k: True)
+    monkeypatch.setattr(leaf, "exists", lambda *a, **k: True)
+
+    def fake_download(cloud_path, local_path):
+        local_path = Path(local_path)
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        local_path.write_text("attacker bytes")
+        return local_path
+
+    monkeypatch.setattr(client, "_download_file", fake_download)
+
+    dest = tmp_path / "a" / "b" / "dest"
+    with pytest.raises(CloudPathLocalPathTraversalError):
+        src.copytree(dest)
+
+    assert list(tmp_path.rglob("ESCAPED.txt")) == []
+
+
+def test_clear_cache_no_raise_on_unmappable_key(tmp_path):
+    """An un-mappable (``..``-escaping) key can never have been cached, so clear_cache() is a no-op
+    rather than raising — and __del__, which calls it under cloudpath_object cache mode, must not
+    raise on merely constructing and dropping such a path."""
+    import gc
+
+    client = LocalS3Client(
+        local_cache_dir=str(tmp_path / "cache"),
+        local_storage_dir=str(tmp_path / "storage"),
+        file_cache_mode=FileCacheMode.cloudpath_object,
+    )
+    p = LocalS3Path("s3://bkt/../../evil.txt", client=client)
+
+    assert p.clear_cache() is None  # no-op, does not raise
+
+    del p
+    gc.collect()  # exercises __del__ -> clear_cache; must not raise
+
+
+def test_mock_storage_side_traversal_blocked(tmp_path):
+    """The local mock's simulated cloud is the real filesystem, so its storage-side mapping must
+    also refuse escaping keys — otherwise the mock backend itself reads/writes/deletes outside
+    the simulated storage directory (via exists/stat/unlink/upload_from/download_to)."""
+    storage = tmp_path / "deep" / "storage"
+    storage.mkdir(parents=True)
+    victim = tmp_path / "deep" / "victim.txt"
+    victim.write_text("do not touch")
+    client = LocalS3Client(local_storage_dir=str(storage), local_cache_dir=str(tmp_path / "cache"))
+    p = LocalS3Path("s3://bkt/../../victim.txt", client=client)
+
+    src_file = tmp_path / "src.txt"
+    src_file.write_text("attacker bytes")
+
+    for op in (
+        lambda: p.exists(),
+        lambda: p.stat(),
+        lambda: p.unlink(),
+        lambda: p.upload_from(src_file),
+        lambda: p.download_to(tmp_path / "out"),
+    ):
+        with pytest.raises(CloudPathLocalPathTraversalError):
+            op()
+
+    assert victim.read_text() == "do not touch"
+
+
+def test_cache_traversal_blocked_without_object_mock(tmp_path):
+    """On the LocalS3 mock (offline): ops that materialize the cache — write, open("wb"), fspath,
+    and the ``_local`` mapping itself — are blocked for a ``..`` key, and nothing is written
+    outside the cache dir."""
+    cache = tmp_path / "a" / "b" / "c" / "cache"
+    cache.mkdir(parents=True)
+    client = LocalS3Client(local_cache_dir=str(cache))
+    p = LocalS3Path("s3://bkt/../../GHSA_r4f8_ESCAPED.txt", client=client)
+
+    for op in (
+        lambda: p._local,
+        lambda: p.write_text("pwned"),
+        lambda: p.write_bytes(b"pwned"),
+        lambda: p.open("wb"),
+        lambda: os.fspath(p),
+    ):
+        with pytest.raises(CloudPathLocalPathTraversalError):
+            op()
+
+    # bkt/../../<name> lands in the cache dir's parent; confirm nothing was written there
+    assert not (cache.parent / "GHSA_r4f8_ESCAPED.txt").exists()
+
+
+def test_cache_traversal_blocked_with_existing_object_mock(tmp_path):
+    """On the LocalS3 mock (offline): reading an EXISTING object whose key contains ``..`` is
+    blocked. The file is planted directly at the traversed backing location (out of band, as a
+    hostile tenant would), since cloudpathlib's writer and the mock backend are both guarded."""
+    storage = tmp_path / "s1" / "s2" / "s3" / "storage"
+    storage.mkdir(parents=True)
+    cache = tmp_path / "c1" / "c2" / "c3" / "cache"
+    cache.mkdir(parents=True)
+    client = LocalS3Client(local_storage_dir=str(storage), local_cache_dir=str(cache))
+    p = LocalS3Path("s3://bkt/../../GHSA_r4f8_READ.txt", client=client)
+
+    # where the (formerly unguarded) mapping storage/bkt/../../<name> would have pointed
+    backing = storage.parent / "GHSA_r4f8_READ.txt"
+    backing.write_bytes(b"secret-from-outside-the-cache")
+
+    for op in (
+        lambda: p.exists(),
+        lambda: p.read_bytes(),
+        lambda: p.read_text(),
+        lambda: p.open("rb"),
+    ):
+        with pytest.raises(CloudPathLocalPathTraversalError):
+            op()
+
+    assert not (cache.parent / "GHSA_r4f8_READ.txt").exists()
+
+
+def test_cache_traversal_contained_dotdot_allowed_mock(tmp_path):
+    """A ``..`` that stays inside the cache dir (e.g. ``a/../b``) is NOT blocked — the guard
+    targets only escapes, not every ``..``."""
+    client = LocalS3Client(local_cache_dir=str(tmp_path / "cache"))
+    p = LocalS3Path("s3://bkt/dir/../file.txt", client=client)
+    local = p._local  # must not raise
+    assert Path(local).resolve().is_relative_to((tmp_path / "cache").resolve())
+
+
+def test_ensure_local_path_within_base_unit(tmp_path):
+    """Unit test for the containment helper used by both sinks."""
+    base = tmp_path / "base"
+    base.mkdir()
+    sentinel = LocalS3Path("s3://bkt/key.txt", client=LocalS3Client(local_cache_dir=str(tmp_path)))
+
+    # contained -> returned unchanged
+    inside = base / "sub" / "file.txt"
+    assert _ensure_local_path_within_base(inside, base, sentinel) == inside
+    # contained internal ".." that stays inside -> allowed
+    contained = base / "sub" / ".." / "file.txt"
+    assert _ensure_local_path_within_base(contained, base, sentinel) == contained
+    # escaping -> raises
+    with pytest.raises(CloudPathLocalPathTraversalError):
+        _ensure_local_path_within_base(base / ".." / ".." / "evil.txt", base, sentinel)
+
+    # lexical mode (resolve=False, used for the cache mapping) behaves the same
+    assert _ensure_local_path_within_base(contained, base, sentinel, resolve=False) == contained
+    with pytest.raises(CloudPathLocalPathTraversalError):
+        _ensure_local_path_within_base(base / ".." / "evil.txt", base, sentinel, resolve=False)

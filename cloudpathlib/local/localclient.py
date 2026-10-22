@@ -7,12 +7,30 @@ import shutil
 import sys
 from tempfile import TemporaryDirectory
 from time import sleep
-from typing import Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, Union
+from typing import (
+    Any,
+    BinaryIO,
+    Callable,
+    ClassVar,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from ..client import Client
+from ..client import Client, _UploadPart
+from ..cloudpath import _ensure_local_path_within_base
 from ..enums import FileCacheMode
+from ..exceptions import CloudPathFileNotFoundError
 from .localpath import LocalPath
+
+# Destination-parent FileNotFoundError retries after the first copy attempt.
+# Worst case is 0.35s versus the previous fixed 2s wait.
+_DOWNLOAD_RETRY_DELAYS: Tuple[float, ...] = (0.05, 0.1, 0.2)
 
 
 class LocalClient(Client):
@@ -28,19 +46,22 @@ class LocalClient(Client):
 
     def __init__(
         self,
-        *args,
+        *args: Any,
         local_storage_dir: Optional[Union[str, os.PathLike]] = None,
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         content_type_method: Optional[Callable] = mimetypes.guess_type,
-        **kwargs,
-    ):
+        streaming_max_concurrency: Optional[int] = None,
+        **kwargs: Any,
+    ) -> None:
         self._local_storage_dir = local_storage_dir
+        self._local_upload_buffers: Dict[str, List[Tuple[int, bytes]]] = {}
 
         super().__init__(
             local_cache_dir=local_cache_dir,
             content_type_method=content_type_method,
             file_cache_mode=file_cache_mode,
+            streaming_max_concurrency=streaming_max_concurrency,
         )
 
     @classmethod
@@ -77,7 +98,14 @@ class LocalClient(Client):
         return Path(self._local_storage_dir)
 
     def _cloud_path_to_local(self, cloud_path: "LocalPath") -> Path:
-        return self.local_storage_dir / cloud_path._no_prefix
+        # unlike real backends, this mock's "cloud" is the local filesystem, so a key with ".."
+        # segments could otherwise read/write/delete outside the simulated storage directory
+        return _ensure_local_path_within_base(
+            self.local_storage_dir / cloud_path._no_prefix,
+            self.local_storage_dir,
+            cloud_path,
+            resolve=False,
+        )
 
     def _local_to_cloud_path(self, local_path: Union[str, os.PathLike]) -> "LocalPath":
         local_path = Path(local_path)
@@ -88,19 +116,25 @@ class LocalClient(Client):
 
     def _download_file(self, cloud_path: "LocalPath", local_path: Union[str, os.PathLike]) -> Path:
         local_path = Path(local_path)
-        local_path.parent.mkdir(exist_ok=True, parents=True)
+        source = self._cloud_path_to_local(cloud_path)
+        last_exc: Optional[FileNotFoundError] = None
 
-        try:
-            shutil.copyfile(self._cloud_path_to_local(cloud_path), local_path)
-        except FileNotFoundError:
-            # erroneous FileNotFoundError appears in tests sometimes; patiently insist on the parent directory existing
-            sleep(1.0)
+        for delay in (0.0,) + _DOWNLOAD_RETRY_DELAYS:
+            if delay:
+                sleep(delay)
             local_path.parent.mkdir(exist_ok=True, parents=True)
-            sleep(1.0)
+            try:
+                shutil.copyfile(source, local_path)
+                return local_path
+            except FileNotFoundError as exc:
+                # A missing source is a real error; only a vanished destination
+                # parent (a test-only filesystem race) is worth retrying.
+                if not source.exists():
+                    raise
+                last_exc = exc
 
-            shutil.copyfile(self._cloud_path_to_local(cloud_path), local_path)
-
-        return local_path
+        assert last_exc is not None
+        raise last_exc
 
     def _exists(self, cloud_path: "LocalPath") -> bool:
         return self._cloud_path_to_local(cloud_path).exists()
@@ -215,11 +249,62 @@ class LocalClient(Client):
         query["signature"] = "local"
         return urlunsplit(parts._replace(query=urlencode(query)))
 
+    def _range_download(
+        self, cloud_path: LocalPath, start: int, end: Optional[int] = None
+    ) -> bytes:
+        """Download a byte range from local storage."""
+        local_path = self._cloud_path_to_local(cloud_path)
+        if not local_path.exists():
+            raise CloudPathFileNotFoundError(f"File not found: {cloud_path}")
+
+        with open(local_path, "rb") as f:
+            f.seek(start)
+            return f.read(-1 if end is None else end - start + 1)
+
+    def _initiate_multipart_upload(self, cloud_path: LocalPath) -> str:
+        """Return a unique upload ID so concurrent uploads don't share a buffer."""
+        import uuid
+
+        return str(uuid.uuid4())
+
+    def _upload_part(
+        self, cloud_path: LocalPath, upload_id: str, part_number: int, data: bytes
+    ) -> _UploadPart:
+        """Buffer a part by upload ID."""
+        if upload_id not in self._local_upload_buffers:
+            self._local_upload_buffers[upload_id] = []
+        self._local_upload_buffers[upload_id].append((part_number, data))
+        return {"part_number": part_number}
+
+    def _complete_multipart_upload(
+        self, cloud_path: LocalPath, upload_id: str, parts: Sequence[_UploadPart]
+    ) -> None:
+        if upload_id not in self._local_upload_buffers:
+            return
+
+        buffer = self._local_upload_buffers.pop(upload_id, [])
+        buffer.sort(key=lambda x: x[0])
+        complete_data = b"".join([data for _, data in buffer])
+
+        local_path = self._cloud_path_to_local(cloud_path)
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        local_path.write_bytes(complete_data)
+
+    def _abort_multipart_upload(self, cloud_path: LocalPath, upload_id: str) -> None:
+        self._local_upload_buffers.pop(upload_id, None)
+
+    def _put_object(self, cloud_path: LocalPath, data: BinaryIO) -> None:
+        """Write a whole local file from a readable stream."""
+        local_path = self._cloud_path_to_local(cloud_path)
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        with local_path.open("wb") as f:
+            shutil.copyfileobj(data, f)
+
 
 _temp_dirs_to_clean: List[TemporaryDirectory] = []
 
 
 @atexit.register
-def clean_temp_dirs():
+def clean_temp_dirs() -> None:
     for temp_dir in _temp_dirs_to_clean:
         temp_dir.cleanup()

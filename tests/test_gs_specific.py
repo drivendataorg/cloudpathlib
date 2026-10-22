@@ -6,6 +6,7 @@ import pytest
 
 from cloudpathlib import GSPath
 from cloudpathlib.local import LocalGSPath
+from tests.utils import run_isolated
 
 
 @pytest.mark.parametrize("path_class", [GSPath, LocalGSPath])
@@ -109,3 +110,64 @@ def test_timeout_and_retry(gs_rig):
         p.write_text("hello world")
 
         assert custom_retry.mocked_retries == 1
+
+
+# ---- import-time fallbacks for optional / missing GCS modules ----------------------------
+#
+# These run in a subprocess: reloading gsclient in-process would re-register a new GSClient
+# class with the implementation registry and desynchronise every other test.
+
+
+def test_import_without_google_cloud_storage():
+    """With the GCS SDK missing, the module imports, marks the dependency as unavailable, and
+    leaves the optional transfer manager unset."""
+    out = run_isolated(
+        ["google.cloud.storage.client"],
+        "import cloudpathlib.gs.gsclient as gsclient\n"
+        'print(gsclient.implementation_registry["gs"].dependencies_loaded, '
+        "gsclient.transfer_manager is None)",
+    )
+    assert out == "False True"
+
+
+def test_import_xml_multipart_from_resumable_media_fallback():
+    """Older google-cloud-storage versions ship the XML multipart classes in
+    google-resumable-media instead of the storage package."""
+    out = run_isolated(
+        ["google.cloud.storage._media.requests"],
+        "import cloudpathlib.gs.gsclient as gsclient\n"
+        "import google.resumable_media.requests as fallback\n"
+        "print(gsclient.XMLMPUContainer is fallback.XMLMPUContainer)",
+    )
+    assert out == "True"
+
+
+def test_streaming_write_requires_xml_multipart_support():
+    """Without any XML multipart implementation, reads still work but a streaming write fails
+    with an actionable error."""
+    out = run_isolated(
+        ["google.cloud.storage._media.requests", "google.resumable_media.requests"],
+        "import cloudpathlib.gs.gsclient as gsclient\n"
+        "from cloudpathlib.exceptions import CloudPathNotImplementedError\n"
+        "print(gsclient.XMLMPUContainer is None, gsclient.XMLMPUPart is None)\n"
+        "client = gsclient.GSClient.__new__(gsclient.GSClient)  # no credentials needed\n"
+        "try:\n"
+        "    gsclient.GSClient._initiate_multipart_upload(client, None)\n"
+        "except CloudPathNotImplementedError as e:\n"
+        "    print(e)",
+    )
+    assert out.splitlines()[0] == "True True"
+    assert "google-cloud-storage 2.10 or newer" in out
+
+
+def test_bytes_multipart_part_cannot_be_uploaded_twice():
+    from cloudpathlib.gs.gsclient import _bytes_mpu_part_class
+
+    part = _bytes_mpu_part_class()("https://storage.googleapis.com/b/o", "upload-1", b"abc", 1)
+    method, url, body, _headers = part._prepare_upload_request()
+    assert (method, body) == ("PUT", b"abc")
+    assert url.endswith("?partNumber=1&uploadId=upload-1")
+
+    part._finished = True
+    with pytest.raises(ValueError, match="already been uploaded"):
+        part._prepare_upload_request()

@@ -1,6 +1,4 @@
-import gc
 import os
-from time import sleep
 from pathlib import Path
 
 from google.api_core.exceptions import TooManyRequests
@@ -19,7 +17,11 @@ from cloudpathlib.exceptions import (
     OverwriteNewerLocalError,
 )
 from tests.conftest import CloudProviderTestRig
-from tests.utils import _sync_filesystem
+from tests.utils import (
+    _sync_filesystem,
+    assert_collected_and_cleaned,
+    weakrefs_to,
+)
 
 
 def test_defaults_work_as_expected(rig: CloudProviderTestRig):
@@ -41,17 +43,18 @@ def test_defaults_work_as_expected(rig: CloudProviderTestRig):
 
     cache_path = cp._local
     client_cache_dir = cp.client._local_cache_dir
+
+    refs = weakrefs_to(cp, client)
     del cp
 
-    # both exist
+    # both exist; in tmp_dir mode cleanup happens when the client goes away, not the path
     assert cache_path.exists()
     assert client_cache_dir.exists()
 
     del client
 
     # cleaned up because client out of scope
-    assert not cache_path.exists()
-    assert not client_cache_dir.exists()
+    assert_collected_and_cleaned(refs, gone=[cache_path, client_cache_dir])
 
 
 def test_close_file_mode(rig: CloudProviderTestRig):
@@ -90,8 +93,6 @@ def test_close_file_mode(rig: CloudProviderTestRig):
         assert not cp._local.exists()
         assert cp.client._local_cache_dir.exists()
 
-        sleep(0.1)  # writing twice in a row too quickly can trigger `OverwriteNewerCloudError`
-
 
 def test_cloudpath_object_mode(rig: CloudProviderTestRig):
     # use client that we can delete rather than default
@@ -113,15 +114,19 @@ def test_cloudpath_object_mode(rig: CloudProviderTestRig):
 
     cache_path = cp._local
     client_cache_dir = cp.client._local_cache_dir
+
+    cp_refs = weakrefs_to(cp)
     del cp
 
-    assert not cache_path.exists()
+    # cloudpath_object mode clears the cached file when the path object is collected
+    assert_collected_and_cleaned(cp_refs, gone=[cache_path])
     assert client_cache_dir.exists()
 
+    client_refs = weakrefs_to(client)
     del client
 
+    assert_collected_and_cleaned(client_refs, gone=[client_cache_dir])
     assert not cache_path.exists()
-    assert not client_cache_dir.exists()
 
 
 def test_tmp_dir_mode(rig: CloudProviderTestRig):
@@ -143,6 +148,8 @@ def test_tmp_dir_mode(rig: CloudProviderTestRig):
 
     cache_path = cp._local
     client_cache_dir = cp.client._local_cache_dir
+
+    refs = weakrefs_to(cp, client)
     del cp
 
     # both exist
@@ -152,8 +159,7 @@ def test_tmp_dir_mode(rig: CloudProviderTestRig):
     del client
 
     # cleaned up because client out of scope
-    assert not cache_path.exists()
-    assert not client_cache_dir.exists()
+    assert_collected_and_cleaned(refs, gone=[cache_path, client_cache_dir])
 
 
 def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
@@ -177,19 +183,21 @@ def test_persistent_mode(rig: CloudProviderTestRig, tmpdir):
 
     cache_path = cp._local
     client_cache_dir = cp.client._local_cache_dir
+
+    refs = weakrefs_to(cp, client)
     del cp
-
-    # both exist
-    assert cache_path.exists()
-    assert client_cache_dir.exists()
-
     del client
 
-    # both exist
+    # nothing is cleaned up in persistent mode, even once both objects are collected
+    assert_collected_and_cleaned(refs)
     assert cache_path.exists()
     assert client_cache_dir.exists()
 
 
+# downloads into the cache dir under tmpdir occasionally fail with a FileNotFoundError
+# against live backends (see the `wait_for_mkdir` fixture and #382); retry like the other
+# live-flaky tests in this module
+@pytest.mark.flaky(reruns=3, reruns_delay=1, condition=os.getenv("USE_LIVE_CLOUD") == "1")
 def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
     """Tests that local cache dir is used when specified and works'
     with the different cache modes.
@@ -239,9 +247,10 @@ def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
     assert cp._local.exists()
 
     cache_path = cp._local
+    cp_refs = weakrefs_to(cp)
     del cp
 
-    assert not cache_path.exists()
+    assert_collected_and_cleaned(cp_refs, gone=[cache_path])
 
     # setting tmp_dir still works
     client = rig.client_class(
@@ -261,6 +270,8 @@ def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
 
     cache_path = cp._local
     client_cache_dir = cp.client._local_cache_dir
+
+    refs = weakrefs_to(cp, client)
     del cp
 
     # both exist
@@ -270,8 +281,7 @@ def test_loc_dir(rig: CloudProviderTestRig, tmpdir, wait_for_mkdir):
     del client
 
     # cleaned up because client out of scope
-    assert not cache_path.exists()
-    assert not client_cache_dir.exists()
+    assert_collected_and_cleaned(refs, gone=[cache_path, client_cache_dir])
 
 
 def test_string_instantiation(rig: CloudProviderTestRig, tmpdir):
@@ -384,9 +394,8 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
         with pytest.raises(OverwriteNewerCloudError):
             # copy short-circuits upload if same client, so we test separately
 
-            # raises if destination is newer
+            # equal timestamps also raise for cloud-to-cloud copy
             new_also_cloud.write_text("newest")
-            sleep(0.01)
             p.copy(new_also_cloud)
 
         for val in ["1", "True", "TRUE"]:
@@ -419,8 +428,6 @@ def test_environment_variables_force_overwrite_to(rig: CloudProviderTestRig, tmp
             _wait_for_cloud_newer()
 
             new_also_cloud = rig.create_cloud_path("dir_0/another_cloud_file.txt")
-
-            sleep(0.1)  # at least a little different
 
             @retry(
                 retry=retry_if_exception_type(
@@ -493,23 +500,12 @@ def test_manual_cache_clearing(rig: CloudProviderTestRig):
     # also removes containing folder on client cleanted up
     local_cache_path = cp._local
     client_cache_folder = client._local_cache_dir
+
+    refs = weakrefs_to(cp, client)
     del cp
     del client
 
-    # in CI there can be a lag before the cleanup actually happens
-    @retry(
-        retry=retry_if_exception_type(AssertionError),
-        wait=wait_random_exponential(multiplier=0.5, max=5),
-        stop=stop_after_attempt(10),
-        reraise=True,
-    )
-    def _resilient_assert():
-        gc.collect()  # force gc before asserting
-
-        assert not local_cache_path.exists()
-        assert not client_cache_folder.exists()
-
-    _resilient_assert()
+    assert_collected_and_cleaned(refs, gone=[local_cache_path, client_cache_folder])
 
 
 def test_reuse_cache_after_manual_cache_clear(rig: CloudProviderTestRig):
@@ -540,3 +536,47 @@ def test_reuse_cache_after_manual_cache_clear(rig: CloudProviderTestRig):
         _ = f.read()
 
     assert cp._local.exists()
+
+
+def test_write_mtime_tie_does_not_raise(rig: CloudProviderTestRig):
+    """A save that leaves the cache file's mtime exactly equal to the cloud version's
+    (coarse-resolution filesystems, no-op writes) must bump the mtime and upload rather
+    than raise OverwriteNewerCloudError."""
+    client = rig.client_class(**rig.required_client_kwargs)
+    cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
+
+    cp.write_text("v1")
+    _sync_filesystem()
+
+    # re-sync the cache from the cloud so the cache file's mtime equals the cloud mtime
+    cp.clear_cache()
+    cp.read_text()
+    cloud_mtime = cp.stat().st_mtime
+
+    with cp.open("w") as f:
+        f.write("v2")
+        f.flush()
+        # simulate a write that leaves the mtime unchanged (e.g. same-second write on a
+        # coarse-resolution filesystem)
+        os.utime(cp._local, times=(cloud_mtime, cloud_mtime))
+
+    assert cp.read_text() == "v2"
+
+
+def test_streaming_append_fallback_cache_cleaned_up(rig: CloudProviderTestRig):
+    """Append/update modes fall back to the cache in streaming mode; like `close_file`,
+    the cache file is removed as soon as the handle is closed and uploaded."""
+    client = rig.client_class(
+        file_cache_mode=FileCacheMode.streaming, **rig.required_client_kwargs
+    )
+    cp = rig.create_cloud_path("dir_0/file0_0.txt", client=client)
+    original = cp.read_text()
+
+    with pytest.warns(UserWarning, match="downloads the whole object"):
+        f = cp.open("a")
+    with f:
+        f.write("appended")
+        assert cp._local.exists()  # the fallback works on a real cache file
+
+    assert not cp._local.exists()
+    assert cp.read_text() == original + "appended"
