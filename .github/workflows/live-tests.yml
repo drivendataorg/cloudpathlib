@@ -100,14 +100,6 @@ jobs:
           CUSTOM_S3_SECRET_KEY: ${{ matrix.rig == 'custom_s3' && secrets.CUSTOM_S3_SECRET_KEY || '' }}
           CUSTOM_S3_ENDPOINT: ${{ matrix.rig == 'custom_s3' && secrets.CUSTOM_S3_ENDPOINT || '' }}
 
-      - name: Upload coverage to codecov
-        if: env.IS_FORK != 'true'
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
-          fail_ci_if_error: ${{ github.event_name != 'schedule' }}
-
       - name: Upload test report log
         if: always()
         uses: actions/upload-artifact@v4
