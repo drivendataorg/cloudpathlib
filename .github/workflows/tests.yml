@@ -72,14 +72,6 @@ jobs:
           uv pip install cloudpathlib@$(find dist -name 'cloudpathlib*.tar.gz') --no-deps --force-reinstall
           python -c "import cloudpathlib"
 
-      - name: Upload coverage to codecov
-        if: matrix.os == 'ubuntu-latest'
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
-          fail_ci_if_error: true
-
   extras-test:
     name: Test independent installs of clients
     needs: tests
