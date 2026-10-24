@@ -8,7 +8,13 @@ from tests.mock_clients.mock_azureblob import _JsonCache
 
 
 class MockedDataLakeServiceClient:
-    def __init__(self, test_dir, adls):
+    def __init__(self, test_dir=None, adls=None, account_url=None, credential=None):
+        if account_url is not None:
+            # account_url-based construction: store url and credential for verification
+            self._account_url = account_url
+            self._credential = credential
+            return
+
         # root is parent of the test specific directory
         self.root = test_dir.parent
         self.test_dir = test_dir
