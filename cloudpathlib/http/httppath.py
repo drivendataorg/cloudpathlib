@@ -130,8 +130,8 @@ class HttpPath(CloudPath):
                 None,  # gid,
                 meta.get("size", 0),  # size,
                 None,  # atime,
-                meta.get(
-                    "last_modified", datetime.datetime.fromtimestamp(0)
+                (
+                    meta.get("last_modified") or datetime.datetime.fromtimestamp(0)
                 ).timestamp(),  # mtime,
                 None,  # ctime,
             )
