@@ -37,6 +37,7 @@ class S3Client(Client):
         botocore_session: Optional["botocore.session.Session"] = None,
         profile_name: Optional[str] = None,
         boto3_session: Optional["Session"] = None,
+        boto3_client: Optional[Any] = None,
         file_cache_mode: Optional[Union[str, FileCacheMode]] = None,
         local_cache_dir: Optional[Union[str, os.PathLike]] = None,
         endpoint_url: Optional[str] = None,
@@ -68,6 +69,12 @@ class S3Client(Client):
                 Session.
             profile_name (Optional[str]): Profile name of a profile in a shared credentials file.
             boto3_session (Optional[Session]): An already instantiated boto3 Session.
+            boto3_client (Optional[botocore.client.BaseClient]): An already instantiated boto3 S3
+                client, for example one created with `boto3.client("s3")` or wrapped by another
+                framework. It is used for all S3 requests, so the other connection options
+                (credentials, `profile_name`, `no_sign_request`, `endpoint_url` and
+                `addressing_style`) are not applied to it. If you have a boto3 resource instead of
+                a client, pass `resource.meta.client`.
             file_cache_mode (Optional[Union[str, FileCacheMode]]): How often to clear the file cache; see
                 [the caching docs](https://cloudpathlib.drivendata.org/stable/caching/) for more information
                 about the options in cloudpathlib.eums.FileCacheMode.
@@ -97,6 +104,9 @@ class S3Client(Client):
         self._cloud_meta.validate_completeness()
 
         endpoint_url = endpoint_url or os.getenv("AWS_ENDPOINT_URL")
+        if boto3_client is not None:
+            # use the endpoint of the given client for the resource and for public URLs
+            endpoint_url = boto3_client.meta.endpoint_url
         if boto3_session is not None:
             self.sess = boto3_session
         else:
@@ -114,7 +124,14 @@ class S3Client(Client):
         )
 
         self.s3 = self.sess.resource("s3", endpoint_url=endpoint_url, config=self._boto3_config)
-        self.client = self.sess.client("s3", endpoint_url=endpoint_url, config=self._boto3_config)
+        if boto3_client is not None:
+            # the resource sends its requests through `meta.client`, so make it use the same client
+            self.s3.meta.client = boto3_client
+            self.client = boto3_client
+        else:
+            self.client = self.sess.client(
+                "s3", endpoint_url=endpoint_url, config=self._boto3_config
+            )
 
         self.boto3_transfer_config = boto3_transfer_config
 

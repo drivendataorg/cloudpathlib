@@ -1,4 +1,5 @@
 from concurrent.futures import ProcessPoolExecutor
+import datetime
 from itertools import islice
 from multiprocessing import Manager
 import os
@@ -9,8 +10,10 @@ from unittest.mock import patch
 from urllib.parse import urlparse, parse_qs
 import pytest
 
+import boto3
 from boto3.s3.transfer import TransferConfig
 import botocore
+from botocore.stub import Stubber
 from cloudpathlib import S3Client, S3Path
 from cloudpathlib.local import LocalS3Path
 import psutil
@@ -601,3 +604,65 @@ def test_mrap_local_path_windows_encoding(monkeypatch, s3_rig):
     local_no_drive = str(p._local)[len(p._local.drive) :]
     assert ":" not in local_no_drive, f"Colon found in local path on simulated Windows: {p._local}"
     assert "%3A" in local_no_drive
+
+
+def _make_boto3_client(**kwargs):
+    return boto3.client(
+        "s3",
+        region_name="us-west-2",
+        aws_access_key_id="key",
+        aws_secret_access_key="secret",
+        **kwargs,
+    )
+
+
+def test_boto3_client():
+    """An existing boto3 client is used as is for the client and for the resource."""
+    boto3_client = _make_boto3_client(endpoint_url="http://localhost:4566")
+
+    s3_client = S3Client(boto3_client=boto3_client)
+
+    assert s3_client.client is boto3_client
+    assert s3_client.s3.meta.client is boto3_client
+    assert s3_client.s3.Object("bucket", "key").meta.client is boto3_client
+    assert s3_client._endpoint_url == "http://localhost:4566"
+
+
+def test_boto3_client_from_resource():
+    """The `resource.meta.client` of a boto3 resource can be passed as the client."""
+    resource = boto3.resource("s3", region_name="us-west-2")
+
+    s3_client = S3Client(boto3_client=resource.meta.client)
+
+    assert s3_client.client is resource.meta.client
+
+
+def test_boto3_client_sends_requests():
+    """Requests of the path go through the client that was passed in."""
+    boto3_client = _make_boto3_client()
+    s3_client = S3Client(boto3_client=boto3_client)
+
+    with Stubber(boto3_client) as stubber:
+        stubber.add_response(
+            "head_object",
+            {
+                "ContentLength": 5,
+                "LastModified": datetime.datetime(2026, 1, 1),
+                "ETag": '"abc"',
+                "Metadata": {},
+            },
+            {"Bucket": "bucket", "Key": "file.txt"},
+        )
+
+        path = S3Path("s3://bucket/file.txt", client=s3_client)
+        assert path.stat().st_size == 5
+        stubber.assert_no_pending_responses()
+
+
+def test_boto3_client_public_url():
+    """The public URL uses the endpoint of the client that was passed in."""
+    boto3_client = _make_boto3_client(endpoint_url="http://localhost:4566")
+
+    path = S3Path("s3://arxiv/pdf", client=S3Client(boto3_client=boto3_client))
+
+    assert path.as_url() == "http://localhost:4566/arxiv/pdf"
