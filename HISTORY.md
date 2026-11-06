@@ -7,6 +7,7 @@
 - Changed append mode (`a`, `ab`, `a+`, and `ab+`) to create missing cloud files, matching Python file behavior. Appending to existing files still preserves their content. (Issue [#585](https://github.com/drivendataorg/cloudpathlib/issues/585))
 - Changed test dependencies to permit newer `pytest-rerunfailures` releases while excluding version 16.0, which causes distributed-test serialization failures. (Issue [#528](https://github.com/drivendataorg/cloudpathlib/issues/528), PR [#606](https://github.com/drivendataorg/cloudpathlib/pull/606))
 
+- Fixed `HttpPath.stat()` and cached reads such as `HttpPath.read_text()` failing when a successful HTTP or HTTPS response omits `Last-Modified`; the modification time now falls back to zero. (Issue [#609](https://github.com/drivendataorg/cloudpathlib/issues/609), PR [#610](https://github.com/drivendataorg/cloudpathlib/pull/610))
 - Fixed mypy missing-import errors for `CloudPath` and `AnyPath` when the optional Pydantic integration is not installed. (Issue [#385](https://github.com/drivendataorg/cloudpathlib/issues/385), PR [#603](https://github.com/drivendataorg/cloudpathlib/pull/603))
 
 - Fixed direct S3 and GCS client construction without the optional cloud SDK to raise `MissingDependenciesError` with the appropriate install command instead of `NameError`. (Issue [#441](https://github.com/drivendataorg/cloudpathlib/issues/441), PR [#601](https://github.com/drivendataorg/cloudpathlib/pull/601))
