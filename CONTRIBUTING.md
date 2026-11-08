@@ -573,7 +573,7 @@ If you are submitting a PR to add this to the official `cloudpathlib` library, y
 
 ## Releasing
 
-Maintainers release new versions with the [`release` workflow](.github/workflows/release.yml).
+Maintainers release new versions with the [`release`](.github/workflows/release.yml) and [`docs-publish`](.github/workflows/docs-publish.yml) workflows.
 
 1. Open a PR that updates `version` in `pyproject.toml` and renames the `## UNRELEASED` section of `HISTORY.md` to the version and release date, e.g., `## v0.27.0 (YYYY-MM-DD)`. Merge it.
 2. Run the `release` workflow on `master` from the Actions tab, with the version tag (e.g., `v0.27.0`). Check "Dry run" to try it out first. With the GitHub CLI:
@@ -582,7 +582,13 @@ Maintainers release new versions with the [`release` workflow](.github/workflows
     gh workflow run release.yml --ref master -f version=v0.27.0 -f dry-run=true
     ```
 
-The workflow checks that the version tag matches `pyproject.toml` and that `HISTORY.md` has a section for it. It then builds the package, uploads it to Test PyPI and PyPI, creates the GitHub release and tag with that `HISTORY.md` section as the release notes, and deploys the docs as the new stable version. A dry run stops after uploading to Test PyPI and builds the docs without publishing them.
+    The workflow checks that the version tag matches `pyproject.toml` and that `HISTORY.md` has a section for it. It then builds the package, uploads it to Test PyPI and PyPI, and creates the GitHub release and tag with that `HISTORY.md` section as the release notes. A dry run stops after uploading to Test PyPI.
+
+3. Run the `docs-publish` workflow on `master` with "Deploy as" set to `version` and "Deploy as stable" checked, to publish the docs as the new stable version:
+
+    ```bash
+    gh workflow run docs-publish.yml --ref master -f deploy-as=version -f is-stable=true
+    ```
 
 ## Governance
 

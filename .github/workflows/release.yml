@@ -31,10 +31,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          cache-suffix: "release"
+
       - name: Check that versions match
         run: |
           echo "Input version tag: [${INPUTS_VERSION}]"
-          PACKAGE_VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          PACKAGE_VERSION=$(uvx vspect read .)
           echo "Package version: [$PACKAGE_VERSION]"
           [[ ${INPUTS_VERSION} == "v$PACKAGE_VERSION" ]] || exit 1
         env:
@@ -189,91 +193,3 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUTS_VERSION: ${{ inputs.version }}
 
-  stage-docs:
-    name: Stage docs on gh-pages
-    needs: create-github-release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write  # Push to the gh-pages branch
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up Python
-        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
-
-      - name: Build docs
-        run: |
-          make docs
-
-      - name: Set git user to github-actions[bot]
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-
-      - name: Fetch gh-pages branch
-        run: |
-          git fetch origin gh-pages --depth=1
-
-      - name: Deploy as stable
-        working-directory: docs
-        run: |
-          mike list -j | jq
-          # Rename old stable version
-          OLD_STABLE=$(mike list -j | jq -r '.[] | select(.aliases | index("stable")) | .title' | awk '{print $1;}')
-          echo "${OLD_STABLE}"
-          mike retitle stable "${OLD_STABLE}"
-          # Deploy new version as stable
-          mike deploy --update-aliases --alias-type=copy \
-            "${INPUTS_VERSION%.*}" \
-            stable \
-            --title="${INPUTS_VERSION} (stable)"
-        env:
-          INPUTS_VERSION: ${{ inputs.version }}
-
-      - name: Push gh-pages branch
-        if: ${{ !inputs.dry-run }}
-        run: |
-          git push "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
-        env:
-          TOKEN: ${{ github.token }}
-
-  deploy-docs:
-    name: Deploy docs to Netlify
-    needs: stage-docs
-    if: ${{ !inputs.dry-run }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-      statuses: write
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: gh-pages
-          persist-credentials: false
-
-      - name: Deploy docs to Netlify
-        uses: nwtgck/actions-netlify@d22a32a27c918fe470bbc562e984f80ec48c2668 # v4.0.0
-        with:
-          publish-dir: "./"
-          production-deploy: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from GitHub Actions"
-          enable-pull-request-comment: false
-          enable-commit-comment: false
-          overwrites-pull-request-comment: false
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        timeout-minutes: 1
