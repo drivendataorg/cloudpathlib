@@ -41,11 +41,13 @@ docs-serve           serve documentation to livereload while you work
 format               run black to format codebase
 install              install the package to the active Python's site-packages
 lint                 check style with black, flake8, and mypy
-release              package and upload a release
 reqs                 install development requirements
 test                 run tests with mocked cloud SDKs
 test-debug           rerun tests that failed in last run and stop with pdb at failures
-test-live-cloud      run tests on live cloud backends
+test-live-cloud      run tests on live cloud backends (set CLOUDPATHLIB_TEST_RIGS to pick rigs)
+live-rigs            print the rigs that live tests run against, as JSON (CI builds its matrix from this)
+test-live-cloud-rig  run live tests for one rig the way CI does, e.g. RIG=s3
+test-live-cloud-rigs run each live rig the way CI does, one after another
 perf                 run performance measurement suite for s3 and save results to perf-results.csv
 ```
 
@@ -568,6 +570,19 @@ If you are submitting a PR to add this to the official `cloudpathlib` library, y
  - Write a mock backend for local backend testing in `tests/mock_clients`
  - Add a rig to run tests against the backend in `tests/conftest.py`
  - Ensure documentation is updated
+
+## Releasing
+
+Maintainers release new versions with the [`release` workflow](.github/workflows/release.yml).
+
+1. Open a PR that updates `version` in `pyproject.toml` and renames the `## UNRELEASED` section of `HISTORY.md` to the version and release date, e.g., `## v0.27.0 (YYYY-MM-DD)`. Merge it.
+2. Run the `release` workflow on `master` from the Actions tab, with the version tag (e.g., `v0.27.0`). Check "Dry run" to try it out first. With the GitHub CLI:
+
+    ```bash
+    gh workflow run release.yml --ref master -f version=v0.27.0 -f dry-run=true
+    ```
+
+The workflow checks that the version tag matches `pyproject.toml` and that `HISTORY.md` has a section for it. It then builds the package, uploads it to Test PyPI and PyPI, creates the GitHub release and tag with that `HISTORY.md` section as the release notes, and deploys the docs as the new stable version. A dry run stops after uploading to Test PyPI and builds the docs without publishing them.
 
 ## Governance
 

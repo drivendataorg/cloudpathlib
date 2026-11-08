@@ -1,4 +1,4 @@
-.PHONY: clean clean-docs clean-pyc clean-test clean-build docs format install lint release release-test test help live-rigs test-live-cloud-rig test-live-cloud-rigs
+.PHONY: clean clean-docs clean-pyc clean-test clean-build docs format install lint test help live-rigs test-live-cloud-rig test-live-cloud-rigs
 .DEFAULT_GOAL := help
 
 PYTHON ?= python
@@ -69,12 +69,6 @@ lint: ## check style with black, flake8, and mypy
 	black --check cloudpathlib tests docs
 	flake8 cloudpathlib tests docs
 	mypy cloudpathlib
-
-release: dist ## package and upload a release
-	twine upload dist/*
-
-release-test: dist
-	twine upload --repository pypitest dist/*
 
 reqs:  ## install development requirements
 	pip install -U -r requirements-dev.txt
