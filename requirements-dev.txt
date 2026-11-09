@@ -37,4 +37,5 @@ tabulate
 tenacity
 tqdm
 typer
+vspect
 wheel

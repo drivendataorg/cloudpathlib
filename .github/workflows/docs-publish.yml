@@ -1,0 +1,146 @@
+name: docs-publish
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      deploy-as:
+        type: choice
+        description: Deploy as
+        options:
+          - latest
+          - version
+        default: latest
+      is-stable:
+        type: boolean
+        description: Deploy as stable
+        default: false
+      version-format:
+        type: string
+        description: Version format
+        default: "v{major_minor_version}"
+
+concurrency:
+  group: docs-publish
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build docs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Push to the gh-pages branch
+
+    steps:
+      - name: Fail if deploying as latest but marked as stable
+        if: github.event.inputs.deploy-as == 'latest' && github.event.inputs.is-stable == 'true'
+        run: |
+          echo "Error: Cannot deploy as 'latest' when 'is-stable' is true."
+          exit 1
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: |
+            pyproject.toml
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Build docs
+        run: |
+          make docs
+
+      - name: Set git user to github-actions[bot]
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+      - name: Fetch gh-pages branch
+        run: |
+          git fetch origin gh-pages --depth=1
+
+      - name: Deploy as latest
+        if: github.event.inputs.deploy-as == 'latest' || github.event_name == 'push'
+        working-directory: docs/
+        run: |
+          mike deploy ~latest --title=latest
+
+      - name: Get version tag
+        id: get-version-tag
+        if: github.event.inputs.deploy-as == 'version'
+        run: |
+          VERSION_TAG=$(vspect read . "${VERSION_FORMAT}")
+          echo "VERSION_TAG=${VERSION_TAG}" | tee -a "$GITHUB_OUTPUT"
+        env:
+          VERSION_FORMAT: ${{ inputs.version-format }}
+
+      - name: Deploy as version
+        if: github.event.inputs.deploy-as == 'version'
+        working-directory: docs/
+        run: |
+          TITLE=$(vspect read .. "v{version}")
+          mike deploy "$TAG" --title="${TITLE}"
+        env:
+          TAG: ${{ steps.get-version-tag.outputs.VERSION_TAG }}
+
+      - name: Assign stable alias
+        if: github.event.inputs.is-stable == 'true'
+        working-directory: docs/
+        run: |
+          # Remove "(stable)" from the title of the current stable version
+          OLD_STABLE=$(mike list -j | jq -r '.[] | select(.aliases | index("stable")) | .title' | awk '{print $1;}')
+          mike retitle stable "${OLD_STABLE}"
+          mike alias --update-aliases --alias-type=copy "$TAG" stable
+          TITLE=$(vspect read .. "v{version}")
+          mike retitle "$TAG" "${TITLE} (stable)"
+        env:
+          TAG: ${{ steps.get-version-tag.outputs.VERSION_TAG }}
+
+      - name: Push gh-pages branch
+        run: |
+          git push "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+        env:
+          TOKEN: ${{ github.token }}
+
+  deploy:
+    name: Deploy docs to Netlify
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+      statuses: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: gh-pages
+          persist-credentials: false
+
+      - name: Deploy docs to Netlify
+        uses: nwtgck/actions-netlify@d22a32a27c918fe470bbc562e984f80ec48c2668 # v4.0.0
+        with:
+          publish-dir: "./"
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions"
+          enable-pull-request-comment: false
+          enable-commit-comment: false
+          overwrites-pull-request-comment: false
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 1

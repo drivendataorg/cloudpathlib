@@ -5,7 +5,7 @@ Thanks for offering to help on `cloudpathlib`! We welcome contributions. This do
 First, a few guidelines:
 
  - Follow the [code of conduct](CODE_OF_CONDUCT.md).
- - PRs from outside contributors will not be accepted without an issue. We respect your time and want to make sure any work you do will be reviewed, so please wait for a maintainer to sign off on the issue before getting started. 
+ - PRs from outside contributors will not be accepted without an issue. We respect your time and want to make sure any work you do will be reviewed, so please wait for a maintainer to sign off on the issue before getting started.
  - If you are looking just to make a contribution, look at issues with [label "good first issue"](https://github.com/drivendataorg/cloudpathlib/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 
 
@@ -18,7 +18,7 @@ First, a few guidelines:
 4. Update the package [documentation](#documentation), if applicable.
 5. Go through the items in the final [PR checklist](#pr-checklist).
 6. [Submit a PR](#submitting-a-pr)
- 
+
 For some guidance on working with the code, see the sections on [code standards](#code-standards-and-tips) and [code architecture](#code-architecture).
 
 
@@ -41,11 +41,13 @@ docs-serve           serve documentation to livereload while you work
 format               run black to format codebase
 install              install the package to the active Python's site-packages
 lint                 check style with black, flake8, and mypy
-release              package and upload a release
 reqs                 install development requirements
 test                 run tests with mocked cloud SDKs
 test-debug           rerun tests that failed in last run and stop with pdb at failures
-test-live-cloud      run tests on live cloud backends
+test-live-cloud      run tests on live cloud backends (set CLOUDPATHLIB_TEST_RIGS to pick rigs)
+live-rigs            print the rigs that live tests run against, as JSON (CI builds its matrix from this)
+test-live-cloud-rig  run live tests for one rig the way CI does, e.g. RIG=s3
+test-live-cloud-rigs run each live rig the way CI does, one after another
 perf                 run performance measurement suite for s3 and save results to perf-results.csv
 ```
 
@@ -184,7 +186,7 @@ Each rig provides a `create_cloud_path(path, client=None)` method that construct
 
 **Local Storage Rigs:**
 - **`local_azure_rig`**: Tests Azure Blob Storage using local filesystem simulation
-- **`local_gs_rig`**: Tests Google Cloud Storage using local filesystem simulation  
+- **`local_gs_rig`**: Tests Google Cloud Storage using local filesystem simulation
 - **`local_s3_rig`**: Tests S3 using local filesystem simulation
 
 **HTTP/HTTPS Rigs:**
@@ -222,7 +224,7 @@ The live rigs share session-scoped fixtures (`azure_service_clients`, `gs_bucket
 Located in `tests/mock_clients/`, these provide local filesystem-based implementations of cloud SDKs:
 
 - **`mock_azureblob.py`**: Mock Azure Blob Storage client
-- **`mock_adls_gen2.py`**: Mock Azure Data Lake Storage Gen2 client  
+- **`mock_adls_gen2.py`**: Mock Azure Data Lake Storage Gen2 client
 - **`mock_gs.py`**: Mock Google Cloud Storage client
 - **`mock_s3.py`**: Mock AWS S3 client
 - **`utils.py`**: Utility functions for mock clients (e.g., `delete_empty_parents_up_to_root`)
@@ -268,10 +270,10 @@ When writing tests, use the rig's `create_cloud_path()` method to create cloud p
 def test_file_operations(rig):
     # Create a path to an existing file in the test assets
     cp = rig.create_cloud_path("dir_0/file0_0.txt")
-    
+
     # Create a path to a non-existent file
     cp2 = rig.create_cloud_path("path/that/does/not/exist.txt")
-    
+
     # Get a client instance
     client = rig.client_class()
 ```
@@ -453,7 +455,7 @@ Listing files with `client._list_dir`, `CloudPath.glob`, `CloudPath.rglob`, and 
 These can be run with `make perf`. This will generate a report like:
 
 ```
-                                  Performance suite results: (2023-10-08T13:18:04.774823)                                  
+                                  Performance suite results: (2023-10-08T13:18:04.774823)
 ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━┓
 ┃ Test Name      ┃ Config Name                ┃ Iterations ┃           Mean ┃              Std ┃            Max ┃ N Items ┃
 ┡━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━┩
@@ -506,7 +508,7 @@ The core [`cloudpath.py`](cloudpathlib/cloudpath.py) file provides most of the m
 
 Any code that needs to interact with the provider does so by calling methods on the `CloudPath.client`, which is an instance of the `Client` class so all the methods are provider-agnostic.
 
-Some methods are implemented on the `*Path` class for the specific provider. This is reserved for two cases: (1) provider-specific properties, like `S3Path.bucket` or `AzureBlobPath.container`, and (2) methods that are more efficiently implemented in a provider-specific way, like `S3Path.stat`. 
+Some methods are implemented on the `*Path` class for the specific provider. This is reserved for two cases: (1) provider-specific properties, like `S3Path.bucket` or `AzureBlobPath.container`, and (2) methods that are more efficiently implemented in a provider-specific way, like `S3Path.stat`.
 
 ### Adding a new provider
 
@@ -568,6 +570,30 @@ If you are submitting a PR to add this to the official `cloudpathlib` library, y
  - Write a mock backend for local backend testing in `tests/mock_clients`
  - Add a rig to run tests against the backend in `tests/conftest.py`
  - Ensure documentation is updated
+
+## Releasing
+
+Maintainers release new versions with the [`release`](.github/workflows/release.yml) and [`docs-publish`](.github/workflows/docs-publish.yml) workflows.
+
+1. Open a PR that updates `version` in `pyproject.toml` and renames the `## UNRELEASED` section of `HISTORY.md` to the version and release date, e.g., `## v0.27.0 (YYYY-MM-DD)`. Merge it.
+2. Go to the [`release` workflow](https://github.com/drivendataorg/cloudpathlib/actions/workflows/release.yml) in the Actions tab and click "Run workflow". Keep "Use workflow from" on `master`, enter the version tag (e.g., `v0.27.0`), check "Dry run", and click "Run workflow". Once the dry run succeeds, run it again with "Dry run" unchecked.
+
+    With the GitHub CLI instead:
+
+    ```bash
+    gh workflow run release.yml --ref master -f version=v0.27.0 -f dry-run=true
+    gh workflow run release.yml --ref master -f version=v0.27.0
+    ```
+
+    The workflow checks that the version tag matches `pyproject.toml` and that `HISTORY.md` has a section for it. It then builds the package, uploads it to Test PyPI and PyPI, and creates the GitHub release and tag with that `HISTORY.md` section as the release notes. A dry run stops after uploading to Test PyPI.
+
+3. Go to the [`docs-publish` workflow](https://github.com/drivendataorg/cloudpathlib/actions/workflows/docs-publish.yml) in the Actions tab and click "Run workflow". Keep "Use workflow from" on `master`, set "Deploy as" to `version`, check "Deploy as stable", and click "Run workflow". This publishes the docs as the new stable version.
+
+    With the GitHub CLI instead:
+
+    ```bash
+    gh workflow run docs-publish.yml --ref master -f deploy-as=version -f is-stable=true
+    ```
 
 ## Governance
 
