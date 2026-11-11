@@ -74,6 +74,9 @@ class S3Client(Client):
             local_cache_dir (Optional[Union[str, os.PathLike]]): Path to directory to use as cache
                 for downloaded files. If None, will use a temporary directory. Default can be set with
                 the `CLOUDPATHLIB_LOCAL_CACHE_DIR` environment variable.
+                Workers accessing different objects can share a persistent cache; concurrent access
+                to the same cached file requires separate caches or external coordination. See
+                [Concurrent cache access](https://cloudpathlib.drivendata.org/stable/concurrent_cache_access/).
             endpoint_url (Optional[str]): S3 server endpoint URL to use for the constructed boto3 S3 resource and client.
                 Parameterize it to access a customly deployed S3-compatible object store such as MinIO, Ceph or any other.
             addressing_style (Optional[str]): S3 addressing style to pass through to boto3's S3 config.

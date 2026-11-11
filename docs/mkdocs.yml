@@ -21,6 +21,7 @@ nav:
   - AnyPath: "anypath-polymorphism.md"
   - HTTP URLs: "http.md"
   - Caching: "caching.ipynb"
+  - Concurrent cache access: "concurrent_cache_access.md"
   - Streaming I/O: "streaming_io.md"
   - Compatibility: "patching_builtins.ipynb"
   - Other Client settings: "other_client_settings.md"

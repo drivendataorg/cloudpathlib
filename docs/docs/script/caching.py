@@ -4,6 +4,8 @@
 # # Caching
 # 
 # Interacting with files on a cloud provider can mean a lot of waiting on files downloading and uploading. `cloudpathlib` provides seamless on-demand caching of cloud content that can be persistent across processes and sessions to make sure you only download or upload when you need to.
+#
+# Workers accessing different cloud objects can share a persistent cache. Give each thread its own `CloudPath` and share one client; construct a client inside each process with the same cache directory and `file_cache_mode="persistent"`. Concurrent access to the same cached file requires separate caches or external coordination. See [Concurrent cache access](concurrent_cache_access.md) for examples and cache-key collision limits.
 
 # ## Are we synced?
 # 
