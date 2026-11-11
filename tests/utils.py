@@ -2,9 +2,29 @@ import gc
 import os
 from pathlib import Path
 import platform
+import subprocess
+import sys
+import textwrap
 import time
 from typing import Any, Callable, Iterable, List, Sequence, Tuple
 import weakref
+
+
+def run_isolated(blocked_modules, body, args=()):
+    """Run `body` in a fresh interpreter with `blocked_modules` made unimportable.
+
+    Return stdout so the calling test can assert on the subprocess's output.
+    """
+    code = "\n".join(
+        ["import sys"]
+        + [f"sys.modules[{name!r}] = None" for name in blocked_modules]
+        + [textwrap.dedent(body)]
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code, *args], capture_output=True, text=True, timeout=120
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    return result.stdout.strip()
 
 
 def getenv(name: str, default=None):

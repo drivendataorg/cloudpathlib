@@ -1,5 +1,6 @@
 import urllib
 
+from tests import http_fixtures
 from tests.conftest import CloudProviderTestRig
 
 
@@ -36,6 +37,22 @@ def test_https(https_rig: CloudProviderTestRig):
 
     # metadata
     assert existing_file.stat().st_mtime != 0
+
+
+def test_http_without_last_modified(http_like_rig: CloudProviderTestRig, monkeypatch, assets_dir):
+    send_header = http_fixtures.TestHTTPRequestHandler.send_header
+
+    def send_header_without_last_modified(self, keyword, value):
+        if keyword.lower() != "last-modified":
+            send_header(self, keyword, value)
+
+    monkeypatch.setattr(
+        http_fixtures.TestHTTPRequestHandler, "send_header", send_header_without_last_modified
+    )
+    p = http_like_rig.create_cloud_path("dir_0/file0_0.txt")
+
+    assert p.stat().st_mtime == 0
+    assert p.read_text() == (assets_dir / "dir_0/file0_0.txt").read_text()
 
 
 def test_http_verbs(http_like_rig: CloudProviderTestRig):

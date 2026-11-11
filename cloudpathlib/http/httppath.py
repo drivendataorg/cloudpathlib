@@ -1,4 +1,3 @@
-import datetime
 import http
 import os
 from pathlib import Path, PurePosixPath
@@ -130,9 +129,7 @@ class HttpPath(CloudPath):
                 None,  # gid,
                 meta.get("size", 0),  # size,
                 None,  # atime,
-                meta.get(
-                    "last_modified", datetime.datetime.fromtimestamp(0)
-                ).timestamp(),  # mtime,
+                meta["last_modified"].timestamp() if meta.get("last_modified") else 0,  # mtime,
                 None,  # ctime,
             )
         )

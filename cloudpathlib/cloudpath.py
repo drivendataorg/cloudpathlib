@@ -1315,13 +1315,43 @@ class CloudPath(metaclass=CloudPathMeta):
 
             return destination
 
-    def rmtree(self) -> None:
-        """Delete an entire directory tree."""
-        if self.is_file():
-            raise CloudPathNotADirectoryError(
-                f"Path {self} is a file; call unlink instead of rmtree."
-            )
-        self.client._remove(self)
+    def rmtree(
+        self,
+        ignore_errors: bool = False,
+        onerror: Optional[Callable] = None,
+        *,
+        onexc: Optional[Callable] = None,
+    ) -> None:
+        """Delete an entire directory tree.
+
+        By default, exceptions from checking the path or removing cloud objects are raised.
+        Set ``ignore_errors=True`` to suppress these exceptions. This takes precedence over
+        either callback. Control-flow exceptions such as ``KeyboardInterrupt`` are not suppressed.
+
+        ``onexc(function, path, exception)`` handles a failure with the exception object;
+        ``onerror(function, path, exc_info)`` receives the tuple returned by ``sys.exc_info()``.
+        If both callbacks are supplied, ``onexc`` takes precedence, matching ``shutil.rmtree``.
+        Exceptions raised by either callback propagate to the caller.
+
+        Callbacks receive the unbound ``rmtree`` method and this cloud path, so
+        ``function(path)`` retries the entire operation. Callbacks run once per failed operation,
+        rather than once per object in the tree; a backend may already have removed some objects.
+        """
+        try:
+            if self.is_file():
+                raise CloudPathNotADirectoryError(
+                    f"Path {self} is a file; call unlink instead of rmtree."
+                )
+            self.client._remove(self)
+        except Exception as error:
+            if ignore_errors:
+                return
+            if onexc is not None:
+                onexc(type(self).rmtree, self, error)
+            elif onerror is not None:
+                onerror(type(self).rmtree, self, sys.exc_info())
+            else:
+                raise
 
     def upload_from(
         self,
