@@ -156,6 +156,8 @@ class GSClient(Client):
                 Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable
                 or 4; 1 makes each stream fully sequential.
         """
+        self._cloud_meta.validate_completeness()
+
         # don't check `GOOGLE_APPLICATION_CREDENTIALS` since `google_default_auth` already does that
         # use explicit client
         if storage_client is not None:

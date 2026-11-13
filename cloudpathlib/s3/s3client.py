@@ -94,6 +94,8 @@ class S3Client(Client):
                 Defaults to the `CLOUDPATHLIB_STREAMING_MAX_CONCURRENCY` environment variable
                 or 4; 1 makes each stream fully sequential.
         """
+        self._cloud_meta.validate_completeness()
+
         endpoint_url = endpoint_url or os.getenv("AWS_ENDPOINT_URL")
         if boto3_session is not None:
             self.sess = boto3_session
