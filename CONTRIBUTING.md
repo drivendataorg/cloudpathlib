@@ -584,11 +584,11 @@ Maintainers release new versions with the [`release`](.github/workflows/release.
     gh workflow run release.yml --ref master -f version=v0.27.0
     ```
 
-    The workflow checks that the version tag matches `pyproject.toml`, that `HISTORY.md` has a section for it, and that its tag doesn't exist yet, since the workflow creates the tag itself. It then builds the package, uploads it to Test PyPI, creates a draft GitHub release with that `HISTORY.md` section as the release notes, uploads the package to PyPI, publishes the GitHub release and its tag, and publishes the docs as the new stable version. If the `pypi` environment requires reviewers, the upload to PyPI waits for approval.
+    The workflow checks that the version tag matches `pyproject.toml`, that `HISTORY.md` has a section for it, and that its tag doesn't exist yet, since the workflow creates the tag itself. It then builds the package, checks that no draft GitHub release exists for the version, creates one with that `HISTORY.md` section as the release notes, uploads the package to Test PyPI and then PyPI, publishes the GitHub release and its tag, and publishes the docs as the new stable version. If the `pypi` environment requires reviewers, the upload to PyPI waits for approval.
 
-If a job fails, fix the cause and click "Re-run failed jobs" on the workflow run. Jobs that succeeded aren't repeated, and the rerun uses the same built package. If only the docs job failed, the release itself is already complete.
+If a job fails, fix the cause and click "Re-run failed jobs" on the workflow run. Jobs that succeeded aren't repeated, and the rerun uses the same built package. If a run stops because a draft release from an earlier attempt already exists, delete the draft and rerun. If only the docs job failed, the release itself is already complete.
 
-To try a release first, check "Dry run" (or pass `-f dry-run=true`). A dry run runs the same checks as a real release and stops after uploading to Test PyPI. To test changes to the workflow between releases, dry-run it from a branch that bumps the version.
+To try a release first, check "Dry run" (or pass `-f dry-run=true`). A dry run runs the same checks as a real release, skips creating the draft release, and stops after uploading to Test PyPI. To test changes to the workflow between releases, dry-run it from a branch that bumps the version.
 
 To publish the docs without a release, run the [`docs-publish` workflow](https://github.com/drivendataorg/cloudpathlib/actions/workflows/docs-publish.yml). Pushes to `master` publish the docs as `latest` automatically.
 

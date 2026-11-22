@@ -119,29 +119,9 @@ jobs:
         with:
           attest-build-provenance-github: ${{ !inputs.dry-run }}
 
-  upload-to-test-pypi:
-    name: Upload package to Test PyPI
-    needs: build-and-inspect-package
-    runs-on: ubuntu-latest
-    environment: testpypi  # Required for PyPI trusted publishing
-    permissions:
-      id-token: write  # Required for PyPI trusted publishing
-
-    steps:
-      - name: Download built artifact to dist/
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: Packages
-          path: dist
-
-      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          skip-existing: true
-
   create-draft-release:
-    name: Create draft GitHub release
-    needs: upload-to-test-pypi
+    name: Create draft GitHub release${{ inputs.dry-run && ' (dry run)' || '' }}
+    needs: build-and-inspect-package
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -158,6 +138,20 @@ jobs:
         with:
           name: changelog-extracted
 
+      - name: Check no draft release exists
+        run: |
+          DRAFT_URLS=$(gh api --paginate "repos/${GH_REPO}/releases" \
+            --jq '.[] | select(.draft and .tag_name == env.INPUTS_VERSION) | .html_url')
+          if [[ -n "${DRAFT_URLS}" ]]; then
+            echo "::error::A draft release for ${INPUTS_VERSION} already exists. Delete it and rerun."
+            echo "${DRAFT_URLS}"
+            exit 1
+          fi
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          INPUTS_VERSION: ${{ inputs.version }}
+
       - name: Print diagnostics
         if: ${{ inputs.dry-run }}
         run: |
@@ -169,20 +163,6 @@ jobs:
           echo "---"
           cat __CHANGELOG-extracted.md
         env:
-          INPUTS_VERSION: ${{ inputs.version }}
-
-      - name: Delete leftover draft releases
-        if: ${{ !inputs.dry-run }}
-        run: |
-          gh api --paginate "repos/${GH_REPO}/releases" \
-            --jq '.[] | select(.draft and .tag_name == env.INPUTS_VERSION) | .id' |
-            while read -r RELEASE_ID; do
-              echo "Deleting draft release ${RELEASE_ID}"
-              gh api --method DELETE "repos/${GH_REPO}/releases/${RELEASE_ID}"
-            done
-        env:
-          GH_REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ github.token }}
           INPUTS_VERSION: ${{ inputs.version }}
 
       - name: Create draft release
@@ -200,9 +180,29 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           INPUTS_VERSION: ${{ inputs.version }}
 
+  upload-to-test-pypi:
+    name: Upload package to Test PyPI
+    needs: create-draft-release
+    runs-on: ubuntu-latest
+    environment: testpypi  # Required for PyPI trusted publishing
+    permissions:
+      id-token: write  # Required for PyPI trusted publishing
+
+    steps:
+      - name: Download built artifact to dist/
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: Packages
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
   upload-to-prod-pypi:
     name: Upload package to Prod PyPI
-    needs: create-draft-release
+    needs: upload-to-test-pypi
     if: ${{ !inputs.dry-run }}
     runs-on: ubuntu-latest
     environment: pypi  # Required for PyPI trusted publishing
