@@ -155,13 +155,21 @@ jobs:
       - name: Print diagnostics
         if: ${{ inputs.dry-run }}
         run: |
-          echo "${INPUTS_VERSION}"
-          echo "---"
-          ls ./dist
-          echo "---"
-          echo "${GITHUB_SHA}"
-          echo "---"
-          cat __CHANGELOG-extracted.md
+          {
+            echo "## Dry run of ${INPUTS_VERSION}"
+            echo
+            echo "Commit: \`${GITHUB_SHA}\`"
+            echo
+            echo "### Files"
+            echo
+            echo '```'
+            (cd dist && sha256sum -- *.whl *.tar.gz)
+            echo '```'
+            echo
+            echo "### Release notes"
+            echo
+            cat __CHANGELOG-extracted.md
+          } | tee -a "${GITHUB_STEP_SUMMARY}"
         env:
           INPUTS_VERSION: ${{ inputs.version }}
 
