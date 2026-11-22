@@ -588,7 +588,7 @@ Maintainers release new versions with the [`release`](.github/workflows/release.
 
 If a job fails, fix the cause and click "Re-run failed jobs" on the workflow run. Jobs that succeeded aren't repeated, and the rerun uses the same built package. If only the docs job failed, the release itself is already complete.
 
-To test changes to the workflow, check "Dry run" (or pass `-f dry-run=true`). A dry run stops after uploading to Test PyPI, and reports an existing tag as a warning, so it can run with the current version.
+To try a release first, check "Dry run" (or pass `-f dry-run=true`). A dry run runs the same checks as a real release and stops after uploading to Test PyPI. To test changes to the workflow between releases, dry-run it from a branch that bumps the version.
 
 To publish the docs without a release, run the [`docs-publish` workflow](https://github.com/drivendataorg/cloudpathlib/actions/workflows/docs-publish.yml). Pushes to `master` publish the docs as `latest` automatically.
 
