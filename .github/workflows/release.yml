@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag'
+        description: 'Version tag, e.g., v1.2.3'
         required: true
       dry-run:
         description: 'Dry run'
@@ -158,17 +158,17 @@ jobs:
         if: ${{ inputs.dry-run }}
         run: |
           {
-            echo "## Dry run of ${INPUTS_VERSION}"
+            echo "# Dry run of ${INPUTS_VERSION}"
             echo
             echo "Commit: \`${GITHUB_SHA}\`"
             echo
-            echo "### Files"
+            echo "## Files"
             echo
             echo '```'
             (cd dist && sha256sum -- *.whl *.tar.gz)
             echo '```'
             echo
-            echo "### Release notes"
+            echo "## Release notes"
             echo
             cat __CHANGELOG-extracted.md
           } | tee -a "${GITHUB_STEP_SUMMARY}"
