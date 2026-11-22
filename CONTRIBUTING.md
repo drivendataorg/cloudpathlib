@@ -573,27 +573,24 @@ If you are submitting a PR to add this to the official `cloudpathlib` library, y
 
 ## Releasing
 
-Maintainers release new versions with the [`release`](.github/workflows/release.yml) and [`docs-publish`](.github/workflows/docs-publish.yml) workflows.
+Maintainers release new versions with the [`release`](.github/workflows/release.yml) workflow.
 
 1. Open a PR that updates `version` in `pyproject.toml` and renames the `## UNRELEASED` section of `HISTORY.md` to the version and release date, e.g., `## v0.27.0 (YYYY-MM-DD)`. Merge it.
-2. Go to the [`release` workflow](https://github.com/drivendataorg/cloudpathlib/actions/workflows/release.yml) in the Actions tab and click "Run workflow". Keep "Use workflow from" on `master`, enter the version tag (e.g., `v0.27.0`), check "Dry run", and click "Run workflow". Once the dry run succeeds, run it again with "Dry run" unchecked.
+2. Go to the [`release` workflow](https://github.com/drivendataorg/cloudpathlib/actions/workflows/release.yml) in the Actions tab and click "Run workflow". Keep "Use workflow from" on `master`, enter the version tag (e.g., `v0.27.0`), and click "Run workflow".
 
     With the GitHub CLI instead:
 
     ```bash
-    gh workflow run release.yml --ref master -f version=v0.27.0 -f dry-run=true
     gh workflow run release.yml --ref master -f version=v0.27.0
     ```
 
-    The workflow checks that the version tag matches `pyproject.toml` and that `HISTORY.md` has a section for it. It then builds the package, uploads it to Test PyPI and PyPI, and creates the GitHub release and tag with that `HISTORY.md` section as the release notes. A dry run stops after uploading to Test PyPI.
+    The workflow checks that the version tag matches `pyproject.toml`, that `HISTORY.md` has a section for it, that it isn't already released, and that any existing tag for it points at the commit being released. It then builds the package, uploads it to Test PyPI, creates a draft GitHub release with that `HISTORY.md` section as the release notes, uploads the package to PyPI, publishes the GitHub release and its tag, and publishes the docs as the new stable version. If the `pypi` environment requires reviewers, the upload to PyPI waits for approval.
 
-3. Go to the [`docs-publish` workflow](https://github.com/drivendataorg/cloudpathlib/actions/workflows/docs-publish.yml) in the Actions tab and click "Run workflow". Keep "Use workflow from" on `master`, set "Deploy as" to `version`, check "Deploy as stable", and click "Run workflow". This publishes the docs as the new stable version.
+If a job fails, fix the cause and click "Re-run failed jobs" on the workflow run. Jobs that succeeded aren't repeated, and the rerun uses the same built package. If only the docs job failed, the release itself is already complete.
 
-    With the GitHub CLI instead:
+To test changes to the workflow, check "Dry run" (or pass `-f dry-run=true`). A dry run stops after uploading to Test PyPI, and reports conflicts with an existing tag or release as warnings, so it can run with the current version.
 
-    ```bash
-    gh workflow run docs-publish.yml --ref master -f deploy-as=version -f is-stable=true
-    ```
+To publish the docs without a release, run the [`docs-publish` workflow](https://github.com/drivendataorg/cloudpathlib/actions/workflows/docs-publish.yml). Pushes to `master` publish the docs as `latest` automatically.
 
 ## Governance
 

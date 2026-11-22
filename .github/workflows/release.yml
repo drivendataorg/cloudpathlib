@@ -19,9 +19,13 @@ concurrency:
 
 permissions: {}
 
+defaults:
+  run:
+    shell: bash  # Adds -o pipefail
+
 jobs:
   check-version:
-    name: Check metadata version is correct
+    name: Check version, tag, and release
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -42,6 +46,28 @@ jobs:
           echo "Package version: [$PACKAGE_VERSION]"
           [[ ${INPUTS_VERSION} == "v$PACKAGE_VERSION" ]] || exit 1
         env:
+          INPUTS_VERSION: ${{ inputs.version }}
+
+      - name: Check the tag and release don't conflict
+        # On a dry run, report conflicts as warnings so the workflow can be tested with a released version.
+        run: |
+          LEVEL=$([[ "${INPUTS_DRY_RUN}" == "true" ]] && echo warning || echo error)
+          # The peeled ^{} entry, which annotated tags have, sorts last and is the commit.
+          TAG_COMMIT=$(git ls-remote --tags origin "refs/tags/${INPUTS_VERSION}" "refs/tags/${INPUTS_VERSION}^{}" | sort -k2 | tail -n1 | cut -f1)
+          if [[ -n "${TAG_COMMIT}" && "${TAG_COMMIT}" != "${GITHUB_SHA}" ]]; then
+            echo "::${LEVEL}::Tag ${INPUTS_VERSION} points at ${TAG_COMMIT}, not ${GITHUB_SHA}. Delete the tag before releasing."
+            FAILED=1
+          fi
+          RELEASE_URL=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/releases" \
+            --jq '.[] | select(.tag_name == env.INPUTS_VERSION and (.draft | not)) | .html_url')
+          if [[ -n "${RELEASE_URL}" ]]; then
+            echo "::${LEVEL}::${INPUTS_VERSION} is already released: ${RELEASE_URL}"
+            FAILED=1
+          fi
+          [[ "${LEVEL}" == "warning" || -z "${FAILED:-}" ]]
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUTS_DRY_RUN: ${{ inputs.dry-run }}
           INPUTS_VERSION: ${{ inputs.version }}
 
   extract-changelog:
@@ -109,7 +135,7 @@ jobs:
     name: Upload package to Test PyPI
     needs: build-and-inspect-package
     runs-on: ubuntu-latest
-    environment: release  # Required for PyPI trusted publishing
+    environment: testpypi  # Required for PyPI trusted publishing
     permissions:
       id-token: write  # Required for PyPI trusted publishing
 
@@ -125,31 +151,9 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           skip-existing: true
 
-  upload-to-prod-pypi:
-    name: Upload package to Prod PyPI
+  create-draft-release:
+    name: Create draft GitHub release
     needs: upload-to-test-pypi
-    if: ${{ !inputs.dry-run }}
-    runs-on: ubuntu-latest
-    environment: release  # Required for PyPI trusted publishing
-    permissions:
-      id-token: write  # Required for PyPI trusted publishing
-
-    steps:
-      - name: Download built artifact to dist/
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: Packages
-          path: dist
-
-      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
-
-  create-github-release:
-    name: Create GitHub release
-    needs: [upload-to-test-pypi, upload-to-prod-pypi]
-    if: ${{ !cancelled()
-            && needs.upload-to-test-pypi.result == 'success'
-            && (needs.upload-to-prod-pypi.result == 'success'
-                || needs.upload-to-prod-pypi.result == 'skipped') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -179,10 +183,25 @@ jobs:
         env:
           INPUTS_VERSION: ${{ inputs.version }}
 
-      - name: Create release
+      - name: Delete leftover draft releases
+        if: ${{ !inputs.dry-run }}
+        run: |
+          gh api --paginate "repos/${GH_REPO}/releases" \
+            --jq '.[] | select(.draft and .tag_name == env.INPUTS_VERSION) | .id' |
+            while read -r RELEASE_ID; do
+              echo "Deleting draft release ${RELEASE_ID}"
+              gh api --method DELETE "repos/${GH_REPO}/releases/${RELEASE_ID}"
+            done
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          INPUTS_VERSION: ${{ inputs.version }}
+
+      - name: Create draft release
         if: ${{ !inputs.dry-run }}
         run: |
           gh release create "${INPUTS_VERSION}" \
+            --draft \
             --title "${INPUTS_VERSION}" \
             --target "${GITHUB_SHA}" \
             --notes-file __CHANGELOG-extracted.md \
@@ -190,6 +209,95 @@ jobs:
             ./dist/*.tar.gz
         env:
           GH_REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           INPUTS_VERSION: ${{ inputs.version }}
 
+  upload-to-prod-pypi:
+    name: Upload package to Prod PyPI
+    needs: create-draft-release
+    if: ${{ !inputs.dry-run }}
+    runs-on: ubuntu-latest
+    environment: pypi  # Required for PyPI trusted publishing
+    permissions:
+      id-token: write  # Required for PyPI trusted publishing
+
+    steps:
+      - name: Download built artifact to dist/
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: Packages
+          path: dist
+
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+
+  publish-github-release:
+    name: Publish GitHub release
+    needs: upload-to-prod-pypi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download built artifact to dist/
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: Packages
+          path: dist
+
+      - name: Check the draft release matches the built package
+        id: check-draft
+        run: |
+          TAG_COMMIT=$(git ls-remote --tags "https://github.com/${GH_REPO}.git" "refs/tags/${INPUTS_VERSION}" "refs/tags/${INPUTS_VERSION}^{}" | sort -k2 | tail -n1 | cut -f1)
+          if [[ -n "${TAG_COMMIT}" && "${TAG_COMMIT}" != "${GITHUB_SHA}" ]]; then
+            echo "::error::Tag ${INPUTS_VERSION} points at ${TAG_COMMIT}, not ${GITHUB_SHA}."
+            exit 1
+          fi
+
+          DRAFTS=$(gh api --paginate "repos/${GH_REPO}/releases" \
+            --jq '.[] | select(.draft and .tag_name == env.INPUTS_VERSION)' | jq --slurp .)
+          if [[ $(jq length <<< "${DRAFTS}") != 1 ]]; then
+            echo "::error::Expected one draft release for ${INPUTS_VERSION}, found $(jq length <<< "${DRAFTS}")."
+            exit 1
+          fi
+          DRAFT_TARGET=$(jq -r '.[0].target_commitish' <<< "${DRAFTS}")
+          if [[ "${DRAFT_TARGET}" != "${GITHUB_SHA}" ]]; then
+            echo "::error::Draft release targets ${DRAFT_TARGET}, not ${GITHUB_SHA}."
+            exit 1
+          fi
+
+          EXPECTED_ASSETS=$(cd dist && for f in *.whl *.tar.gz; do echo "${f} sha256:$(sha256sum "${f}" | cut -d' ' -f1)"; done | sort)
+          DRAFT_ASSETS=$(jq -r '.[0].assets[] | "\(.name) \(.digest)"' <<< "${DRAFTS}" | sort)
+          if [[ "${DRAFT_ASSETS}" != "${EXPECTED_ASSETS}" ]]; then
+            echo "::error::Draft release assets don't match the built package."
+            diff <(echo "${EXPECTED_ASSETS}") <(echo "${DRAFT_ASSETS}") || true
+            exit 1
+          fi
+
+          echo "release-id=$(jq -r '.[0].id' <<< "${DRAFTS}")" | tee -a "${GITHUB_OUTPUT}"
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          INPUTS_VERSION: ${{ inputs.version }}
+
+      - name: Publish release
+        run: |
+          gh api --method PATCH "repos/${GH_REPO}/releases/${RELEASE_ID}" -F draft=false --jq .html_url
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ steps.check-draft.outputs.release-id }}
+
+  publish-docs:
+    name: Publish stable docs
+    needs: publish-github-release
+    permissions:
+      contents: write
+      deployments: write
+      statuses: write
+    uses: $/.github/workflows/docs-publish.yml
+    with:
+      deploy-as: version
+      is-stable: true
+    secrets:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

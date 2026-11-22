@@ -20,6 +20,25 @@ on:
         type: string
         description: Version format
         default: "v{major_minor_version}"
+  workflow_call:
+    inputs:
+      deploy-as:
+        type: string
+        description: Deploy as (latest or version)
+        default: latest
+      is-stable:
+        type: boolean
+        description: Deploy as stable
+        default: false
+      version-format:
+        type: string
+        description: Version format
+        default: "v{major_minor_version}"
+    secrets:
+      NETLIFY_AUTH_TOKEN:
+        required: true
+      NETLIFY_SITE_ID:
+        required: true
 
 concurrency:
   group: docs-publish
@@ -36,7 +55,7 @@ jobs:
 
     steps:
       - name: Fail if deploying as latest but marked as stable
-        if: github.event.inputs.deploy-as == 'latest' && github.event.inputs.is-stable == 'true'
+        if: inputs.deploy-as == 'latest' && inputs.is-stable
         run: |
           echo "Error: Cannot deploy as 'latest' when 'is-stable' is true."
           exit 1
@@ -73,14 +92,14 @@ jobs:
           git fetch origin gh-pages --depth=1
 
       - name: Deploy as latest
-        if: github.event.inputs.deploy-as == 'latest' || github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.deploy-as == 'latest'
         working-directory: docs/
         run: |
           mike deploy ~latest --title=latest
 
       - name: Get version tag
         id: get-version-tag
-        if: github.event.inputs.deploy-as == 'version'
+        if: inputs.deploy-as == 'version'
         run: |
           VERSION_TAG=$(vspect read . "${VERSION_FORMAT}")
           echo "VERSION_TAG=${VERSION_TAG}" | tee -a "$GITHUB_OUTPUT"
@@ -88,7 +107,7 @@ jobs:
           VERSION_FORMAT: ${{ inputs.version-format }}
 
       - name: Deploy as version
-        if: github.event.inputs.deploy-as == 'version'
+        if: inputs.deploy-as == 'version'
         working-directory: docs/
         run: |
           TITLE=$(vspect read .. "v{version}")
@@ -97,7 +116,7 @@ jobs:
           TAG: ${{ steps.get-version-tag.outputs.VERSION_TAG }}
 
       - name: Assign stable alias
-        if: github.event.inputs.is-stable == 'true'
+        if: inputs.is-stable
         working-directory: docs/
         run: |
           # Remove "(stable)" from the title of the current stable version
