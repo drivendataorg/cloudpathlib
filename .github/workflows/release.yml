@@ -125,6 +125,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      release-id: ${{ steps.get-release-id.outputs.release-id }}
 
     steps:
       - name: Download built artifact to dist/
@@ -174,7 +176,6 @@ jobs:
           INPUTS_VERSION: ${{ inputs.version }}
 
       - name: Create draft release
-        if: ${{ !inputs.dry-run }}
         run: |
           gh release create "${INPUTS_VERSION}" \
             --draft \
@@ -187,6 +188,39 @@ jobs:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
           INPUTS_VERSION: ${{ inputs.version }}
+
+      - name: Get draft release ID
+        id: get-release-id
+        # The releases list can take a few seconds to include a new draft.
+        run: |
+          for _ in {1..10}; do
+            RELEASE_ID=$(gh api --paginate "repos/${GH_REPO}/releases" \
+              --jq '.[] | select(.draft and .tag_name == env.INPUTS_VERSION) | .id')
+            [[ -n "${RELEASE_ID}" ]] && break
+            sleep 3
+          done
+          if [[ -z "${RELEASE_ID}" ]]; then
+            echo "::error::Draft release for ${INPUTS_VERSION} not found after creating it."
+            exit 1
+          fi
+          if [[ $(wc -l <<< "${RELEASE_ID}") != 1 ]]; then
+            echo "::error::Found more than one draft release for ${INPUTS_VERSION}: ${RELEASE_ID//$'\n'/, }"
+            exit 1
+          fi
+          echo "release-id=${RELEASE_ID}" | tee -a "${GITHUB_OUTPUT}"
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          INPUTS_VERSION: ${{ inputs.version }}
+
+      - name: Delete draft release (dry run)
+        if: ${{ always() && inputs.dry-run && steps.get-release-id.outputs.release-id != '' }}
+        run: |
+          gh api --method DELETE "repos/${GH_REPO}/releases/${RELEASE_ID}"
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ steps.get-release-id.outputs.release-id }}
 
   upload-to-test-pypi:
     name: Upload package to Test PyPI
@@ -228,51 +262,20 @@ jobs:
 
   publish-github-release:
     name: Publish GitHub release
-    needs: upload-to-prod-pypi
+    needs: [create-draft-release, upload-to-prod-pypi]
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
-      - name: Download built artifact to dist/
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: Packages
-          path: dist
-
-      - name: Check the draft release matches the built package
-        id: check-draft
+      - name: Check the tag doesn't exist
         run: |
-          TAG_REF=$(git ls-remote --tags "https://github.com/${GH_REPO}.git" "refs/tags/${INPUTS_VERSION}")
+          TAG_REF=$(git ls-remote --tags "https://github.com/${GITHUB_REPOSITORY}.git" "refs/tags/${INPUTS_VERSION}")
           if [[ -n "${TAG_REF}" ]]; then
             echo "::error::Tag ${INPUTS_VERSION} already exists."
             exit 1
           fi
-
-          DRAFTS=$(gh api --paginate "repos/${GH_REPO}/releases" \
-            --jq '.[] | select(.draft and .tag_name == env.INPUTS_VERSION)' | jq --slurp .)
-          if [[ $(jq length <<< "${DRAFTS}") != 1 ]]; then
-            echo "::error::Expected one draft release for ${INPUTS_VERSION}, found $(jq length <<< "${DRAFTS}")."
-            exit 1
-          fi
-          DRAFT_TARGET=$(jq -r '.[0].target_commitish' <<< "${DRAFTS}")
-          if [[ "${DRAFT_TARGET}" != "${GITHUB_SHA}" ]]; then
-            echo "::error::Draft release targets ${DRAFT_TARGET}, not ${GITHUB_SHA}."
-            exit 1
-          fi
-
-          EXPECTED_ASSETS=$(cd dist && for f in *.whl *.tar.gz; do echo "${f} sha256:$(sha256sum "${f}" | cut -d' ' -f1)"; done | sort)
-          DRAFT_ASSETS=$(jq -r '.[0].assets[] | "\(.name) \(.digest)"' <<< "${DRAFTS}" | sort)
-          if [[ "${DRAFT_ASSETS}" != "${EXPECTED_ASSETS}" ]]; then
-            echo "::error::Draft release assets don't match the built package."
-            diff <(echo "${EXPECTED_ASSETS}") <(echo "${DRAFT_ASSETS}") || true
-            exit 1
-          fi
-
-          echo "release-id=$(jq -r '.[0].id' <<< "${DRAFTS}")" | tee -a "${GITHUB_OUTPUT}"
         env:
-          GH_REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ github.token }}
           INPUTS_VERSION: ${{ inputs.version }}
 
       - name: Publish release
@@ -281,7 +284,7 @@ jobs:
         env:
           GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
-          RELEASE_ID: ${{ steps.check-draft.outputs.release-id }}
+          RELEASE_ID: ${{ needs.create-draft-release.outputs.release-id }}
 
   publish-docs:
     name: Publish stable docs
