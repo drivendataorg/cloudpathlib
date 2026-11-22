@@ -25,7 +25,7 @@ defaults:
 
 jobs:
   check-version:
-    name: Check version, tag, and release
+    name: Check version and tag
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -48,25 +48,18 @@ jobs:
         env:
           INPUTS_VERSION: ${{ inputs.version }}
 
-      - name: Check the tag and release don't conflict
-        # On a dry run, report conflicts as warnings so the workflow can be tested with a released version.
+      - name: Check the tag doesn't exist
         run: |
-          LEVEL=$([[ "${INPUTS_DRY_RUN}" == "true" ]] && echo warning || echo error)
-          # The peeled ^{} entry, which annotated tags have, sorts last and is the commit.
-          TAG_COMMIT=$(git ls-remote --tags origin "refs/tags/${INPUTS_VERSION}" "refs/tags/${INPUTS_VERSION}^{}" | sort -k2 | tail -n1 | cut -f1)
-          if [[ -n "${TAG_COMMIT}" && "${TAG_COMMIT}" != "${GITHUB_SHA}" ]]; then
-            echo "::${LEVEL}::Tag ${INPUTS_VERSION} points at ${TAG_COMMIT}, not ${GITHUB_SHA}. Delete the tag before releasing."
-            FAILED=1
+          TAG_REF=$(git ls-remote --tags origin "refs/tags/${INPUTS_VERSION}")
+          if [[ -n "${TAG_REF}" ]]; then
+            if [[ "${INPUTS_DRY_RUN}" == "true" ]]; then
+              echo "::warning::Tag ${INPUTS_VERSION} already exists."
+            else
+              echo "::error::Tag ${INPUTS_VERSION} already exists. If it isn't from a published release, delete it and rerun."
+              exit 1
+            fi
           fi
-          RELEASE_URL=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/releases" \
-            --jq '.[] | select(.tag_name == env.INPUTS_VERSION and (.draft | not)) | .html_url')
-          if [[ -n "${RELEASE_URL}" ]]; then
-            echo "::${LEVEL}::${INPUTS_VERSION} is already released: ${RELEASE_URL}"
-            FAILED=1
-          fi
-          [[ "${LEVEL}" == "warning" || -z "${FAILED:-}" ]]
         env:
-          GH_TOKEN: ${{ github.token }}
           INPUTS_DRY_RUN: ${{ inputs.dry-run }}
           INPUTS_VERSION: ${{ inputs.version }}
 
@@ -247,9 +240,9 @@ jobs:
       - name: Check the draft release matches the built package
         id: check-draft
         run: |
-          TAG_COMMIT=$(git ls-remote --tags "https://github.com/${GH_REPO}.git" "refs/tags/${INPUTS_VERSION}" "refs/tags/${INPUTS_VERSION}^{}" | sort -k2 | tail -n1 | cut -f1)
-          if [[ -n "${TAG_COMMIT}" && "${TAG_COMMIT}" != "${GITHUB_SHA}" ]]; then
-            echo "::error::Tag ${INPUTS_VERSION} points at ${TAG_COMMIT}, not ${GITHUB_SHA}."
+          TAG_REF=$(git ls-remote --tags "https://github.com/${GH_REPO}.git" "refs/tags/${INPUTS_VERSION}")
+          if [[ -n "${TAG_REF}" ]]; then
+            echo "::error::Tag ${INPUTS_VERSION} already exists."
             exit 1
           fi
 

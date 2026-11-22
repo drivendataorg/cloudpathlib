@@ -584,11 +584,11 @@ Maintainers release new versions with the [`release`](.github/workflows/release.
     gh workflow run release.yml --ref master -f version=v0.27.0
     ```
 
-    The workflow checks that the version tag matches `pyproject.toml`, that `HISTORY.md` has a section for it, that it isn't already released, and that any existing tag for it points at the commit being released. It then builds the package, uploads it to Test PyPI, creates a draft GitHub release with that `HISTORY.md` section as the release notes, uploads the package to PyPI, publishes the GitHub release and its tag, and publishes the docs as the new stable version. If the `pypi` environment requires reviewers, the upload to PyPI waits for approval.
+    The workflow checks that the version tag matches `pyproject.toml`, that `HISTORY.md` has a section for it, and that its tag doesn't exist yet, since the workflow creates the tag itself. It then builds the package, uploads it to Test PyPI, creates a draft GitHub release with that `HISTORY.md` section as the release notes, uploads the package to PyPI, publishes the GitHub release and its tag, and publishes the docs as the new stable version. If the `pypi` environment requires reviewers, the upload to PyPI waits for approval.
 
 If a job fails, fix the cause and click "Re-run failed jobs" on the workflow run. Jobs that succeeded aren't repeated, and the rerun uses the same built package. If only the docs job failed, the release itself is already complete.
 
-To test changes to the workflow, check "Dry run" (or pass `-f dry-run=true`). A dry run stops after uploading to Test PyPI, and reports conflicts with an existing tag or release as warnings, so it can run with the current version.
+To test changes to the workflow, check "Dry run" (or pass `-f dry-run=true`). A dry run stops after uploading to Test PyPI, and reports an existing tag as a warning, so it can run with the current version.
 
 To publish the docs without a release, run the [`docs-publish` workflow](https://github.com/drivendataorg/cloudpathlib/actions/workflows/docs-publish.yml). Pushes to `master` publish the docs as `latest` automatically.
 
