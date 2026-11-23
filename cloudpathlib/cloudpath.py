@@ -1785,9 +1785,14 @@ class CloudPath(metaclass=CloudPathMeta):
             self._local, force_overwrite_to_cloud=force_overwrite_to_cloud
         )
 
-        # force cache time to match cloud times
-        stats = self.stat()
-        os.utime(self._local, times=(stats.st_mtime, stats.st_mtime))
+        # force cache time to match cloud times; if the cloud won't tell us (e.g., the caller
+        # can write but not read), skip this and keep the local time rather than failing a
+        # write that already succeeded
+        try:
+            stats = self.stat()
+            os.utime(self._local, times=(stats.st_mtime, stats.st_mtime))
+        except NoStatError:
+            pass
 
         # reset dirty and handle now that this is uploaded
         self._dirty = False

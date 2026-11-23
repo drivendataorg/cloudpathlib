@@ -173,6 +173,10 @@ class MockObjects:
     def filter(self, Prefix=""):
         path = self.root / Prefix
 
+        # pathlib drops a trailing slash, but in S3 the prefix "key/" never matches the object "key"
+        if path.is_file() and Prefix.endswith("/"):
+            return MockCollection([], self.root, session=self.session)
+
         if path.is_file():
             return MockCollection([path], self.root, session=self.session)
 

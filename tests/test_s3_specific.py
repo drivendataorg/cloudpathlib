@@ -601,3 +601,55 @@ def test_mrap_local_path_windows_encoding(monkeypatch, s3_rig):
     local_no_drive = str(p._local)[len(p._local.drive) :]
     assert ":" not in local_no_drive, f"Colon found in local path on simulated Windows: {p._local}"
     assert "%3A" in local_no_drive
+
+
+def test_open_write_without_get_object_permission(s3_rig):
+    """Writing a new key works when the caller has s3:PutObject and s3:ListBucket but not s3:GetObject."""
+    p = s3_rig.create_cloud_path("dir_0/new_write_only_file.txt")
+    real_head_object = p.client.client.head_object
+
+    def head_object_without_get(Bucket, Key, **kwargs):
+        """Mimic S3: 404 while the key is missing, 403 once it exists (HeadObject needs GetObject)."""
+        try:
+            real_head_object(Bucket=Bucket, Key=Key, **kwargs)
+        except botocore.exceptions.ClientError:
+            # key is missing: with s3:ListBucket, S3 reports a plain 404
+            raise
+
+        raise botocore.exceptions.ClientError(
+            {
+                "Error": {"Code": "403", "Message": "Forbidden"},
+                "ResponseMetadata": {"HTTPStatusCode": 403},
+            },
+            "HeadObject",
+        )
+
+    with patch.object(p.client.client, "head_object", side_effect=head_object_without_get):
+        with p.open("w") as f:
+            f.write("written without read permission")
+
+    # the write landed in the mock bucket even though the caller could not read it back
+    assert p.client.client.root.joinpath(p.key).read_text() == "written without read permission"
+
+
+def test_overwrite_without_get_object_permission(s3_rig):
+    """Overwriting an existing key works when the caller has s3:PutObject and s3:ListBucket but not s3:GetObject."""
+    p = s3_rig.create_cloud_path("dir_0/file0_0.txt")
+
+    # the key exists, so HeadObject (which needs s3:GetObject) is denied with a 403
+    access_denied = botocore.exceptions.ClientError(
+        {
+            "Error": {"Code": "403", "Message": "Forbidden"},
+            "ResponseMetadata": {"HTTPStatusCode": 403},
+        },
+        "HeadObject",
+    )
+
+    with patch.object(p.client.client, "head_object", side_effect=access_denied):
+        with p.open("w") as f:
+            f.write("overwritten without read permission")
+
+    # read the mock bucket's file directly because read_text() would hit the 403 as well
+    assert (
+        p.client.client.root.joinpath(p.key).read_text() == "overwritten without read permission"
+    )
