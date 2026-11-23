@@ -75,6 +75,12 @@ class S3Path(CloudPath):
                 raise NoStatError(
                     f"No stats available for {self}; it may be a directory or not exist."
                 )
+            # HeadObject needs s3:GetObject, so a caller who can only write gets a 403;
+            # treat it as "no stats" and let the real read or write surface any access error
+            if error_info.get("Code") in ("403", "AccessDenied") or status_code == 403:
+                raise NoStatError(
+                    f"No stats available for {self}; access was denied reading its metadata."
+                ) from error
             raise
 
         return os.stat_result(

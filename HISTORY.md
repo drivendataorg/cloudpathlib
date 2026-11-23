@@ -12,6 +12,8 @@
 
 - Fixed direct S3 and GCS client construction without the optional cloud SDK to raise `MissingDependenciesError` with the appropriate install command instead of `NameError`. (Issue [#441](https://github.com/drivendataorg/cloudpathlib/issues/441), PR [#601](https://github.com/drivendataorg/cloudpathlib/pull/601))
 
+- Fixed `S3Path.open("w")` failing for callers who have `s3:PutObject` and `s3:ListBucket` but not `s3:GetObject`. `S3Path.stat()` now raises `NoStatError` (with the original `ClientError` as its `__cause__`) when S3 denies the metadata request with a 403, so the cache check treats the file as unreadable instead of failing, and a write no longer raises on close after it has uploaded. Callers with only `s3:PutObject` are not covered by this change. (Issue [#473](https://github.com/drivendataorg/cloudpathlib/issues/473))
+
 ## v0.26.0 (2026-10-01)
 
 - Added support for Python 3.15: `CloudPath.mkdir(parent_mode=...)` works across providers, and cloud paths can be pickled repeatedly without a `ParseResult` error. (Issue [#593](https://github.com/drivendataorg/cloudpathlib/issues/593), PR [#594](https://github.com/drivendataorg/cloudpathlib/pull/594))
